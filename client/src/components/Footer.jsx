@@ -6,7 +6,7 @@ const Footer = () => {
 
   return (
     <footer className='flex flex-col items-center w-full'>
-      <div className="grid lg:grid-cols-4 md:grid-cols-3 items-start w-9/10 py-10">
+      <div className="grid lg:grid-cols-4 md:grid-cols-3 items-start w-9/10 pt-10">
         <div className="mb-5">
           <h3 className='mb-4'>Registered Office Address</h3>
           <ul className='capitalize'>
@@ -60,7 +60,7 @@ const Footer = () => {
           </ul>
         </div>  
       </div>
-      <div className="w-9/10 flex flex-col md:flex-row items-center justify-between py-10 text-sm text-neutral-400">
+      <div className="w-9/10 flex flex-col md:flex-row items-center justify-between md:px-9 py-5 text-sm text-neutral-400">
         <span>In case of any concern, <Link to={"#"}>Contact Us</Link></span>
         <span>© 2025 www.hijazi.in. All rights reserved.</span>
       </div>     

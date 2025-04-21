@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { BsBag } from "react-icons/bs";
 import { BiUser } from "react-icons/bi";
 import { BsHeart } from "react-icons/bs";
@@ -27,6 +27,7 @@ const Navbar = () => {
   const [expandedMenu, setExpandedMenu] = useState(null);
   const [isExpaned, setIsExpanded] = useState(false);
   const menuRefs = useRef({});
+  const navigate = useNavigate();
 
   /* for smooth animation on submenu expand - mobile */
   useEffect(() => {
@@ -61,12 +62,12 @@ const Navbar = () => {
           </ul>
 
           {/* search-bar */}
-          <div className="hidden md:flex border border-neutral-300 items-center overflow-hidden rounded-3xl w-4/10 gap-2 my-2">
-            <div className='bg-neutral-100 h-full w-12 flex items-center justify-center'>
+          <search className="hidden md:flex border border-primary-50 items-center overflow-hidden rounded-3xl w-4/10 gap-1 my-2">
+            <div className='bg-primary-50 h-full w-14 flex items-center justify-center'>
               <BiSearch size={25} className='text-neutral-400' />
             </div>
-            <input type="text" placeholder='Search' className='w-full border-noned outline-none text-base px-3 py-2' />
-          </div>
+            <input type="text" placeholder='Search' className='w-full border-0! outline-0! text-base px-3 py-2' />
+          </search>
 
           {/* wishlist & cart */}
           <ul className="flex flex-row items-center justify-between w-3/10 md:w-2/10">
@@ -117,7 +118,7 @@ const Navbar = () => {
                 
                 {/* search-bar */}
                 <div className="flex border border-neutral-400 items-center overflow-hidden rounded-3xl gap-2 my-2">
-                  <input type="text" placeholder='Search' className='w-full border-noned outline-none text-base px-5 py-2' />
+                  <input type="text" placeholder='Search' className='w-full border-0! outline-0! text-base px-5 py-2' />
                   <div className='h-full w-12 flex items-center justify-center'>
                     <BiSearch size={25} className='text-neutral-400' />
                   </div>
@@ -155,6 +156,18 @@ const Navbar = () => {
                       </li>
                     )
                   }
+                </ul>
+
+                {/* Other options */}
+                <ul className='mt-20'>
+                  <li className='flex items-center gap-2 cursor-pointer hover:text-primary-300'
+                    onClick={()=> {
+                      navigate('/register');
+                      setIsExpanded(false)
+                    }}>
+                    <BiUser size={18} />
+                    <span>Login / SignUp</span>
+                  </li>
                 </ul>
 
               </div>
