@@ -24,19 +24,19 @@ const Footer = () => {
         <div className="mb-5">
           <h3 className='mb-4'>About</h3>
           <ul className="capitalize flex flex-col">
-            <li className='py-1 cursor-pointer transition ease-in duration-200 hover:translate-x-1 hover:text-(--primary-300)'>
+            <li className='py-1 cursor-pointer transition ease-in duration-200 hover:translate-x-1 hover:text-primary-300'>
               about us
               </li>
-            <li className='py-1 cursor-pointer transition ease-in duration-200 hover:translate-x-1 hover:text-(--primary-300)'>
+            <li className='py-1 cursor-pointer transition ease-in duration-200 hover:translate-x-1 hover:text-primary-300'>
               delivery information
               </li>
-            <li className='py-1 cursor-pointer transition ease-in duration-200 hover:translate-x-1 hover:text-(--primary-300)'>
+            <li className='py-1 cursor-pointer transition ease-in duration-200 hover:translate-x-1 hover:text-primary-300'>
               privacy policy
               </li>
-            <li className='py-1 cursor-pointer transition ease-in duration-200 hover:translate-x-1 hover:text-(--primary-300)'>
+            <li className='py-1 cursor-pointer transition ease-in duration-200 hover:translate-x-1 hover:text-primary-300'>
               terms & conditions
               </li>
-            <li className='py-1 cursor-pointer transition ease-in duration-200 hover:translate-x-1 hover:text-(--primary-300)'>
+            <li className='py-1 cursor-pointer transition ease-in duration-200 hover:translate-x-1 hover:text-primary-300'>
               contact us
               </li>
           </ul>
@@ -44,7 +44,7 @@ const Footer = () => {
         <div className="mb-5">
           <h3 className='mb-4'>My Account</h3>
           <ul>
-            <li className='py-1 cursor-pointer transition ease-in duration-200 hover:translate-x-1 hover:text-(--primary-300)'>Sign in</li>
+            <li className='py-1 cursor-pointer transition ease-in duration-200 hover:translate-x-1 hover:text-primary-300'>Sign in</li>
           </ul>
         </div>
         <div className="mb-5">
