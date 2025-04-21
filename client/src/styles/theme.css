@@ -1,0 +1,9 @@
+@theme{
+  --font-lato: "Lato", sans-serif;
+  --font-spartan: "Spartan", sans-serif;
+
+  --color-primary-300: oklch(75% 0.1065 188.73);
+  --color-primary-50: oklch(0.94 0.0379 157.41);
+  --color-primary-light-1: #d8f4e2;
+  --color-gray-50: oklch(0.984 0.003 247.858);
+}

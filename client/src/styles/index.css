@@ -1,0 +1,21 @@
+@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;0,900;1,300;1,400;1,700;1,900&amp;display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Spartan:wght@300;400;500;600;700&amp;display=swap");
+@import "tailwindcss";
+@tailwind utilities;
+@import "./theme.css";
+
+body {
+  color: #4f5d77;
+  font-family: var(--font-lato);
+  font-size: 14px;
+  line-height: 24px;
+  font-style: normal;
+  font-weight: 400;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Spartan", sans-serif;
+  color: #222222;
+  font-weight: 600;
+  line-height: 1.2;
+}
