@@ -56,3 +56,28 @@ button:hover{
   background-color:  var(--color-teal-700);
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
 }
+
+.account-dropdown{
+  transition: all 0.3s ease;
+  transform: translateY(-10px);
+}
+
+.account-nav:hover .account-dropdown{
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.menu-indicator{
+  transition: all 0.3s ease;
+  transform: translateY(-5px);
+  opacity: 0;
+  position: absolute;
+  bottom: -3px;
+  border-radius: 10px;
+}
+
+.account-nav:hover .menu-indicator{
+  transform: translateY(0);
+  opacity: 1;
+}

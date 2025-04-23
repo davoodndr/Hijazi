@@ -3,16 +3,74 @@ import welcome from '../../../assets/welcome_to_shop.jpg'
 import googleLogo from '../../../assets/google-logo.svg'
 import { LuEyeClosed } from "react-icons/lu";
 import { LuEye } from "react-icons/lu";
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
+import toast from 'react-hot-toast';
+import { Axios } from '../../../utils/AxiosSetup';
+import ApiBucket from '../../../services/ApiBucket'
+import AxiosToast from '../../../utils/AxiosToast'
 
 const Register = () => {
+
+  const navigate = useNavigate();
   const [passwordShowing, setPasswordShowing] = useState(false);
   const [confirmShowing, setConfirmShowing] = useState(false);
+  const [data, setData] = useState({
+    username: '', email:'', password:'', confirm: ''
+  })
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setData(prev => {
+      return {
+        ...prev,
+        [name] : value
+      }
+    })
+  }
+
+  const validateValues = Object.values(data).every(el => el);
+
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+    
+    if(validateValues){
+
+      if(data.password !== data.confirm){
+        toast.error("Password doesn't match");
+        return;
+      }
+
+      try {
+          
+        const response = await Axios({
+          ...ApiBucket.register,
+          data
+        })
+
+        console.log(response)
+
+        if(response.data.success){
+
+          AxiosToast(response,false);
+          setData({
+            username: '', email: '', password: '', confirm: ''
+          });
+          navigate('/login')
+        }
+
+      } catch (error) {
+        AxiosToast(error)
+      }
+
+    }else{
+      toast.error("Please fill all fields");
+    }
+  }
 
   return (
-    <main className='flex flex-col w-full h-full bg-primary-25 items-center justify-center'>
+    <main className='flex flex-col w-full h-full bg-primary-50 items-center justify-center'>
       <div className='bg-white from-primary-300 to-primary-50 shadow-xl border border-primary-50 
-        md:w-7/10 md:h-screen mx-2 md:mx-0 my-10 p-2 rounded-4xl flex flex-col md:flex-row gap-10 overflow-hidden items-stretch'>
+        md:w-7/10 md:h-screen mx-2 md:mx-0 my-10 p-2 rounded-4xl flex flex-col md:flex-row gap-5 overflow-hidden items-stretch'>
       
         {/* image */}
         <div className='flex w-full md:w-6/10 h-full'>
@@ -21,24 +79,27 @@ const Register = () => {
 
         {/* form inputs */}
         <div className='flex flex-col items-center justify-between w-full md:w-4/10'>
-          <form className='border-neutral-200 w-full p-6 md:pb-2 flex flex-col gap-3'>
+          <form onSubmit={handleSubmit} className='border-neutral-200 w-full p-6 md:pb-2 flex flex-col gap-3'>
             <div>
               <p className='text-center text-2xl'>Create an account</p>
               <p className='text-center text-xs mb-5'>Sign up and get an account</p>
             </div>
             <div className='flex flex-col'>
               <label htmlFor="">User name</label>
-              <input type="text" placeholder='Enter username' />
+              <input type="text" name='username' value={data.username} onChange={handleChange} placeholder='Enter username' />
             </div>
             <div className='flex flex-col'>
               <label htmlFor="">Email</label>
-              <input type="email" placeholder='Enter email address' />
+              <input type="email" name='email' value={data.email} onChange={handleChange} placeholder='Enter email address' />
             </div>
             <div className='flex flex-col'>
               <label htmlFor="">Password</label>
               <div className='flex items-center border border-neutral-200 focus-within:border-primary-300 
                 rounded-input-border transition-colors duration-300'>
-                <input type={`${passwordShowing ? 'text' : 'password'}`} className='border-0!' placeholder='Enter password' />
+
+                <input type={`${passwordShowing ? 'text' : 'password'}`} className='border-0!'
+                   name='password' value={data.password} onChange={handleChange} placeholder='Enter password' />
+
                 <div onClick={() => setPasswordShowing(!passwordShowing)} className='inline-flex items-center h-full px-2 cursor-pointer'>
                   {passwordShowing ?
                     (<LuEye size={20} className='transition-colors duration-300 text-neutral-400 hover:text-primary-300' />)
@@ -52,7 +113,10 @@ const Register = () => {
               <label htmlFor="">Confirm</label>
               <div className='flex items-center border border-neutral-200 focus-within:border-primary-300 
                 rounded-input-border transition-colors duration-300'>
-                <input type={`${confirmShowing ? 'text' : 'password'}`} className='border-0!' placeholder='Re-enter password' />
+
+                <input type={`${confirmShowing ? 'text' : 'password'}`} className='border-0!'
+                   name='confirm' value={data.confirm} onChange={handleChange} placeholder='Re-enter password' />
+
                 <div onClick={() => setConfirmShowing(!confirmShowing)} className='inline-flex items-center h-full px-2 cursor-pointer'>
                   {confirmShowing ?
                     (<LuEye size={20} className='transition-colors duration-300 text-neutral-400 hover:text-primary-300' />)
@@ -63,7 +127,7 @@ const Register = () => {
               </div>
             </div>
 
-            <button className='mt-5'>Sign Up</button>
+            <button className='mt-5' type='submit'>Sign Up</button>
           </form>
           
           {/* google sign-in */}

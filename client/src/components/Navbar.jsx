@@ -8,8 +8,13 @@ import { RiMenu3Fill } from "react-icons/ri";
 import { IoClose } from "react-icons/io5";
 import { IoIosArrowDown } from "react-icons/io";
 import logo from "../assets/logo.svg"
+import { useSelector } from 'react-redux';
+import AccountDropDown from './AccountDropDown';
 
 const Navbar = () => {
+
+  const { user } = useSelector(state => state.user);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const menus = [
     {label: 'home', href: '/'},
@@ -40,55 +45,77 @@ const Navbar = () => {
     })
   }, [expandedMenu]);
 
+  /* settingup depending on user role */
+  useEffect(() => {
+    if(user?.role === 'user') setCurrentUser(user);
+  },[user])
+
   return (
     <header className="flex flex-col sticky top-0 bg-white">
 
       {/* header middle */}
       <div className='flex flex-row w-full justify-center'>
-        <div className="flex flex-row gap-3 w-9/10 justify-between py-1.5">
+        <div className="flex flex-row w-9/10 justify-between py-1.5">
 
-          {/* logo */}
-          <Link to={'/'}className='w-2/10 md:w-1/10 h-15'>
-            <img src={logo} className='object-contain h-full' alt="logo" />
-          </Link>
+          {/* left side */}
+          <div className='inline-flex items-center w-5/10'>
 
-          {/* main menu */}
-          <ul className="hidden md:flex flex-row items-center w-5/10">
-            <li className='px-5 text-base font-bold'>Home</li>
-            <li className='px-5 text-base font-bold'>About</li>
-            <li className='px-5 text-base font-bold'>Categories</li>
-            <li className='px-5 text-base font-bold'>Policies</li>
-            <li className='px-5 text-base font-bold'>Contact</li>
-          </ul>
+            {/* logo */}
+            <Link to={'/'}className='w-4/8 md:w-2/11 h-15'>
+              <img src={logo} className='object-contain h-full' alt="logo" />
+            </Link>
 
-          {/* search-bar */}
-          <search className="hidden md:flex border border-primary-50 items-center overflow-hidden rounded-3xl w-4/10 gap-1 my-2">
-            <div className='bg-primary-50 h-full w-14 flex items-center justify-center'>
-              <BiSearch size={25} className='text-neutral-400' />
-            </div>
-            <input type="text" placeholder='Search' className='w-full border-0! outline-0! text-base px-3 py-2' />
-          </search>
+            {/* main menu */}
+            <ul className="hidden md:flex flex-row items-center w-full pl-3">
+              <li className='px-5 text-base font-bold'>Home</li>
+              <li className='px-5 text-base font-bold'>About</li>
+              <li className='px-5 text-base font-bold'>Categories</li>
+              <li className='px-5 text-base font-bold'>Policies</li>
+              <li className='px-5 text-base font-bold'>Contact</li>
+            </ul>
+          </div>
 
-          {/* wishlist & cart */}
-          <ul className="flex flex-row items-center justify-between w-3/10 md:w-2/10">
-            <li className='inline-flex flex-col items-end md:items-center px-3 w-3/10'>
-              <BsHeart size={22} />
-              <span className='hidden md:inline-flex text-xs font-semibold'>Wishlist</span>
-            </li>
-            <li className='inline-flex flex-col items-center px-3 w-3/10'>
-              <BsBag size={22}/>
-              <span className='hidden md:inline-flex text-xs font-semibold'>Bag</span>
-            </li>
-            <li className='hidden md:inline-flex flex-col items-center px-3 w-3/10'>
-              <BiUser  size={22}/>
-              <span className='hidden md:inline-flex text-xs font-semibold'>Account</span>
-            </li>
+          {/* right side */}
+          <div className='inline-flex justify-end w-4/8'>
+            {/* search-bar */}
+            <search className="hidden md:flex border border-neutral-200 items-center overflow-hidden 
+              transition-colors duration-300 rounded-3xl w-full me-5 gap-1 my-2 focus-within:border-primary-300">
 
-            {/* menu icon */}
-            <li onClick={() => setIsExpanded(true)} className='inline-flex md:hidden items-center justify-center cursor-pointer w-3/10'>
-              <RiMenu3Fill size={30} className='' />
-            </li>
-          </ul>
+              <div className='bg-primary-50 h-full w-14 flex items-center justify-center'>
+                <BiSearch size={25} className='text-primary-300' />
+              </div>
+              <input type="text" placeholder='Search' className='w-full border-0! outline-0! text-base px-3 py-2' />
+            </search>
+
+            {/* wishlist & cart */}
+            <ul className="flex flex-row items-center justify-end w-full md:w-4/10">
+              <li className='inline-flex h-full flex-col items-center justify-center md:items-center w-13 md:w-3/9'>
+                <BsHeart className='text-3xl md:text-2xl' />
+                <span className='hidden md:inline-flex text-xs font-semibold'>Wishlist</span>
+              </li>
+              <li className='inline-flex h-full flex-col items-center justify-center w-13 md:w-3/9'>
+                <BsBag className='text-3xl md:text-2xl'/>
+                <span className='hidden md:inline-flex text-xs font-semibold'>Bag</span>
+              </li>
+              <li className='account-nav h-full hidden md:inline-flex flex-col items-center justify-center w-13 md:w-3/9 relative cursor-pointer'>
+                <BiUser  className='text-3xl md:text-2xl'/>
+                <div className='hidden md:inline-flex flex-col items-center text-xs font-semibold'>
+                  <span>Account</span>
+                  <div className='menu-indicator h-[3px] w-full bg-primary-300 z-10'></div>
+                </div>
+                
+                {/* account dropdown menu */}
+                <AccountDropDown user={currentUser} />
+              </li>
+
+              {/* menu icon */}
+              <li onClick={() => setIsExpanded(true)} className='inline-flex md:hidden items-center justify-center 
+                cursor-pointer w-fit ms-3 border border-neutral-300 p-1.5 rounded-lg transition-all
+                hover:bg-primary-50 hover:border-primary-300'>
+                <RiMenu3Fill size={35} />
+              </li>
+            </ul>
+          </div>
 
           {/* mobile menu */}
           <div className={`fixed top-0 right-0 w-full h-full backdrop-blur-sm transition-all duration-400 ease-in-out
@@ -162,7 +189,7 @@ const Navbar = () => {
                 <ul className='mt-20'>
                   <li className='flex items-center gap-2 cursor-pointer hover:text-primary-300'
                     onClick={()=> {
-                      navigate('/register');
+                      navigate('/login');
                       setIsExpanded(false)
                     }}>
                     <BiUser size={18} />

@@ -1,10 +1,9 @@
 
-export const responseMessage = (status, success, message = "", data ) => {
+export const responseMessage = (res,status, success, message = "", data = {} ) => {
 
-  return {
-    status,
+  return res.status(status).json({
     success,
     message,
-    data
-  }
+    ...data
+  })
 }
