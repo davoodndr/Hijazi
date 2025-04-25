@@ -4,9 +4,9 @@ import { BiSearch } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
 
 import { BiUser } from "react-icons/bi";
-import logo from "../assets/logo.svg"
-import user_placeholder from "../assets//user_placeholder.jpg"
-import { useLogout } from '../services/hooks';
+import logo from "../../assets/logo.svg"
+import user_placeholder from "../../assets//user_placeholder.jpg"
+import { useLogout } from '../../services/hooks';
 import UserMenus from './UserMenus';
 
 

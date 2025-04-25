@@ -2,10 +2,10 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 import { Navigate } from 'react-router';
 
-const ProtectedRoutes = ({children}) => {
+const UserProtectedRoutes = ({children}) => {
 
   const { user } = useSelector(state => state.user);
-
+  
   if(isLoading) return null
 
   if(!user || !user.role === 'user'){
@@ -15,4 +15,4 @@ const ProtectedRoutes = ({children}) => {
   return children
 }
 
-export default ProtectedRoutes
+export default UserProtectedRoutes

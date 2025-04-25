@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket'
 import AxiosToast from '../../../utils/AxiosToast'
+import { useGoogleAuth } from '../../../services/hooks';
 
 const Register = () => {
 
@@ -47,8 +48,6 @@ const Register = () => {
           data
         })
 
-        console.log(response)
-
         if(response.data.success){
 
           AxiosToast(response,false);
@@ -67,8 +66,11 @@ const Register = () => {
     }
   }
 
+  /* imported hook for google auth */
+    const googleLogin = useGoogleAuth();
+
   return (
-    <main className='flex flex-col w-full h-full bg-primary-50 items-center justify-center'>
+    <main className='flex flex-col w-full h-full bg-green-screen items-center justify-center'>
       <div className='bg-white from-primary-300 to-primary-50 shadow-xl border border-primary-50 
         md:w-7/10 md:h-screen mx-2 md:mx-0 my-10 p-2 rounded-4xl flex flex-col md:flex-row gap-5 overflow-hidden items-stretch'>
       
@@ -136,7 +138,7 @@ const Register = () => {
             <div className='inline-flex w-10 h-10'>
               <img src={googleLogo} alt="google-logo" />
             </div>
-            <span className='text-xs'>Sign in with Google</span>
+            <span className='text-xs' onClick={googleLogin}>Sign in with Google</span>
           </div>
           
           {/* link to sign-in page */}

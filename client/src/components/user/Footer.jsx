@@ -1,5 +1,5 @@
 import React from 'react'
-import payment from '../assets/payment-method.png'
+import payment from '../../assets/payment-method.png'
 import { Link } from 'react-router'
 
 const Footer = () => {

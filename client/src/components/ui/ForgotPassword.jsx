@@ -12,7 +12,7 @@ import ApiBucket from '../../services/ApiBucket';
 import { ClipLoader, MoonLoader } from 'react-spinners'
 import { motion } from 'motion/react'
 
-const ForgotPassword = ({ isOpen, onClose, onConfirm }) => {
+const ForgotPassword = ({ role = 'user', isOpen, onClose, onConfirm }) => {
 
   const [email, setEmail] = useState("");
   const [loading, setIsLoading] = useState(false);
@@ -29,7 +29,7 @@ const ForgotPassword = ({ isOpen, onClose, onConfirm }) => {
 
         const response = await Axios({
           ...ApiBucket.forgotPasswordOtp,
-          data: {email}
+          data: {email, role}
         })
 
         if(response.data.success){

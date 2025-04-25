@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { IoIosArrowDown } from "react-icons/io";
-import menuBanner from "../assets/menu-banner.jpg";
-import { menus } from '../services/FetchDatas';
+import menuBanner from "../../assets/menu-banner.jpg";
+import { menus } from '../../services/FetchDatas';
 
 const UserMenus = ({isMobile = false}) => {
 

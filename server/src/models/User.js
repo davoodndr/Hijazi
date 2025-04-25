@@ -51,7 +51,7 @@ const userSchema = new mongoose.Schema(
 			type: Date,
 			default: "",
 		},
-		role: { type: String, enum: ["user", "admin"], default: "user" },
+		roles: { type: [String], default: ["user"] },
 		wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
 		wallet_balance: { type: Number, default: 0 },
 	},

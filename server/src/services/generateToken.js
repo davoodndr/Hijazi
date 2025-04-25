@@ -4,9 +4,9 @@ import User from '../models/User.js';
 dotenv.config();
 
 // access token
-export const generateAccessToken = async(user_id) => {
+export const generateAccessToken = async(payload) => {
   const token = jwt.sign(
-    {id: user_id},
+    payload,
     process.env.SECRET_KEY_ACCESS_TOKEN,
     {expiresIn: '5h'}
   )

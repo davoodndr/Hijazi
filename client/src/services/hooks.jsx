@@ -35,7 +35,7 @@ export const useLogout = () => {
   return logout;
 }
 
-export const useGoogleAuth = () => {
+export const useGoogleAuth = (role = 'user') => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -50,7 +50,8 @@ export const useGoogleAuth = () => {
           const response = await Axios({
             ...ApiBucket.google,
             data : {
-              code: tokenResponse.code
+              code: tokenResponse.code,
+              role
             }
           })
   

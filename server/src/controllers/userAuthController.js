@@ -5,7 +5,6 @@ import dotenv from "dotenv";
 import { responseMessage } from "../utils/messages.js";
 import { generateAccessToken, generateRefreshToken } from "../services/generateToken.js";
 import { OAuth2Client } from "google-auth-library";
-import nodemailer from "nodemailer";
 import { generateOtp } from '../services/misc.js'
 import { sendMail } from "../services/sendmail.js";
 dotenv.config();
@@ -13,11 +12,10 @@ dotenv.config();
 // register user
 export const registerUser= async(req, res) => {
 
-  const { email, username, password } = req.body;
+  const { email, username, password, roles } = req.body;
 
   try {
     
-    console.log(email, username, password)
     if(!email || !password || !username){
       return responseMessage(res, 400, false, 'Please fill all fields');
     }
@@ -34,14 +32,15 @@ export const registerUser= async(req, res) => {
     let newUser = await new User({
       username,
       email,
-      password: hashedPass
+      password: hashedPass,
+      roles: roles && roles.length ? roles : ['user']
     }).save();
     
 
     // can delete filed from new user if want to response with new user
     //delete {...newUser}._doc.password;
     
-    return responseMessage(res, 201, true, 'User registration successful')
+    return responseMessage(res, 201, true, 'User registered successfully')
     
   } catch (error) {
 
@@ -53,7 +52,7 @@ export const registerUser= async(req, res) => {
 
 // login user
 export const userLogin = async(req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
 
   try {
     
@@ -67,13 +66,22 @@ export const userLogin = async(req, res) => {
       return responseMessage(res, 400, false, 'User doesn\'t exists');
     }
 
+    if(!user.roles.includes(role)){
+      return responseMessage(res, 403, false, "You have no access to this account");
+    }
+
     const hashed = bcrypt.compare(password, user.password);
 
     if(!hashed){
       return responseMessage(res, 400, false, 'Password doesn\'t match');
     }
 
-    const accessToken = await generateAccessToken(user._id);
+    const payload = {
+      id: user._id,
+      roles: user.roles
+    }
+
+    const accessToken = await generateAccessToken(payload);
     const refreshToken = await generateRefreshToken(user._id);
 
     const cookieOptions = {
@@ -115,7 +123,7 @@ export const googleAuth = async(req, res) => {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     redirectUri: 'postmessage'
   });
-  const { code } = req.body;
+  const { code, role } = req.body;
 
   try {
     
@@ -134,6 +142,10 @@ export const googleAuth = async(req, res) => {
     // to check user already exisits with email
     const exisitingUser = await User.findOne({email});
     const username = exisitingUser.username ? exisitingUser.username : name;
+
+    if(!exisitingUser?.roles.includes(role)){
+      return responseMessage(res, 403, false, "You have no access to this account");
+    }
 
     /*
 
@@ -260,8 +272,13 @@ export const refreshAccessToken = async(req, res) => {
 
     if(!verified) return responseMessage(res, 401, false, 'Token has expired');
 
-    const user_id = verified._id;
-    const newAccessToken = await generateAccessToken(user_id);
+    const user = await User.findById(verified.id);
+
+    const payload = {
+      id: user._id,
+      roles: user.roles
+    }
+    const newAccessToken = await generateAccessToken(payload);
     const cookiesOption = {
       httpOnly: true,
       secure: true,
@@ -281,7 +298,7 @@ export const refreshAccessToken = async(req, res) => {
 //send forgot password otp
 export const forgotPasswordOtp = async(req, res) => {
 
-  const { email } = req.body;
+  const { email, role } = req.body;
 
   try {
     
@@ -293,6 +310,11 @@ export const forgotPasswordOtp = async(req, res) => {
 
     if(!user){
       return responseMessage(res, 400, false, "User does not exists.");
+    }
+
+
+    if(!user?.roles.includes(role)){
+      return responseMessage(res, 403, false, "You have no access to this account");
     }
 
     const otp = generateOtp();
@@ -321,7 +343,7 @@ export const forgotPasswordOtp = async(req, res) => {
 //resend otp for forgot password
 export const resendOtp = async(req, res) => {
 
-  const { email } = req.body || {};
+  const { email, role } = req.body || {};
 
   try {
 
@@ -334,6 +356,11 @@ export const resendOtp = async(req, res) => {
     if(!user){
       return responseMessage(res, 400, false, "User does not exists.");
     }
+
+    if(!user?.roles.includes(role)){
+      return responseMessage(res, 403, false, "You have no access to this account");
+    }
+
 
     const otp = generateOtp();
     //const expireTime = new Date() + 60 * 60 * 1000 //1hr

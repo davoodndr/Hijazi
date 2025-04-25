@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import React, { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { BsBag } from "react-icons/bs";
 import { BiUser } from "react-icons/bi";
 import { BsHeart } from "react-icons/bs";
 import { RiMenu3Fill } from "react-icons/ri";
-import logo from "../assets/logo.svg"
+import logo from "../../assets/logo.svg"
 import { useSelector } from 'react-redux';
 import AccountDropDown from './AccountDropDown';
 import UserSearchBar from './UserSearchBar';
@@ -19,7 +19,7 @@ const Navbar = () => {
 
   /* settingup depending on user role */
   useEffect(() => {
-    if(user?.role === 'user') setCurrentUser(user);
+    if(user?.roles.some(role => role === 'user')) setCurrentUser(user);
     else setCurrentUser(null);
   },[user])
 

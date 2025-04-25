@@ -1,16 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import welcome from '../../../assets/welcome_to_shop_green.jpg'
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router';
 import googleLogo from '../../../assets/google-logo.svg'
 import { LuEyeClosed } from "react-icons/lu";
 import { LuEye } from "react-icons/lu";
-import { Link, useNavigate } from 'react-router'
 import toast from 'react-hot-toast';
 import AxiosToast from '../../../utils/AxiosToast';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
-import { useDispatch, useSelector } from 'react-redux'
-import { setUser } from '../../../store/slices/UsersSlice';
-import { getUserDetail } from '../../../services/FetchDatas';
+import logo from '../../../assets/logo.svg'
 import { useGoogleAuth } from '../../../services/hooks';
 import ForgotPassword from '../../../components/ui/ForgotPassword';
 import VerfyOtp from '../../../components/ui/VerifyOtp';
@@ -20,9 +18,7 @@ import Modal from '../../../components/ui/Modal';
 import Lottie from 'lottie-react'
 import success_icon from '../../../assets/animated_success_icon.json'
 
-
 const Login = () => {
-
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.user);
@@ -60,10 +56,7 @@ const Login = () => {
 
         const response = await Axios({
           ...ApiBucket.login,
-          data: {
-            ...data,
-            role: 'user'
-          }
+          data
         })
 
         if(response.data.success){
@@ -122,18 +115,32 @@ const Login = () => {
 
   },[user])
 
+  useEffect(() => {
+    if(user?.role === 'admin') {
+      navigate('/admin/dashboard/users')
+    }
+  },[user])
+
   return (
-    <main className='flex flex-col w-full h-full bg-green-screen items-center justify-center'>
+    <main className='fixed flex flex-col w-full h-full bg-green-screen items-center justify-center'>
       <div className='bg-white from-primary-300 to-primary-50 shadow-xl border border-primary-50 
-        md:w-7/10 md:h-130 mx-2 md:mx-0 my-10 p-2 rounded-4xl flex flex-col md:flex-row gap-5 overflow-hidden items-stretch'>
+        md:w-5/9 md:h-130 mx-2 md:mx-0 my-10 p-2 rounded-4xl flex flex-col md:flex-row gap-5 overflow-hidden items-stretch'>
       
         {/* image */}
-        <div className='flex w-full md:w-6/10 h-full'>
-          <img src={welcome} className='object-cover rounded-3xl h-full' alt="welcome-img" />
+        <div className='flex flex-col w-full md:w-5/10 h-full items-center justify-center '>
+          <div className="w-full h-full flex flex-col items-center justify-center gap-4">
+            <div className="inline-flex w-40 h-fit">
+              <img src={logo} className='object-contain w-full' alt="welcome-img" />
+            </div>
+
+            <div className="flex flex-col">
+              <h1 className='text-xl font-extrabold!'>ADMINS</h1>
+            </div>
+          </div>
         </div>
 
         {/* form inputs */}
-        <div className='flex flex-col items-center justify-between w-full md:w-4/10'>
+        <div className='flex flex-col items-center justify-between w-full md:w-5/10'>
           <form /* onSubmit={handleSubmit}  */className='border-neutral-200 w-full p-6 md:pb-2 flex flex-col gap-3'>
             <div>
               <p className='text-center text-2xl'>Sign in</p>

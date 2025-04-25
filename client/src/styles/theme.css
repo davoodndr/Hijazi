@@ -6,11 +6,12 @@
   --color-primary-50: oklch(0.94 0.0379 157.41);
   --color-primary-200: oklch(90% 0.1065 188.73);
   --color-primary-300: oklch(75% 0.1065 188.73);
+  --color-primary-400: oklch(60% 0.1065 188.73);
   --color-primary-500: oklch(45% 0.1065 188.73);
   
   --color-button-text: oklch(97% 0 0);
   --color-error-border: oklch(0.88 0.191 22.216);
-  --color-gray-50: oklch(0.984 0.003 247.858);
+  --color-green-screen: oklch(0.72 0.0505 157.41);
 
   --radius-input-border: 10px;
 }

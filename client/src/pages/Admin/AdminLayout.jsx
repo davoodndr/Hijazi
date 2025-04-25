@@ -1,10 +1,10 @@
 import React from 'react'
-import Navbar from '../../components/user/Navbar'
+import Navbar from '../../components/Navbar'
 import { Outlet } from 'react-router'
-import Footer from '../../components/user/Footer'
+import Footer from '../../components/Footer'
 import { Toaster } from 'react-hot-toast'
 
-const UserLayout = () => {
+const AdminLayout = () => {
   return (
     <>
       <Navbar />
@@ -40,4 +40,4 @@ const UserLayout = () => {
   )
 }
 
-export default UserLayout
+export default AdminLayout

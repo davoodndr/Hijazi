@@ -1,9 +1,9 @@
-import express, { urlencoded } from "express"
-import authRouter from "./routes/authRouter.js";
+import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 import dotenv from 'dotenv'
 import connectDB from "./common/db.js";
+import userRouter from "./routes/userRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -34,11 +34,8 @@ app.use(cookieParser());
   console.log(req.body)
 }) */
 
-app.use('/api/user',authRouter)
-
-
-
-
+app.use('/api/user',userRouter)
+/* app.use('/api/admin',authRouter) */
 
 
 connectDB().then(() => {

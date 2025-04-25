@@ -1,8 +1,8 @@
 import React from 'react'
 import { Link } from 'react-router'
 import { RiArrowRightUpLine } from "react-icons/ri";
-import user_placeholder from '../assets/user_placeholder.jpg'
-import { useLogout } from '../services/hooks';
+import user_placeholder from '../../assets/user_placeholder.jpg'
+import { useLogout } from '../../services/hooks';
 
 const AccountDropDown = ({user}) => {
 
@@ -10,13 +10,13 @@ const AccountDropDown = ({user}) => {
   const logout = useLogout()
 
   return (
-    <div className='nav-account-dropdown md:invisible opacity-0 border border-primary-200 absolute top-[100%] 
+    <div className='nav-account-dropdown border md:invisible opacity-0 border-primary-200 absolute top-[100%] 
       -right-50 -translate-x-5/10 w-auto min-w-70 bg-white shadow-md rounded-sm cursor-default'>
 
         {
           user ? (
             /* Logined user info */
-            <div className="flex gap-2 items-center justify-center p-5 py-6">
+            <div className="flex gap-2 items-center justify-start p-5 py-6">
               <Link to={'/user/dashboard/profile'} 
                 className="absolute right-0 top-0 m-1.5 p-0.5 border border-neutral-300 rounded-lg 
                   transition-all duration-300 hover:shadow-lg hover:bg-primary-50 hover:border-primary-300 hover:scale-110">

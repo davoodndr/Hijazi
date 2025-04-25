@@ -1,13 +1,9 @@
-import { BrowserRouter, Routes, Route } from "react-router"
-import Home from "../pages/User/Home"
-import UserLayout from "../pages/User/UserLayout"
-import Register from "../pages/User/Auth/Register"
-import Login from "../pages/User/Auth/Login"
-import SearchPage from "../pages/User/SearchPage"
+import { BrowserRouter, Route, Routes} from "react-router"
 import { useDispatch, useSelector } from "react-redux"
 import { useEffect } from "react"
 import { fetchUser } from "../store/slices/UsersSlice"
-import PublicRoutes from './PublicRoutes'
+import AdminRouter from "./admin/AdminRouter"
+import UserRouter from "./user/UserRouter"
 
 function App() {
 
@@ -20,12 +16,10 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<UserLayout />}>
-          <Route index element={<Home />} />
-          <Route path="register" element={<PublicRoutes><Register /></PublicRoutes>} />
-          <Route path="login" element={<PublicRoutes><Login /></PublicRoutes>} />
-          <Route path="search" element={<SearchPage />} />
-        </Route>
+        
+        <Route path="/*" element={<UserRouter />} />
+        <Route path="/admin/*" element={<AdminRouter />} />
+        
       </Routes>
     </BrowserRouter>
   )
