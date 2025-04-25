@@ -12,11 +12,9 @@ const authMiddleware = (req, res, next) => {
     }
 
     jwt.verify(token, process.env.SECRET_KEY_ACCESS_TOKEN, (err, decode) => {
-      if(err){
-        if(err.name === 'TokenExpiredError'){
-          return responseMessage(res, 401, false, "Token expired");
-        }
-        return responseMessage(res, 401, false, "Unauthorized access")
+      if (err) {
+        const message = err.name === 'TokenExpiredError' ? "Token expired" : "Unauthorized access";
+        return responseMessage(res, 401, false, message);
       }
 
       req.user_id = decode.id;

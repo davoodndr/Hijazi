@@ -94,7 +94,7 @@ const Register = () => {
             </div>
             <div className='flex flex-col'>
               <label htmlFor="">Password</label>
-              <div className='flex items-center border border-neutral-200 focus-within:border-primary-300 
+              <div className='flex items-center border border-neutral-300 focus-within:border-primary-300 
                 rounded-input-border transition-colors duration-300'>
 
                 <input type={`${passwordShowing ? 'text' : 'password'}`} className='border-0!'
@@ -111,7 +111,7 @@ const Register = () => {
             </div>
             <div className='flex flex-col'>
               <label htmlFor="">Confirm</label>
-              <div className='flex items-center border border-neutral-200 focus-within:border-primary-300 
+              <div className='flex items-center border border-neutral-300 focus-within:border-primary-300 
                 rounded-input-border transition-colors duration-300'>
 
                 <input type={`${confirmShowing ? 'text' : 'password'}`} className='border-0!'

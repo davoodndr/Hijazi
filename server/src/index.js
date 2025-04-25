@@ -9,13 +9,24 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+/* const allowedOrigins = [
+  process.env.FRONT_END_URL,
+  process.env.REMOTE_URL,
+];
 
+function (origin, callback) {
+  if (!origin || allowedOrigins.includes(origin)) {
+    callback(null, true);
+  } else {
+    callback(new Error("Not allowed by CORS"));
+  }
+} */
 
 app.use(express.json());
 app.use(express.urlencoded());
 app.use(cors({
   credentials: true,
-  origin: [process.env.FRONT_END_URL]
+  origin: process.env.FRONT_END_URL
 }));
 app.use(cookieParser());
 
@@ -23,7 +34,7 @@ app.use(cookieParser());
   console.log(req.body)
 }) */
 
-app.use('/api/auth',authRouter)
+app.use('/api/user',authRouter)
 
 
 

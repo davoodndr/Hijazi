@@ -30,7 +30,8 @@ const UserLayout = () => {
             iconTheme: {
               primary: '#fff',
               secondary: 'var(--color-green-600)'
-            }
+            },
+            duration: 2500
           }
         }}
 

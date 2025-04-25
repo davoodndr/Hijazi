@@ -2,14 +2,16 @@ import React from 'react'
 import { Link } from 'react-router'
 import { RiArrowRightUpLine } from "react-icons/ri";
 import user_placeholder from '../assets/user_placeholder.jpg'
+import { useLogout } from '../services/hooks';
 
 const AccountDropDown = ({user}) => {
 
   /*  md:invisible opacity-0 */
+  const logout = useLogout()
 
   return (
-    <div className='account-dropdown md:invisible opacity-0 border border-primary-200 absolute top-[100%] 
-      -right-50 -translate-x-5/10 w-auto min-w-70 bg-white shadow-md rounded-sm'>
+    <div className='nav-account-dropdown md:invisible opacity-0 border border-primary-200 absolute top-[100%] 
+      -right-50 -translate-x-5/10 w-auto min-w-70 bg-white shadow-md rounded-sm cursor-default'>
 
         {
           user ? (
@@ -54,6 +56,12 @@ const AccountDropDown = ({user}) => {
           hover:text-primary-500 hover:translate-x-0.5'>
           <div>Contact</div>
         </li>
+        {user &&
+          <li className='inline-flex justify-end w-full'>
+            <div onClick={logout} className='cursor-pointer text-red-400 hover:bg-red-200 w-fit px-3
+            transition-all duration-300 hover:text-red-500'>Logout</div>
+          </li>
+        }
       </ul>
     </div>
   )

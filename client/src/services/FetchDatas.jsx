@@ -17,3 +17,25 @@ export const getUserDetail = async() => {
   }
 
 }
+
+export const menus = [
+    {label: 'home', href: '/'},
+    {label: 'about', href: ''},
+    {label: 'categories', href: '',
+      submenu: [
+        {label: 'clothing', href: '',
+          items: [
+            'Men Formals', 'Men Casuals',
+            'Woman Formals', 'Woman Casuals'
+          ]
+        },
+        {label: 'foot wears', href: '',
+          items: [
+            'slips','shoes','lightweight','washable'
+          ]
+        },
+      ]
+    },
+    {label: 'policies', href: ''},
+    {label: 'contact', href: ''},
+  ]

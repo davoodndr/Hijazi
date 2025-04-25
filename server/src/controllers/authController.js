@@ -1,8 +1,14 @@
 
 import bcrypt from "bcryptjs"
 import User from "../models/User.js";
+import dotenv from "dotenv";
 import { responseMessage } from "../utils/messages.js";
-import { generateAccessToken, generateRefreshToken } from "../utils/generateToken.js";
+import { generateAccessToken, generateRefreshToken } from "../services/generateToken.js";
+import { OAuth2Client } from "google-auth-library";
+import nodemailer from "nodemailer";
+import { generateOtp } from '../services/misc.js'
+import { sendMail } from "../services/sendmail.js";
+dotenv.config();
 
 // register user
 export const registerUser= async(req, res) => {
@@ -39,7 +45,7 @@ export const registerUser= async(req, res) => {
     
   } catch (error) {
 
-    console.log('registerUser',error);
+    console.log('registerUser:',error);
     return responseMessage(500,false, error.message || error);
   }
 
@@ -96,8 +102,94 @@ export const userLogin = async(req, res) => {
     })
 
   } catch (error) {
-    console.log(error);
+    console.log('userLogin:',error);
     return responseMessage(res,500,false,error);
+  }
+
+}
+
+//google login
+export const googleAuth = async(req, res) => {
+  const client = new OAuth2Client({
+    clientId:  process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    redirectUri: 'postmessage'
+  });
+  const { code } = req.body;
+
+  try {
+    
+    const { tokens } = await client.getToken(code);
+    const ticket = await client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+    const { sub, email, name, picture } = payload;
+
+    // to check user already exisits
+    let user = await User.findOne({ googleId: sub });
+
+    // to check user already exisits with email
+    const exisitingUser = await User.findOne({email});
+    const username = exisitingUser.username ? exisitingUser.username : name;
+
+    /*
+
+    picture from google should downloaded and used, 
+    it is token based
+    will be not shown on page refresh 
+
+    */
+
+    if(!user){
+      
+      if(exisitingUser){
+        user = await User.findByIdAndUpdate(exisitingUser._id,{
+          googleId: sub,
+          username
+        })
+      }else{
+        user = await User.create({
+          googleId: sub,
+          email,
+          username
+        })
+      }
+    }
+
+    const accessToken = await generateAccessToken(user._id);
+    const refreshToken = await generateRefreshToken(user._id);
+
+    const cookieOptions = {
+      httpOnly : true,
+      secure: true,
+      samesite: 'None'
+    }
+
+    res.cookie('accessToken',accessToken, cookieOptions);
+    res.cookie('refreshToken',refreshToken, cookieOptions);
+
+    const updated = await User.findByIdAndUpdate(user?._id,
+      { last_login: new Date() },
+      { new: true}
+    )
+
+    let userData = {...updated};
+    
+    delete userData._doc.password;
+    delete userData._doc.refresh_token;
+
+    return responseMessage(res, 200, true, 'Login Successfull',{
+      accessToken,
+      refreshToken,
+      user: updated
+    })
+
+  } catch (error) {
+    console.log('googleAuth:', error);
+    return responseMessage(res, 500, false, error);
   }
 
 }
@@ -114,8 +206,224 @@ export const getUserDetail = async(req, res) => {
     return responseMessage(res,200,true,"",{user})
 
   } catch (error) {
-    console.log(error);
+    console.log('getUserDetail:',error);
     return responseMessage(res,500,false,error);
+  }
+
+}
+
+//logut user
+export const logoutUser = async(req, res) => {
+  try {
+    
+    const { user_id } = req.user_id;
+
+    const cookiesOption = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None"
+    }
+    res.clearCookie("accessToken",cookiesOption);
+    res.clearCookie("refreshToken",cookiesOption);
+
+    await User.findByIdAndUpdate(user_id, {
+      refresh_token: ""
+    });
+
+    return responseMessage(res, 200, true, "Logged out successfully");
+
+  } catch (error) {
+
+    console.log('logoutUser:',error);
+    return responseMessage(res, 500, false, error);
+
+  }
+}
+
+//refresh token
+export const refreshAccessToken = async(req, res) => {
+  
+  try {
+    
+    const refreshToken = req.cookies.refreshToken || req?.headers?.authorization?.split(' ')[1] //from mobile
+
+    if(!refreshToken){
+      return responseMessage(res, 401, false, 'Unauthorized access');
+    }
+
+    const verified = jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESH_TOKEN, (err, decode) => {
+      
+      if(err) return undefined
+
+      return decode
+    })
+
+    if(!verified) return responseMessage(res, 401, false, 'Token has expired');
+
+    const user_id = verified._id;
+    const newAccessToken = await generateAccessToken(user_id);
+    const cookiesOption = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None"
+    }
+    res.cookie('accessToken', newAccessToken, cookiesOption);
+
+    return responseMessage(res, 201, true, "New token generated",{data:newAccessToken})
+
+  } catch (error) {
+    console.log('refreshAccessToken', error);
+    return responseMessage(res, 500, false, error);
+  }
+
+}
+
+//send forgot password otp
+export const forgotPasswordOtp = async(req, res) => {
+
+  const { email } = req.body;
+
+  try {
+    
+    if(!email){
+      return responseMessage(res, 400, false, "Email is required");
+    }
+
+    const user = await User.findOne({email});
+
+    if(!user){
+      return responseMessage(res, 400, false, "User does not exists.");
+    }
+
+    const otp = generateOtp();
+    //const expireTime = new Date() + 60 * 60 * 1000 //1hr
+    const expireTime = new Date().getTime() + (60 + 10 ) * 1000; // 1 minute 10 seconds
+
+    await User.findByIdAndUpdate(user._id, {
+      forgot_password_otp: otp,
+      forgot_password_expiry: new Date(expireTime).toISOString()
+    })
+
+    await sendMail(email, user.username, otp, 'Hijazi');
+
+    console.log('otp', otp)
+
+    return responseMessage(res, 200, true, "OTP sent successfully");
+
+  } catch (error) {
+    
+    console.log('forgotPasswordOtp', error);
+    return responseMessage(res, 500, false, error);
+  }
+
+}
+
+//resend otp for forgot password
+export const resendOtp = async(req, res) => {
+
+  const { email } = req.body || {};
+
+  try {
+
+    if(!email){
+      return responseMessage(res, 401, false, "Email is missing, retry again");
+    }
+
+    const user = await User.findOne({email});
+
+    if(!user){
+      return responseMessage(res, 400, false, "User does not exists.");
+    }
+
+    const otp = generateOtp();
+    //const expireTime = new Date() + 60 * 60 * 1000 //1hr
+    const expireTime = new Date().getTime() + (60 + 10 ) * 1000; // 1 minute 10 seconds
+
+    await User.findByIdAndUpdate(user._id, {
+      forgot_password_otp: otp,
+      forgot_password_expiry: new Date(expireTime).toISOString()
+    })
+
+    await sendMail(email, user.username, otp, 'Hijazi');
+
+    console.log('otp', otp)
+
+    return responseMessage(res, 200, true, "New OTP sent successfully");
+    
+  } catch (error) {
+    
+    console.log('resendOtp', error);
+    return responseMessage(res, 500, false, error);
+
+  }
+}
+
+// verify entered otp for forgot password
+export const verifyForgotPassOtp = async(req, res) => {
+
+  const { email, otp } = req.body;
+
+  try {
+
+    if(!email || !otp){
+      return responseMessage(res, 400, false,"Email and OTP are required");
+    }
+
+    const user = await User.findOne({email});
+    
+    if(!user){
+      return responseMessage(res, 400, false,"User does not exists");
+    }
+    
+    const currentTime = new Date().toISOString();
+    if(user.forgot_password_expiry < currentTime){
+      return responseMessage(res, 400, false,"OTP expired");
+    }
+    
+    if(user.forgot_password_otp !== otp){
+      return responseMessage(res, 400, false,"Invalid OTP entered");
+    }
+    
+    await User.findByIdAndUpdate(user._id,{
+      forgot_password_otp: "",
+      forgot_password_expiry: ""
+    })
+    
+    return responseMessage(res, 200, true,"OTP verified successfully");
+    
+  } catch (error) {
+    console.log('verifyForgotPassOtp', error);
+    return responseMessage(res, 500, false, error)
+  }
+}
+
+export const resetUserPassword = async(req, res) => {
+  const { email, password } = req.body;
+
+  try {
+
+    if(!email || !password){
+      return responseMessage(res, 400, false, "Please fill email and password");
+    }
+    
+    const user = await User.findOne({email});
+    
+    if(!user){
+      return responseMessage(res, 400, false, "User does not exists");
+    }
+    
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(password, salt);
+    
+    await User.findByIdAndUpdate(user._id, {
+      password: hashed
+    });
+    
+    return responseMessage(res, 200, true, "Reset password successfully");
+    
+  } catch (error) {
+    console.log('resetUserPassword', error);
+    return responseMessage(res, 500, false, error)
   }
 
 }
