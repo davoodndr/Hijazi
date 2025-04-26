@@ -4,11 +4,11 @@ import { Navigate } from 'react-router';
 
 const AdminProtectedRoutes = ({children}) => {
 
-  const { user } = useSelector(state => state.user);
+  const { user, isLoading } = useSelector(state => state.user);
 
   if(isLoading) return null
 
-  if(!user || !user.role === 'admin'){
+  if(!user?.roles.includes('admin')){
     return <Navigate to={'/admin/login'} replace />
   }
 

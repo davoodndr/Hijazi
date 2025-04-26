@@ -2,43 +2,43 @@
 
 const ApiBucket = {
   register: {
-    url: '/api/user/register',
+    url: '/api/auth/register',
     method: 'post'
   },
   login: {
-    url: '/api/user/login',
+    url: '/api/auth/login',
     method: 'post'
   },
   google: {
-    url: '/api/user/google',
+    url: '/api/auth/google',
     method: 'post'
   },
   fatchUser: {
-    url: '/api/user/get-user-detail',
+    url: '/api/auth/get-user-detail',
     method: 'get'
   },
   logout: {
-    url: '/api/user/logout',
+    url: '/api/auth/logout',
     method: 'get'
   },
   refreshToken: {
-    url: '/api/user/refresh-token',
+    url: '/api/auth/refresh-token',
     method: 'post'
   },
   forgotPasswordOtp: {
-    url: '/api/user/forgot-password-otp',
+    url: '/api/auth/forgot-password-otp',
     method: 'post'
   },
   resendOtp: {
-    url: '/api/user/resend-forgot-pass-otp',
+    url: '/api/auth/resend-forgot-pass-otp',
     method: 'post'
   },
   verifyForgotPasswordOtp: {
-    url: '/api/user/verify-forgot-pass-otp',
+    url: '/api/auth/verify-forgot-pass-otp',
     method: 'post'
   },
   resetPassword: {
-    url: '/api/user/reset-password',
+    url: '/api/auth/reset-password',
     method: 'patch'
   },
 }

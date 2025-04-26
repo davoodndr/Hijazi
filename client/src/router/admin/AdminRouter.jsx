@@ -1,15 +1,53 @@
 import React from 'react'
 import { Route, Routes } from 'react-router'
 import PublicRoutes from './AdminPublicRoutes'
+import ProtectedRoutes from './AdminProtectedRoutes'
 import Login from '../../pages/Admin/auth/Login'
 import Register from '../../pages/Admin/auth/Register'
+import AdminLayout from '../../pages/Admin/AdminLayout'
+import { Toaster } from 'react-hot-toast'
+import AdminDashboard from '../../pages/Admin/AdminDashboard'
 
 const AdminRouter = () => {
   return (
-    <Routes>
-      <Route path="register" element={<PublicRoutes><Register /></PublicRoutes>} />
-      <Route path="login" element={<PublicRoutes><Login /></PublicRoutes>} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="register" element={<PublicRoutes><Register /></PublicRoutes>} />
+          <Route path="login" element={<PublicRoutes><Login /></PublicRoutes>} />
+          
+          <Route element={<ProtectedRoutes><AdminLayout /></ProtectedRoutes>}>
+            <Route index path='dashboard' element={<AdminDashboard />} />
+          </Route>
+      </Routes>
+
+      <Toaster
+        position='top-right'
+        toastOptions={{
+          error: {
+            style: {
+              border: '1px solid var(--color-error-border)',
+              backgroundColor: 'var(--color-error-border)',
+              color: 'white'
+            }
+          },
+          success: {
+            style: {
+              /* border: '1px solid var(--color-primary-50)', */
+              backgroundColor: 'var(--color-green-500)',
+              color: 'white'
+            },
+            iconTheme: {
+              primary: '#fff',
+              secondary: 'var(--color-green-600)'
+            },
+            duration: 2500
+          }
+        }}
+
+        />
+      
+    </>
+    
   )
 }
 

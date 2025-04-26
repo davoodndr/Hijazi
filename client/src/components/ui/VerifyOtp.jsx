@@ -12,7 +12,7 @@ import ApiBucket from '../../services/ApiBucket';
 import { ClipLoader, PulseLoader } from 'react-spinners';
 import { motion } from 'motion/react'
 
-const VerfyOtp = ({ isOpen, onClose, onConfirm, email }) => {
+const VerfyOtp = ({ role = 'user', isOpen, onClose, onConfirm, email }) => {
 
   const inputLength = 6
   const [otp, setOtp] = useState(Array(inputLength).fill(''));
@@ -76,7 +76,7 @@ const VerfyOtp = ({ isOpen, onClose, onConfirm, email }) => {
 
         const response = await Axios({
           ...ApiBucket.resendOtp,
-          data: {email}
+          data: {email, role}
         })
 
         if(response.data.success){

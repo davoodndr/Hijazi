@@ -33,7 +33,7 @@ export const registerUser= async(req, res) => {
       username,
       email,
       password: hashedPass,
-      roles: roles && roles.length ? roles : ['user']
+      roles: roles && roles.length ? [...roles,'user'] : ['user']
     }).save();
     
 

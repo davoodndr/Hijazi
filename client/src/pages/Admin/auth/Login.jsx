@@ -17,6 +17,8 @@ import { AnimatePresence } from 'motion/react';
 import Modal from '../../../components/ui/Modal';
 import Lottie from 'lottie-react'
 import success_icon from '../../../assets/animated_success_icon.json'
+import { getUserDetail } from '../../../services/FetchDatas';
+import { setUser } from '../../../store/slices/UsersSlice';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -56,7 +58,10 @@ const Login = () => {
 
         const response = await Axios({
           ...ApiBucket.login,
-          data
+          data: {
+            ...data,
+            role: 'admin'
+          }
         })
 
         if(response.data.success){
@@ -84,7 +89,7 @@ const Login = () => {
   }
 
   /* imported hook for google auth */
-  const googleLogin = useGoogleAuth();
+  const googleLogin = useGoogleAuth('admin');
 
   /* setting up the email for accessing verify otp*/
   const handleForgotMail = useCallback((values)=> {
@@ -109,16 +114,10 @@ const Login = () => {
 
   /* for prevent access of user already logged in */
   useEffect(() => {
-    if(user && user.role === 'user'){
-      navigate('/');
+    if(user?.roles.includes('admin')){
+      navigate('/admin/dashboard');
     }
 
-  },[user])
-
-  useEffect(() => {
-    if(user?.role === 'admin') {
-      navigate('/admin/dashboard/users')
-    }
   },[user])
 
   return (
@@ -180,12 +179,14 @@ const Login = () => {
 
           {/* forgot password modal */}
           <ForgotPassword 
+            role='admin'
             isOpen={isForgotPassOpen} 
             onClose={() => setForgotPassOpen(false)} 
             onConfirm={handleForgotMail} />
 
           {/* Verify Otp */}
           <VerfyOtp 
+            role='admin'
             email={capturedValue}
             isOpen={isVerifyOtpOpen} 
             onClose={() => setVerifyOtpOpen(false)} 
@@ -231,7 +232,7 @@ const Login = () => {
           {/* link to sign-in page */}
           <div className='flex w-full justify-between py-6 px-4 md:py-3 md:pe-3 text-xs'>
             <p className='text-neutral-500'>Don't have an account? 
-              <Link to={'/register'} className='ms-1 underline text-primary-500 font-semibold'>Sign Up</Link>
+              <Link to={'/admin/register'} className='ms-1 underline text-primary-500 font-semibold'>Sign Up</Link>
             </p>
 
             <Link className='underline text-neutral-500'>Terms & Conditions</Link>

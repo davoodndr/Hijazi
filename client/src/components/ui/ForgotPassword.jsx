@@ -40,7 +40,6 @@ const ForgotPassword = ({ role = 'user', isOpen, onClose, onConfirm }) => {
         setEmail("")
 
       } catch (error) {
-        console.log(error)
         AxiosToast(error);
       } finally {
         setIsLoading(false);

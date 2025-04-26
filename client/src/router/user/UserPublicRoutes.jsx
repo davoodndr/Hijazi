@@ -7,9 +7,9 @@ const UserPublicRoutes = ({children}) => {
 
   const { user, isLoading } = useSelector(state => state.user);
   
-  if(isLoading) return <Loader />;
+  if(isLoading) return <Loader height={70} />;
 
-  if(user?.roles.some(role => role === 'user')){
+  if(user?.roles.includes('user')){
     return <Navigate to={'/'} replace />
   }
   
