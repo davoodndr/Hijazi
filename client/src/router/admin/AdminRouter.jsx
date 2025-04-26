@@ -1,23 +1,30 @@
 import React from 'react'
-import { Route, Routes } from 'react-router'
+import { Navigate, Route, Routes } from 'react-router'
 import PublicRoutes from './AdminPublicRoutes'
 import ProtectedRoutes from './AdminProtectedRoutes'
 import Login from '../../pages/Admin/auth/Login'
 import Register from '../../pages/Admin/auth/Register'
 import AdminLayout from '../../pages/Admin/AdminLayout'
 import { Toaster } from 'react-hot-toast'
-import AdminDashboard from '../../pages/Admin/AdminDashboard'
 
-const AdminRouter = () => {
+const AdminDashboard = React.lazy(() => import('../../pages/Admin/AdminDashboard'))
+const UsersList = React.lazy(() => import('../../pages/Admin/users/UsersList'))
+
+const AdminRouter = ({user, isLoading}) => {
   return (
     <>
       <Routes>
         <Route path="register" element={<PublicRoutes><Register /></PublicRoutes>} />
-          <Route path="login" element={<PublicRoutes><Login /></PublicRoutes>} />
+        <Route path="login" element={<PublicRoutes><Login /></PublicRoutes>} />
           
-          <Route element={<ProtectedRoutes><AdminLayout /></ProtectedRoutes>}>
-            <Route index path='dashboard' element={<AdminDashboard />} />
+          <Route element={<ProtectedRoutes user={user} isLoading={isLoading} />}>
+            <Route element={<AdminLayout />}>
+              <Route index element={<Navigate to="dashboard" />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="users" element={<UsersList />} />
+            </Route>
           </Route>
+
       </Routes>
 
       <Toaster

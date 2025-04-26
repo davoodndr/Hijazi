@@ -8,6 +8,7 @@ import UserRouter from "./user/UserRouter"
 function App() {
 
   const dispatch = useDispatch();
+  const { user, isLoading } = useSelector(state => state.user);
 
   useEffect(() => {
     dispatch(fetchUser())
@@ -18,7 +19,7 @@ function App() {
       <Routes>
         
         <Route path="/*" element={<UserRouter />} />
-        <Route path="/admin/*" element={<AdminRouter />} />
+        <Route path="/admin/*" element={<AdminRouter user={user} isLoading={isLoading} />} />
         
       </Routes>
     </BrowserRouter>

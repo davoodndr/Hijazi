@@ -1,18 +1,16 @@
 import React from 'react'
-import { useSelector } from 'react-redux'
-import { Navigate } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
+import LoadingFallOff from '../../components/ui/LoadingFallOff';
 
-const AdminProtectedRoutes = ({children}) => {
+const AdminProtectedRoutes = ({user, isLoading}) => {
 
-  const { user, isLoading } = useSelector(state => state.user);
-
-  if(isLoading) return null
+  if(isLoading) return <LoadingFallOff height={100} />
 
   if(!user?.roles.includes('admin')){
     return <Navigate to={'/admin/login'} replace />
   }
 
-  return children
+  return <Outlet />
 }
 
 export default AdminProtectedRoutes

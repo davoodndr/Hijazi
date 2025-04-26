@@ -3,7 +3,8 @@ import cors from "cors"
 import cookieParser from "cookie-parser"
 import dotenv from 'dotenv'
 import connectDB from "./common/db.js";
-import authRouter from "./routes/userRoutes.js";
+import authRouter from "./routes/authRouter.js";
+import adminRouter from "./routes/adminRouter.js";
 dotenv.config();
 
 const app = express();
@@ -35,7 +36,7 @@ app.use(cookieParser());
 }) */
 
 app.use('/api/auth',authRouter)
-/* app.use('/api/admin',authRouter) */
+app.use('/api/admin',adminRouter)
 
 
 connectDB().then(() => {

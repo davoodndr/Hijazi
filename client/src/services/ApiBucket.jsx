@@ -1,6 +1,7 @@
 
 
 const ApiBucket = {
+  /* auth */
   register: {
     url: '/api/auth/register',
     method: 'post'
@@ -41,6 +42,12 @@ const ApiBucket = {
     url: '/api/auth/reset-password',
     method: 'patch'
   },
+
+  /* users */
+  getUsers: {
+    url: '/api/admin/get-users',
+    method: 'get'
+  }
 }
 
 

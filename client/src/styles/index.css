@@ -21,7 +21,7 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
 }
 
-input[type='text'],input[type='number'],input[type='email'],input[type='password']{
+input[type='text'],input[type='number'],input[type='email'],input[type='password'],input[type='search']{
   height: 40px;
   width: 100%;
   padding: 0 15px;
@@ -86,3 +86,22 @@ button:hover{
   flex-direction: column;
   overflow: auto;
 }
+
+/* .menu-parent{
+  position: relative;
+  z-index: 0;
+}
+
+.context-menu{
+  transition: all 0.3s ease;
+  transform: translateY(-10px);
+  visibility: hidden;
+  opacity: 0;
+  z-index: 100;
+}
+
+.menu-parent:hover .context-menu{
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+} */
