@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { LuSearch } from "react-icons/lu";
+import { LuSearch, LuUserRoundPlus } from "react-icons/lu";
 import ApiBucket from '../../../services/ApiBucket';
 import { Axios } from '../../../utils/AxiosSetup';
 import place_holder from '../../../assets/user_placeholder.jpg'
@@ -11,16 +11,21 @@ import { IoIosAdd } from "react-icons/io";
 import ContextMenu from '../../../components/ui/ContextMenu';
 import { MdBlock } from "react-icons/md";
 import AdminPagination from '../../../components/ui/AdminPagination';
+import { IoEyeOutline } from "react-icons/io5";
+import { useNavigate } from 'react-router';
 
 
 const UsersList = () => {
 
+  const navigate = useNavigate();
+
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
-  const [query, setQuery] = useState('');
-  const [searchQuery, setSearchQuery] = useState(query);
-  const [menu, setMenu] = useState(null);
+  
+
+  /* logic for displaying popup menu on row items */
   const iconRef = useRef({});
+  const [menu, setMenu] = useState(null);
 
   const getUserRef = (userId)=> {
     if(!iconRef.current[userId]){
@@ -31,7 +36,6 @@ const UsersList = () => {
 
   /* initial data loader */
   useEffect(() => {
-
     fetchUsers()
   },[])
 
@@ -59,6 +63,8 @@ const UsersList = () => {
   },[]);
 
   /* debouncer */
+  const [query, setQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(query);
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(query)
@@ -108,6 +114,7 @@ const UsersList = () => {
     },
   };
 
+  /* handling action buttons */
   const handleUserBlock = (user_id) => {
     
   }
@@ -130,17 +137,22 @@ const UsersList = () => {
 
   return (
     <section className='h-full flex flex-col p-6 bg-gray-100'>
+
+      {/* page title & add user button */}
       <div className="mb-5 flex justify-between items-start">
         <div className="flex flex-col">
           <h3 className='text-xl'>User Management</h3>
           <span className='sub-title'>Add, edit and delete users</span>
         </div>
-        <button className='px-4! inline-flex items-center gap-2 text-white'>
-          <IoIosAdd size={25} />
+        <button 
+          onClick={() => navigate('/admin/users/add-user')}
+          className='px-4! inline-flex items-center gap-2 text-white'>
+          <LuUserRoundPlus size={20} />
           <span>Add New</span>
         </button>
       </div>
 
+      {/* search */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center relative w-3/10">
           <LuSearch size={20} className='absolute left-3'/>
@@ -180,78 +192,78 @@ const UsersList = () => {
           const ref = getUserRef(user._id)
 
           return(
-            
-              
-              <motion.li
-                layout
-                key={user._id}
-                custom={index}
-                initial="hidden"
-                animate="visible"
-                variants={rowVariants}
-                className="bg-white hover:bg-primary-25 transition-all duration-300 px-4 py-2"
-                >
-                <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
-                  {/* Checkbox */}
-                  <div><input type="checkbox" /></div>
+          
+            <motion.li
+              layout
+              key={user._id}
+              custom={index}
+              initial="hidden"
+              animate="visible"
+              variants={rowVariants}
+              className="bg-white hover:bg-primary-25 transition-all duration-300 px-4 py-2"
+              >
+              <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
+                {/* Checkbox */}
+                <div><input type="checkbox" /></div>
 
-                  {/* User Info */}
-                  <div className="flex gap-2 items-center">
-                    <div className="w-12 h-12 rounded-full overflow-hidden">
-                      <img src={user?.avatar || place_holder} alt="avatar" className="object-cover w-full h-full" />
-                    </div>
-                    <div className="inline-flex flex-col">
-                      <p className="capitalize">{user?.username}</p>
-                      <p className="text-xs text-gray-500">{user?.email}</p>
-                    </div>
+                {/* User Info */}
+                <div className="flex gap-2 items-center">
+                  <div className="w-12 h-12 rounded-full overflow-hidden">
+                    <img src={user?.avatar || place_holder} alt="avatar" className="object-cover w-full h-full" />
                   </div>
-
-                  {/* Roles */}
-                  <div className="flex flex-col text-[13px]">
-                    {user.roles.map((role, n) => (
-                      <span key={n} className="capitalize">{role}</span>
-                    ))}
-                  </div>
-
-                  {/* Contact */}
-                  <div>{user.mobile || <span className="text-gray-400">Not added</span>}</div>
-
-                  {/* Status */}
-                  <div>
-                    <span className="px-2 py-1 text-xs font-semibold bg-neutral-300 rounded-full capitalize">
-                      {user.status}
-                    </span>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center justify-center gap-3">
-                    <div 
-                      onClick={() => handleUserEdit(user._id)}
-                      className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
-                      <TbUserEdit size={20} />
-                    </div>
-
-                    <div
-                      ref={ref}
-                      onMouseEnter={() => setMenu(user._id)}
-                      onMouseLeave={() => setMenu(null)}
-                      className="p-2 rounded-xl bg-gray-100 hover:bg-white hover:scale-103 
-                      border border-gray-300 transition-all duration-300 cursor-pointer relative">
-                      <IoMdMore size={20} />
-                      <ContextMenu
-                        iconRef={ref}
-                        isToggeled={menu === user._id}
-                        onClose={() => setMenu(null)}
-                        items={[
-                          { label: 'block', icon: MdBlock, onClick: ()=> handleUserBlock(user._id) },
-                          { label: 'delete', icon: HiOutlineTrash, onClick: handleUserDelete(user._id) }
-                        ]} 
-                        />
-                    </div>
+                  <div className="inline-flex flex-col">
+                    <p className="capitalize">{user?.username}</p>
+                    <p className="text-xs text-gray-500">{user?.email}</p>
                   </div>
                 </div>
-                
-              </motion.li>
+
+                {/* Roles */}
+                <div className="flex flex-col text-[13px]">
+                  {user.roles.map((role, n) => (
+                    <span key={n} className="capitalize">{role}</span>
+                  ))}
+                </div>
+
+                {/* Contact */}
+                <div>{user.mobile || <span className="text-gray-400">Not added</span>}</div>
+
+                {/* Status */}
+                <div>
+                  <span className="px-2 py-1 text-xs font-semibold bg-neutral-300 rounded-full capitalize">
+                    {user.status}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center justify-center gap-3">
+                  <div 
+                    onClick={() => handleUserEdit(user._id)}
+                    className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
+                    <TbUserEdit size={20} />
+                  </div>
+
+                  <div
+                    ref={ref}
+                    onMouseEnter={() => setMenu(user._id)}
+                    onMouseLeave={() => setMenu(null)}
+                    className="p-2 rounded-xl bg-gray-100 hover:bg-white hover:scale-103 
+                    border border-gray-300 transition-all duration-300 cursor-pointer relative">
+                    <IoMdMore size={20} />
+                    <ContextMenu
+                      iconRef={ref}
+                      isToggeled={menu === user._id}
+                      onClose={() => setMenu(null)}
+                      items={[
+                        { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user') },
+                        { label: 'block', icon: MdBlock, onClick: ()=> handleUserBlock(user._id) },
+                        { label: 'delete', icon: HiOutlineTrash, onClick: handleUserDelete(user._id) }
+                      ]} 
+                      />
+                  </div>
+                </div>
+              </div>
+              
+            </motion.li>
             
           )
         })}
@@ -259,7 +271,7 @@ const UsersList = () => {
         </AnimatePresence>
 
         {/* Pagination */}
-        <motion.li
+        {paginatedUsers && <motion.li
           key="pagination"
           custom={filteredUsers.length + 1}
           initial="hidden"
@@ -275,9 +287,8 @@ const UsersList = () => {
              />
 
         </motion.li>
+        }
       </motion.ul>
-
-
     </section>
   )
 }

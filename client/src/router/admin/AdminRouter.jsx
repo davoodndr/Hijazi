@@ -6,6 +6,8 @@ import Login from '../../pages/Admin/auth/Login'
 import Register from '../../pages/Admin/auth/Register'
 import AdminLayout from '../../pages/Admin/AdminLayout'
 import { Toaster } from 'react-hot-toast'
+import AddUser from '../../pages/Admin/users/AddUser'
+import ViewUser from '../../pages/Admin/users/ViewUser'
 
 const AdminDashboard = React.lazy(() => import('../../pages/Admin/AdminDashboard'))
 const UsersList = React.lazy(() => import('../../pages/Admin/users/UsersList'))
@@ -21,7 +23,12 @@ const AdminRouter = ({user, isLoading}) => {
             <Route element={<AdminLayout />}>
               <Route index element={<Navigate to="dashboard" />} />
               <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="users" element={<UsersList />} />
+              <Route path="users">
+                <Route index element={<UsersList />} />
+                <Route path="add-user" element={<AddUser />} />
+                <Route path="view-user" element={<ViewUser />} />
+              </Route>
+              
             </Route>
           </Route>
 

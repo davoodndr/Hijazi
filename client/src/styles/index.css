@@ -21,7 +21,8 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
 }
 
-input[type='text'],input[type='number'],input[type='email'],input[type='password'],input[type='search']{
+input[type='text'],input[type='number'],input[type='email'],
+input[type='password'],input[type='search'], input[type='date'], input[type='tel'], select{
   height: 40px;
   width: 100%;
   padding: 0 15px;
@@ -29,6 +30,16 @@ input[type='text'],input[type='number'],input[type='email'],input[type='password
   border-radius: var(--radius-input-border);
   outline: none;
   transition: all 0.3s ease;
+}
+
+select{
+  appearance: none; /* removes default arrow in most browsers */
+  -webkit-appearance: none; /* Safari/Chrome */
+  -moz-appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 35" id="down-arrow"><path fill="%23808080" d="M16 22a2 2 0 0 1-1.41-.59l-10-10a2 2 0 0 1 2.82-2.82L16 17.17l8.59-8.58a2 2 0 0 1 2.82 2.82l-10 10A2 2 0 0 1 16 22Z"></path></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 20px;
 }
 
 input[type='number']::-webkit-inner-spin-button,
@@ -87,21 +98,3 @@ button:hover{
   overflow: auto;
 }
 
-/* .menu-parent{
-  position: relative;
-  z-index: 0;
-}
-
-.context-menu{
-  transition: all 0.3s ease;
-  transform: translateY(-10px);
-  visibility: hidden;
-  opacity: 0;
-  z-index: 100;
-}
-
-.menu-parent:hover .context-menu{
-  visibility: visible;
-  opacity: 1;
-  transform: translateY(0);
-} */

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
 	{
 		username: { type: String },
+		fullname: { type: String },
 		email: { type: String, unique: true },
 		mobile: { type: String, unique: true, sparse: true },
 		password: { type: String },
@@ -22,7 +23,7 @@ const userSchema = new mongoose.Schema(
 		},
 		status: {
 			type: String,
-			enum: ["active", "incative", "suspended"],
+			enum: ["active", "incative", "blocked"],
 			default: "active",
 		},
 		address_details: [
