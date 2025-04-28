@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import Address from "../models/Address.js";
 import User from "../models/User.js";
 import { responseMessage } from "../utils/messages.js";
+import { uploadImagesToCloudinary } from '../utils/coudinaryActions.js'
 
 // fetch users
 export const getUsers = async(req, res) => {
@@ -63,6 +64,36 @@ export const addUser= async(req, res) => {
 
     console.log('addUser:',error);
     return responseMessage(res,500,false, error.message || error);
+  }
+
+}
+
+//add avatar
+export const uploadAvatar = async(req, res) => {
+
+  const { user_id, files } = req; //from middleware
+  const { public_id, custom_user_id } = req.body;
+
+  try {
+
+    if (!req.files || req.files.length === 0) {
+      return responseMessage(res, 500, false, "No files to upload");
+    }
+    
+    const upload = await uploadImagesToCloudinary('users',files,public_id)
+
+    await User.findByIdAndUpdate(custom_user_id ?? user_id, {
+      avatar: upload[0].secure_url
+    })
+
+    return responseMessage(res, 200, true, "Profile image uploaded", {
+      _id: upload[0].public_id,
+      avatar: upload[0].secure_url
+    })
+
+  } catch (error) {
+    console.log('uploadAvatar', error);
+    return responseMessage(res, 500, false, error);
   }
 
 }
