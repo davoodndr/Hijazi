@@ -1,5 +1,6 @@
 
 import bcrypt from "bcryptjs"
+import jwt from 'jsonwebtoken'
 import User from "../models/User.js";
 import dotenv from "dotenv";
 import { responseMessage } from "../utils/messages.js";
@@ -286,7 +287,7 @@ export const refreshAccessToken = async(req, res) => {
     }
     res.cookie('accessToken', newAccessToken, cookiesOption);
 
-    return responseMessage(res, 201, true, "New token generated",{data:newAccessToken})
+    return responseMessage(res, 201, true, "New token generated",{newAccessToken})
 
   } catch (error) {
     console.log('refreshAccessToken', error);

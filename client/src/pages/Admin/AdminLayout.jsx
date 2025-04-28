@@ -21,9 +21,9 @@ const AdminLayout = () => {
   
 
   return (
-    <main className='flex'>
+    <main className='flex h-100'>
       <Sidebar menuItems={menuItems} />
-      <section className='flex flex-col grow overflow-y-auto'>
+      <section className='flex flex-col grow overflow-y-auto min-h-screen'>
         <Header />
         <Outlet />
       </section>

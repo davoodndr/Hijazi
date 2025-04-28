@@ -23,7 +23,8 @@ const addressSchema = new mongoose.Schema({
   },
   mobile: {
     type: String,
-    default: ""
+    default: "",
+    sparse: true
   },
   is_default: {
     type: Boolean,

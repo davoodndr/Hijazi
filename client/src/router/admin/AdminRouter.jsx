@@ -8,11 +8,16 @@ import AdminLayout from '../../pages/Admin/AdminLayout'
 import { Toaster } from 'react-hot-toast'
 import AddUser from '../../pages/Admin/users/AddUser'
 import ViewUser from '../../pages/Admin/users/ViewUser'
+import { useSelector } from 'react-redux'
+import LoadingFallOff from '../../components/ui/LoadingFallOff'
 
 const AdminDashboard = React.lazy(() => import('../../pages/Admin/AdminDashboard'))
 const UsersList = React.lazy(() => import('../../pages/Admin/users/UsersList'))
 
 const AdminRouter = ({user, isLoading}) => {
+
+  const { loading } = useSelector(state => state.common);
+
   return (
     <>
       <Routes>
@@ -33,6 +38,8 @@ const AdminRouter = ({user, isLoading}) => {
           </Route>
 
       </Routes>
+      
+      {loading && <LoadingFallOff />}
 
       <Toaster
         position='top-right'
@@ -59,7 +66,6 @@ const AdminRouter = ({user, isLoading}) => {
         }}
 
         />
-      
     </>
     
   )

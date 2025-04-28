@@ -1,7 +1,7 @@
 import React from 'react'
 import Select from 'react-select'
 
-const CustomSelect = ({focusColor, options, isMulti = false}) => {
+const CustomSelect = ({focusColor, options, isMulti = false, onChange, value}) => {
 
   const customStyles = {
       control: (base, state) => ({
@@ -34,9 +34,14 @@ const CustomSelect = ({focusColor, options, isMulti = false}) => {
 
   return (
     <Select
+      menuPlacement='auto'
+      menuPosition='fixed'
+      menuShouldScrollIntoView
       isMulti={isMulti}
       styles={customStyles}
       options={options}
+      onChange={onChange}
+      value={value}
     />
   )
 }

@@ -1,17 +1,20 @@
 import React from 'react'
 import { CircleLoader } from 'react-spinners';
+import { hexToRgba } from '../../utils/Utils';
 
-const LoadingFallOff = ({height = 100}) => {
+const LoadingFallOff = ({height = 100, bg = '#ffffff', iconColor= 'var(--color-primary-400)'}) => {
+
   return (
-    <main 
-      className={`w-full flex items-center justify-center`}
-      style={{height: `${height}vh`}}
+    <section 
+      className={`w-full flex items-center justify-center backdrop-blur-xs
+        fixed top-0 left-0 right-0 bottom-0 z-[10000]`}
+      style={{height: `${height}vh`, backgroundColor: hexToRgba(bg, 50)}}
     >
       <div>
-        <CircleLoader color='var(--color-primary-400)' />
+        <CircleLoader color={iconColor} />
         <div>Loading...</div>
       </div>
-    </main>
+    </section>
   )
 }
 

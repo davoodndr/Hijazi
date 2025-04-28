@@ -47,7 +47,11 @@ const ApiBucket = {
   getUsers: {
     url: '/api/admin/get-users',
     method: 'get'
-  }
+  },
+  addUser: {
+    url: '/api/admin/add-user',
+    method: 'post'
+  },
 }
 
 

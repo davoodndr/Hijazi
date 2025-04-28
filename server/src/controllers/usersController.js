@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import Address from "../models/Address.js";
 import User from "../models/User.js";
 import { responseMessage } from "../utils/messages.js";
@@ -20,7 +21,9 @@ export const getUsers = async(req, res) => {
 // register user
 export const addUser= async(req, res) => {
 
-  const { email, username, password } = req.body;
+  console.log(req.body)
+
+  const { email, username, password, mobile, address_line } = req.body;
 
   try {
     
@@ -34,6 +37,10 @@ export const addUser= async(req, res) => {
       return responseMessage(res, 400, false, 'User already exists');
     }
 
+    if(user?.mobile?.length && mobile?.length && mobile === user?.mobile){
+      return responseMessage(res, 400, false, 'User exists with this mobile number')
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(password, salt);
 
@@ -43,7 +50,7 @@ export const addUser= async(req, res) => {
           ...req.body,
           password: hashedPass,
         }).save(),
-        new Address(req.body).save()
+        address_line ? new Address(req.body).save() : Promise.resolve()
       ]
     )
     
@@ -54,8 +61,8 @@ export const addUser= async(req, res) => {
     
   } catch (error) {
 
-    console.log('registerUser:',error);
-    return responseMessage(500,false, error.message || error);
+    console.log('addUser:',error);
+    return responseMessage(res,500,false, error.message || error);
   }
 
 }

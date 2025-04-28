@@ -10,7 +10,7 @@ const adminRouter = express.Router();
 
 
 adminRouter.get('/get-users',authenticate, allowRoles(['admin']),getUsers);
-adminRouter.post('/add-user',/* authenticate, allowRoles(['admin']), */addUser);
+adminRouter.post('/add-user',authenticate, allowRoles(['admin']),addUser);
 
 
 export default adminRouter;
