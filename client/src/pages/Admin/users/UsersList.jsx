@@ -5,8 +5,8 @@ import ApiBucket from '../../../services/ApiBucket';
 import { Axios } from '../../../utils/AxiosSetup';
 import place_holder from '../../../assets/user_placeholder.jpg'
 import { TbUserEdit } from "react-icons/tb";
-import { HiOutlineTrash } from "react-icons/hi2";
-import { IoMdMore } from "react-icons/io";
+import { HiHome, HiOutlineTrash } from "react-icons/hi2";
+import { IoIosArrowForward, IoMdMore } from "react-icons/io";
 import { IoIosAdd } from "react-icons/io";
 import ContextMenu from '../../../components/ui/ContextMenu';
 import { MdBlock } from "react-icons/md";
@@ -121,9 +121,6 @@ const UsersList = () => {
   const handleUserDelete = (user_id) => {
     
   }
-  const handleUserEdit = (user_id) => {
-    
-  }
 
   /* paingation logic */
   const [currentPage, setCurrentPage] = useState(1);
@@ -136,12 +133,12 @@ const UsersList = () => {
   );
 
   return (
-    <section className='h-full flex flex-col p-6 bg-gray-100'>
+    <section className='h-fit flex flex-col p-6 bg-gray-100'>
 
       {/* page title & add user button */}
       <div className="mb-5 flex justify-between items-start">
         <div className="flex flex-col">
-          <h3 className='text-xl'>User Management</h3>
+          <h3 className='text-xl'>Users Management</h3>
           <span className='sub-title'>Add, edit and delete users</span>
         </div>
         <button 
@@ -150,6 +147,14 @@ const UsersList = () => {
           <LuUserRoundPlus size={20} />
           <span>Add New</span>
         </button>
+      </div>
+      
+      {/* beadcrumps */}
+      <div className='flex items-center gap-2 mb-5 py-2 border-y border-gray-200'>
+        <HiHome size={20} />
+        <div className='inline-flex items-center text-sm gap-2'>
+          <span>Users</span>
+        </div>
       </div>
 
       {/* search */}
@@ -246,7 +251,7 @@ const UsersList = () => {
                 {/* Actions */}
                 <div className="flex items-center justify-center gap-3">
                   <div 
-                    onClick={() => handleUserEdit(user._id)}
+                    onClick={() => navigate('/admin/users/edit-user',user)}
                     className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
                     <TbUserEdit size={20} />
                   </div>
@@ -263,7 +268,7 @@ const UsersList = () => {
                       isToggeled={menu === user._id}
                       onClose={() => setMenu(null)}
                       items={[
-                        { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user') },
+                        { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user',{state: user}) },
                         { label: 'block', icon: MdBlock, onClick: ()=> handleUserBlock(user._id) },
                         { label: 'delete', icon: HiOutlineTrash, onClick: handleUserDelete(user._id) }
                       ]} 

@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
 		username: { type: String },
 		fullname: { type: String, default: '' },
 		email: { type: String, unique: true },
-		mobile: { type: String, unique: true, sparse: true },
+		mobile: { type: String, unique: true, sparse: true, default: '' },
 		password: { type: String, default: '' },
 		googleId: { type: String, default: '' },
 		avatar: { type: String, default: '' },
@@ -26,12 +26,16 @@ const userSchema = new mongoose.Schema(
 			enum: ["active", "inactive", "blocked"],
 			default: "active",
 		},
-		address_details: [
+		address_list: [
 			{
 				type: mongoose.Schema.ObjectId,
 				ref: "Address",
 			},
 		],
+		default_address: {
+			type: mongoose.Schema.ObjectId,
+			ref: "Address",
+		},
 		shopping_cart: [
 			{
 				type: mongoose.Schema.ObjectId,

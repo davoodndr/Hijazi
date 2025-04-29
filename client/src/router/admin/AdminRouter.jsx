@@ -6,13 +6,14 @@ import Login from '../../pages/Admin/auth/Login'
 import Register from '../../pages/Admin/auth/Register'
 import AdminLayout from '../../pages/Admin/AdminLayout'
 import { Toaster } from 'react-hot-toast'
-import AddUser from '../../pages/Admin/users/AddUser'
-import ViewUser from '../../pages/Admin/users/ViewUser'
 import { useSelector } from 'react-redux'
 import LoadingFallOff from '../../components/ui/LoadingFallOff'
 
 const AdminDashboard = React.lazy(() => import('../../pages/Admin/AdminDashboard'))
 const UsersList = React.lazy(() => import('../../pages/Admin/users/UsersList'))
+const AddUser = React.lazy(() => import('../../pages/Admin/users/AddUser'))
+const EditUser = React.lazy(() => import('../../pages/Admin/users/EditUser'))
+const ViewUser = React.lazy(() => import('../../pages/Admin/users/ViewUser'))
 
 const AdminRouter = ({user, isLoading}) => {
 
@@ -31,6 +32,7 @@ const AdminRouter = ({user, isLoading}) => {
               <Route path="users">
                 <Route index element={<UsersList />} />
                 <Route path="add-user" element={<AddUser />} />
+                <Route path="edit-user" element={<EditUser />} />
                 <Route path="view-user" element={<ViewUser />} />
               </Route>
               

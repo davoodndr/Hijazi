@@ -17,7 +17,7 @@ import { setLoading } from '../../../store/slices/CommonSlices'
 import { TbArrowBackUp } from "react-icons/tb";
 import { HiHome } from "react-icons/hi2";
 
-const AddUser = () => {
+const EditUser = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -247,7 +247,7 @@ const AddUser = () => {
           <IoIosArrowForward size={13} />
         </div>
         <div className='inline-flex items-center text-sm gap-2'>
-          <span>Add User</span>
+          <span>User Account</span>
         </div>
       </div>
 
@@ -498,4 +498,4 @@ const AddUser = () => {
   );
 };
 
-export default AddUser;
+export default EditUser;

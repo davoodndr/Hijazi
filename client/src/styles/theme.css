@@ -21,4 +21,9 @@
   --color-status-blue: oklch(0.72 0.0505 157.41);
 
   --radius-input-border: 10px;
+
+}
+
+.text-title{
+  @apply font-semibold
 }

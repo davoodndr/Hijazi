@@ -35,3 +35,18 @@ export const uploadImagesToCloudinary = async(folder, files, public_ids = []) =>
 
   return uploadResults;
 };
+
+export const deleteImageFromCloudinary = async(public_id) => {
+  const deleteImage = new Promise((resolve, reject) => {
+    cloudinary.uploader.destroy(public_id,
+      {
+        resource_type: 'image'
+      },
+      ((error, result) => {
+        return resolve(result)
+      })
+    )
+  })
+
+  return deleteImage;
+}

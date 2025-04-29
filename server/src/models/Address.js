@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const addressSchema = new mongoose.Schema({
+  user_id:{
+    type: mongoose.Schema.ObjectId,
+    ref: "User",
+  },
   address_line: {
     type: String,
     default: ""
