@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-import { isEmailValid } from '../../services/Misc'
+import { isEmailValid } from '../../utils/Utils'
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { MdOutlineLockReset } from "react-icons/md";
 import { LuEyeClosed } from "react-icons/lu";

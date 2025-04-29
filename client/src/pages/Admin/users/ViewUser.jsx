@@ -43,6 +43,7 @@ function ViewUser() {
       {/* beadcrumps */}
       <div className='flex items-center gap-2 mb-5 py-2 border-y border-gray-200'>
         <HiHome size={20} />
+        <IoIosArrowForward size={13} />
         <div className='inline-flex items-center text-sm gap-2 text-gray-400'>
           <span>Users</span>
           <IoIosArrowForward size={13} />

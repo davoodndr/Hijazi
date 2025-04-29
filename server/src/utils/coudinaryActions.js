@@ -10,15 +10,20 @@ cloudinary.v2.config({
 
 export const uploadImagesToCloudinary = async(folder, files, public_ids = []) => {
 
+  console.log(public_ids)
   
   const uploadResults = await Promise.all(
+
     files.map(async(file, i) => {
       
+      const public_id = Array.isArray(public_ids) && public_ids.length 
+        ? public_ids[i] : public_ids
+
       return await new Promise((resolve, reject) => {
         const stream = cloudinary.v2.uploader.upload_stream(
           {
             folder: `hijazi/${folder}`,
-            public_id: public_ids[i] || undefined,
+            public_id,
             overwrite: true,
             resource_type: 'auto',
           },
@@ -31,6 +36,7 @@ export const uploadImagesToCloudinary = async(folder, files, public_ids = []) =>
         stream.end(file.buffer);
       });
     })
+
   )
 
   return uploadResults;

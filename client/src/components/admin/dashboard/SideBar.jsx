@@ -5,7 +5,7 @@ import logo from '../../../assets/logo.svg'
 import { FaChevronLeft } from "react-icons/fa6";
 import { IoMenu } from "react-icons/io5";
 
-export const Sidebar = React.memo(({menuItems}) => {
+export const Sidebar = ({menuItems}) => {
 
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation()
@@ -54,4 +54,4 @@ export const Sidebar = React.memo(({menuItems}) => {
     </section>
   )
 
-});
+};

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 
-import { isEmailValid } from '../../services/Misc'
+import { isEmailValid } from '../../utils/Utils'
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { FiKey } from "react-icons/fi";
 import Modal from './Modal';

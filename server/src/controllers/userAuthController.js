@@ -21,10 +21,15 @@ export const registerUser= async(req, res) => {
       return responseMessage(res, 400, false, 'Please fill all fields');
     }
 
-    const user = await User.findOne({email});
+    const user = await User.findOne({username});
+    const emailUser = await User.findOne({email});
 
     if(user){
-      return responseMessage(res, 400, false, 'User already exists');
+      return responseMessage(res, 400, false, 'Username already exisits');
+    }
+
+    if(emailUser){
+      return responseMessage(res, 400, false, 'Email already exisits');
     }
 
     const salt = await bcrypt.genSalt(10);

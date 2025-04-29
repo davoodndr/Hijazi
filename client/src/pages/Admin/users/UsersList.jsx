@@ -152,6 +152,7 @@ const UsersList = () => {
       {/* beadcrumps */}
       <div className='flex items-center gap-2 mb-5 py-2 border-y border-gray-200'>
         <HiHome size={20} />
+        <IoIosArrowForward size={13} />
         <div className='inline-flex items-center text-sm gap-2'>
           <span>Users</span>
         </div>
@@ -251,7 +252,7 @@ const UsersList = () => {
                 {/* Actions */}
                 <div className="flex items-center justify-center gap-3">
                   <div 
-                    onClick={() => navigate('/admin/users/edit-user',user)}
+                    onClick={() => navigate('/admin/users/edit-user',{state: {user}})}
                     className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
                     <TbUserEdit size={20} />
                   </div>

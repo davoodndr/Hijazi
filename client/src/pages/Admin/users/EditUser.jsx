@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { IoIosAdd, IoIosArrowForward } from "react-icons/io";
 import { LuEye, LuEyeClosed, LuMail, LuMapPin, LuPhone, LuUser } from "react-icons/lu";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { CgProfile } from "react-icons/cg";
 import place_holder from '../../../assets/user_placeholder.jpg'
 import { MdOutlineImageSearch } from "react-icons/md";
@@ -16,8 +16,12 @@ import { useDispatch } from 'react-redux'
 import { setLoading } from '../../../store/slices/CommonSlices'
 import { TbArrowBackUp } from "react-icons/tb";
 import { HiHome } from "react-icons/hi2";
+import { uploadAvatar } from "../../../services/Misc";
 
 const EditUser = () => {
+
+  const location = useLocation();
+  const { user } = location.state;
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -30,10 +34,20 @@ const EditUser = () => {
 
   /* input handling */
   const [data, setData] = useState({
-    username: "", fullname:"", email:"", mobile:'',
-    address_line:"", city:"", state:"", pincode:"",
+    username: user?.username, fullname:user?.fullname, email:user?.email, mobile:user?.mobile,
+    address_line:user?.default_address?.address_line, 
+    city:user?.default_address?.city, state:user?.default_address?.state, 
+    pincode:user?.default_address?.pincode,
     password:"", confirm:"", file: ""
   })
+
+  useEffect(() => {
+    setImagePreview(user?.avatar)
+    setRoles(user?.roles?.map(role => (
+      {value: role, label: role.charAt(0).toUpperCase()+role.slice(1)}
+    )));
+    setStatus({value:user?.status, label: user?.status.charAt(0).toUpperCase()+user?.status.slice(1)})
+  },[user])
 
   const handleChange = (e) => {
     const { name, value} = e.target;
@@ -46,7 +60,7 @@ const EditUser = () => {
   }
 
   // image change handling
-  const handleImageSelect = (e) => {
+  const handleImageSelect = async(e) => {
     const file = e.target.files[0];
 
     if(file){
@@ -60,29 +74,6 @@ const EditUser = () => {
 
       reader.readAsDataURL(file)
     }
-  }
-
-  const uploadAvatar = async(user_id, file, public_id= "") => {
-
-    try {
-              
-      const imageData = new FormData();
-      imageData.append('avatar', file)
-      imageData.append('public_id', public_id)
-      imageData.append('custom_user_id',user_id)
-
-      const response = await Axios({
-        ...ApiBucket.addProfileImage,
-        data: imageData
-      })
-
-      return response.data.avatar;
-
-    } catch (error) {
-      dispatch(setLoading(false))
-      return AxiosToast(error);
-    }
-
   }
 
   /* address active and deactive */
@@ -114,16 +105,19 @@ const EditUser = () => {
     }
   }
 
+  // update user
   const handleSubmit = async(e) => {
+    
     e.preventDefault();
 
-    let mandatories = ['username', 'email', 'password', 'confirm'];
+    let mandatories = ['username', 'email'];
     // adding address field for validation
     if(address.length) mandatories = mandatories.concat(address);
     const validateValues = mandatories.every(field => data[field]);
+
     if(validateValues){
 
-      if(data.password !== data.confirm){
+      if(data.password && data.password !== data.confirm){
         toast.error("Password doesn\'nt match");
         return
       }
@@ -158,8 +152,11 @@ const EditUser = () => {
         
         
         const response = await Axios({
-          ...ApiBucket.addUser,
-          data: finalData
+          ...ApiBucket.updateUser,
+          data: {
+            ...finalData,
+            user_id: user._id
+          }
         })
 
         if(response.data.success){
@@ -168,7 +165,9 @@ const EditUser = () => {
           let newAvatar = "";
 
           if(file){
-            newAvatar = await uploadAvatar(response.data.user._id,file);
+            const public_id = user.avatar ? user?.avatar?.split('/').filter(Boolean).pop().split('.')[0] : '';
+            
+            newAvatar = await uploadAvatar(user._id, file, public_id);
           }
 
           AxiosToast(response, false);
@@ -180,10 +179,11 @@ const EditUser = () => {
           setRoles([]);
           setStatus('')
           setImagePreview(null);
+          navigate('/admin/users')
         }
         
       } catch (error) {
-        console.log(error.response.data)
+        console.log(error)
         AxiosToast(error)
       }finally{
         dispatch(setLoading(false))
@@ -202,8 +202,8 @@ const EditUser = () => {
       {/* page title & add user button */}
       <div className="mb-5 flex justify-between items-start">
         <div className="flex flex-col">
-          <h3 className='text-xl'>Create New User</h3>
-          <span className='sub-title'>Enter user details below</span>
+          <h3 className='text-xl'>Update User</h3>
+          <span className='sub-title'>Edit user details below</span>
         </div>
         <div className="inline-flex items-stretch gap-5">
           <div className={`inline-flex items-center gap-1.5`}>
@@ -233,7 +233,7 @@ const EditUser = () => {
             type="submit"
             className='ps-2! pe-4! inline-flex items-center gap-2 text-white'>
             <IoIosAdd size={25} />
-            <span>Add Now</span>
+            <span>Update Now</span>
           </button>
         </div>
         
@@ -242,12 +242,13 @@ const EditUser = () => {
       {/* beadcrumps */}
       <div className='flex items-center gap-2 mb-5 py-2 border-y border-gray-200'>
         <HiHome size={20} />
+        <IoIosArrowForward size={13} />
         <div className='inline-flex items-center text-sm gap-2 text-gray-400'>
           <span>Users</span>
           <IoIosArrowForward size={13} />
         </div>
         <div className='inline-flex items-center text-sm gap-2'>
-          <span>User Account</span>
+          <span>Update User</span>
         </div>
       </div>
 
@@ -424,7 +425,10 @@ const EditUser = () => {
             </h2>
             <div className="address-container flex flex-col gap-5">
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-gray-700">Street Address</label>
+                <label className="flex text-sm font-medium">
+                  <span>Street Address</span>
+                  <span className="text-xl leading-none ms-1 text-red-500">*</span>
+                </label>
                 <input
                   name="address_line"
                   value={data.address_line}
@@ -435,7 +439,10 @@ const EditUser = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">City</label>
+                <label className="flex text-sm font-medium">
+                  <span>City</span>
+                  <span className="text-xl leading-none ms-1 text-red-500">*</span>
+                </label>
                 <input
                   name="city"
                   value={data.city}
@@ -446,7 +453,10 @@ const EditUser = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">State</label>
+                <label className="flex text-sm font-medium">
+                  <span>State</span>
+                  <span className="text-xl leading-none ms-1 text-red-500">*</span>
+                </label>
                 <input
                   name="state"
                   value={data.state}
@@ -457,7 +467,10 @@ const EditUser = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">ZIP/Postal Code</label>
+                <label className="flex text-sm font-medium">
+                  <span>ZIP/Postal Code</span>
+                  <span className="text-xl leading-none ms-1 text-red-500">*</span>
+                </label>
                 <input
                   name="pincode"
                   value={data.pincode}
@@ -471,6 +484,7 @@ const EditUser = () => {
           </div>
 
         </form>
+
         {/* profile image */}
         <div className="h-fit space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
           <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">
@@ -488,7 +502,8 @@ const EditUser = () => {
                 <MdOutlineImageSearch size={25} />
               </label>
             </div>
-            <span className="border border-gray-300 w-full text-center text-xs py-1 rounded-full">Image</span>
+            <span className="border border-gray-300 w-full text-center text-sm 
+            py-1 rounded-full">{data?.file?.name || 'Filename'}</span>
             <input type="file" id="avatar-input" onChange={handleImageSelect} hidden/>
           </div>
         </div>
@@ -496,6 +511,7 @@ const EditUser = () => {
       </div>
     </section>
   );
+
 };
 
 export default EditUser;

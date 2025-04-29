@@ -16,6 +16,7 @@ import { useDispatch } from 'react-redux'
 import { setLoading } from '../../../store/slices/CommonSlices'
 import { TbArrowBackUp } from "react-icons/tb";
 import { HiHome } from "react-icons/hi2";
+import { uploadAvatar } from '../../../services/Misc'
 
 const AddUser = () => {
 
@@ -25,7 +26,7 @@ const AddUser = () => {
   const [status, setStatus] = useState('');
   const [passwordShowing, setPasswordShowing] = useState(false);
   const [confirmShowing, setConfirmShowing] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null);
   const [address, setAddress] = useState([]);
 
   /* input handling */
@@ -60,29 +61,6 @@ const AddUser = () => {
 
       reader.readAsDataURL(file)
     }
-  }
-
-  const uploadAvatar = async(user_id, file, public_id= "") => {
-
-    try {
-              
-      const imageData = new FormData();
-      imageData.append('avatar', file)
-      imageData.append('public_id', public_id)
-      imageData.append('custom_user_id',user_id)
-
-      const response = await Axios({
-        ...ApiBucket.addProfileImage,
-        data: imageData
-      })
-
-      return response.data.avatar;
-
-    } catch (error) {
-      dispatch(setLoading(false))
-      return AxiosToast(error);
-    }
-
   }
 
   /* address active and deactive */
@@ -168,7 +146,7 @@ const AddUser = () => {
           let newAvatar = "";
 
           if(file){
-            newAvatar = await uploadAvatar(response.data.user._id,file);
+            newAvatar =  await uploadAvatar(response.data.user._id,file);
           }
 
           AxiosToast(response, false);
@@ -233,7 +211,7 @@ const AddUser = () => {
             type="submit"
             className='ps-2! pe-4! inline-flex items-center gap-2 text-white'>
             <IoIosAdd size={25} />
-            <span>Add Now</span>
+            <span>Register</span>
           </button>
         </div>
         
@@ -242,6 +220,7 @@ const AddUser = () => {
       {/* beadcrumps */}
       <div className='flex items-center gap-2 mb-5 py-2 border-y border-gray-200'>
         <HiHome size={20} />
+        <IoIosArrowForward size={13} />
         <div className='inline-flex items-center text-sm gap-2 text-gray-400'>
           <span>Users</span>
           <IoIosArrowForward size={13} />
@@ -424,7 +403,10 @@ const AddUser = () => {
             </h2>
             <div className="address-container flex flex-col gap-5">
               <div className="sm:col-span-2">
-                <label className="block text-sm font-medium text-gray-700">Street Address</label>
+                <label className="flex text-sm font-medium">
+                  <span>Street Address</span>
+                  <span className="text-xl leading-none ms-1 text-red-500">*</span>
+                </label>
                 <input
                   name="address_line"
                   value={data.address_line}
@@ -435,7 +417,10 @@ const AddUser = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">City</label>
+                <label className="flex text-sm font-medium">
+                  <span>City</span>
+                  <span className="text-xl leading-none ms-1 text-red-500">*</span>
+                </label>
                 <input
                   name="city"
                   value={data.city}
@@ -446,7 +431,10 @@ const AddUser = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">State</label>
+                <label className="flex text-sm font-medium">
+                  <span>State</span>
+                  <span className="text-xl leading-none ms-1 text-red-500">*</span>
+                </label>
                 <input
                   name="state"
                   value={data.state}
@@ -457,7 +445,10 @@ const AddUser = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">ZIP/Postal Code</label>
+                <label className="flex text-sm font-medium">
+                  <span>ZIP/Postal Code</span>
+                  <span className="text-xl leading-none ms-1 text-red-500">*</span>
+                </label>
                 <input
                   name="pincode"
                   value={data.pincode}
@@ -488,7 +479,8 @@ const AddUser = () => {
                 <MdOutlineImageSearch size={25} />
               </label>
             </div>
-            <span className="border border-gray-300 w-full text-center text-xs py-1 rounded-full">Image</span>
+            <span className="border border-gray-300 w-full text-center text-sm 
+            py-1 rounded-full">{data?.file?.name || 'Filename'}</span>
             <input type="file" id="avatar-input" onChange={handleImageSelect} hidden/>
           </div>
         </div>

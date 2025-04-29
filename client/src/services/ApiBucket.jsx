@@ -56,6 +56,10 @@ const ApiBucket = {
     url: '/api/admin/upload-avatar',
     method: 'post'
   },
+  updateUser: {
+    url: '/api/admin/update-user',
+    method: 'patch'
+  },
 }
 
 

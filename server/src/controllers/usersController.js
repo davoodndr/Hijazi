@@ -9,8 +9,8 @@ export const getUsers = async(req, res) => {
 
   try {
 
-    const users = await User.find();
-    
+    const users = await User.find({_id: {$ne: req.user_id}}).select('-refresh_token -password');
+
     return responseMessage(res, 200, true, "", {users});
     
   } catch (error) {
@@ -30,14 +30,24 @@ export const addUser= async(req, res) => {
       return responseMessage(res, 400, false, 'Please fill all mandatory fields');
     }
 
-    const user = await User.findOne({email});
-
-    if(user){
-      return responseMessage(res, 400, false, 'User already exists');
+    const emailUser = await User.findOne({email});
+    
+    if(emailUser){
+      return responseMessage(res, 400, false, 'Email already used for another account');
     }
 
-    if(user?.mobile?.length && mobile?.length && mobile === user?.mobile){
-      return responseMessage(res, 400, false, 'User exists with this mobile number')
+    if(mobile){
+      const mobileUser = await User.findOne({mobile});
+    
+      if(mobileUser){
+        return responseMessage(res, 400, false, 'Mobile already used for another account');
+      }
+    }
+
+    const user = await User.findOne({username});
+    
+    if(user){
+      return responseMessage(res, 400, false, 'Username already taken for another account');
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -69,6 +79,54 @@ export const addUser= async(req, res) => {
 
 }
 
+// update user
+export const updateUser = async(req, res) => {
+  const { user_id, email, mobile, username, password } = req.body;
+
+  try {
+
+
+    const emailUser = await User.findOne({email, _id:{$ne: user_id}});
+    
+    if(emailUser){
+      return responseMessage(res, 400, false, 'Email already used for another account');
+    }
+
+    if(mobile){
+      const mobileUser = await User.findOne({mobile, _id:{$ne: user_id}});
+    
+      if(mobileUser){
+        return responseMessage(res, 400, false, 'Mobile already used for another account');
+      }
+    }
+
+    const existUserName = await User.findOne({username, _id:{$ne: user_id}});
+    
+    if(existUserName){
+      return responseMessage(res, 400, false, 'Username already taken for another account');
+    }
+
+    let userData = req.body;
+
+    if(password){
+      const salt = await bcrypt.genSalt(10);
+      const hashedPass = await bcrypt.hash(password, salt);
+      userData.password = hashedPass;
+    }
+
+    await User.findOneAndUpdate({_id:user_id},{
+      ...userData
+    })
+
+    return responseMessage(res, 200, true, "User updated successfully")
+    
+  } catch (error) {
+    console.log('updateUser:',error);
+    return responseMessage(res,500,false, error.message || error);
+  }
+
+}
+
 //add avatar
 export const uploadAvatar = async(req, res) => {
 
@@ -81,7 +139,7 @@ export const uploadAvatar = async(req, res) => {
       return responseMessage(res, 500, false, "No files to upload");
     }
     
-    const upload = await uploadImagesToCloudinary('users',files,public_id)
+    const upload = await uploadImagesToCloudinary('users',files, public_id)
 
     await User.findByIdAndUpdate(custom_user_id ?? user_id,
       {
