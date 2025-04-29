@@ -6,7 +6,7 @@ const AdminProtectedRoutes = ({user, isLoading}) => {
 
   if(isLoading) return <LoadingFallOff height={100} />
 
-  if(!user?.roles.includes('admin')){
+  if(!user?.roles.includes('admin') || user?.status === 'blocked'){
     return <Navigate to={'/admin/login'} replace />
   }
 

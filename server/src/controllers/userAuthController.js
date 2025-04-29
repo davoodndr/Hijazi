@@ -69,11 +69,15 @@ export const userLogin = async(req, res) => {
     const user = await User.findOne({email});
 
     if(!user){
-      return responseMessage(res, 400, false, 'User doesn\'t exists');
+      return responseMessage(res, 400, false, 'User does not exists');
     }
 
     if(!user.roles.includes(role)){
       return responseMessage(res, 403, false, "You have no access to this account");
+    }
+
+    if(user.status === 'blocked'){
+      return responseMessage(res, 403, false, "This account is blocked");
     }
 
     const hashed = bcrypt.compare(password, user.password);

@@ -5,7 +5,7 @@ import { IoLocationOutline, IoWallet } from 'react-icons/io5'
 import { LuMail, LuMapPin, LuPhone, LuUser } from 'react-icons/lu'
 import { MdPayments } from "react-icons/md";
 import { TbArrowBackUp } from 'react-icons/tb'
-import { LiaAddressBook } from "react-icons/lia";
+import { FaRegAddressBook } from "react-icons/fa";
 import { HiHome } from "react-icons/hi2";
 import place_holder from '../../../assets/user_placeholder.jpg'
 
@@ -102,10 +102,10 @@ function ViewUser() {
         <div className="columns-2 space-y-2">
                     
           {/* Default Address */}
-          <div className="break-inside-avoid space-y-6 rounded-lg overflow-hidden">
-            <div className="flex flex-col gap-5 p-6 border border-gray-200 bg-white shadow-xs">
+          <div className="break-inside-avoid space-y-6">
+            <div className="flex flex-col gap-5 p-6 rounded-lg border border-gray-200 bg-white shadow-xs">
               <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">
-                <LiaAddressBook size={30} />
+                <FaRegAddressBook className="w-5 h-5" />
                 <span>Default Address</span>
               </h2>
               {user?.default_address ?
@@ -145,7 +145,7 @@ function ViewUser() {
                 <span className="leading-none">Shipping Address</span>
               </div>
             </h2>
-            <div className="address-container flex flex-col gap-5">
+            <div className="flex flex-col gap-5">
               
             </div>
           </div>

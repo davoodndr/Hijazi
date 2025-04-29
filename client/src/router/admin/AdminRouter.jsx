@@ -51,14 +51,16 @@ const AdminRouter = ({user, isLoading}) => {
             style: {
               border: '1px solid var(--color-error-border)',
               backgroundColor: 'var(--color-error-border)',
-              color: 'white'
+              color: 'white',
+              textShadow: '1px 1px 2px rgba(255, 0, 0, 1)'
             }
           },
           success: {
             style: {
               /* border: '1px solid var(--color-primary-50)', */
               backgroundColor: 'var(--color-green-500)',
-              color: 'white'
+              color: 'white',
+              textShadow: '1px 1px 2px rgba(0, 64, 0, 1)'
             },
             iconTheme: {
               primary: '#fff',

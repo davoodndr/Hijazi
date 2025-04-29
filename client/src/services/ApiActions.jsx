@@ -2,6 +2,7 @@ import { Axios } from "../utils/AxiosSetup";
 import AxiosToast from "../utils/AxiosToast";
 import ApiBucket from "./ApiBucket";
 
+
 export const uploadAvatar = async(user_id, file, public_id= "") => {
 
   try {
@@ -19,7 +20,33 @@ export const uploadAvatar = async(user_id, file, public_id= "") => {
     return response.data.avatar;
 
   } catch (error) {
-    AxiosToast(error);
+    return error
   }
 
+}
+
+// bloch or unblock user
+export const blockUserAction = async(user_id, mode) => {
+
+  try {
+
+    let response;
+    
+    if(mode === 'block'){
+      response = await Axios({
+        ...ApiBucket.blockUser,
+        data:{user_id}
+      })
+    }else{
+      response = await Axios({
+        ...ApiBucket.unblockUser,
+        data:{user_id}
+      })
+    }
+
+    return response
+
+  } catch (error) {
+    return error
+  }
 }

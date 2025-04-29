@@ -7,13 +7,18 @@ import place_holder from '../../../assets/user_placeholder.jpg'
 import { TbUserEdit } from "react-icons/tb";
 import { HiHome, HiOutlineTrash } from "react-icons/hi2";
 import { IoIosArrowForward, IoMdMore } from "react-icons/io";
-import { IoIosAdd } from "react-icons/io";
 import ContextMenu from '../../../components/ui/ContextMenu';
 import { MdBlock } from "react-icons/md";
+import { CgUnblock } from "react-icons/cg";
 import AdminPagination from '../../../components/ui/AdminPagination';
 import { IoEyeOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router';
+import { blockUserAction } from '../../../services/ApiActions';
+import AxiosToast from '../../../utils/AxiosToast';
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content';
 
+const MySwal = withReactContent(Swal);
 
 const UsersList = () => {
 
@@ -115,12 +120,38 @@ const UsersList = () => {
   };
 
   /* handling action buttons */
-  const handleUserBlock = (user_id) => {
-    
+  const handleUserBlock = (user) => {
+    const mode = user?.status === 'blocked' ? '' : 'block'
+
+    MySwal.fire({
+      title: 'Are you sure?',
+      text: mode === 'block' ? 'User cannot access his account' : 'User can access his account',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, do it!',
+      cancelButtonText: 'Cancel'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        
+        const response = await blockUserAction(user?._id, mode);
+
+        if(response.data.success){
+
+          const updatedUser = response.data.user;
+          setUsers(prev => prev.map(u => u._id === updatedUser._id ? updatedUser : u))
+          AxiosToast(response, false);
+
+        }else{
+          AxiosToast(response)
+        }
+      }
+    });
+
   }
   const handleUserDelete = (user_id) => {
     
   }
+
 
   /* paingation logic */
   const [currentPage, setCurrentPage] = useState(1);
@@ -270,7 +301,8 @@ const UsersList = () => {
                       onClose={() => setMenu(null)}
                       items={[
                         { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user',{state: user}) },
-                        { label: 'block', icon: MdBlock, onClick: ()=> handleUserBlock(user._id) },
+                        { label: user?.status === 'blocked' ? 'unblock' : 'block', 
+                          icon: user?.status === 'blocked' ? CgUnblock : MdBlock, onClick: ()=> handleUserBlock(user) },
                         { label: 'delete', icon: HiOutlineTrash, onClick: handleUserDelete(user._id) }
                       ]} 
                       />
@@ -304,6 +336,7 @@ const UsersList = () => {
         </motion.li>
         }
       </motion.ul>
+
     </section>
   )
 }

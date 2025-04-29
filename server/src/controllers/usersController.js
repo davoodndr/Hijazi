@@ -158,3 +158,61 @@ export const uploadAvatar = async(req, res) => {
   }
 
 }
+
+// block user
+export const blockUser = async(req, res) => {
+  const { user_id } = req.body;
+
+  try {
+
+    const user = await User.findById(user_id);
+
+    if(!user){
+      return responseMessage(res, 400, false, "User does not exisits");
+    }
+
+    const updated = await User.findByIdAndUpdate(user_id,
+      { status: 'blocked' },
+      { new: true }
+    )
+
+    delete {...updated}._doc.password;
+    delete {...updated}._doc.refresh_token;
+
+    return responseMessage(res, 200, true, "Blocked the user successfully",{user: updated});
+    
+  } catch (error) {
+    console.log('blockUser', error);
+    return responseMessage(res, 500, false, error);
+  }
+
+}
+
+// block user
+export const unblockUser = async(req, res) => {
+  const { user_id } = req.body;
+
+  try {
+
+    const user = await User.findById(user_id);
+
+    if(!user){
+      return responseMessage(res, 400, false, "User does not exisits");
+    }
+
+    const updated = await User.findByIdAndUpdate(user_id,
+      { status: 'active' },
+      { new: true }
+    )
+
+    delete {...updated}._doc.password;
+    delete {...updated}._doc.refresh_token;
+
+    return responseMessage(res, 200, true, "Blocked the user successfully",{user: updated});
+    
+  } catch (error) {
+    console.log('unblockUser', error);
+    return responseMessage(res, 500, false, error);
+  }
+
+}

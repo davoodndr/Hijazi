@@ -60,6 +60,14 @@ const ApiBucket = {
     url: '/api/admin/update-user',
     method: 'patch'
   },
+  blockUser: {
+    url: '/api/admin/block-user',
+    method: 'patch'
+  },
+  unblockUser: {
+    url: '/api/admin/unblock-user',
+    method: 'patch'
+  },
 }
 
 
