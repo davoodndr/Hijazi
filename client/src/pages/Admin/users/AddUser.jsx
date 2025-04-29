@@ -24,13 +24,14 @@ const AddUser = () => {
   const [status, setStatus] = useState('');
   const [passwordShowing, setPasswordShowing] = useState(false);
   const [confirmShowing, setConfirmShowing] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null)
   const [address, setAddress] = useState([]);
 
   /* input handling */
   const [data, setData] = useState({
     username: "", fullname:"", email:"", mobile:'',
     address_line:"", city:"", state:"", pincode:"",
-    password:"", confirm:""
+    password:"", confirm:"", file: ""
   })
 
   const handleChange = (e) => {
@@ -41,6 +42,46 @@ const AddUser = () => {
         [name]: value
       }
     })
+  }
+
+  // image change handling
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+
+    if(file){
+
+      setData(prev => ({...prev, file}));
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result)
+      }
+
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const uploadAvatar = async(user_id, file, public_id= "") => {
+
+    try {
+              
+      const imageData = new FormData();
+      imageData.append('avatar', file)
+      imageData.append('public_id', public_id)
+      imageData.append('custom_user_id',user_id)
+
+      const response = await Axios({
+        ...ApiBucket.addProfileImage,
+        data: imageData
+      })
+
+      return response.data.avatar;
+
+    } catch (error) {
+      dispatch(setLoading(false))
+      return AxiosToast(error);
+    }
+
   }
 
   /* address active and deactive */
@@ -104,11 +145,16 @@ const AddUser = () => {
 
       try {
 
+        
         //removes blank entries from data for creating newUser
-        const filteresData = Object.entries(data).filter(([_,val]) => val.length);
-        const finalData = Object.fromEntries(filteresData)
-
-        console.log(finalData)
+        const filteresData = Object.entries(data).filter(([_,value]) => {
+          if (value === "" || value == null || value == undefined) return false;
+          if (Array.isArray(value) && value.length === 0) return false;
+          return true;
+        });
+        
+        const finalData = Object.fromEntries(filteresData);
+        
         
         const response = await Axios({
           ...ApiBucket.addUser,
@@ -116,21 +162,30 @@ const AddUser = () => {
         })
 
         if(response.data.success){
+
+          const file = finalData.file;
+          let newAvatar = "";
+
+          if(file){
+            newAvatar = await uploadAvatar(response.data.user._id,file);
+          }
+
           AxiosToast(response, false);
           setData({
             username: "", fullname:"", email:"", mobile:"",
             address_line:"", city:"", state:"", pincode:"",
-            password:"", confirm:""
+            password:"", confirm:"", file:''
           })
           setRoles([]);
           setStatus('')
+          setImagePreview(null);
         }
         
       } catch (error) {
         console.log(error.response.data)
         AxiosToast(error)
       }finally{
-        dispatch(setLoading(false))
+        //dispatch(setLoading(false))
       }
 
       return
@@ -165,7 +220,8 @@ const AddUser = () => {
               Address
             </label>
           </div>
-          <button 
+          <button
+            onClick={() => navigate('/admin/users')} 
             className='!ps-2 !pe-4 !bg-white border border-gray-300 !text-gray-400 
               inline-flex items-center gap-2 hover:!text-primary-400 hover:!border-primary-300'>
             <TbArrowBackUp size={25} />
@@ -183,11 +239,11 @@ const AddUser = () => {
       </div>
 
       {/* form */}
-      <div className="grid grid-cols-[2fr_1fr] gap-5">
+      <div className="grid grid-cols-[2fr_1fr] gap-2">
         
-        <form onSubmit={handleSubmit} className="columns-2 gap-5 space-y-5 " id="add-user-form">
+        <form onSubmit={handleSubmit} className="columns-2 gap-2 space-y-2 " id="add-user-form">
           {/* Personal Information */}
-          <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-3xl shadow-md">
+          <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
             <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">
               <LuUser className="w-5 h-5" />
               <span>Personal</span>
@@ -222,7 +278,7 @@ const AddUser = () => {
           </div>
 
           {/* Contact Information */}
-          <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-3xl shadow-md">
+          <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
             <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">
               <LuMail className="w-5 h-5" />
               <span>Contact</span>
@@ -259,7 +315,7 @@ const AddUser = () => {
           </div>
           
           {/* accessibility Information */}
-          <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-3xl shadow-md">
+          <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
             <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">
               <IoAccessibility className="w-5 h-5" />
               <span>Accessibility</span>
@@ -293,7 +349,7 @@ const AddUser = () => {
           </div>
 
           {/* password */}
-          <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-3xl shadow-md">
+          <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
 
             <div className="flex flex-col gap-5">
               <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">
@@ -345,7 +401,7 @@ const AddUser = () => {
           </div>
 
           {/* Address */}
-          <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-3xl shadow-md
+          <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs
             hidden-div hidden">
             <h2 className="text-md font-medium text-gray-900 flex items-center justify-between">
               <div className="inline-flex items-center gap-2">
@@ -403,15 +459,15 @@ const AddUser = () => {
 
         </form>
         {/* profile image */}
-        <div className="h-fit space-y-6 border border-gray-200 bg-white p-6 rounded-3xl shadow-md">
+        <div className="h-fit space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
           <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">
             <CgProfile className="w-5 h-5" />
             <span>Profile Image</span>
           </h2>
           <div className="flex flex-col items-center gap-5">
             <div className="relative">
-              <img src={place_holder} className="w-40 rounded-full" alt="prifle" />
-              <label htmlFor="profile-input"
+              <img src={imagePreview || place_holder} className="w-40 h-40 object-cover rounded-full" alt="prifle" />
+              <label htmlFor="avatar-input"
                 className="border border-gray-300 p-2 rounded-2xl cursor-pointer transition-all duration-300
                   hover:bg-primary-50 hover:border-primary-300 text-[16px]! bg-white absolute bottom-0 right-3
                   shadow-lg"
@@ -420,7 +476,7 @@ const AddUser = () => {
               </label>
             </div>
             <span className="border border-gray-300 w-full text-center text-xs py-1 rounded-full">Image</span>
-            <input type="file" id="profile-input" hidden/>
+            <input type="file" id="avatar-input" onChange={handleImageSelect} hidden/>
           </div>
         </div>
         

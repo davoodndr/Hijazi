@@ -7,7 +7,7 @@ const commonSlices = createSlice({
   },
   reducers: {
     setLoading: (state, action) => {
-      state.loading = action.payload.loading
+      state.loading = action.payload
     }
   }
 })

@@ -22,8 +22,6 @@ export const getUsers = async(req, res) => {
 // register user
 export const addUser= async(req, res) => {
 
-  console.log(req.body)
-
   const { email, username, password, mobile, address_line } = req.body;
 
   try {
@@ -45,20 +43,23 @@ export const addUser= async(req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(password, salt);
 
+    const newUser = new User({
+      ...req.body,
+      password: hashedPass,
+    })
+
     await Promise.all(
       [
-        new User({
-          ...req.body,
-          password: hashedPass,
-        }).save(),
+        newUser.save(),
         address_line ? new Address(req.body).save() : Promise.resolve()
       ]
     )
     
     // can delete filed from new user if want to response with new user
-    //delete {...newUser}._doc.password;
+    delete {...newUser}._doc.password;
+    delete {...newUser}._doc.refresh_token;
     
-    return responseMessage(res, 201, true, 'User registered successfully')
+    return responseMessage(res, 201, true, 'User registered successfully',{user: newUser})
     
   } catch (error) {
 
@@ -82,9 +83,11 @@ export const uploadAvatar = async(req, res) => {
     
     const upload = await uploadImagesToCloudinary('users',files,public_id)
 
-    await User.findByIdAndUpdate(custom_user_id ?? user_id, {
-      avatar: upload[0].secure_url
-    })
+    await User.findByIdAndUpdate(custom_user_id ?? user_id,
+      {
+        avatar: upload[0].secure_url
+      },{upsert: true}
+    )
 
     return responseMessage(res, 200, true, "Profile image uploaded", {
       _id: upload[0].public_id,

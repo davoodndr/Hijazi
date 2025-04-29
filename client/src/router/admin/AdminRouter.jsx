@@ -39,7 +39,8 @@ const AdminRouter = ({user, isLoading}) => {
 
       </Routes>
       
-      {loading && <LoadingFallOff />}
+      {/* {loading && <LoadingFallOff />} */}
+      <LoadingFallOff loading={loading} />
 
       <Toaster
         position='top-right'

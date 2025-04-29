@@ -191,6 +191,14 @@ const UsersList = () => {
 
           const ref = getUserRef(user._id)
 
+          const statusColors = () => {
+            switch(user.status){
+              case 'active': return 'bg-green-100 text-teal-600'
+              case 'blocked': return 'bg-red-100 text-red-500'
+              default : return 'bg-gray-200 text-gray-400'
+            }
+          }
+
           return(
           
             <motion.li
@@ -229,7 +237,8 @@ const UsersList = () => {
 
                 {/* Status */}
                 <div>
-                  <span className="px-2 py-1 text-xs font-semibold bg-neutral-300 rounded-full capitalize">
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
+                    ${statusColors()}`}>
                     {user.status}
                   </span>
                 </div>

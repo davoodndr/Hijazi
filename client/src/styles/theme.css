@@ -13,5 +13,12 @@
   --color-error-border: oklch(0.88 0.191 22.216);
   --color-green-screen: oklch(0.72 0.0505 157.41);
 
+  /* status colors */
+  --color-status-green: oklch(0.72 0.0505 157.41);
+  --color-status-red: oklch(0.72 0.0505 157.41);
+  --color-status-orange: oklch(0.72 0.0505 157.41);
+  --color-status-yellow: oklch(0.72 0.0505 157.41);
+  --color-status-blue: oklch(0.72 0.0505 157.41);
+
   --radius-input-border: 10px;
 }
