@@ -13,12 +13,9 @@ import { CgUnblock } from "react-icons/cg";
 import AdminPagination from '../../../components/ui/AdminPagination';
 import { IoEyeOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router';
-import { blockUserAction } from '../../../services/ApiActions';
+import { blockUserAction, deleteUserAction } from '../../../services/ApiActions';
 import AxiosToast from '../../../utils/AxiosToast';
-import Swal from 'sweetalert2'
-import withReactContent from 'sweetalert2-react-content';
-
-const MySwal = withReactContent(Swal);
+import Alert from '../../../components/ui/Alert'
 
 const UsersList = () => {
 
@@ -121,16 +118,17 @@ const UsersList = () => {
 
   /* handling action buttons */
   const handleUserBlock = (user) => {
-    const mode = user?.status === 'blocked' ? '' : 'block'
 
-    MySwal.fire({
+    const mode = user?.status === 'blocked' ? '' : 'block'
+    Alert({
       title: 'Are you sure?',
       text: mode === 'block' ? 'User cannot access his account' : 'User can access his account',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, do it!',
-      cancelButtonText: 'Cancel'
-    }).then(async (result) => {
+      cancelButtonText: 'Cancel',
+    })
+    .then(async (result) => {
       if (result.isConfirmed) {
         
         const response = await blockUserAction(user?._id, mode);
@@ -148,8 +146,30 @@ const UsersList = () => {
     });
 
   }
-  const handleUserDelete = (user_id) => {
-    
+  const handleUserDelete = (user) => {
+
+    Alert({
+      icon: 'warning',
+      title: "Are you sure?",
+      text: 'This action cannot revert back',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: 'var(--color-red-500)'
+    }).then(async result => {
+      
+      if(result.isConfirmed){
+
+        const response = await deleteUserAction('users', user?._id);
+
+        if(response?.data?.success){
+          setUsers(prev => prev.filter(u => u._id !== user?._id));
+          AxiosToast(response, false);
+        }else{
+          AxiosToast(response);
+        }
+      }
+    })
+
   }
 
 
@@ -303,7 +323,7 @@ const UsersList = () => {
                         { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user',{state: user}) },
                         { label: user?.status === 'blocked' ? 'unblock' : 'block', 
                           icon: user?.status === 'blocked' ? CgUnblock : MdBlock, onClick: ()=> handleUserBlock(user) },
-                        { label: 'delete', icon: HiOutlineTrash, onClick: handleUserDelete(user._id) }
+                        { label: 'delete', icon: HiOutlineTrash, onClick: () => handleUserDelete(user) }
                       ]} 
                       />
                   </div>

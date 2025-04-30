@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import Address from "../models/Address.js";
 import User from "../models/User.js";
 import { responseMessage } from "../utils/messages.js";
-import { uploadImagesToCloudinary } from '../utils/coudinaryActions.js'
+import { deleteImageFromCloudinary, uploadImagesToCloudinary } from '../utils/coudinaryActions.js'
 
 // fetch users
 export const getUsers = async(req, res) => {
@@ -15,7 +15,7 @@ export const getUsers = async(req, res) => {
     
   } catch (error) {
     console.log('getUsers', error);
-    return responseMessage(res, 500, false, error);
+    return responseMessage(res, 500, false, error.message || error);
   }
 }
 
@@ -154,7 +154,7 @@ export const uploadAvatar = async(req, res) => {
 
   } catch (error) {
     console.log('uploadAvatar', error);
-    return responseMessage(res, 500, false, error);
+    return responseMessage(res, 500, false, error.message || error);
   }
 
 }
@@ -183,12 +183,12 @@ export const blockUser = async(req, res) => {
     
   } catch (error) {
     console.log('blockUser', error);
-    return responseMessage(res, 500, false, error);
+    return responseMessage(res, 500, false, error.message || error);
   }
 
 }
 
-// block user
+// unblock user
 export const unblockUser = async(req, res) => {
   const { user_id } = req.body;
 
@@ -208,11 +208,43 @@ export const unblockUser = async(req, res) => {
     delete {...updated}._doc.password;
     delete {...updated}._doc.refresh_token;
 
-    return responseMessage(res, 200, true, "Blocked the user successfully",{user: updated});
+    return responseMessage(res, 200, true, "User unblocked successfully",{user: updated});
     
   } catch (error) {
     console.log('unblockUser', error);
-    return responseMessage(res, 500, false, error);
+    return responseMessage(res, 500, false, error.message || error);
+  }
+
+}
+
+// delete user
+export const deleteUser = async(req, res) => {
+
+  const { user_id, folder } = req.body;
+
+  try {
+
+    const user = await User.findById(user_id);
+
+    if(!user){
+      return responseMessage(res, 400, false, "User does not exisits");
+    }
+
+    if(user.avatar){
+      let public_id = user.avatar?.split('/').filter(Boolean).pop().split('.')[0];
+      if(public_id){
+        await deleteImageFromCloudinary(folder, public_id)
+      }
+    }
+
+    await User.findByIdAndDelete(user_id);
+
+
+    return responseMessage(res, 200, true, "User deleted successfully");
+    
+  } catch (error) {
+    console.log('deleteUser', error);
+    return responseMessage(res, 500, false, error.message || error);
   }
 
 }

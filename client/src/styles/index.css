@@ -106,3 +106,56 @@ button:hover{
   overflow: auto;
 }
 
+body.swal2-shown > [aria-hidden='true'] {
+  transition: 0.3s filter;
+  filter: blur(3px);
+}
+
+.swal2-popup{
+  border-radius: 40px;
+  min-width: 450px;
+  width: 300px;
+}
+
+.swal2-actions{
+  display: flex;
+  justify-content: end;
+  width: 100%;
+  padding: 0 20px;
+  margin-top: 35px;
+}
+
+.swal2-actions button{
+  border-radius: 15px;
+  transition: all 0.3s;
+}
+
+.swal_fadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.swal_fadeOut {
+  animation: fadeOut 0.3s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}

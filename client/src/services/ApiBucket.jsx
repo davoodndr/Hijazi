@@ -68,6 +68,10 @@ const ApiBucket = {
     url: '/api/admin/unblock-user',
     method: 'patch'
   },
+  deleteUser: {
+    url: '/api/admin/delete-user',
+    method: 'put'
+  },
 }
 
 

@@ -1,8 +1,9 @@
 
-import cloudinary from 'cloudinary'
+import { v2 as cloudinary } from 'cloudinary'
+import { responseMessage } from './messages.js';
 
 // upload Image to cloudinary setup
-cloudinary.v2.config({
+cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
@@ -10,7 +11,7 @@ cloudinary.v2.config({
 
 export const uploadImagesToCloudinary = async(folder, files, public_ids = []) => {
 
-  console.log(public_ids)
+  if(!folder || !files) throw new Error("Upload folder or files not specified")
   
   const uploadResults = await Promise.all(
 
@@ -42,14 +43,18 @@ export const uploadImagesToCloudinary = async(folder, files, public_ids = []) =>
   return uploadResults;
 };
 
-export const deleteImageFromCloudinary = async(public_id) => {
+export const deleteImageFromCloudinary = async(folder, public_id) => {
+
+  if(!folder) throw new Error("Containing image folder not specified")
+
   const deleteImage = new Promise((resolve, reject) => {
-    cloudinary.uploader.destroy(public_id,
+    cloudinary.uploader.destroy(`hijazi/${folder}/${public_id}`,
       {
         resource_type: 'image'
       },
       ((error, result) => {
-        return resolve(result)
+        if(error) return reject(error);
+        return resolve(result);
       })
     )
   })
