@@ -176,7 +176,7 @@ const AddUser = () => {
   };
 
   return (
-    <section className='flex flex-col p-6 bg-gray-100'>
+    <section className='min-h-full h-fit flex flex-col p-6 bg-gray-100'>
       {/* page title & add user button */}
       <div className="mb-5 flex justify-between items-start">
         <div className="flex flex-col">

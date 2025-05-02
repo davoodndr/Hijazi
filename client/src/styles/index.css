@@ -50,6 +50,10 @@ select{
   background-size: 20px;
 }
 
+::placeholder{
+  color: var(--color-neutral-400/80);
+}
+
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button{
   -webkit-appearance: none;
@@ -73,6 +77,12 @@ button{
   border-radius: var(--radius-input-border);
   cursor: pointer;
   transition: all 0.3s ease;
+  outline: none;
+}
+
+button:focus{
+  border: none;
+  outline: none;
 }
 
 button:hover{

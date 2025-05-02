@@ -16,25 +16,13 @@ import { useNavigate } from 'react-router';
 import { blockUserAction, deleteUserAction } from '../../../services/ApiActions';
 import AxiosToast from '../../../utils/AxiosToast';
 import Alert from '../../../components/ui/Alert'
+import { Menu, MenuButton } from '@headlessui/react';
 
 const UsersList = () => {
 
   const navigate = useNavigate();
 
   const [users, setUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
-  
-
-  /* logic for displaying popup menu on row items */
-  const iconRef = useRef({});
-  const [menu, setMenu] = useState(null);
-
-  const getUserRef = (userId)=> {
-    if(!iconRef.current[userId]){
-      iconRef.current[userId] = React.createRef();
-    }
-    return iconRef.current[userId];
-  }
 
   /* initial data loader */
   useEffect(() => {
@@ -123,7 +111,7 @@ const UsersList = () => {
     Alert({
       title: 'Are you sure?',
       text: mode === 'block' ? 'User cannot access his account' : 'User can access his account',
-      icon: 'warning',
+      icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Yes, do it!',
       cancelButtonText: 'Cancel',
@@ -149,7 +137,7 @@ const UsersList = () => {
   const handleUserDelete = (user) => {
 
     Alert({
-      icon: 'warning',
+      icon: 'question',
       title: "Are you sure?",
       text: 'This action cannot revert back',
       showCancelButton: true,
@@ -184,7 +172,7 @@ const UsersList = () => {
   );
 
   return (
-    <section className='h-fit flex flex-col p-6 bg-gray-100'>
+    <section className='min-h-full h-fit flex flex-col p-6 bg-gray-100'>
 
       {/* page title & add user button */}
       <div className="mb-5 flex justify-between items-start">
@@ -196,7 +184,7 @@ const UsersList = () => {
           onClick={() => navigate('/admin/users/add-user')}
           className='px-4! inline-flex items-center gap-2 text-white'>
           <LuUserRoundPlus size={20} />
-          <span>Add New</span>
+          <span>Add User</span>
         </button>
       </div>
       
@@ -213,7 +201,8 @@ const UsersList = () => {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center relative w-3/10">
           <LuSearch size={20} className='absolute left-3'/>
-          <input type="text" value={query} onChange={e => setQuery(e.target.value)} placeholder='Search for products'
+          <input type="text" value={query} onChange={e => setQuery(e.target.value)}
+           placeholder='Search users'
             className='pl-10! rounded-xl! bg-white' />
         </div>
 
@@ -245,8 +234,6 @@ const UsersList = () => {
 
         {/* Rows */}
         {paginatedUsers.map((user, index) => {
-
-          const ref = getUserRef(user._id)
 
           const statusColors = () => {
             switch(user.status){
@@ -301,32 +288,38 @@ const UsersList = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-center gap-3">
+                <div className="flex items-center justify-center gap-3 z-50">
                   <div 
                     onClick={() => navigate('/admin/users/edit-user',{state: {user}})}
-                    className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
+                    className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
+                    border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
                     <TbUserEdit size={20} />
                   </div>
 
-                  <div
-                    ref={ref}
-                    onMouseEnter={() => setMenu(user._id)}
-                    onMouseLeave={() => setMenu(null)}
-                    className="p-2 rounded-xl bg-gray-100 hover:bg-white hover:scale-103 
-                    border border-gray-300 transition-all duration-300 cursor-pointer relative">
-                    <IoMdMore size={20} />
-                    <ContextMenu
-                      iconRef={ref}
-                      isToggeled={menu === user._id}
-                      onClose={() => setMenu(null)}
-                      items={[
-                        { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user',{state: user}) },
-                        { label: user?.status === 'blocked' ? 'unblock' : 'block', 
-                          icon: user?.status === 'blocked' ? CgUnblock : MdBlock, onClick: ()=> handleUserBlock(user) },
-                        { label: 'delete', icon: HiOutlineTrash, onClick: () => handleUserDelete(user) }
-                      ]} 
-                      />
-                  </div>
+                  
+                  <Menu as="div" className='relative'>
+                    {({ open }) => (
+                      <>
+                        <MenuButton
+                          className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                          border border-gray-300 !text-gray-900 cursor-pointer"
+                        >
+                          <IoMdMore size={20} />
+                        </MenuButton>
+                        <ContextMenu 
+                          open={open}
+                          items={[
+                            { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user',{state: user}) },
+                            { label: user?.status === 'blocked' ? 'unblock' : 'block', 
+                              icon: user?.status === 'blocked' ? CgUnblock : MdBlock, onClick: ()=> handleUserBlock(user) },
+                            { label: 'delete', icon: HiOutlineTrash, onClick: () => handleUserDelete(user) }
+                          ]}
+                        />
+                      </>
+                    )}
+                    
+                  </Menu>
+                  
                 </div>
               </div>
               

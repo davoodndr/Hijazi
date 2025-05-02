@@ -16,7 +16,7 @@ import { useDispatch } from 'react-redux'
 import { setLoading } from '../../../store/slices/CommonSlices'
 import { TbArrowBackUp } from "react-icons/tb";
 import { HiHome } from "react-icons/hi2";
-import { uploadAvatar } from "../../../services/Misc";
+import { uploadAvatar } from "../../../services/ApiActions";
 
 const EditUser = () => {
 

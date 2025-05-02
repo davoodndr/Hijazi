@@ -21,7 +21,7 @@ export const uploadImagesToCloudinary = async(folder, files, public_ids = []) =>
         ? public_ids[i] : public_ids
 
       return await new Promise((resolve, reject) => {
-        const stream = cloudinary.v2.uploader.upload_stream(
+        const stream = cloudinary.uploader.upload_stream(
           {
             folder: `hijazi/${folder}`,
             public_id,

@@ -20,7 +20,7 @@ export const Sidebar = ({menuItems}) => {
   }
 
   return (
-    <section className={`h-screen bg-white border-r border-gray-200 
+    <aside className={`h-screen bg-white border-r border-gray-200 
       transition-all duration-300 ease-in-out ${ collapsed ? "w-16" : "w-64" }`}>
 
       <div className="flex items-center justify-between p-2 h-20 border-b border-gray-200">
@@ -51,7 +51,7 @@ export const Sidebar = ({menuItems}) => {
           ))
         }
       </nav>
-    </section>
+    </aside>
   )
 
 };

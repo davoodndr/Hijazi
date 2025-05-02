@@ -21,7 +21,7 @@ adminRouter.post('/upload-avatar',authenticate, allowRoles(['admin']), upload('a
 adminRouter.patch('/update-user',authenticate, allowRoles(['admin']),updateUser);
 adminRouter.patch('/block-user',authenticate, allowRoles(['admin']),blockUser);
 adminRouter.patch('/unblock-user',authenticate, allowRoles(['admin']),unblockUser);
-adminRouter.put('/delete-user',/* authenticate, allowRoles(['admin']), */deleteUser);
+adminRouter.put('/delete-user',authenticate, allowRoles(['admin']),deleteUser);
 
 
 export default adminRouter;
