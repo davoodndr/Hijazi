@@ -274,9 +274,6 @@ export const refreshAccessToken = async(req, res) => {
     }
 
     const verified = jwt.verify(refreshToken, process.env.SECRET_KEY_REFRESH_TOKEN, (err, decode) => {
-      
-      if(err) return undefined
-
       return decode
     })
 

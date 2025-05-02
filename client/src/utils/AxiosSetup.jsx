@@ -11,7 +11,10 @@ export const Axios = axios.create({
 //to include the access token for every request
 Axios.interceptors.request.use(
   async(config) => {
+    
     const accesstoken = localStorage.getItem('accessToken');
+
+    if(!typeof accesstoken === 'string') return Promise.reject(error);
     
     if(accesstoken){
       config.headers.Authorization = `Bearer ${accesstoken}`
@@ -33,7 +36,8 @@ Axios.interceptors.response.use(
 
     let originalReq = error.config;
     
-    if(error.response?.status === 401 && !originalReq.retry){
+    // three conditions must, else it will loop request
+    if(error.response?.status === 401 && !originalReq.retry && !originalReq.url.includes('/refresh-token')){
       originalReq.retry = true;
 
       const refreshToken = localStorage.getItem('refreshToken');
@@ -49,9 +53,6 @@ Axios.interceptors.response.use(
           }
         } catch (error) {
           console.error('Refresh token failed', err);
-          // Optional: force logout
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
         }
       }
     }
@@ -72,6 +73,7 @@ const refreshAccessToken = async(refreshToken) => {
     })
 
     const token = response.data.newAccessToken;
+    console.log('token', token)
     localStorage.setItem('accessToken',token);
     return token
 

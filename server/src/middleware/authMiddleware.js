@@ -15,7 +15,7 @@ export const authenticate = (req, res, next) => {
 
     jwt.verify(token, process.env.SECRET_KEY_ACCESS_TOKEN, async(err, decode) => {
       if (err) {
-        const message = err.name === 'TokenExpiredError' ? "Token expired" : "Unauthorized access";
+        const message = err.name === 'TokenExpiredError' ? "Token expired, please login again" : "Unauthorized access";
         return responseMessage(res, 401, false, message);
       }
 

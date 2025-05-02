@@ -10,7 +10,7 @@ import {
 	resetUserPassword,
 	userLogin,
 	verifyForgotPassOtp,
-} from "../controllers/userAuthController.js";
+} from "../controllers/authController.js";
 import { authenticate, allowRoles }from "../middleware/authMiddleware.js";
 
 const authRouter = express.Router();
