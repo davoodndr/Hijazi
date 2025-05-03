@@ -15,6 +15,8 @@ import { Axios } from '../../../utils/AxiosSetup';
 import AdminPagination from '../../../components/ui/AdminPagination';
 import Skeleton from '../../../components/ui/Skeleton';
 import EditCategoryModal from '../../../components/admin/categories/EditCategoryModal';
+import { IoEyeOutline } from 'react-icons/io5';
+import PreviewImage from '../../../components/ui/HoverImagePreview';
 
 const CategoryList = () => {
 
@@ -234,9 +236,11 @@ const CategoryList = () => {
 
                     {/* Category Info */}
                     <div className="flex gap-2 items-center">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-300">
-                        <img src={category?.image} alt="avatar" className="object-cover w-full h-full" />
-                      </div>
+                      <PreviewImage src={category?.image} alt={category?.name} size="40" zoom="120%" />
+                      {/* <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-300 group">
+                        <img src={category?.image} alt="image" className="object-cover w-full h-full" />
+                      </div> */}
+
                       <div className="inline-flex flex-col">
                         <p className="capitalize">{category?.name}</p>
                         {/* <p className="text-xs text-gray-500">{user?.email}</p> */}
@@ -279,15 +283,13 @@ const CategoryList = () => {
                             >
                               <IoMdMore size={20} />
                             </MenuButton>
-                            {/* <ContextMenu 
+                            <ContextMenu 
                               open={open}
                               items={[
                                 { label: 'view category', icon: IoEyeOutline, onClick: () => {} },
-                                { label: user?.status === 'blocked' ? 'unblock' : 'block', 
-                                  icon: user?.status === 'blocked' ? CgUnblock : MdBlock, onClick: ()=> handleUserBlock(user) },
-                                { label: 'delete', icon: HiOutlineTrash, onClick: () => handleUserDelete(user) }
+                                { label: 'delete', icon: HiOutlineTrash, onClick: () => {} }
                               ]}
-                            /> */}
+                            />
                           </>
                         )}
                         

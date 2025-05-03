@@ -170,3 +170,18 @@ body.swal2-shown > [aria-hidden='true'] {
     transform: translateY(-20px);
   }
 }
+
+@keyframes zoomFadeIn {
+  0% {
+    transform: scale(0.75);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+.animate-zoomFadeIn {
+  animation: zoomFadeIn 0.2s ease-out forwards;
+}

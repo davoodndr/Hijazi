@@ -10,13 +10,14 @@ function ContextMenu({items, open, itemHeight = 10}) {
       {open && 
       
         <MenuItems as={motion.div}
+          portal
           static
           anchor="bottom end"
           initial={{ opacity: 0, scale: 0.90 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.90 }}
           className={`min-w-40 border border-gray-100 outline-0 bg-white shadow-lg rounded-2xl 
-          divide-y overflow-hidden origin-top`}
+          divide-y overflow-hidden origin-top z-[100]`}
         >
           {items && items.map(item => 
             <MenuItem key={item.label}>
