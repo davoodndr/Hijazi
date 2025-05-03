@@ -1,14 +1,14 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
 import PublicRoutes from './AdminPublicRoutes'
 import ProtectedRoutes from './AdminProtectedRoutes'
-import Login from '../../pages/Admin/auth/Login'
-import Register from '../../pages/Admin/auth/Register'
-import AdminLayout from '../../pages/Admin/AdminLayout'
 import { Toaster } from 'react-hot-toast'
 import { useSelector } from 'react-redux'
 import LoadingFallOff from '../../components/ui/LoadingFallOff'
+import AdminLayout from '../../pages/Admin/AdminLayout'
 
+const Login = React.lazy(() => import('../../pages/Admin/auth/Login'))
+const Register = React.lazy(() => import('../../pages/Admin/auth/Register'))
 const AdminDashboard = React.lazy(() => import('../../pages/Admin/AdminDashboard'))
 const UsersList = React.lazy(() => import('../../pages/Admin/users/UsersList'))
 const AddUser = React.lazy(() => import('../../pages/Admin/users/AddUser'))
@@ -18,39 +18,36 @@ const CategoryList = React.lazy(() => import('../../pages/Admin/categories/Categ
 
 const AdminRouter = ({user, isLoading}) => {
 
-  const { loading } = useSelector(state => state.common);
-
   return (
     <>
-      <Routes>
-        <Route path="register" element={<PublicRoutes><Register /></PublicRoutes>} />
-        <Route path="login" element={<PublicRoutes><Login /></PublicRoutes>} />
-          
-          <Route element={<ProtectedRoutes user={user} isLoading={isLoading} />}>
-            <Route element={<AdminLayout />}>
-              <Route index element={<Navigate to="dashboard" />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
+      <Suspense fallback={<LoadingFallOff loading={true} />}>
+        <Routes>
+          <Route path="register" element={<PublicRoutes><Register /></PublicRoutes>} />
+          <Route path="login" element={<PublicRoutes><Login /></PublicRoutes>} />
+            
+            <Route element={<ProtectedRoutes user={user} isLoading={isLoading} />}>
+              <Route element={<AdminLayout />}>
+                <Route index element={<Navigate to="dashboard" />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
 
-              {/* users tab */}
-              <Route path="users">
-                <Route index element={<UsersList />} />
-                <Route path="add-user" element={<AddUser />} />
-                <Route path="edit-user" element={<EditUser />} />
-                <Route path="view-user" element={<ViewUser />} />
-              </Route>
+                {/* users tab */}
+                <Route path="users">
+                  <Route index element={<UsersList />} />
+                  <Route path="add-user" element={<AddUser />} />
+                  <Route path="edit-user" element={<EditUser />} />
+                  <Route path="view-user" element={<ViewUser />} />
+                </Route>
 
-              {/* categories tab */}
-              <Route path='categories'>
-                <Route index element={<CategoryList />} />
+                {/* categories tab */}
+                <Route path='categories'>
+                  <Route index element={<CategoryList />} />
+                </Route>
+                
               </Route>
-              
             </Route>
-          </Route>
 
-      </Routes>
-      
-      {/* {loading && <LoadingFallOff />} */}
-      <LoadingFallOff loading={loading} />
+        </Routes>
+      </Suspense>
 
       <Toaster
         position='top-right'

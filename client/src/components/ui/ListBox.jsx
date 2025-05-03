@@ -46,7 +46,7 @@ function ListBox({items, value, onChange}) {
                 anchor="bottom"
                 className={clsx(
                   `origin-top border empty:invisible z-[1000] bg-white outline-none`,
-                  `w-(--button-width) rounded-xl border border-white/5 bg-white p-1 [--anchor-gap:--spacing(1)] empty:invisible
+                  `w-(--button-width) rounded-xl border border-gray-300 bg-white p-1 [--anchor-gap:--spacing(1)] empty:invisible
                     shadow-lg`
                 )}
               >

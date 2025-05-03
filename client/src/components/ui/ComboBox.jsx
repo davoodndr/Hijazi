@@ -25,7 +25,12 @@ function ComboBox({items, value, onChange}) {
     : items;
 
   return (
-    <Combobox value={selected} onChange={handleChange} onClose={()=> setQuery('')}>
+    <Combobox 
+      value={selected} 
+      onChange={handleChange} 
+      onClose={()=> setQuery('')}
+      virtual={{options: filteredItems}}
+      >
 
       {({open}) => (
 
@@ -33,9 +38,11 @@ function ComboBox({items, value, onChange}) {
 
           <div className="relative">
             <ComboboxInput
+              spellCheck={false}
               displayValue={(item) => item?.label}
               onChange={e => setQuery(e.target.value)}
               placeholder='Select parent category'
+              className='capitalize'
               />
             <ComboboxButton className="group absolute inset-y-0 right-3 px-2.5 !bg-transparent !shadow-none">
               <FaChevronDown  className="size-4 text-gray-400 group-data-hover:fill-black"/>
@@ -55,19 +62,17 @@ function ComboBox({items, value, onChange}) {
               onAnimationComplete={() => setQuery('')}
               className={clsx(
                 `origin-top border empty:invisible z-[1000] bg-white`,
-                `w-(--input-width) rounded-xl border border-white/5 bg-white p-1 [--anchor-gap:--spacing(1)] empty:invisible
+                `w-(--input-width) rounded-xl border border-gray-300 bg-white p-1 [--anchor-gap:--spacing(1)] empty:invisible
                   shadow-lg`,
               )}
             >
-              {filteredItems && filteredItems.map(item => 
-                <ComboboxOption
-                  key={item.id}
-                  value={item}
-                  className="group flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 
+              {({ option: item }) => (
+                <ComboboxOption value={item} 
+                  className="group w-full flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 
                   select-none data-focus:bg-primary-50 transition-all duration-300"
                 >
                   <FaCheck className="invisible size-4 text-black group-data-selected:visible" />
-                  <div className="text-sm/6 text-black">{item.label}</div>
+                  <div className="text-sm/6 text-black capitalize">{item.label}</div>
                 </ComboboxOption>
               )}
             </ComboboxOptions>

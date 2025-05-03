@@ -11,6 +11,7 @@ import { Axios } from '../../utils/AxiosSetup';
 import ApiBucket from '../../services/ApiBucket';
 import { ClipLoader, PulseLoader } from 'react-spinners';
 import { motion } from 'motion/react'
+import LoadingButton from './LoadingButton';
 
 const VerfyOtp = ({ role = 'user', isOpen, onClose, onConfirm, email }) => {
 
@@ -205,26 +206,16 @@ const VerfyOtp = ({ role = 'user', isOpen, onClose, onConfirm, email }) => {
               <IoMdArrowRoundBack />
               <span>Back to login</span>
             </div>
-            
-            <button onClick={handleVerifyConfirm} className={`px-4! rounded-3xl! inline-flex items-center
-              transition-all duration-300`}>
-
-              <span className='me-2'>Send code</span>
-              <AnimatePresence mode="wait">
-                {loading && (
-                  <motion.div
-                    key="spinner"
-                    initial={{ width: 0, height: 0, opacity: 0 }}
-                    animate={{ width: 23, height: 23, opacity: 1 }}
-                    exit={{ width: 0, height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className="flex items-center justify-center"
-                  >
-                    <ClipLoader color="white" size={23} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </button>
+                        
+            <LoadingButton
+              onClick={handleVerifyConfirm}
+              loading={loading}
+              text='Verify'
+              loadingText='Verifying. . . . .'
+              icon={<ClipLoader color="white" size={23} />}
+              className={`px-4! rounded-3xl! inline-flex items-center
+                transition-all duration-300`}
+            />
             
           </div>
         </div>

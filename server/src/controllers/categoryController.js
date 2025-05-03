@@ -5,7 +5,7 @@ import { responseMessage } from "../utils/messages.js"
 export const getCategories = async(req, res) => {
   try {
 
-    const categories = await Category.find();
+    const categories = await Category.find().populate('parentId');
 
     return responseMessage(res, 200, true, "",{categories});
     
@@ -59,8 +59,6 @@ export const uploadCategoryImage = async(req, res) => {
     }
     
     const upload = await uploadImagesToCloudinary(folder,files, public_id)
-
-    console.log(upload)
 
     await Category.findByIdAndUpdate(category_id,
       {

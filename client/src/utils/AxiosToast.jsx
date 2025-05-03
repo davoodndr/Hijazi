@@ -3,7 +3,7 @@ import toast from 'react-hot-toast'
 
 
 const AxiosToast = (result, error = true) => {
-  console.log(result)
+  //console.log(result)
   return error ?
    toast.error(result?.response?.data?.message || response.message)
    :

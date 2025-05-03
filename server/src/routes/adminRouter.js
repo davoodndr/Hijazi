@@ -8,7 +8,7 @@ import {
   updateUser, 
   uploadAvatar
 } from "../controllers/usersController.js";
-import { addCategory, uploadCategoryImage } from "../controllers/categoryController.js";
+import { addCategory, getCategories, uploadCategoryImage } from "../controllers/categoryController.js";
 import { allowRoles, authenticate } from "../middleware/authMiddleware.js";
 import { single, upload } from "../middleware/multer.js";
 import { uploadSingleImage } from "../controllers/commonController.js";
@@ -29,7 +29,7 @@ adminRouter.patch('/unblock-user',authenticate, allowRoles(['admin']),unblockUse
 adminRouter.put('/delete-user',authenticate, allowRoles(['admin']),deleteUser);
 
 /* category management */
-adminRouter.get('/get-categories', authenticate, allowRoles(['admin']), addCategory)
+adminRouter.get('/get-categories', authenticate, allowRoles(['admin']), getCategories)
 adminRouter.post('/add-category', authenticate, allowRoles(['admin']), addCategory)
 adminRouter.post('/upload-category-image',authenticate, allowRoles(['admin']), single, uploadCategoryImage);
 

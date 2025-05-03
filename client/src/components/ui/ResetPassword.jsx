@@ -117,25 +117,16 @@ const ResetPassword = ({ email, isOpen, onClose, onConfirm }) => {
               <IoMdArrowRoundBack />
               <span>Back to login</span>
             </div>
-            <button onClick={handleResetConfirm} className={`px-4! rounded-3xl! inline-flex items-center
-              transition-all duration-300`}>
-
-              <span className='me-2'>Send code</span>
-              <AnimatePresence mode="wait">
-                {loading && (
-                  <motion.div
-                    key="spinner"
-                    initial={{ width: 0, height: 0, opacity: 0 }}
-                    animate={{ width: 23, height: 23, opacity: 1 }}
-                    exit={{ width: 0, height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className="flex items-center justify-center"
-                  >
-                    <ClipLoader color="white" size={23} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </button>
+            
+            <LoadingButton
+              onClick={handleResetConfirm}
+              loading={loading}
+              text='Reset Now'
+              loadingText='Processing. . . . .'
+              icon={<ClipLoader color="white" size={23} />}
+              className={`px-4! rounded-3xl! inline-flex items-center
+                transition-all duration-300`}
+            />
           </div>
         </div>
 

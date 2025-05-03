@@ -1,5 +1,5 @@
 
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
 import React, { useState } from 'react'
 import Modal from '../../ui/Modal'
 import { TbCategoryPlus } from 'react-icons/tb';
@@ -14,8 +14,9 @@ import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
 import { uploadCategoryImage } from '../../../services/ApiActions';
 import { ClipLoader } from 'react-spinners'
+import LoadingButton from '../../ui/LoadingButton';
 
-function AddCategoryModal({isOpen, onCreate, onClose}) {
+function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
 
   
   const [loading, setIsLoading] = useState(false);
@@ -48,7 +49,7 @@ function AddCategoryModal({isOpen, onCreate, onClose}) {
 
   const handleParentChange = (val) => {
     setParent(val);
-    setData(prev => ({...prev,parentId:val.id}));
+    setData(prev => ({...prev,parentId:val?.id}));
   }
 
   const mandatories = ['file', 'name', 'slug'];
@@ -149,7 +150,8 @@ function AddCategoryModal({isOpen, onCreate, onClose}) {
                   <span>Slug</span>
                   <span className="text-xl leading-none ms-1 text-red-500">*</span>
                 </label>
-                <input type="text" name='slug' value={data.slug} 
+                <input type="text" name='slug' 
+                  value={data.slug} 
                   onChange={handleChange}
                   spellCheck={false}
                   placeholder='@ex: category-name'/>
@@ -160,13 +162,9 @@ function AddCategoryModal({isOpen, onCreate, onClose}) {
                 <ComboBox
                   value={parent}
                   onChange={handleParentChange}
-                  items={[
-                    { id: 1, label: 'Durward Reynolds' },
-                    { id: 2, label: 'Kenton Towne' },
-                    { id: 3, label: 'Therese Wunsch' },
-                    { id: 4, label: 'Benedict Kessler' },
-                    { id: 5, label: 'Katelyn Rohan' },
-                  ]}
+                  items={categories.map(category => 
+                    ({ id: category._id, label: category.name })
+                  )}
                 />
                 
               </div>
@@ -229,28 +227,16 @@ function AddCategoryModal({isOpen, onCreate, onClose}) {
               <span>Close</span>
             </button>
 
-            <button 
+            <LoadingButton
+              loading={loading}
+              text='Create Now'
+              loadingText='Creating . . . . .'
               type='submit'
               form='new-category-form'
+              icon={<ClipLoader color="white" size={23} />}
               className={`px-4! rounded-3xl! inline-flex items-center
-              transition-all duration-300`}>
-
-              <span className='me-2'>Create Now</span>
-              <AnimatePresence mode="wait">
-                {loading && (
-                  <motion.div
-                    key="spinner"
-                    initial={{ width: 0, height: 0, opacity: 0 }}
-                    animate={{ width: 23, height: 23, opacity: 1 }}
-                    exit={{ width: 0, height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className="flex items-center justify-center"
-                  >
-                    <ClipLoader color="white" size={23} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </button>
+                transition-all duration-300`}
+            />
           </div>
 
         </div>
