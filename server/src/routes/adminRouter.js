@@ -8,7 +8,7 @@ import {
   updateUser, 
   uploadAvatar
 } from "../controllers/usersController.js";
-import { addCategory, getCategories, updateCategory, uploadCategoryImage } from "../controllers/categoryController.js";
+import { addCategory, deleteCategory, getCategories, updateCategory, uploadCategoryImage } from "../controllers/categoryController.js";
 import { allowRoles, authenticate } from "../middleware/authMiddleware.js";
 import { single, upload } from "../middleware/multer.js";
 import { uploadSingleImage } from "../controllers/commonController.js";
@@ -33,6 +33,7 @@ adminRouter.get('/get-categories', authenticate, allowRoles(['admin']), getCateg
 adminRouter.post('/add-category', authenticate, allowRoles(['admin']), addCategory)
 adminRouter.post('/upload-category-image',authenticate, allowRoles(['admin']), single, uploadCategoryImage);
 adminRouter.patch('/update-category', authenticate, allowRoles(['admin']), updateCategory)
+adminRouter.put('/delete-category', authenticate, allowRoles(['admin']), deleteCategory)
 
 
 export default adminRouter;

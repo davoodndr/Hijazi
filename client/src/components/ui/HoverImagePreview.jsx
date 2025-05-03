@@ -42,7 +42,7 @@ const PreviewImage = ({ src, alt = 'Image', size = '40', zoom = '125%' }) => {
           <div
             className="absolute z-[9999] pointer-events-none"
             style={{
-              top: position.y + 10,
+              top: position.y - 170,
               left: position.x + 10,
             }}
           >

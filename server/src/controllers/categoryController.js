@@ -1,5 +1,5 @@
 import Category from "../models/Category.js";
-import { uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
+import { deleteImageFromCloudinary, uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
 import { responseMessage } from "../utils/messages.js"
 
 // get all categories
@@ -80,6 +80,7 @@ export const uploadCategoryImage = async(req, res) => {
 
 }
 
+// update category
 export const updateCategory = async(req, res) => {
 
   const { category_id, name, slug } = req.body;
@@ -94,6 +95,12 @@ export const updateCategory = async(req, res) => {
       return responseMessage(res, 400, false, "Category id not specified");
     }
 
+    const category = await Category.findById(category_id);
+
+    if(!category){
+      return responseMessage(res, 400, false, "Category does not exists");
+    }
+
     const updated = await Category.findByIdAndUpdate(category_id, {...req.body});
 
     return responseMessage(res, 200, true, "Category updated successfully",
@@ -103,6 +110,39 @@ export const updateCategory = async(req, res) => {
 
   } catch (error) {
     console.log('updateCategory', error);
+    return responseMessage(res, 500, false, error.message || error);
+  }
+
+}
+
+export const deleteCategory = async(req, res) => {
+  const { category_id, folder } = req.body;
+
+  try {
+    
+    if(!category_id) {
+      return responseMessage(res, 400, false, "Category id not specified");
+    }
+
+    const category = await Category.findById(category_id);
+
+    if(!category){
+      return responseMessage(res, 400, false, "Category does not exists");
+    }
+
+    if(category.image){
+      let public_id = category.image?.split('/').filter(Boolean).pop().split('.')[0];
+      if(public_id){
+        await deleteImageFromCloudinary(folder, public_id)
+      }
+    }
+
+    await Category.findByIdAndDelete(category_id);
+
+    return responseMessage(res, 200, true, "Category deleted successfully")
+
+  } catch (error) {
+    console.log('deleteCategory', error);
     return responseMessage(res, 500, false, error.message || error);
   }
 

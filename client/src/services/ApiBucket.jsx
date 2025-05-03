@@ -97,6 +97,10 @@ const ApiBucket = {
     url: '/api/admin/update-category',
     method: 'patch'
   },
+  deleteCategory: {
+    url: '/api/admin/delete-category',
+    method: 'put'
+  },
 }
 
 

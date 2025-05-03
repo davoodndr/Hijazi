@@ -116,3 +116,22 @@ export const deleteUserAction = async(folder, user_id) => {
     return error
   }
 }
+// bloch or unblock user
+export const deleteCategoryAction = async(folder, category_id) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.deleteCategory,
+      data: {
+        category_id, 
+        folder  // image containing folder
+      }
+    })
+
+    return response
+
+  } catch (error) {
+    return error
+  }
+}

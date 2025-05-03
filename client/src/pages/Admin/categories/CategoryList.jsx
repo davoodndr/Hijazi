@@ -17,11 +17,16 @@ import Skeleton from '../../../components/ui/Skeleton';
 import EditCategoryModal from '../../../components/admin/categories/EditCategoryModal';
 import { IoEyeOutline } from 'react-icons/io5';
 import PreviewImage from '../../../components/ui/HoverImagePreview';
+import { deleteCategoryAction } from '../../../services/ApiActions';
+import AxiosToast from '../../../utils/AxiosToast';
+import { setLoading } from '../../../store/slices/CommonSlices'
+import { useDispatch } from 'react-redux';
 
 const CategoryList = () => {
 
+  const dispatch = useDispatch();
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   /* initial data loader */
   useEffect(() => {
@@ -29,7 +34,7 @@ const CategoryList = () => {
   },[])
 
   const fetchCategories = async() => {
-    setLoading(true)
+    setIsLoading(true)
     try {
         
       const response = await Axios({
@@ -46,7 +51,7 @@ const CategoryList = () => {
     } catch (error) {
       console.log(error.response.data.message)
     }finally{
-      setLoading(false)
+      setIsLoading(false)
     }
   };
   
@@ -98,6 +103,40 @@ const CategoryList = () => {
   const handleUpdate =  (doc) => {
     setCategories(prev => (prev.map(item => item._id === doc._id ? doc : item)));
     setIsEditOpen(false);
+  }
+
+  /* handle delete category */
+  const handledelete = async(id) => {
+
+    Alert({
+      icon: 'question',
+      title: "Are you sure?",
+      text: 'This action cannot revert back',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: 'var(--color-red-500)'
+    }).then(async result => {
+      
+      if(result.isConfirmed){
+        dispatch(setLoading(true));
+        const response = await deleteCategoryAction('categories', id);
+
+        if(response?.data?.success){
+          setCategories(prev => prev.filter(category => category._id !== id));
+          AxiosToast(response, false);
+        }else{
+          AxiosToast(response);
+        }
+        dispatch(setLoading(false))
+      }
+    })
+
+    try {
+      
+    } catch (error) {
+      
+    }
+
   }
 
   const containerVariants = {
@@ -193,7 +232,7 @@ const CategoryList = () => {
         <AnimatePresence>
 
           {/* Rows */}
-          {loading ? 
+          {isLoading ? 
             <>
               <li className="rounded px-6 py-4 space-y-3">
                 <Skeleton height="h-10" width="w-full" />
@@ -286,8 +325,8 @@ const CategoryList = () => {
                             <ContextMenu 
                               open={open}
                               items={[
-                                { label: 'view category', icon: IoEyeOutline, onClick: () => {} },
-                                { label: 'delete', icon: HiOutlineTrash, onClick: () => {} }
+                                /* { label: 'view category', icon: IoEyeOutline, onClick: () => {} }, */
+                                { label: 'delete', icon: HiOutlineTrash, onClick: () => handledelete(category._id) }
                               ]}
                             />
                           </>

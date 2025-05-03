@@ -18,6 +18,8 @@ const CategoryList = React.lazy(() => import('../../pages/Admin/categories/Categ
 
 const AdminRouter = ({user, isLoading}) => {
 
+  const { loading } = useSelector(state => state.common);
+
   return (
     <>
       <Suspense fallback={<LoadingFallOff loading={true} />}>
@@ -48,6 +50,8 @@ const AdminRouter = ({user, isLoading}) => {
 
         </Routes>
       </Suspense>
+
+      <LoadingFallOff loading={ loading } />
 
       <Toaster
         position='top-right'
