@@ -13,6 +13,8 @@ import AddCategoryModal from '../../../components/admin/categories/AddCategoryMo
 
 const CategoryList = () => {
 
+  const [list, setList] = useState([]);
+
   /* initial data loader */
     /* useEffect(() => {
       fetchUsers()
@@ -75,13 +77,6 @@ const CategoryList = () => {
 
     /* add category action */
     const [isAddOpen, setIsAddOpen] = useState(false);
-    const handleAddCategory = () => {
-
-      Alert({
-        title: "Add Category"
-      })
-
-    }
 
     const containerVariants = {
       hidden: {},
@@ -185,6 +180,10 @@ const CategoryList = () => {
       </motion.ul>
 
       <AddCategoryModal
+        onCreate={(doc) => {
+          setList(prev => ([...prev, doc]));
+          setIsAddOpen(false);
+        }}
         isOpen={isAddOpen}
         onClose={() => setIsAddOpen(false)}
       />

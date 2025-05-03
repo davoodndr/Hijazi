@@ -1,10 +1,10 @@
 import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'motion/react';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FaCheck, FaChevronDown } from 'react-icons/fa6';
 
-function ComboBox({items, onChange}) {
+function ComboBox({items, value, onChange}) {
 
   const [selected, setSelected] = useState(null);
   const [query, setQuery] = useState('')
@@ -13,6 +13,10 @@ function ComboBox({items, onChange}) {
     setSelected(value);
     onChange(value);
   }
+
+  useEffect(() => {
+    setSelected(value)
+  }, [value])
     
   const filteredItems = query ?
     items.filter((item) => {

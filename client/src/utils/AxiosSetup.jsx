@@ -73,7 +73,7 @@ const refreshAccessToken = async(refreshToken) => {
     })
 
     const token = response.data.newAccessToken;
-    console.log('token', token)
+    
     localStorage.setItem('accessToken',token);
     return token
 

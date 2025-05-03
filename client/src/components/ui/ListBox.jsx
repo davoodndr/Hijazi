@@ -1,10 +1,10 @@
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'motion/react';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FaCheck, FaChevronDown } from 'react-icons/fa6';
 
-function ListBox({items, onChange}) {
+function ListBox({items, value, onChange}) {
 
   const [selected, setSelected] = useState(null);
 
@@ -12,6 +12,10 @@ function ListBox({items, onChange}) {
     setSelected(value);
     onChange(value)
   }
+
+  useEffect(() => {
+    setSelected(value)
+  },[value])
 
   return (
     <Listbox value={selected} onChange={handleChange}>

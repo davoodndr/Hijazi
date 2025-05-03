@@ -20,3 +20,15 @@ export function isEmailValid(email) {
 export const blobToFile = (blob, filename) => {
   return new File([blob], filename, { type: blob.type });
 };
+
+export const isValidName = (name) => name.length > 0;
+
+export const finalizeValues = (data) => {
+  const filtered = Object.entries(data).filter(([_,value]) => {
+    if (value === "" || value == null || value == undefined) return false;
+    if (Array.isArray(value) && value.length === 0) return false;
+    return true;
+  });
+
+  return Object.fromEntries(filtered)
+}

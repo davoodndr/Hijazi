@@ -1,6 +1,13 @@
 
 
 const ApiBucket = {
+
+  /* common */
+  uploadSingleImage:{
+    url: '/api/admin/upload-single-image',
+    method: 'post'
+  },
+
   /* auth */
   register: {
     url: '/api/auth/register',
@@ -71,6 +78,20 @@ const ApiBucket = {
   deleteUser: {
     url: '/api/admin/delete-user',
     method: 'put'
+  },
+
+  /* category */
+  getCategories: {
+    url: '/api/admin/get-categories',
+    method: 'get'
+  },
+  addCategory: {
+    url: '/api/admin/add-category',
+    method: 'post'
+  },
+  uploadCategoryImage: {
+    url: '/api/admin/upload-category-image',
+    method: 'post'
   },
 }
 

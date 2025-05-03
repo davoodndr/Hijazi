@@ -26,7 +26,7 @@ function CropperWindow({
     setIsPreview(false);
     
     const file = e.target.files[0];
-    console.log(file.name)
+    
     if(file){
       setImgSrc(null);
       setFilename(file.name);

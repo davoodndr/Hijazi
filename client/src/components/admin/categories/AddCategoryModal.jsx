@@ -1,34 +1,111 @@
 
 import { AnimatePresence, motion } from 'motion/react';
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import Modal from '../../ui/Modal'
 import { TbCategoryPlus } from 'react-icons/tb';
 import ComboBox from '../../ui/ComboBox';
 import ListBox from '../../ui/ListBox';
 import Switch from '../../ui/ToggleSwitch';
 import CropperWindow from '../../ui/CropperWindow';
+import toast from 'react-hot-toast'
+import { finalizeValues, isValidName } from '../../../utils/Utils';
+import AxiosToast from '../../../utils/AxiosToast';
+import { Axios } from '../../../utils/AxiosSetup';
+import ApiBucket from '../../../services/ApiBucket';
+import { uploadCategoryImage } from '../../../services/ApiActions';
+import { ClipLoader } from 'react-spinners'
 
-function AddCategoryModal({isOpen, onClose}) {
+function AddCategoryModal({isOpen, onCreate, onClose}) {
 
   
   const [loading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState(null);
+  const [parent, setParent] = useState(null);
     
 
   /* data input handling */
   const [data, setData] = useState({
-    file: "", name:"", slug:"", parent:"", status:"", featured:false, visible:false
+    file: "", name:"", slug:"", parentId:"", status:"", featured:false, visible:false
   });
 
   const handleChange = (e) => {
     
-    const { name, value } = e.target;
-
+    let { name, value } = e.target;
+    if(name === 'name') setData(prev => ({...prev, slug:value.replace(/\s+/g, '-')}))
+    if(name === 'slug') value = value.replace(/\s+/g, '-');
     setData(prev => {
       return {
         ...prev,
         [name]: value
       }
     })
+  }
+
+  const handleStatusChange = (val) => {
+    setStatus(val);
+    setData(prev => ({...prev,status:val.label.toLowerCase()}))
+  }
+
+  const handleParentChange = (val) => {
+    setParent(val);
+    setData(prev => ({...prev,parentId:val.id}));
+  }
+
+  const mandatories = ['file', 'name', 'slug'];
+  const validate = mandatories.every(item => data[item])
+
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+
+    if(validate){
+      
+      if(!isValidName(data['name']) || !isValidName(data['slug'])){
+        toast.error('Name and slug should have minimum 3 letters')
+        return
+      }
+
+      const finalData = finalizeValues(data);
+
+      setIsLoading(true)
+
+      try {
+        
+        const response = await Axios({
+          ...ApiBucket.addCategory,
+          data: finalData
+        })
+
+        if(response.data.success){
+
+          const newCategory = response.data.category;
+
+          const image = await uploadCategoryImage(newCategory._id,'categories','image',finalData.file);
+          
+          newCategory.image = image;
+
+          AxiosToast(response, false);
+          setData({
+            file: "", name:"", slug:"", parentId:"", status:"", featured:false, visible:false
+          })
+          setStatus(null);
+          setParent(null);
+
+          onCreate(newCategory);
+
+        }
+
+      } catch (error) {
+        AxiosToast(error)
+      }finally{
+        setIsLoading(false)
+      }
+
+      return
+
+    }else{
+      toast.error('Please fill all mandatory fields')
+    }
+
   }
 
   const handleClose = ()=>{
@@ -54,24 +131,35 @@ function AddCategoryModal({isOpen, onClose}) {
           </div>
 
           {/* form inputs */}
-          <form action="" className='grid grid-cols-2 gap-y-2 gap-x-4'>
+          <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='new-category-form'>
             
             <div className="flex flex-col gap-2">
               <div className='flex flex-col w-full'>
-                <label htmlFor="" className='text-neutral-600! font-semibold!'>Name</label>
-                <input type="text" name='name' value={data.name} onChange={handleChange} 
+                <label className="flex text-sm font-medium">
+                  <span>Name</span>
+                  <span className="text-xl leading-none ms-1 text-red-500">*</span>
+                </label>
+                <input type="text" name='name' value={data.name} 
+                  onChange={handleChange}
+                  spellCheck={false}
                   placeholder='Enter category name'/>
               </div>
               <div className='flex flex-col w-full'>
-              <label htmlFor="" className='text-neutral-600! font-semibold!'>Slug</label>
-              <input type="text" name='slug' value={data.slug} onChange={handleChange} 
-                placeholder='@ex: category-name'/>
+                <label className="flex text-sm font-medium">
+                  <span>Slug</span>
+                  <span className="text-xl leading-none ms-1 text-red-500">*</span>
+                </label>
+                <input type="text" name='slug' value={data.slug} 
+                  onChange={handleChange}
+                  spellCheck={false}
+                  placeholder='@ex: category-name'/>
               </div>
               <div className='flex flex-col w-full'>
                 <label htmlFor="" className='text-neutral-600! font-semibold!'>Parent</label>
                 
                 <ComboBox
-                  onChange={(value) => setData(prev => ({...prev,parent:value}))}
+                  value={parent}
+                  onChange={handleParentChange}
                   items={[
                     { id: 1, label: 'Durward Reynolds' },
                     { id: 2, label: 'Kenton Towne' },
@@ -87,7 +175,8 @@ function AddCategoryModal({isOpen, onClose}) {
                 <label htmlFor="" className='text-neutral-600! font-semibold!'>Status</label>
                 
                 <ListBox
-                  onChange={(value) => setData(prev => ({...prev,status:value}))}
+                  value={status}
+                  onChange={handleStatusChange}
                   items={[
                     { id: 1, label: 'Active' },
                     { id: 2, label: 'Inactive' },
@@ -113,8 +202,11 @@ function AddCategoryModal({isOpen, onClose}) {
             </div>
 
             {/* Image */}
-            <div className='flex flex-col gap-2 pt-5'>
-              
+            <div className='flex flex-col items-center'>
+              <label className="flex text-sm font-medium w-60">
+                <span>Image</span>
+                <span className="text-xl leading-none ms-1 text-red-500">*</span>
+              </label>
               <CropperWindow
                 onImageCrop={(file) => setData(prev => ({...prev,file}))}
                 outPutDimen={600}
@@ -137,7 +229,10 @@ function AddCategoryModal({isOpen, onClose}) {
               <span>Close</span>
             </button>
 
-            <button className={`px-4! rounded-3xl! inline-flex items-center
+            <button 
+              type='submit'
+              form='new-category-form'
+              className={`px-4! rounded-3xl! inline-flex items-center
               transition-all duration-300`}>
 
               <span className='me-2'>Create Now</span>

@@ -80,7 +80,7 @@ const getCroppedImg = (imageSrc, crop, format, outPutDimen)=> {
           resolve(blob);
         },
         `image/${format}`,
-        1 // quality (1 = highest)
+        0.7 // quality (1 = highest)
       );
     };
 

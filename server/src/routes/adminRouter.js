@@ -8,12 +8,16 @@ import {
   updateUser, 
   uploadAvatar
 } from "../controllers/usersController.js";
-import { addCategory } from "../controllers/categoryController.js";
+import { addCategory, uploadCategoryImage } from "../controllers/categoryController.js";
 import { allowRoles, authenticate } from "../middleware/authMiddleware.js";
-import { upload } from "../middleware/multer.js";
+import { single, upload } from "../middleware/multer.js";
+import { uploadSingleImage } from "../controllers/commonController.js";
 
 
 const adminRouter = express.Router();
+
+/* common */
+adminRouter.post('/upload-single-image',authenticate, allowRoles(['admin']), single, uploadSingleImage);
 
 /* users management */
 adminRouter.get('/get-users',authenticate, allowRoles(['admin']), getUsers);
@@ -25,6 +29,9 @@ adminRouter.patch('/unblock-user',authenticate, allowRoles(['admin']),unblockUse
 adminRouter.put('/delete-user',authenticate, allowRoles(['admin']),deleteUser);
 
 /* category management */
-adminRouter.post('/add-category', addCategory)
+adminRouter.get('/get-categories', authenticate, allowRoles(['admin']), addCategory)
+adminRouter.post('/add-category', authenticate, allowRoles(['admin']), addCategory)
+adminRouter.post('/upload-category-image',authenticate, allowRoles(['admin']), single, uploadCategoryImage);
+
 
 export default adminRouter;
