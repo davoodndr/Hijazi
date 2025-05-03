@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Switch } from '@headlessui/react'
 
-function ToggleSwitch({size = 5, onChange}) {
+function ToggleSwitch({size = 5, value, onChange}) {
 
   const [enabled, setEnabled] = useState(false)
 
@@ -9,6 +9,10 @@ function ToggleSwitch({size = 5, onChange}) {
     setEnabled(!enabled);
     onChange(value);
   }
+
+  useEffect(() => {
+    setEnabled(Boolean(value))
+  },[value])
 
   return (
 

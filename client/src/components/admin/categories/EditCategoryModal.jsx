@@ -1,6 +1,6 @@
 
 import { AnimatePresence } from 'motion/react';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Modal from '../../ui/Modal'
 import { TbCategoryPlus } from 'react-icons/tb';
 import ComboBox from '../../ui/ComboBox';
@@ -16,9 +16,8 @@ import { uploadCategoryImage } from '../../../services/ApiActions';
 import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
 
-function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
+function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
 
-  
   const [loading, setIsLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [parent, setParent] = useState(null);
@@ -28,6 +27,17 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
   const [data, setData] = useState({
     file: "", name:"", slug:"", parentId:"", status:"", featured:false, visible:false
   });
+
+  useEffect(() => {
+  
+    if(category){
+      setData({...category, file: category?.image});
+      const parent = category?.parentId;
+      setParent({id:parent?._id, label: parent?.name})
+      setStatus(category?.status)
+    }
+    
+  },[category])
 
   const handleChange = (e) => {
     
@@ -65,11 +75,6 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
         return
       }
 
-      if(!data[file]){
-        toast.error("Image is mandatory to create category");
-        return
-      }
-
       const finalData = finalizeValues(data);
 
       setIsLoading(true)
@@ -77,17 +82,24 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
       try {
         
         const response = await Axios({
-          ...ApiBucket.addCategory,
-          data: finalData
+          ...ApiBucket.updateCategory,
+          data: {
+            ...finalData,
+            category_id: category._id
+          }
         })
 
         if(response.data.success){
 
-          const newCategory = response.data.category;
+          const updatedCategory = response.data.category;
+          const public_id = updatedCategory.image.split('/').filter(Boolean).pop().split('.')[0]
 
-          const image = await uploadCategoryImage(newCategory._id,'categories','image',finalData.file);
-          
-          newCategory.image = image;
+          if(finalData.file && finalData.file instanceof File){
+            const image = await uploadCategoryImage(
+              updatedCategory._id,'categories','image',finalData.file, public_id
+            );
+            updatedCategory.image = image;
+          }
 
           AxiosToast(response, false);
           setData({
@@ -96,7 +108,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
           setStatus(null);
           setParent(null);
 
-          onCreate(newCategory);
+          onUpdate(updatedCategory);
 
         }
 
@@ -131,8 +143,8 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
               <TbCategoryPlus size={20} />
             </div>
             <div className="flex-1 flex flex-col">
-              <h1 className='text-xl'>Create Category</h1>
-              <p>Give necessary details about new category</p>
+              <h1 className='text-xl'>Edit Category</h1>
+              <p>Change details about your category</p>
             </div>
           </div>
 
@@ -145,7 +157,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
                   <span>Name</span>
                   <span className="text-xl leading-none ms-1 text-red-500">*</span>
                 </label>
-                <input type="text" name='name' value={data.name} 
+                <input type="text" name='name' value={data?.name} 
                   onChange={handleChange}
                   spellCheck={false}
                   placeholder='Enter category name'/>
@@ -167,7 +179,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
                 <ComboBox
                   value={parent}
                   onChange={handleParentChange}
-                  items={categories.map(category => 
+                  items={list?.map(category => 
                     ({ id: category._id, label: category.name })
                   )}
                 />
@@ -181,8 +193,8 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
                   value={status}
                   onChange={handleStatusChange}
                   items={[
-                    { id: 1, label: 'Active' },
-                    { id: 2, label: 'Inactive' },
+                    { id: 1, label: 'active' },
+                    { id: 2, label: 'inactive' },
                   ]}
                 />
                 
@@ -192,12 +204,14 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
                 <div className="inline-flex gap-2 items-center">
                   <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Featured</label>
                   <Switch
+                    value={data?.featured}
                     onChange={(value) => setData(prev => ({...prev,featured:value}))}
                   />
                 </div>
                 <div className="inline-flex gap-2 items-center">
                   <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Visible</label>
                   <Switch
+                    value={data?.visible}
                     onChange={(value) => setData(prev => ({...prev,visible:value}))}
                   />
                 </div>
@@ -211,6 +225,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
                 <span className="text-xl leading-none ms-1 text-red-500">*</span>
               </label>
               <CropperWindow
+                src={data?.file}
                 onImageCrop={(file) => setData(prev => ({...prev,file}))}
                 outPutDimen={600}
                 outputFormat='webp'
@@ -234,8 +249,8 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
 
             <LoadingButton
               loading={loading}
-              text='Create Now'
-              loadingText='Creating . . . . .'
+              text='Update Now'
+              loadingText='Updating . . . . .'
               type='submit'
               form='new-category-form'
               icon={<ClipLoader color="white" size={23} />}
@@ -253,4 +268,4 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
   
 }
 
-export default AddCategoryModal
+export default EditCategoryModal

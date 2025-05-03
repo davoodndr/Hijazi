@@ -8,7 +8,7 @@ import ImageCropper from './ImageCropper';
 
 
 function CropperWindow({
-  buttonsClass = '', cropperClass = '', outPutDimen, outputFormat, onImageCrop
+  buttonsClass = '', cropperClass = '', outPutDimen, outputFormat, onImageCrop, src
 }
 
 ) {
@@ -20,6 +20,9 @@ function CropperWindow({
   const [croppedFile, setCroppedFile] = useState(null);
   const [isPreview, setIsPreview] = useState(false);
 
+  useEffect(() => {
+    setImgSrc(src)
+  }, [src])
 
   const handleImageSelect = (e) => {
 
@@ -59,8 +62,8 @@ function CropperWindow({
 
   },[croppedFile, onImageCrop, filename])
 
-  const handleReset = () =>{
-    setImgSrc(originalFile);
+  const handleReset = () => {
+    if(originalFile) setImgSrc(originalFile);
   }
 
   return (

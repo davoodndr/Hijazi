@@ -14,7 +14,11 @@ function ListBox({items, value, onChange}) {
   }
 
   useEffect(() => {
-    setSelected(value)
+
+    if(typeof value === 'string'){
+      value = items.find(item => item.label === value);
+    }
+    if(value) setSelected(value);
   },[value])
 
   return (
@@ -24,8 +28,8 @@ function ListBox({items, value, onChange}) {
           <ListboxButton 
             className={clsx(
               'group relative block w-full h-[40px] !rounded-input-border !bg-transparent !py-0 !px-[15px] text-left text-sm/6',
-              '!shadow-none !border border-neutral-300 focus:!border-neutral-300',
-              selected ? '!text-black' : '!text-neutral-400/80'
+              '!shadow-none !border border-neutral-300 focus:!border-neutral-300 capitalize',
+              selected ? '!text-gray-600' : '!text-neutral-400/80'
             )}
           >
             {selected?.label || 'Select Status'}
@@ -57,7 +61,7 @@ function ListBox({items, value, onChange}) {
                     select-none data-focus:bg-primary-50 cursor-pointer"
                   >
                     <FaCheck className="invisible size-4 text-black group-data-selected:visible" />
-                    <div className="text-sm/6 text-black">{item.label}</div>
+                    <div className="text-sm/6 text-black capitalize">{item.label}</div>
                   </ListboxOption>
                 ))}
               </ListboxOptions>

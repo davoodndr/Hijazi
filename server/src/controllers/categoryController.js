@@ -2,6 +2,7 @@ import Category from "../models/Category.js";
 import { uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
 import { responseMessage } from "../utils/messages.js"
 
+// get all categories
 export const getCategories = async(req, res) => {
   try {
 
@@ -15,6 +16,7 @@ export const getCategories = async(req, res) => {
   }
 }
 
+// add new  category
 export const addCategory = async(req, res) => {
   
   const { name, slug } = req.body;
@@ -73,6 +75,34 @@ export const uploadCategoryImage = async(req, res) => {
 
   } catch (error) {
     console.log('uploadCategoryImage', error);
+    return responseMessage(res, 500, false, error.message || error);
+  }
+
+}
+
+export const updateCategory = async(req, res) => {
+
+  const { category_id, name, slug } = req.body;
+
+  try {
+
+    if(!name || !slug ) {
+      return responseMessage(res, 400, false, "Plaese fill name, slug and image");
+    }
+    
+    if(!category_id) {
+      return responseMessage(res, 400, false, "Category id not specified");
+    }
+
+    const updated = await Category.findByIdAndUpdate(category_id, {...req.body});
+
+    return responseMessage(res, 200, true, "Category updated successfully",
+      {category: updated}
+    );
+
+
+  } catch (error) {
+    console.log('updateCategory', error);
     return responseMessage(res, 500, false, error.message || error);
   }
 

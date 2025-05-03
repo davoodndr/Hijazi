@@ -14,6 +14,7 @@ import ApiBucket from '../../../services/ApiBucket';
 import { Axios } from '../../../utils/AxiosSetup';
 import AdminPagination from '../../../components/ui/AdminPagination';
 import Skeleton from '../../../components/ui/Skeleton';
+import EditCategoryModal from '../../../components/admin/categories/EditCategoryModal';
 
 const CategoryList = () => {
 
@@ -82,11 +83,19 @@ const CategoryList = () => {
 
   /* add category action */
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
 
-  /*  */
+  /* create action handleing */
   const handleCreate =  (doc) => {
     setCategories(prev => ([...prev, doc]));
     setIsAddOpen(false);
+  }
+
+  /* update action handleing */
+  const handleUpdate =  (doc) => {
+    setCategories(prev => (prev.map(item => item._id === doc._id ? doc : item)));
+    setIsEditOpen(false);
   }
 
   const containerVariants = {
@@ -225,7 +234,7 @@ const CategoryList = () => {
 
                     {/* Category Info */}
                     <div className="flex gap-2 items-center">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-300">
                         <img src={category?.image} alt="avatar" className="object-cover w-full h-full" />
                       </div>
                       <div className="inline-flex flex-col">
@@ -251,7 +260,10 @@ const CategoryList = () => {
                     {/* Actions */}
                     <div className="flex items-center justify-center gap-3 z-50">
                       <div 
-                        /* onClick={() => navigate('/admin/users/edit-user',{state: {user}})} */
+                        onClick={() => {
+                          setIsEditOpen(true);
+                          setEditingCategory(category)
+                        }}
                         className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
                         border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
                         <TbUserEdit size={20} />
@@ -270,7 +282,7 @@ const CategoryList = () => {
                             {/* <ContextMenu 
                               open={open}
                               items={[
-                                { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user',{state: user}) },
+                                { label: 'view category', icon: IoEyeOutline, onClick: () => {} },
                                 { label: user?.status === 'blocked' ? 'unblock' : 'block', 
                                   icon: user?.status === 'blocked' ? CgUnblock : MdBlock, onClick: ()=> handleUserBlock(user) },
                                 { label: 'delete', icon: HiOutlineTrash, onClick: () => handleUserDelete(user) }
@@ -316,6 +328,14 @@ const CategoryList = () => {
         isOpen={isAddOpen}
         onCreate={handleCreate}
         onClose={() => setIsAddOpen(false)}
+      />
+
+      <EditCategoryModal
+        category={editingCategory}
+        list={categories}
+        isOpen={isEditOpen}
+        onUpdate={handleUpdate}
+        onClose={() => setIsEditOpen(false)}
       />
 
     </section>

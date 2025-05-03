@@ -93,6 +93,10 @@ const ApiBucket = {
     url: '/api/admin/upload-category-image',
     method: 'post'
   },
+  updateCategory: {
+    url: '/api/admin/update-category',
+    method: 'patch'
+  },
 }
 
 
