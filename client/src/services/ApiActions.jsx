@@ -116,7 +116,7 @@ export const deleteUserAction = async(folder, user_id) => {
     return error
   }
 }
-// bloch or unblock user
+// delete category
 export const deleteCategoryAction = async(folder, category_id) => {
 
   try {

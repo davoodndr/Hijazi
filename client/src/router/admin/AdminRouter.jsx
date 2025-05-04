@@ -15,6 +15,7 @@ const AddUser = React.lazy(() => import('../../pages/Admin/users/AddUser'))
 const EditUser = React.lazy(() => import('../../pages/Admin/users/EditUser'))
 const ViewUser = React.lazy(() => import('../../pages/Admin/users/ViewUser'))
 const CategoryList = React.lazy(() => import('../../pages/Admin/categories/CategoryList'))
+const BrandList = React.lazy(() => import('../../pages/Admin/brands/BrandList'))
 
 const AdminRouter = ({user, isLoading}) => {
 
@@ -43,6 +44,10 @@ const AdminRouter = ({user, isLoading}) => {
                 {/* categories tab */}
                 <Route path='categories'>
                   <Route index element={<CategoryList />} />
+                </Route>
+                {/* brands tab */}
+                <Route path='brands'>
+                  <Route index element={<BrandList />} />
                 </Route>
                 
               </Route>

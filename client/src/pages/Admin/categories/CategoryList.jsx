@@ -131,12 +131,6 @@ const CategoryList = () => {
       }
     })
 
-    try {
-      
-    } catch (error) {
-      
-    }
-
   }
 
   const containerVariants = {
@@ -276,10 +270,7 @@ const CategoryList = () => {
                     {/* Category Info */}
                     <div className="flex gap-2 items-center">
                       <PreviewImage src={category?.image} alt={category?.name} size="40" zoom="120%" />
-                      {/* <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-300 group">
-                        <img src={category?.image} alt="image" className="object-cover w-full h-full" />
-                      </div> */}
-
+                      
                       <div className="inline-flex flex-col">
                         <p className="capitalize">{category?.name}</p>
                         {/* <p className="text-xs text-gray-500">{user?.email}</p> */}

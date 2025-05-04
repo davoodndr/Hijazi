@@ -35,5 +35,8 @@ adminRouter.post('/upload-category-image',authenticate, allowRoles(['admin']), s
 adminRouter.patch('/update-category', authenticate, allowRoles(['admin']), updateCategory)
 adminRouter.put('/delete-category', authenticate, allowRoles(['admin']), deleteCategory)
 
+/* brand management */
+adminRouter.get('/get-categories', /* authenticate, allowRoles(['admin']),  */getCategories)
+adminRouter.post('/add-brand', /* authenticate, allowRoles(['admin']), */ addCategory)
 
 export default adminRouter;
