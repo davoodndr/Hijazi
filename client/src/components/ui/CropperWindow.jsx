@@ -2,13 +2,20 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { IoCrop, IoImageOutline } from 'react-icons/io5';
 import { LuEye } from 'react-icons/lu';
 import { BiReset } from "react-icons/bi";
-import { blobToFile } from '../../utils/Utils';
+import { blobToFile, isValidFileType } from '../../utils/Utils';
 import { MdImageSearch } from 'react-icons/md';
 import ImageCropper from './ImageCropper';
+import toast from 'react-hot-toast';
 
 
 function CropperWindow({
-  buttonsClass = '', cropperClass = '', outPutDimen, outputFormat, onImageCrop, src
+  buttonsClass = '', 
+  cropperClass = '', 
+  outPutDimen, 
+  outputFormat, 
+  onImageCrop, 
+  src,
+  validFormats
 }
 
 ) {
@@ -24,13 +31,22 @@ function CropperWindow({
     setImgSrc(src)
   }, [src])
 
-  const handleImageSelect = (e) => {
+  const handleImageSelect = async(e) => {
 
     setIsPreview(false);
     
     const file = e.target.files[0];
     
     if(file){
+
+      // set result as non cropped file
+      onImageCrop(file);
+
+      if(validFormats.length && !isValidFileType(validFormats, file)){
+        toast.error('File type not supported');
+        return
+      }
+
       setImgSrc(null);
       setFilename(file.name);
       const reader = new FileReader();
@@ -71,7 +87,9 @@ function CropperWindow({
       <div className={cropperClass}>
       
         {isPreview ? (
-          <img src={imgSrc} className='object-contain w-full' alt="preview" />
+          <img src={imgSrc} className='object-contain w-full' alt="preview" 
+            onError={e => console.log(e.nativeEvent)} 
+          />
         ):(
           imgSrc ? (
             <ImageCropper 
@@ -83,13 +101,14 @@ function CropperWindow({
             />
           ): (
             <div className='flex flex-col items-center justify-center w-full h-full bg-gray-100'>
-                <IoImageOutline size={50} className='text-gray-300'/>
-                <span className='text-gray-400'>no image</span>
-              </div>
+              <IoImageOutline size={50} className='text-gray-300'/>
+              <span className='text-gray-400'>no image</span>
+            </div>
             )
           )
         }
       </div>
+      <input type="file" id="category-image" accept='image/*' onChange={handleImageSelect} hidden />
       {/* crop image buttons */}
       <div className={buttonsClass}>
 
@@ -105,7 +124,6 @@ function CropperWindow({
             <MdImageSearch size={23}/>
 
           </label>
-          <input type="file" id="category-image" onChange={handleImageSelect} hidden />
 
           {/* reset */}
           <span 

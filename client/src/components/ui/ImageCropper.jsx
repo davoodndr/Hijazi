@@ -1,16 +1,27 @@
 import React, { useState, useCallback, useEffect} from 'react';
 import Cropper from 'react-easy-crop';
+import useSafeImage from '../../hooks/useSafeImage'
+import toast from 'react-hot-toast';
 
-const ImageCropper = ({ imageSrc, className = '', format = 'jpeg', onCrop, outPutDimen}) => {
+const ImageCropper = ({ 
+  imageSrc, className = '', format = 'jpeg', onCrop, outPutDimen
+}) => {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const { loaded, error } = useSafeImage(imageSrc);
 
+  if(error){
+    toast.error("Image failed to load, please choose another one.");
+    return;
+  }
 
   useEffect(() => {
+
     if(onCrop && typeof onCrop === 'function'){
       onCrop(() => getCroppedImg(imageSrc, croppedAreaPixels, format, outPutDimen));
     }
+
   },[imageSrc, croppedAreaPixels, onCrop])
 
 
@@ -31,6 +42,7 @@ const ImageCropper = ({ imageSrc, className = '', format = 'jpeg', onCrop, outPu
           onCropChange={setCrop}
           onZoomChange={setZoom}
           onCropComplete={onCropComplete}
+          
         />
       </div>
     </>

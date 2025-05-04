@@ -16,6 +16,7 @@ import Alert from '../../../components/ui/Alert'
 import { Menu, MenuButton } from '@headlessui/react';
 import Skeleton from '../../../components/ui/Skeleton';
 import AddBrandModal from '../../../components/admin/brands/AddBrandModal'
+import { MdOutlineEdit } from "react-icons/md";
 
 
 function BrandList() {
@@ -27,129 +28,128 @@ function BrandList() {
 
   /* initial data loader */
   useEffect(() => {
-    //fetchBrands()
-    setIsAddOpen(true)
+    fetchBrands()
   },[])
   
-    const fetchBrands = async() => {
-      setIsLoading(true)
-      try {
-        
-        const response = await Axios({
-          ...ApiBucket.getUsers
-        })
-  
-        if(response.data.success){
-          
-          const sorted = response.data.brands.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+  const fetchBrands = async() => {
+    setIsLoading(true)
+    try {
       
-          setBrands(sorted);
-        }
-  
-      } catch (error) {
-        console.log(error.response.data.message)
-      }finally{
-        setIsLoading(false)
-      }
-      
-    }
-  
-    /* debouncer */
-    const [query, setQuery] = useState('');
-    const [searchQuery, setSearchQuery] = useState(query);
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        setSearchQuery(query)
-      }, 300);
-  
-      return () => clearTimeout(timer);
-  
-    },[query])
-
-    /* add category action */
-    const [isAddOpen, setIsAddOpen] = useState(false);
-    const [isEditOpen, setIsEditOpen] = useState(false);
-    const [editingCategory, setEditingCategory] = useState(null);
-  
-    /* create action handling */
-    const handleCreate =  (doc) => {
-      setCategories(prev => ([...prev, doc]));
-      setIsAddOpen(false);
-    }
-  
-    /* update action handling */
-    const handleUpdate =  (doc) => {
-      setCategories(prev => (prev.map(item => item._id === doc._id ? doc : item)));
-      setIsEditOpen(false);
-    }
-  
-    /* delete action handling */
-    const handledelete = async(id) => {
-  
-      Alert({
-        icon: 'question',
-        title: "Are you sure?",
-        text: 'This action cannot revert back',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete it',
-        confirmButtonColor: 'var(--color-red-500)'
-      }).then(async result => {
-        
-        if(result.isConfirmed){
-          dispatch(setIsLoading(true));
-          const response = await deleteCategoryAction('categories', id);
-  
-          if(response?.data?.success){
-            setCategories(prev => prev.filter(category => category._id !== id));
-            AxiosToast(response, false);
-          }else{
-            AxiosToast(response);
-          }
-          dispatch(setIsLoading(false))
-        }
+      const response = await Axios({
+        ...ApiBucket.getBrands
       })
-  
+
+      if(response.data.success){
+        
+        const sorted = response.data.brands.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+    
+        setBrands(sorted);
+      }
+
+    } catch (error) {
+      console.log(error.response.data.message)
+    }finally{
+      setIsLoading(false)
     }
+    
+  }
   
-    /* search filter */
-    const filteredBrands = useMemo(() => {
-      return brands.filter(user =>{
-  
-        const fields = ['username','email','role','status','mobile']
-  
-        return fields.some(field => {
-  
-          if(user[field]){
-            return user[field].includes(searchQuery)
-          }
-          return false
-  
-        })
-  
-      });
-  
-    },[searchQuery, brands])
-  
-    const containerVariants = {
-      hidden: {},
-      visible: {
-        transition: {
-          staggerChildren: 0.01,
-        },
+  /* debouncer */
+  const [query, setQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(query);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(query)
+    }, 300);
+
+    return () => clearTimeout(timer);
+
+  },[query])
+
+  /* add brand action */
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+
+  /* create action handling */
+  const handleCreate =  (doc) => {
+    setBrands(prev => ([...prev, doc]));
+    setIsAddOpen(false);
+  }
+
+  /* update action handling */
+  const handleUpdate =  (doc) => {
+    setBrands(prev => (prev.map(item => item._id === doc._id ? doc : item)));
+    setIsEditOpen(false);
+  }
+
+  /* delete action handling */
+  const handledelete = async(id) => {
+
+    Alert({
+      icon: 'question',
+      title: "Are you sure?",
+      text: 'This action cannot revert back',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it',
+      confirmButtonColor: 'var(--color-red-500)'
+    }).then(async result => {
+      
+      if(result.isConfirmed){
+        dispatch(setIsLoading(true));
+        const response = await deleteCategoryAction('categories', id);
+
+        if(response?.data?.success){
+          setBrands(prev => prev.filter(brand => brand._id !== id));
+          AxiosToast(response, false);
+        }else{
+          AxiosToast(response);
+        }
+        dispatch(setIsLoading(false))
+      }
+    })
+
+  }
+
+  /* search filter */
+  const filteredBrands = useMemo(() => {
+    return brands.filter(brand =>{
+
+      const fields = ['name','slug','status']
+
+      return fields.some(field => {
+
+        if(brand[field]){
+          return brand[field].includes(searchQuery)
+        }
+        return false
+
+      })
+
+    });
+
+  },[searchQuery, brands])
+
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.01,
       },
-    };
-  
-    const rowVariants = {
-      hidden: { opacity: 0, transform: 'translateY(-20px)' },
-      visible: {
-        opacity: 1,
-        transform: 'translateY(0)',
-        transition: {
-          duration: 0.5,
-          ease: 'easeOut',
-        },
+    },
+  };
+
+  const rowVariants = {
+    hidden: { opacity: 0, transform: 'translateY(-20px)' },
+    visible: {
+      opacity: 1,
+      transform: 'translateY(0)',
+      transition: {
+        duration: 0.5,
+        ease: 'easeOut',
       },
-    };
+    },
+  };
 
   /* paingation logic */
   const [currentPage, setCurrentPage] = useState(1);
@@ -165,7 +165,7 @@ function BrandList() {
   return (
     <section className='flex flex-col p-6'>
 
-      {/* page title & add category button */}
+      {/* page title & add brand button */}
       <div className="mb-5 flex justify-between items-start">
         <div className="flex flex-col">
           <h3 className='text-xl'>Brand Management</h3>
@@ -203,110 +203,126 @@ function BrandList() {
         
       </div>
 
-      <motion.ul 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="w-full flex flex-col">
-        {/* Header */}
+      {brands.length > 0 ?
+        (<motion.ul 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="w-full flex flex-col">
 
-        <AnimatePresence>
+          <AnimatePresence>
 
-          {isLoading ?
-            <li className='w-full grid grid-cols-5 gap-6'>
+            {isLoading ?
+              <li className='w-full grid grid-cols-5 gap-6'>
 
-              {
-                [...Array(8)].map((_,i) => (
-                  <div key={i} className='border border-gray-300 bg-white p-3 rounded-4xl shadow-md/4'>
-                    <div className="flex rounded-3xl overflow-hidden">
-                      <Skeleton className='w-[164]px h-[164px]' />
+                {
+                  [...Array(8)].map((_,i) => (
+                    <div key={i} className='border border-gray-300 bg-white p-3 rounded-4xl shadow-md/4'>
+                      <div className="flex rounded-3xl overflow-hidden">
+                        <Skeleton className='w-[164]px h-[164px]' />
+                      </div>
+                      <div className="p-1 flex flex-col gap-1 justify-end relative">
+                        <Skeleton height='h-4' width='w-7/10'/>
+                        <Skeleton height='h-3' width='w-5/10'/>
+                      </div>
                     </div>
-                    <div className="p-1 flex flex-col gap-1 justify-end relative">
-                      <Skeleton height='h-4' width='w-7/10'/>
-                      <Skeleton height='h-3' width='w-5/10'/>
+                  ))
+                }
+                
+              </li>
+              :
+              <li className="w-full grid grid-cols-5 gap-6 h-50">
+
+                {paginatedBrands.map((brand, index) => 
+
+                  <motion.div 
+                    layout
+                    key={brand._id}
+                    custom={index}
+                    initial="hidden"
+                    animate="visible"
+                    variants={rowVariants}
+                    className='border border-gray-300 bg-white rounded-4xl overflow-hidden shadow-md/4'>
+
+                    <div className="flex p-1.5 h-30">
+                      <div className="flex relative rounded-3xl overflow-hidden bg-gray-200">
+                        <Menu as="div" className="absolute right-2 top-1.5 overflow-hidden w-2 inline-flex justify-center">
+                          {({open}) => (
+                            <>
+                              <MenuButton className="!bg-transparent !text-gray-500 !p-0 !shadow-none">
+                                <IoMdMore size={25} />
+                              </MenuButton>
+
+                              <ContextMenu
+                                open={open}
+                                items={[
+                                  {label: 'edit', icon: MdOutlineEdit, onClick: ()=> {}},
+                                  {label: 'delete', icon: HiOutlineTrash, onClick: ()=> {}}
+                                ]}
+                              />
+                            </>
+                          )}
+
+                        </Menu>
+                        <img src={brand.logo} className="w-full object-contain" alt="image" />
+                      </div>
                     </div>
-                  </div>
-                ))
-              }
+                    <div className="px-2 mb-2 flex space-y-0.5 flex-col justify-end bg-white">
+                      <div className="flex items-center justify-between">
+                        <span className='text-sm font-semibold capitalize'>{brand.name}</span>
+                        {brand?.featured && 
+                          <p className="text-xs text-green-700 inline-flex items-center w-fit rounded-xl
+                          after:bg-green-500 after:content[''] after:p-0.75 after:ms-1
+                          after:inline-flex after:items-center after:rounded-full"
+                          >Featured</p>
+                        }
+                      </div>
+                      <p className="text-xs">Products: 000</p>
+                      <div className="flex items-center capitalize space-x-2">
+                        <span className='text-xs'>{brand.visible ? 'Visible' : 'Invisible'}</span>
+                        <div className="w-[1.5px] h-3 bg-gray-300"></div>
+                        <span className='text-xs'>{brand?.status}</span>
+                      </div>
+                      
+                    </div>
+                  </motion.div>
+
+                )}
+
+              </li>  
+            }
+
+          </AnimatePresence>
+
+          {/* Pagination */}
+          {paginatedBrands.length > 0 && <motion.li
+              key="pagination"
+              custom={filteredBrands.length + 1}
+              initial="hidden"
+              animate="visible"
+              variants={rowVariants}
+              className="py-5"
+            >
               
-            </li>
-            :
-            <li className="w-full grid grid-cols-5 gap-6">
+              <AdminPagination 
+                currentPage={currentPage} 
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+                className={`grid grid-cols-1 items-center w-full bg-white border border-gray-300 
+                  p-4 rounded-xl`}
+              />
 
-              {paginatedBrands.map((category, index) => 
-
-                <div 
-                  layout
-                  key={category._id}
-                  custom={index}
-                  initial="hidden"
-                  animate="visible"
-                  variants={rowVariants}
-                  className='border border-gray-300 bg-white p-3 rounded-4xl shadow-md/4'>
-
-                  <div className="flex rounded-3xl overflow-hidden">
-                    <img src={category.image} alt="image" />
-                  </div>
-                  <div className="p-1 flex flex-col justify-end relative">
-
-                    <Menu as="div" className="absolute right-1 top-2 overflow-hidden w-2 inline-flex justify-center">
-                      {({open}) => (
-                        <>
-                          <MenuButton className="!bg-transparent !text-gray-500 !p-0 !shadow-none">
-                            <IoMdMore size={25} />
-                          </MenuButton>
-
-                          <ContextMenu
-                            open={open}
-                            items={[
-                              {label: 'edit', icon: MdOutlineEdit, onClick: ()=> {}},
-                              {label: 'delete', icon: HiOutlineTrash, onClick: ()=> {}}
-                            ]}
-                          />
-                        </>
-                      )}
-
-                    </Menu>
-
-                    <span className='text-sm font-semibold capitalize'>{category.name}</span>
-                    <span className='text-xs'>{category.slug}</span>
-                  </div>
-                </div>
-
-              )}
-
-            </li>  
+            </motion.li>
           }
 
-        </AnimatePresence>
+        </motion.ul>)
+        :
+        (<div className="border border-gray-300 rounded-xl bg-white flex p-10 justify-center">
+          <h2>Brands are empty</h2>
+        </div>)
+      }
 
-        {/* Pagination */}
-        {paginatedBrands.length > 0 ? 
-          (<motion.li
-            key="pagination"
-            custom={filteredBrands.length + 1}
-            initial="hidden"
-            animate="visible"
-            variants={rowVariants}
-            className="px-4 py-5"
-          >
-            
-            <AdminPagination 
-              currentPage={currentPage} 
-              totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
-              className={`grid grid-cols-1 items-center w-full bg-white border border-gray-300 
-                p-4 rounded-xl`}
-            />
 
-          </motion.li>)
-          :
-          (<div className="border border-gray-300 rounded-xl bg-white flex p-10 justify-center">
-            <h2>Brands are empty</h2>
-          </div>)
-        }
-
-      </motion.ul>
 
       <AddBrandModal
         brands={brands}

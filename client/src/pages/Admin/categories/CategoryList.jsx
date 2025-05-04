@@ -213,12 +213,13 @@ const CategoryList = () => {
           shadow-lg border border-gray-200 divide-y divide-gray-300">
         {/* Header */}
         <li className="bg-white text-gray-500 uppercase font-semibold tracking-wider p-4.5">
-          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
+          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
             <span><input type="checkbox" /></span>
             <span>Name</span>
             <span>Slug</span>
             <span>Parent</span>
             <span>Status</span>
+            <span>Visibility</span>
             <span className="text-center">Actions</span>
           </div>
         </li>
@@ -243,7 +244,7 @@ const CategoryList = () => {
 
               const statusColors = () => {
                 switch(category.status){
-                  case 'active': return 'bg-green-100 text-teal-600'
+                  case 'active': return 'bg-green-500/40 text-teal-800'
                   case 'blocked': return 'bg-red-100 text-red-500'
                   default : return 'bg-gray-200 text-gray-400'
                 }
@@ -263,7 +264,7 @@ const CategoryList = () => {
                   className="bg-white hover:bg-primary-25 transition-all duration-300 px-4 py-2"
                   >
                   
-                  <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
+                  <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
                     {/* Checkbox */}
                     <div><input type="checkbox" /></div>
 
@@ -271,17 +272,23 @@ const CategoryList = () => {
                     <div className="flex gap-2 items-center">
                       <PreviewImage src={category?.image} alt={category?.name} size="40" zoom="120%" />
                       
-                      <div className="inline-flex flex-col">
-                        <p className="capitalize">{category?.name}</p>
-                        {/* <p className="text-xs text-gray-500">{user?.email}</p> */}
+                      <div className="inline-flex flex-col capitalize">
+                        <p className="font-semibold">{category?.name}</p>
+                        <p className="text-xs">000 products</p>
+                        {category?.featured && 
+                          <p className="text-xs text-green-700 inline-flex items-center w-fit rounded-xl
+                            before:bg-green-500 before:content[''] before:p-0.75 before:me-1
+                            before:inline-flex before:items-center before:rounded-full"
+                          >Featured</p>
+                        }
                       </div>
                     </div>
 
                     {/* Slug */}
                     <div>/{category.slug || <span className="text-gray-400">Not added</span>}</div>
                     
-                    {/* Contact */}
-                    <div>{parent?.name || <span className="text-gray-400">Nil</span>}</div>
+                    {/* parent name */}
+                    <div className='capitalize'>{parent?.name || <span className="text-gray-400">Nil</span>}</div>
 
                     {/* Status */}
                     <div>
@@ -289,6 +296,11 @@ const CategoryList = () => {
                         ${statusColors()}`}>
                         {category?.status}
                       </span>
+                    </div>
+                    
+                    {/* visibility */}
+                    <div className='capitalize'>
+                      {category?.visible ? 'visible' : <span className="text-gray-400">Invisible</span>}
                     </div>
 
                     {/* Actions */}

@@ -65,16 +65,26 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
         return
       }
 
-      if(!data[file]){
-        toast.error("Image is mandatory to create category");
+      if(!data['file']){
+        toast.error("Image is mandatory to create brand");
         return
       }
 
-      const finalData = finalizeValues(data);
+      if(!isValidFile(data['file'])){
+        toast.error("You selected invalid file");
+        return
+      }
 
       setIsLoading(true)
 
       try {
+
+        const dimen = await getImageDimensions(data['file']);
+      
+        if(dimen.width !== brandImageDimen.width || dimen.height !== brandImageDimen.height){
+          toast.error("Image dimention does not match");
+          return
+        }
         
         const response = await Axios({
           ...ApiBucket.addCategory,

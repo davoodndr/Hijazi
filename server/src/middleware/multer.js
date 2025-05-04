@@ -6,6 +6,10 @@ const storage = multer.memoryStorage();
 
 export const single = (req, res, next) => {
 
+  /* req.body can't use here because multer executes before req.body called
+    use req.query / req.params
+  */
+  
   const { fieldName = 'image', maxFileMb = 1, maxFileCount = 1 } = req.query;
 
   const multerUpload = multer({

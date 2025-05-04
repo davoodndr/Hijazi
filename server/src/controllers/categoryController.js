@@ -60,7 +60,7 @@ export const uploadCategoryImage = async(req, res) => {
       return responseMessage(res, 400, false, "Category id not specified");
     }
     
-    const upload = await uploadImagesToCloudinary(folder,files, public_id)
+    const upload = await uploadImagesToCloudinary(folder, files, public_id)
 
     await Category.findByIdAndUpdate(category_id,
       {
@@ -115,6 +115,7 @@ export const updateCategory = async(req, res) => {
 
 }
 
+//delete category
 export const deleteCategory = async(req, res) => {
   const { category_id, folder } = req.body;
 

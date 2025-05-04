@@ -32,3 +32,41 @@ export const finalizeValues = (data) => {
 
   return Object.fromEntries(filtered)
 }
+
+export const isValidFile = (file) => {
+
+  return file instanceof File;
+}
+
+export const isValidFileType = (validFormats, file) => {
+
+  if(!Array.isArray(validFormats)) throw new Error("Expects array for valid formats")
+
+  validFormats = validFormats.map(item => `image/${item}`);
+  return validFormats.includes(file.type)
+}
+
+export const isValidDatas = (fields, data) => {
+  if(!Array.isArray(fields)) throw new Error("Expects array for valid formats")
+  return fields.every(item => data[item]);
+}
+
+export const getImageDimensions = (file) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      img.src = reader.result;
+    };
+
+    img.onload = () => {
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+
+    img.onerror = () => reject(new Error("Not valid image, select another one"));
+    reader.onerror = () => reject(reader.error);
+
+    reader.readAsDataURL(file);
+  });
+};

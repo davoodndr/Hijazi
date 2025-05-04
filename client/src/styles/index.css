@@ -185,3 +185,5 @@ body.swal2-shown > [aria-hidden='true'] {
 .animate-zoomFadeIn {
   animation: zoomFadeIn 0.2s ease-out forwards;
 }
+
+

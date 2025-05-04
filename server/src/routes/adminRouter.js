@@ -1,4 +1,7 @@
 import express from "express";
+import { allowRoles, authenticate } from "../middleware/authMiddleware.js";
+import { single, upload } from "../middleware/multer.js";
+import { uploadSingleImage } from "../controllers/commonController.js";
 import { 
   addUser, 
   blockUser, 
@@ -9,9 +12,7 @@ import {
   uploadAvatar
 } from "../controllers/usersController.js";
 import { addCategory, deleteCategory, getCategories, updateCategory, uploadCategoryImage } from "../controllers/categoryController.js";
-import { allowRoles, authenticate } from "../middleware/authMiddleware.js";
-import { single, upload } from "../middleware/multer.js";
-import { uploadSingleImage } from "../controllers/commonController.js";
+import { addBrand, getBrands, uploadBrandLogo } from "../controllers/brandController.js";
 
 
 const adminRouter = express.Router();
@@ -36,7 +37,8 @@ adminRouter.patch('/update-category', authenticate, allowRoles(['admin']), updat
 adminRouter.put('/delete-category', authenticate, allowRoles(['admin']), deleteCategory)
 
 /* brand management */
-adminRouter.get('/get-categories', /* authenticate, allowRoles(['admin']),  */getCategories)
-adminRouter.post('/add-brand', /* authenticate, allowRoles(['admin']), */ addCategory)
+adminRouter.get('/get-brands', /* authenticate, allowRoles(['admin']), */ getBrands)
+adminRouter.post('/add-brand', authenticate, allowRoles(['admin']), addBrand)
+adminRouter.post('/upload-brand-logo',authenticate, allowRoles(['admin']), single, uploadBrandLogo);
 
 export default adminRouter;

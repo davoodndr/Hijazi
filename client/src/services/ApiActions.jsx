@@ -71,6 +71,30 @@ export const uploadCategoryImage = async(category_id, folder, fieldName, file, p
 
 }
 
+export const uploadBrandLogo = async(brand_id, folder, file, public_id= "") => {
+
+  try {
+            
+    const imageData = new FormData();
+    imageData.append('image', file)
+    imageData.append('public_id', public_id)
+    imageData.append('folder',folder)
+    imageData.append('brand_id',brand_id)
+
+    const response = await Axios({
+      ...ApiBucket.uploadBrandLogo,
+      data: imageData,
+      /* params: {fieldName} */
+    })
+
+    return response.data.image;
+
+  } catch (error) {
+    return error
+  }
+
+}
+
 // bloch or unblock user
 export const blockUserAction = async(user_id, mode) => {
 
