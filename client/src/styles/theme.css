@@ -27,3 +27,31 @@
 .text-title{
   @apply font-semibold
 }
+
+@utility scroll-none {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility scroll-basic {
+  &::-webkit-scrollbar{
+    width: 8px;
+    height: 8px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(76,196,187,0.3);
+    transiton: all 0.3s;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  &:hover{
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(76,196,187,0.6);
+    }
+  }
+}

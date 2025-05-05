@@ -87,7 +87,7 @@ export const uploadBrandLogo = async(brand_id, folder, file, public_id= "") => {
       /* params: {fieldName} */
     })
 
-    return response.data.image;
+    return response.data.logo;
 
   } catch (error) {
     return error

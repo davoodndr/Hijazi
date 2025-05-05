@@ -15,7 +15,7 @@ const Header = () => {
   },[user])
 
   return (
-    <header className="border-b border-gray-200 flex items-center justify-between h-20 p-5">
+    <header className="bg-white border-b border-gray-200 flex items-center justify-between h-20 p-5">
       <div className="flex items-center gap-2">
         <h1 className="text-2xl font-semibold text-dashboard-text"></h1>
       </div>

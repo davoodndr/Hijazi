@@ -86,22 +86,35 @@ const UsersList = () => {
   },[searchQuery, users])
 
   const containerVariants = {
-    hidden: {},
+    hidden: {
+      transition: {
+        staggerChildren: 0.05,
+        staggerDirection: -1,
+      },
+    },
     visible: {
       transition: {
-        staggerChildren: 0.01,
+        staggerChildren: 0.05,
       },
     },
   };
 
   const rowVariants = {
-    hidden: { opacity: 0, transform: 'translateY(-20px)' },
+    hidden: { opacity: 0, y:-20 },
     visible: {
       opacity: 1,
-      transform: 'translateY(0)',
+      y:0,
       transition: {
         duration: 0.5,
         ease: 'easeOut',
+      },
+    },
+    exit: {
+      opacity: 0,
+      y: -20,
+      transition: {
+        duration: 0.3,
+        ease: 'easeIn',
       },
     },
   };
@@ -213,158 +226,163 @@ const UsersList = () => {
         
       </div>
 
-      <motion.ul 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="w-full text-sm text-gray-700 bg-white rounded-3xl overflow-hidden
-          shadow-lg border border-gray-200 divide-y divide-gray-300">
-        {/* Header */}
-        <li className="bg-white text-gray-500 uppercase font-semibold tracking-wider p-4.5">
-          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
-            <span><input type="checkbox" /></span>
-            <span>User</span>
-            <span>Roles</span>
-            <span>Contact</span>
-            <span>Status</span>
-            <span className="text-center">Actions</span>
-          </div>
-        </li>
-
-        <AnimatePresence>
-
-          {/* Rows */}
-          {loading ? 
-            <>
-              <li className="rounded px-6 py-4 space-y-3">
-                <Skeleton height="h-10" width="w-full" />
-              </li>
-              <li className="rounded px-6 py-4 space-y-3">
-                <Skeleton height="h-10" width="w-full" />
-              </li>
-              <li className="rounded px-6 py-4 space-y-3">
-                <Skeleton height="h-10" width="w-full" />
-              </li>
-            </>
-            :
-            paginatedUsers.map((user, index) => {
-
-              const statusColors = () => {
-                switch(user.status){
-                  case 'active': return 'bg-green-100 text-teal-600'
-                  case 'blocked': return 'bg-red-100 text-red-500'
-                  default : return 'bg-gray-200 text-gray-400'
-                }
-              }
-
-              return(
-              
-                <motion.li
-                  layout
-                  key={user._id}
-                  custom={index}
-                  initial="hidden"
-                  animate="visible"
-                  variants={rowVariants}
-                  className="bg-white hover:bg-primary-25 transition-all duration-300 px-4 py-2"
-                  >
-                  
-                  <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
-                    {/* Checkbox */}
-                    <div><input type="checkbox" /></div>
-
-                    {/* User Info */}
-                    <div className="flex gap-2 items-center">
-                      <div className="w-12 h-12 rounded-full overflow-hidden">
-                        <img src={user?.avatar || place_holder} alt="avatar" className="object-cover w-full h-full" />
-                      </div>
-                      <div className="inline-flex flex-col">
-                        <p className="capitalize">{user?.username}</p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
-                      </div>
-                    </div>
-
-                    {/* Roles */}
-                    <div className="flex flex-col text-[13px]">
-                      {user.roles.map((role, n) => (
-                        <span key={n} className="capitalize">{role}</span>
-                      ))}
-                    </div>
-
-                    {/* Contact */}
-                    <div>{user.mobile || <span className="text-gray-400">Not added</span>}</div>
-
-                    {/* Status */}
-                    <div>
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
-                        ${statusColors()}`}>
-                        {user.status}
-                      </span>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center justify-center gap-3 z-50">
-                      <div 
-                        onClick={() => navigate('/admin/users/edit-user',{state: {user}})}
-                        className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
-                        border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
-                        <TbUserEdit size={20} />
-                      </div>
-
-                      
-                      <Menu as="div" className='relative'>
-                        {({ open }) => (
-                          <>
-                            <MenuButton
-                              className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                              border border-gray-300 !text-gray-900 cursor-pointer"
-                            >
-                              <IoMdMore size={20} />
-                            </MenuButton>
-                            <ContextMenu 
-                              open={open}
-                              items={[
-                                { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user',{state: user}) },
-                                { label: user?.status === 'blocked' ? 'unblock' : 'block', 
-                                  icon: user?.status === 'blocked' ? CgUnblock : MdBlock, onClick: ()=> handleUserBlock(user) },
-                                { label: 'delete', icon: HiOutlineTrash, onClick: () => handleUserDelete(user) }
-                              ]}
-                            />
-                          </>
-                        )}
-                        
-                      </Menu>
-                      
-                    </div>
-                  </div>
-                  
-                </motion.li>
-                
-              )}
-          )}
-
-        </AnimatePresence>
-
-        {/* Pagination */}
-        {paginatedUsers && <motion.li
-          key="pagination"
-          custom={filteredUsers.length + 1}
+      <div className="flex w-full relative">
+        <motion.ul 
+          layout
+          variants={containerVariants}
           initial="hidden"
           animate="visible"
-          variants={rowVariants}
-          className="px-4 py-5"
-        >
+          className="w-full text-sm text-gray-700 bg-white rounded-3xl
+            shadow-lg border border-gray-200">
+          {/* Header */}
+          <li
+            className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
+            <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
+              <span><input type="checkbox" /></span>
+              <span>User</span>
+              <span>Roles</span>
+              <span>Contact</span>
+              <span>Status</span>
+              <span className="text-center">Actions</span>
+            </div>
+          </li>
+
+            {/* Rows */}
+            {loading ? 
+              <>
+                <li className="rounded px-6 py-4 space-y-3">
+                  <Skeleton height="h-10" width="w-full" />
+                </li>
+                <li className="rounded px-6 py-4 space-y-3">
+                  <Skeleton height="h-10" width="w-full" />
+                </li>
+                <li className="rounded px-6 py-4 space-y-3">
+                  <Skeleton height="h-10" width="w-full" />
+                </li>
+              </>
+              :
+
+              <li className="divide-y divide-gray-300">
+
+                <AnimatePresence exitBeforeEnter>
+                  {paginatedUsers.map((user, index) => {
+
+                    const statusColors = () => {
+                      switch(user.status){
+                        case 'active': return 'bg-green-100 text-teal-600'
+                        case 'blocked': return 'bg-red-100 text-red-500'
+                        default : return 'bg-gray-200 text-gray-400'
+                      }
+                    }
+
+                    return(
+                    
+                      <motion.div 
+                        layout
+                        key={user._id}
+                        custom={index}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={rowVariants}
+                        whileHover={{
+                          backgroundColor: '#efffeb',
+                          transition: { duration: 0.3 }
+                        }}
+                        className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full gap-2 px-4 py-2 bg-white">
+                        {/* Checkbox */}
+                        <div><input type="checkbox" /></div>
+
+                        {/* User Info */}
+                        <div className="flex gap-2 items-center">
+                          <div className="w-12 h-12 rounded-full overflow-hidden">
+                            <img src={user?.avatar || place_holder} alt="avatar" className="object-cover w-full h-full" />
+                          </div>
+                          <div className="inline-flex flex-col">
+                            <p className="capitalize">{user?.username}</p>
+                            <p className="text-xs text-gray-500">{user?.email}</p>
+                          </div>
+                        </div>
+
+                        {/* Roles */}
+                        <div className="flex flex-col text-[13px]">
+                          {user.roles.map((role, n) => (
+                            <span key={n} className="capitalize">{role}</span>
+                          ))}
+                        </div>
+
+                        {/* Contact */}
+                        <div>{user.mobile || <span className="text-gray-400">Not added</span>}</div>
+
+                        {/* Status */}
+                        <div>
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
+                            ${statusColors()}`}>
+                            {user.status}
+                          </span>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center justify-center gap-3 z-50">
+                          <div 
+                            onClick={() => navigate('/admin/users/edit-user',{state: {user}})}
+                            className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
+                            border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
+                            <TbUserEdit size={20} />
+                          </div>
+
+                          
+                          <Menu as="div" className='relative'>
+                            {({ open }) => (
+                              <>
+                                <MenuButton
+                                  className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                  border border-gray-300 !text-gray-900 cursor-pointer"
+                                >
+                                  <IoMdMore size={20} />
+                                </MenuButton>
+                                <ContextMenu 
+                                  open={open}
+                                  items={[
+                                    { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user',{state: user}) },
+                                    { label: user?.status === 'blocked' ? 'unblock' : 'block', 
+                                      icon: user?.status === 'blocked' ? CgUnblock : MdBlock, onClick: ()=> handleUserBlock(user) },
+                                    { label: 'delete', icon: HiOutlineTrash, onClick: () => handleUserDelete(user) }
+                                  ]}
+                                />
+                              </>
+                            )}
+                            
+                          </Menu>
+                          
+                        </div>
+                      </motion.div>
+                        
+                    )
+                  })}
+                  </AnimatePresence>
+                </li>
+              }
+
           
-          <AdminPagination 
-            currentPage={currentPage} 
-            totalPages={totalPages}
-            setCurrentPage={setCurrentPage}
-          />
 
-        </motion.li>
-        }
-      </motion.ul>
+          {/* Pagination */}
+          {paginatedUsers && <li
+            key="pagination"
+            custom={filteredUsers.length + 1}
+            className="px-4 py-5"
+          >
+            
+            <AdminPagination 
+              currentPage={currentPage} 
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+            />
 
+          </li>
+          }
+        </motion.ul>
+      </div>
     </section>
   )
 }

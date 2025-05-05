@@ -52,13 +52,10 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
     setData(prev => ({...prev,parentId:val?.id}));
   }
 
-  const mandatories = ['file', 'name', 'slug'];
-  const validate = mandatories.every(item => data[item])
-
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    if(validate){
+    if(isValidDatas(['name','slug','file'], data)){
       
       if(!isValidName(data['name']) || !isValidName(data['slug'])){
         toast.error('Name and slug should have minimum 3 letters')

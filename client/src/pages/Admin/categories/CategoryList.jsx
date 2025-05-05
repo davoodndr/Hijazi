@@ -134,22 +134,35 @@ const CategoryList = () => {
   }
 
   const containerVariants = {
-    hidden: {},
+    hidden: {
+      transition: {
+        staggerChildren: 0.05,
+        staggerDirection: -1,
+      },
+    },
     visible: {
       transition: {
-        staggerChildren: 0.01,
+        staggerChildren: 0.05,
       },
     },
   };
 
   const rowVariants = {
-    hidden: { opacity: 0, transform: 'translateY(-20px)' },
+    hidden: { opacity: 0, y:-20 },
     visible: {
       opacity: 1,
-      transform: 'translateY(0)',
+      y:0,
       transition: {
         duration: 0.5,
         ease: 'easeOut',
+      },
+    },
+    exit: {
+      opacity: 0,
+      y: -20,
+      transition: {
+        duration: 0.3,
+        ease: 'easeIn',
       },
     },
   };
@@ -205,167 +218,175 @@ const CategoryList = () => {
         
       </div>
 
-      <motion.ul 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="flex flex-col w-full h-full text-sm text-gray-700 bg-white rounded-3xl overflow-hidden
-          shadow-lg border border-gray-200 divide-y divide-gray-300">
-        {/* Header */}
-        <li className="bg-white text-gray-500 uppercase font-semibold tracking-wider p-4.5">
-          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
-            <span><input type="checkbox" /></span>
-            <span>Name</span>
-            <span>Slug</span>
-            <span>Parent</span>
-            <span>Status</span>
-            <span>Visibility</span>
-            <span className="text-center">Actions</span>
-          </div>
-        </li>
-
-        <AnimatePresence>
-
-          {/* Rows */}
-          {isLoading ? 
-            <>
-              <li className="rounded px-6 py-4 space-y-3">
-                <Skeleton height="h-10" width="w-full" />
-              </li>
-              <li className="rounded px-6 py-4 space-y-3">
-                <Skeleton height="h-10" width="w-full" />
-              </li>
-              <li className="rounded px-6 py-4 space-y-3">
-                <Skeleton height="h-10" width="w-full" />
-              </li>
-            </>
-            :
-            paginatedCategories.map((category, index) => {
-
-              const statusColors = () => {
-                switch(category.status){
-                  case 'active': return 'bg-green-500/40 text-teal-800'
-                  case 'blocked': return 'bg-red-100 text-red-500'
-                  default : return 'bg-gray-200 text-gray-400'
-                }
-              }
-
-              const parent = category.parentId;
-
-              return(
-              
-                <motion.li
-                  layout
-                  key={category._id}
-                  custom={index}
-                  initial="hidden"
-                  animate="visible"
-                  variants={rowVariants}
-                  className="bg-white hover:bg-primary-25 transition-all duration-300 px-4 py-2"
-                  >
-                  
-                  <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
-                    {/* Checkbox */}
-                    <div><input type="checkbox" /></div>
-
-                    {/* Category Info */}
-                    <div className="flex gap-2 items-center">
-                      <PreviewImage src={category?.image} alt={category?.name} size="40" zoom="120%" />
-                      
-                      <div className="inline-flex flex-col capitalize">
-                        <p className="font-semibold">{category?.name}</p>
-                        <p className="text-xs">000 products</p>
-                        {category?.featured && 
-                          <p className="text-xs text-green-700 inline-flex items-center w-fit rounded-xl
-                            before:bg-green-500 before:content[''] before:p-0.75 before:me-1
-                            before:inline-flex before:items-center before:rounded-full"
-                          >Featured</p>
-                        }
-                      </div>
-                    </div>
-
-                    {/* Slug */}
-                    <div>/{category.slug || <span className="text-gray-400">Not added</span>}</div>
-                    
-                    {/* parent name */}
-                    <div className='capitalize'>{parent?.name || <span className="text-gray-400">Nil</span>}</div>
-
-                    {/* Status */}
-                    <div>
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
-                        ${statusColors()}`}>
-                        {category?.status}
-                      </span>
-                    </div>
-                    
-                    {/* visibility */}
-                    <div className='capitalize'>
-                      {category?.visible ? 'visible' : <span className="text-gray-400">Invisible</span>}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center justify-center gap-3 z-50">
-                      <div 
-                        onClick={() => {
-                          setIsEditOpen(true);
-                          setEditingCategory(category)
-                        }}
-                        className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
-                        border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
-                        <TbUserEdit size={20} />
-                      </div>
-
-                      
-                      <Menu as="div" className='relative'>
-                        {({ open }) => (
-                          <>
-                            <MenuButton
-                              className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                              border border-gray-300 !text-gray-900 cursor-pointer"
-                            >
-                              <IoMdMore size={20} />
-                            </MenuButton>
-                            <ContextMenu 
-                              open={open}
-                              items={[
-                                /* { label: 'view category', icon: IoEyeOutline, onClick: () => {} }, */
-                                { label: 'delete', icon: HiOutlineTrash, onClick: () => handledelete(category._id) }
-                              ]}
-                            />
-                          </>
-                        )}
-                        
-                      </Menu>
-                      
-                    </div>
-                  </div>
-                  
-                </motion.li>
-                
-              )}
-          )}
-
-        </AnimatePresence>
-
-        {/* Pagination */}
-        {paginatedCategories && <motion.li
-          key="pagination"
-          custom={filteredCategories.length + 1}
+      {/* content - first div fot smooth animaion */}
+      <div className="relative flex w-full">
+        <motion.ul 
+          layout
+          variants={containerVariants}
           initial="hidden"
           animate="visible"
-          variants={rowVariants}
-          className="px-4 py-5"
-        >
-          
-          <AdminPagination 
-            currentPage={currentPage} 
-            totalPages={totalPages}
-            setCurrentPage={setCurrentPage}
-          />
+          exit="exit"
+          className="flex flex-col w-full h-full text-sm text-gray-700 bg-white rounded-3xl
+            shadow-lg border border-gray-200">
+          {/* Header */}
+          <li className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
+            <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
+              <span><input type="checkbox" /></span>
+              <span>Name</span>
+              <span>Slug</span>
+              <span>Parent</span>
+              <span>Status</span>
+              <span>Visibility</span>
+              <span className="text-center">Actions</span>
+            </div>
+          </li>
 
-        </motion.li>
-        }
-      </motion.ul>
+            {/* Rows */}
+            {isLoading ? 
+              <>
+                <li className="rounded px-6 py-4 space-y-3">
+                  <Skeleton height="h-10" width="w-full" />
+                </li>
+                <li className="rounded px-6 py-4 space-y-3">
+                  <Skeleton height="h-10" width="w-full" />
+                </li>
+                <li className="rounded px-6 py-4 space-y-3">
+                  <Skeleton height="h-10" width="w-full" />
+                </li>
+              </>
+              :
+
+                <li className="divide-y divide-gray-300">
+
+                  <AnimatePresence exitBeforeEnter>
+
+                    {paginatedCategories.map((category, index) => {
+
+                      const statusColors = () => {
+                        switch(category.status){
+                          case 'active': return 'bg-green-500/40 text-teal-800'
+                          case 'blocked': return 'bg-red-100 text-red-500'
+                          default : return 'bg-gray-200 text-gray-400'
+                        }
+                      }
+
+                      const parent = category.parentId;
+
+                      return(
+                      
+                        <motion.div 
+                          layout
+                          key={category._id}
+                          custom={index}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          variants={rowVariants}
+                          whileHover={{
+                            backgroundColor: '#efffeb',
+                            transition: { duration: 0.3 }
+                          }}
+                          className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full px-4 py-2 bg-white">
+                          {/* Checkbox */}
+                          <div><input type="checkbox" /></div>
+
+                          {/* Category Info */}
+                          <div className="flex gap-2 items-center">
+                            <PreviewImage src={category?.image} alt={category?.name} size="40" zoom="120%" />
+                            
+                            <div className="inline-flex flex-col capitalize">
+                              <p className="font-semibold">{category?.name}</p>
+                              <p className="text-xs">000 products</p>
+                              {category?.featured && 
+                                <p className="text-xs text-green-700 inline-flex items-center w-fit rounded-xl
+                                  before:bg-green-500 before:content[''] before:p-0.75 before:me-1
+                                  before:inline-flex before:items-center before:rounded-full"
+                                >Featured</p>
+                              }
+                            </div>
+                          </div>
+
+                          {/* Slug */}
+                          <div>/{category.slug || <span className="text-gray-400">Not added</span>}</div>
+                          
+                          {/* parent name */}
+                          <div className='capitalize'>{parent?.name || <span className="text-gray-400">Nil</span>}</div>
+
+                          {/* Status */}
+                          <div>
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
+                              ${statusColors()}`}>
+                              {category?.status}
+                            </span>
+                          </div>
+                          
+                          {/* visibility */}
+                          <div className='capitalize'>
+                            {category?.visible ? 'visible' : <span className="text-gray-400">Invisible</span>}
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center justify-center gap-3 z-50">
+                            <div 
+                              onClick={() => {
+                                setIsEditOpen(true);
+                                setEditingCategory(category)
+                              }}
+                              className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
+                              border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
+                              <TbUserEdit size={20} />
+                            </div>
+
+                            
+                            <Menu as="div" className='relative'>
+                              {({ open }) => (
+                                <>
+                                  <MenuButton
+                                    className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                    border border-gray-300 !text-gray-900 cursor-pointer"
+                                  >
+                                    <IoMdMore size={20} />
+                                  </MenuButton>
+                                  <ContextMenu 
+                                    open={open}
+                                    items={[
+                                      /* { label: 'view category', icon: IoEyeOutline, onClick: () => {} }, */
+                                      { label: 'delete', icon: HiOutlineTrash, onClick: () => handledelete(category._id) }
+                                    ]}
+                                  />
+                                </>
+                              )}
+                              
+                            </Menu>
+                            
+                          </div>
+                        </motion.div>
+                                              
+                      )})
+                    }
+
+                  </AnimatePresence>
+
+                </li>
+            }
+
+          {/* Pagination */}
+          {paginatedCategories && <li
+            key="pagination"
+            custom={filteredCategories.length + 1}
+            className="px-4 py-5"
+          >
+            
+            <AdminPagination 
+              currentPage={currentPage} 
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+            />
+
+          </li>
+          }
+        </motion.ul>
+      </div>
 
       <AddCategoryModal
         categories={categories}
