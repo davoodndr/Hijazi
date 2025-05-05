@@ -140,6 +140,7 @@ export const deleteUserAction = async(folder, user_id) => {
     return error
   }
 }
+
 // delete category
 export const deleteCategoryAction = async(folder, category_id) => {
 
@@ -149,6 +150,26 @@ export const deleteCategoryAction = async(folder, category_id) => {
       ...ApiBucket.deleteCategory,
       data: {
         category_id, 
+        folder  // image containing folder
+      }
+    })
+
+    return response
+
+  } catch (error) {
+    return error
+  }
+}
+
+// delete brand
+export const deleteBrandAction = async(folder, brand_id) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.deleteBrand,
+      data: {
+        brand_id, 
         folder  // image containing folder
       }
     })

@@ -1,5 +1,4 @@
 
-
 const ApiBucket = {
 
   /* common */
@@ -119,10 +118,10 @@ const ApiBucket = {
     url: '/api/admin/update-brand',
     method: 'patch'
   },
-  /* deleteCategory: {
-    url: '/api/admin/delete-category',
+  deleteBrand: {
+    url: '/api/admin/delete-brand',
     method: 'put'
-  }, */
+  },
 }
 
 

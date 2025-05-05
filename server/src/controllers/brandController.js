@@ -1,5 +1,5 @@
 import Brand from "../models/Brand.js";
-import { uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
+import { deleteImageFromCloudinary, uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
 import { responseMessage } from "../utils/messages.js";
 
 // get all brands
@@ -24,7 +24,7 @@ export const addBrand = async(req, res) => {
   try {
 
     if(!name || !slug ) {
-      return responseMessage(res, 400, false, "Plaese fill name, slug and image");
+      return responseMessage(res, 400, false, "Plaese fill name, slug and logo");
     }
 
     const brand = await Brand.findOne({slug});
@@ -113,6 +113,40 @@ export const updateBrand = async(req, res) => {
 
   } catch (error) {
     console.log('updateBrand', error);
+    return responseMessage(res, 500, false, error.message || error);
+  }
+
+}
+
+//delete brand
+export const deleteBrand = async(req, res) => {
+  const { brand_id, folder } = req.body;
+
+  try {
+    
+    if(!brand_id) {
+      return responseMessage(res, 400, false, "Brand id not specified");
+    }
+
+    const brand = await Brand.findById(brand_id);
+
+    if(!brand){
+      return responseMessage(res, 400, false, "Brand does not exists");
+    }
+
+    if(brand.logo){
+      let public_id = brand.logo?.split('/').filter(Boolean).pop().split('.')[0];
+      if(public_id){
+        await deleteImageFromCloudinary(folder, public_id)
+      }
+    }
+
+    await Brand.findByIdAndDelete(brand_id);
+
+    return responseMessage(res, 200, true, "Brand deleted successfully")
+
+  } catch (error) {
+    console.log('deleteBrand', error);
     return responseMessage(res, 500, false, error.message || error);
   }
 

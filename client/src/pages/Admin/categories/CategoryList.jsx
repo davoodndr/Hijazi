@@ -4,10 +4,8 @@ import { HiHome, HiOutlineTrash } from 'react-icons/hi2';
 import { IoIosArrowForward, IoMdMore } from 'react-icons/io';
 import { LuSearch } from 'react-icons/lu';
 import { TbCategoryPlus, TbUserEdit } from "react-icons/tb";
-import category_sample from '../../../assets/12.jpg'
 import ContextMenu from '../../../components/ui/ContextMenu';
 import { Menu, MenuButton } from '@headlessui/react'
-import { MdOutlineEdit } from 'react-icons/md';
 import Alert from '../../../components/ui/Alert';
 import AddCategoryModal from '../../../components/admin/categories/AddCategoryModal';
 import ApiBucket from '../../../services/ApiBucket';
@@ -15,8 +13,6 @@ import { Axios } from '../../../utils/AxiosSetup';
 import AdminPagination from '../../../components/ui/AdminPagination';
 import Skeleton from '../../../components/ui/Skeleton';
 import EditCategoryModal from '../../../components/admin/categories/EditCategoryModal';
-import { IoEyeOutline } from 'react-icons/io5';
-import PreviewImage from '../../../components/ui/HoverImagePreview';
 import { deleteCategoryAction } from '../../../services/ApiActions';
 import AxiosToast from '../../../utils/AxiosToast';
 import { setLoading } from '../../../store/slices/CommonSlices'
@@ -25,6 +21,7 @@ import { useDispatch } from 'react-redux';
 const CategoryList = () => {
 
   const dispatch = useDispatch();
+
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 

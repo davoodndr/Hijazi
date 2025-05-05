@@ -9,8 +9,8 @@ import { HiHome, HiOutlineTrash } from "react-icons/hi2";
 import { IoIosArrowForward, IoMdMore } from "react-icons/io";
 import ContextMenu from '../../../components/ui/ContextMenu';
 import AdminPagination from '../../../components/ui/AdminPagination';
-import { useNavigate } from 'react-router';
-import { blockUserAction, deleteUserAction } from '../../../services/ApiActions';
+import { useDispatch } from 'react-redux';
+import { deleteBrandAction } from '../../../services/ApiActions';
 import AxiosToast from '../../../utils/AxiosToast';
 import Alert from '../../../components/ui/Alert'
 import { Menu, MenuButton } from '@headlessui/react';
@@ -18,11 +18,12 @@ import Skeleton from '../../../components/ui/Skeleton';
 import AddBrandModal from '../../../components/admin/brands/AddBrandModal'
 import { MdOutlineEdit } from "react-icons/md";
 import EditBrandModal from "../../../components/admin/brands/EditBrandModal";
+import { setLoading } from "../../../store/slices/CommonSlices";
 
 
 function BrandList() {
 
-  const navigate = useNavigate();
+  const dispatch = useDispatch();
   
   const [brands, setBrands] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -97,8 +98,8 @@ function BrandList() {
     }).then(async result => {
       
       if(result.isConfirmed){
-        dispatch(setIsLoading(true));
-        const response = await deleteCategoryAction('categories', id);
+        dispatch(setLoading(true));
+        const response = await deleteBrandAction('brands', id);
 
         if(response?.data?.success){
           setBrands(prev => prev.filter(brand => brand._id !== id));
@@ -106,7 +107,7 @@ function BrandList() {
         }else{
           AxiosToast(response);
         }
-        dispatch(setIsLoading(false))
+        dispatch(setLoading(false))
       }
     })
 
@@ -274,7 +275,7 @@ function BrandList() {
                                       setIsEditOpen(true);
                                       setEditingBrand(brand);
                                     }},
-                                    {label: 'delete', icon: HiOutlineTrash, onClick: ()=> {}}
+                                    {label: 'delete', icon: HiOutlineTrash, onClick: ()=> handledelete(brand._id)}
                                   ]}
                                 />
                               </>
