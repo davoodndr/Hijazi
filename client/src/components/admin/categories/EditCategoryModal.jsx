@@ -8,7 +8,7 @@ import ListBox from '../../ui/ListBox';
 import Switch from '../../ui/ToggleSwitch';
 import CropperWindow from '../../ui/CropperWindow';
 import toast from 'react-hot-toast'
-import { finalizeValues, isValidName } from '../../../utils/Utils';
+import { finalizeValues, getImageDimensions, isValidDatas, isValidFile, isValidName } from '../../../utils/Utils';
 import AxiosToast from '../../../utils/AxiosToast';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
@@ -21,6 +21,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
   const [loading, setIsLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [parent, setParent] = useState(null);
+  const categoryImageDimen = {width: 600, height: 600};
     
 
   /* data input handling */
@@ -62,24 +63,36 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
     setData(prev => ({...prev,parentId:val?.id}));
   }
 
-  const mandatories = ['file', 'name', 'slug'];
-  const validate = mandatories.every(item => data[item])
-
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    if(validate){
+    if(isValidDatas(['name','slug','file'], data)){
       
       if(!isValidName(data['name']) || !isValidName(data['slug'])){
         toast.error('Name and slug should have minimum 3 letters')
         return
       }
 
-      const finalData = finalizeValues(data);
+      if(!data['file']){
+        toast.error("Image is mandatory to create brand");
+        return
+      }
 
       setIsLoading(true)
 
       try {
+
+        // here check dimen only if file changed
+        if(isValidFile(data['file'])){
+          const dimen = await getImageDimensions(data['file']);
+      
+          if(dimen.width !== categoryImageDimen.width || dimen.height !== categoryImageDimen.height){
+            toast.error("Image dimention does not match");
+            return
+          }
+        }
+
+        const finalData = finalizeValues(data);
         
         const response = await Axios({
           ...ApiBucket.updateCategory,
@@ -94,7 +107,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
           const updatedCategory = response.data.category;
           const public_id = updatedCategory.image.split('/').filter(Boolean).pop().split('.')[0]
 
-          if(finalData.file && finalData.file instanceof File){
+          if(isValidFile(finalData.file)){
             const image = await uploadCategoryImage(
               updatedCategory._id,'categories','image',finalData.file, public_id
             );
@@ -227,7 +240,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
               <CropperWindow
                 src={data?.file}
                 onImageCrop={(file) => setData(prev => ({...prev,file}))}
-                outPutDimen={600}
+                outPutDimen={categoryImageDimen}
                 outputFormat='webp'
                 cropperClass="flex items-center justify-center !h-60 !w-60 rounded-2xl overflow-hidden border border-gray-300"
                 buttonsClass="flex items-center justify-between w-60 gap-2 py-2"

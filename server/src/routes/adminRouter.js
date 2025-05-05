@@ -12,7 +12,7 @@ import {
   uploadAvatar
 } from "../controllers/usersController.js";
 import { addCategory, deleteCategory, getCategories, updateCategory, uploadCategoryImage } from "../controllers/categoryController.js";
-import { addBrand, getBrands, uploadBrandLogo } from "../controllers/brandController.js";
+import { addBrand, getBrands, updateBrand, uploadBrandLogo } from "../controllers/brandController.js";
 
 
 const adminRouter = express.Router();
@@ -40,5 +40,6 @@ adminRouter.put('/delete-category', authenticate, allowRoles(['admin']), deleteC
 adminRouter.get('/get-brands', /* authenticate, allowRoles(['admin']), */ getBrands)
 adminRouter.post('/add-brand', authenticate, allowRoles(['admin']), addBrand)
 adminRouter.post('/upload-brand-logo',authenticate, allowRoles(['admin']), single, uploadBrandLogo);
+adminRouter.patch('/update-brand', authenticate, allowRoles(['admin']), updateBrand)
 
 export default adminRouter;

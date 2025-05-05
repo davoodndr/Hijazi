@@ -21,7 +21,7 @@ export const blobToFile = (blob, filename) => {
   return new File([blob], filename, { type: blob.type });
 };
 
-export const isValidName = (name) => name.length > 0;
+export const isValidName = (name) => name.length > 2;
 
 export const finalizeValues = (data) => {
   const filtered = Object.entries(data).filter(([_,value]) => {

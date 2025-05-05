@@ -9,6 +9,10 @@
   --color-primary-400: oklch(60% 0.1065 188.73);
   --color-primary-500: oklch(45% 0.1065 188.73);
   
+  /* featured */
+  --color-featured-300: oklch(0.7 0.2565 3.71);
+  --color-featured-500: oklch(0.62 0.2121 10.06);
+
   --color-button-text: oklch(97% 0 0);
   --color-error-border: oklch(0.88 0.191 22.216);
   --color-green-screen: oklch(0.72 0.0505 157.41);

@@ -79,3 +79,41 @@ export const uploadBrandLogo = async(req, res) => {
   }
 
 }
+
+// update brand
+export const updateBrand = async(req, res) => {
+
+  const { brand_id, name, slug } = req.body;
+
+  try {
+
+    if(!name || !slug ) {
+      return responseMessage(res, 400, false, "Plaese fill name, slug and image");
+    }
+    
+    if(!brand_id) {
+      return responseMessage(res, 400, false, "Brand id not specified");
+    }
+
+    const brand = await Brand.findById(brand_id);
+
+    if(!brand){
+      return responseMessage(res, 400, false, "Brand does not exists");
+    }
+
+    const updated = await Brand.findByIdAndUpdate(brand_id, 
+      {...req.body},
+      {new: true}
+    );
+
+    return responseMessage(res, 200, true, "Brand updated successfully",
+      {brand: updated}
+    );
+
+
+  } catch (error) {
+    console.log('updateBrand', error);
+    return responseMessage(res, 500, false, error.message || error);
+  }
+
+}

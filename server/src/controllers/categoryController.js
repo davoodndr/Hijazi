@@ -101,7 +101,10 @@ export const updateCategory = async(req, res) => {
       return responseMessage(res, 400, false, "Category does not exists");
     }
 
-    const updated = await Category.findByIdAndUpdate(category_id, {...req.body});
+    const updated = await Category.findByIdAndUpdate(category_id, 
+      {...req.body},
+      {new: true}
+    );
 
     return responseMessage(res, 200, true, "Category updated successfully",
       {category: updated}

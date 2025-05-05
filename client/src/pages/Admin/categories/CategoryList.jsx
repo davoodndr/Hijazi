@@ -298,8 +298,8 @@ const CategoryList = () => {
                               <p className="font-semibold">{category?.name}</p>
                               <p className="text-xs">000 products</p>
                               {category?.featured && 
-                                <p className="text-xs text-green-700 inline-flex items-center w-fit rounded-xl
-                                  before:bg-green-500 before:content[''] before:p-0.75 before:me-1
+                                <p className="text-xs text-featured-500 inline-flex items-center w-fit rounded-xl
+                                  before:bg-featured-300 before:content[''] before:p-0.75 before:me-1
                                   before:inline-flex before:items-center before:rounded-full"
                                 >Featured</p>
                               }

@@ -17,6 +17,7 @@ import { Menu, MenuButton } from '@headlessui/react';
 import Skeleton from '../../../components/ui/Skeleton';
 import AddBrandModal from '../../../components/admin/brands/AddBrandModal'
 import { MdOutlineEdit } from "react-icons/md";
+import EditBrandModal from "../../../components/admin/brands/EditBrandModal";
 
 
 function BrandList() {
@@ -69,7 +70,7 @@ function BrandList() {
   /* add brand action */
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
+  const [editingBrand, setEditingBrand] = useState(null);
 
   /* create action handling */
   const handleCreate =  (doc) => {
@@ -269,7 +270,10 @@ function BrandList() {
                                 <ContextMenu
                                   open={open}
                                   items={[
-                                    {label: 'edit', icon: MdOutlineEdit, onClick: ()=> {}},
+                                    {label: 'edit', icon: MdOutlineEdit, onClick: ()=> {
+                                      setIsEditOpen(true);
+                                      setEditingBrand(brand);
+                                    }},
                                     {label: 'delete', icon: HiOutlineTrash, onClick: ()=> {}}
                                   ]}
                                 />
@@ -277,15 +281,15 @@ function BrandList() {
                             )}
 
                           </Menu>
-                          <img src={brand?.logo} className="w-full object-contain" alt="image" />
+                          <img src={brand?.logo} className="w-full object-contain" alt="brand-logo" />
                         </div>
                       </div>
                       <div className="px-3 mb-2 flex space-y-0.5 flex-col justify-end">
                         <div className="flex items-center justify-between">
                           <span className='text-sm font-semibold capitalize'>{brand.name}</span>
                           {brand?.featured && 
-                            <p className="text-xs text-green-700 inline-flex items-center w-fit rounded-xl
-                            after:bg-green-500 after:content[''] after:p-0.75 after:ms-1
+                            <p className="text-xs text-featured-500 inline-flex items-center w-fit rounded-xl
+                            after:bg-featured-300 after:content[''] after:p-0.75 after:ms-1
                             after:inline-flex after:items-center after:rounded-full"
                             >Featured</p>
                           }
@@ -334,10 +338,17 @@ function BrandList() {
       }
 
       <AddBrandModal
-        brands={brands}
         isOpen={isAddOpen}
         onCreate={handleCreate}
         onClose={() => setIsAddOpen(false)}
+      />
+
+      <EditBrandModal
+        brands={brands}
+        brand={editingBrand}
+        isOpen={isEditOpen}
+        onUpdate={handleUpdate}
+        onClose={() => setIsEditOpen(false)}
       />
 
     </section>

@@ -3,41 +3,39 @@ import { AnimatePresence } from 'motion/react';
 import React, { useEffect, useState } from 'react'
 import Modal from '../../ui/Modal'
 import { TbCategoryPlus } from 'react-icons/tb';
-import ComboBox from '../../ui/ComboBox';
 import ListBox from '../../ui/ListBox';
 import Switch from '../../ui/ToggleSwitch';
 import CropperWindow from '../../ui/CropperWindow';
 import toast from 'react-hot-toast'
-import { finalizeValues, isValidName } from '../../../utils/Utils';
+import { finalizeValues, getImageDimensions, isValidDatas, isValidFile, isValidName } from '../../../utils/Utils';
 import AxiosToast from '../../../utils/AxiosToast';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
-import { uploadCategoryImage } from '../../../services/ApiActions';
 import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
+import { uploadBrandLogo } from '../../../services/ApiActions';
 
-function EditBrandModal({list, category, isOpen, onUpdate, onClose}) {
+function EditBrandModal({list, brand, isOpen, onUpdate, onClose}) {
 
-  const [loading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState(null);
-  const [parent, setParent] = useState(null);
+  const brandImageDimen = {width: 500, height: 195};
     
 
   /* data input handling */
   const [data, setData] = useState({
-    file: "", name:"", slug:"", parentId:"", status:"", featured:false, visible:false
+    file: "", name:"", slug:"", status:"", featured:false, visible:false
   });
 
+  /* initial loading */
   useEffect(() => {
-  
-    if(category){
-      setData({...category, file: category?.image});
-      const parent = category?.parentId;
-      setParent({id:parent?._id, label: parent?.name})
-      setStatus(category?.status)
+    
+    if(brand){
+      setData({...brand, file: brand?.logo});
+      setStatus(brand?.status)
     }
     
-  },[category])
+  },[brand])
 
   const handleChange = (e) => {
     
@@ -57,58 +55,64 @@ function EditBrandModal({list, category, isOpen, onUpdate, onClose}) {
     setData(prev => ({...prev,status:val.label.toLowerCase()}))
   }
 
-  const handleParentChange = (val) => {
-    setParent(val);
-    setData(prev => ({...prev,parentId:val?.id}));
-  }
-
-  const mandatories = ['file', 'name', 'slug'];
-  const validate = mandatories.every(item => data[item])
-
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    if(validate){
+    if(isValidDatas(['name','slug','file'], data)){
       
       if(!isValidName(data['name']) || !isValidName(data['slug'])){
         toast.error('Name and slug should have minimum 3 letters')
         return
       }
 
-      const finalData = finalizeValues(data);
+      if(!data['file']){
+        toast.error("Image is mandatory to create brand");
+        return
+      }
 
       setIsLoading(true)
 
       try {
+
+        // here check dimen only if file changed
+        if(isValidFile(data['file'])){
+          const dimen = await getImageDimensions(data['file']);
+      
+          if(dimen.width !== brandImageDimen.width || dimen.height !== brandImageDimen.height){
+            toast.error("Image dimention does not match");
+            return
+          }
+        }
+
+        const finalData = finalizeValues(data);
         
         const response = await Axios({
-          ...ApiBucket.updateCategory,
+          ...ApiBucket.updateBrand,
           data: {
             ...finalData,
-            category_id: category._id
+            brand_id: brand?._id
           }
         })
 
         if(response.data.success){
 
-          const updatedCategory = response.data.category;
-          const public_id = updatedCategory.image.split('/').filter(Boolean).pop().split('.')[0]
+          const updatedBrand = response.data.brand;
+          const public_id = updatedBrand.logo.split('/').filter(Boolean).pop().split('.')[0]
 
-          if(finalData.file && finalData.file instanceof File){
-            const image = await uploadCategoryImage(
-              updatedCategory._id,'categories','image',finalData.file, public_id
-            );
-            updatedCategory.image = image;
+          if(isValidFile(finalData.file)){
+
+            const logo = await uploadBrandLogo(updatedBrand._id, 'brands', finalData.file, public_id);
+            updatedBrand.logo = logo;
+            
           }
 
           AxiosToast(response, false);
           setData({
-            file: "", name:"", slug:"", parentId:"", status:"", featured:false, visible:false
+            file: "", name:"", slug:"", status:"", featured:false, visible:false
           })
           setStatus(null);
-          setParent(null);
 
-          onUpdate(updatedCategory);
+          onUpdate(updatedBrand);
 
         }
 
@@ -143,24 +147,24 @@ function EditBrandModal({list, category, isOpen, onUpdate, onClose}) {
               <TbCategoryPlus size={20} />
             </div>
             <div className="flex-1 flex flex-col">
-              <h1 className='text-xl'>Edit Category</h1>
-              <p>Change details about your category</p>
+              <h1 className='text-xl'>Edit Brand</h1>
+              <p>Change details about your brand</p>
             </div>
           </div>
 
           {/* form inputs */}
-          <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='new-category-form'>
+          <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='new-brand-form'>
             
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-4">
               <div className='flex flex-col w-full'>
                 <label className="flex text-sm font-medium">
                   <span>Name</span>
                   <span className="text-xl leading-none ms-1 text-red-500">*</span>
                 </label>
-                <input type="text" name='name' value={data?.name} 
+                <input type="text" name='name' value={data.name} 
                   onChange={handleChange}
                   spellCheck={false}
-                  placeholder='Enter category name'/>
+                  placeholder='Enter brand name'/>
               </div>
               <div className='flex flex-col w-full'>
                 <label className="flex text-sm font-medium">
@@ -171,19 +175,7 @@ function EditBrandModal({list, category, isOpen, onUpdate, onClose}) {
                   value={data.slug} 
                   onChange={handleChange}
                   spellCheck={false}
-                  placeholder='@ex: category-name'/>
-              </div>
-              <div className='flex flex-col w-full'>
-                <label htmlFor="" className='text-neutral-600! font-semibold!'>Parent</label>
-                
-                <ComboBox
-                  value={parent}
-                  onChange={handleParentChange}
-                  items={list?.map(category => 
-                    ({ id: category._id, label: category.name })
-                  )}
-                />
-                
+                  placeholder='@ex: brand-name'/>
               </div>
 
               <div className='flex flex-col w-full'>
@@ -223,13 +215,16 @@ function EditBrandModal({list, category, isOpen, onUpdate, onClose}) {
               <label className="flex text-sm font-medium w-60">
                 <span>Image</span>
                 <span className="text-xl leading-none ms-1 text-red-500">*</span>
+                <span className='ms-2 text-gray-400'>(jpg, png, webp, bmp) 500 x 195</span>
               </label>
               <CropperWindow
                 src={data?.file}
+                validFormats={['jpg','jpeg','png','bmp','webp']}
                 onImageCrop={(file) => setData(prev => ({...prev,file}))}
-                outPutDimen={600}
+                outPutDimen={brandImageDimen}
                 outputFormat='webp'
-                cropperClass="flex items-center justify-center !h-60 !w-60 rounded-2xl overflow-hidden border border-gray-300"
+                cropperClass="flex items-center justify-center !h-60 !w-60 rounded-2xl 
+                  overflow-hidden border border-gray-300 bg-gray-500"
                 buttonsClass="flex items-center justify-between w-60 gap-2 py-2"
               />
             </div>
@@ -248,11 +243,11 @@ function EditBrandModal({list, category, isOpen, onUpdate, onClose}) {
             </button>
 
             <LoadingButton
-              loading={loading}
+              loading={isLoading}
               text='Update Now'
               loadingText='Updating . . . . .'
               type='submit'
-              form='new-category-form'
+              form='new-brand-form'
               icon={<ClipLoader color="white" size={23} />}
               className={`px-4! rounded-3xl! inline-flex items-center
                 transition-all duration-300`}

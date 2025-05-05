@@ -115,11 +115,11 @@ const ApiBucket = {
     url: '/api/admin/upload-brand-logo',
     method: 'post'
   },
-  /* updateCategory: {
-    url: '/api/admin/update-category',
+  updateBrand: {
+    url: '/api/admin/update-brand',
     method: 'patch'
   },
-  deleteCategory: {
+  /* deleteCategory: {
     url: '/api/admin/delete-category',
     method: 'put'
   }, */
