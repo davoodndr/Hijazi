@@ -32,7 +32,7 @@ function ListBox({items, value, onChange}) {
               selected ? '!text-gray-600' : '!text-neutral-400/80'
             )}
           >
-            {selected?.label || 'Select Status'}
+            {selected?.label || 'Select . . . .'}
             <FaChevronDown
               className="pointer-events-none absolute top-2.5 right-2.5 size-4 text-gray-400 group-hover:fill-black"
               aria-hidden="true"
@@ -54,7 +54,7 @@ function ListBox({items, value, onChange}) {
                     shadow-lg`
                 )}
               >
-                {items.map((item) => (
+                {items?.map((item) => (
                   <ListboxOption 
                     key={item.id} value={item} 
                     className="group flex items-center gap-2 rounded-lg px-3 py-1.5 

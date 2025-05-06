@@ -192,6 +192,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
                 <ComboBox
                   value={parent}
                   onChange={handleParentChange}
+                  placeholder='Browse parent'
                   items={list?.map(category => 
                     ({ id: category._id, label: category.name })
                   )}

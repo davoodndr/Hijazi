@@ -18,8 +18,8 @@ const AdminLayout = () => {
       { icon: LuUsers, label: 'Users', href: '/admin/users' },
       { icon: BiCategoryAlt, label: 'Categories', href: '/admin/categories' },
       { icon: SlBadge, label: 'Brands', href: '/admin/brands' },
-      { icon: PiShoppingCartSimpleBold, label: 'Orders', href: '/admin/orders' },
       { icon: LuPackage, label: 'Products', href: '/admin/products' },
+      { icon: PiShoppingCartSimpleBold, label: 'Orders', href: '/admin/orders' },
       { icon: IoSettingsOutline, label: 'Settings', href: '/admin/settings' },
     ];
   

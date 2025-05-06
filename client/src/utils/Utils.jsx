@@ -23,6 +23,7 @@ export const blobToFile = (blob, filename) => {
 
 export const isValidName = (name) => name.length > 2;
 
+// remove all blank fileds
 export const finalizeValues = (data) => {
   const filtered = Object.entries(data).filter(([_,value]) => {
     if (value === "" || value == null || value == undefined) return false;
@@ -33,11 +34,13 @@ export const finalizeValues = (data) => {
   return Object.fromEntries(filtered)
 }
 
+// check input is a valid file
 export const isValidFile = (file) => {
 
   return file instanceof File;
 }
 
+// to check valid file type
 export const isValidFileType = (validFormats, file) => {
 
   if(!Array.isArray(validFormats)) throw new Error("Expects array for valid formats")
@@ -46,11 +49,13 @@ export const isValidFileType = (validFormats, file) => {
   return validFormats.includes(file.type)
 }
 
+// checks all field contain data
 export const isValidDatas = (fields, data) => {
   if(!Array.isArray(fields)) throw new Error("Expects array for valid formats")
   return fields.every(item => data[item]);
 }
 
+// to extract image dimen
 export const getImageDimensions = (file) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -70,3 +75,23 @@ export const getImageDimensions = (file) => {
     reader.readAsDataURL(file);
   });
 };
+
+// convert file to src
+export const imageFileToSrc = (file) => {
+  
+  if(!file || !isValidFile(file)) return;
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      resolve(reader.result);
+    };
+
+    reader.onerror = () => {
+      reject(reader.error);
+    };
+
+    reader.readAsDataURL(file);
+  });
+}

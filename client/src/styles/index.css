@@ -4,6 +4,7 @@
 @import "./theme.css";
 @import "./styles.css";
 
+
 body {
   color: #4f5d77;
   font-family: var(--font-lato);
@@ -30,7 +31,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 input[type='text'],input[type='number'],input[type='email'],
-input[type='password'],input[type='search'], input[type='date'], input[type='tel'], select{
+input[type='password'],input[type='search'], input[type='date'], input[type='tel'], select, textarea{
   height: 40px;
   width: 100%;
   

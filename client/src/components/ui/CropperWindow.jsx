@@ -1,35 +1,51 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { IoCrop, IoImageOutline } from 'react-icons/io5';
 import { LuEye } from 'react-icons/lu';
+import { RiImageEditLine } from "react-icons/ri";
 import { BiReset } from "react-icons/bi";
-import { blobToFile, isValidFileType } from '../../utils/Utils';
+import { blobToFile, getImageDimensions, isValidFileType } from '../../utils/Utils';
 import { MdImageSearch } from 'react-icons/md';
 import ImageCropper from './ImageCropper';
 import toast from 'react-hot-toast';
 
 
-function CropperWindow({
+const CropperWindow = forwardRef(({
   buttonsClass = '', 
   cropperClass = '', 
+  containerClass = '',
   outPutDimen, 
   outputFormat, 
-  onImageCrop, 
+  onImageCrop = ()=> {}, 
   src,
-  validFormats
-}
-
-) {
+  validFormats = ''
+  
+}, ref) => {
 
   const cropFunRef = useRef(null);
+  const fileInputRef = useRef(null);
   const [filename, setFilename] = useState("");
   const [imgSrc, setImgSrc] = useState(null);
   const [originalFile, setOriginalFile] = useState(null);
   const [croppedFile, setCroppedFile] = useState(null);
   const [isPreview, setIsPreview] = useState(false);
 
+  /* to capture the file from out side in to cropper */
   useEffect(() => {
     setImgSrc(src)
   }, [src])
+
+  /* reset completely */
+  useImperativeHandle(ref, ()=> ({
+    reset: () => {
+      setImgSrc(null);
+      setOriginalFile(null);
+      setCroppedFile(null);
+      setIsPreview(null)
+      setFilename("");
+      cropFunRef.current = null;
+      fileInputRef.current.value = null;
+    }
+  }))
 
   const handleImageSelect = async(e) => {
 
@@ -39,12 +55,17 @@ function CropperWindow({
     
     if(file){
 
-      // set result as non cropped file
-      onImageCrop(file);
-
       if(validFormats.length && !isValidFileType(validFormats, file)){
         toast.error('File type not supported');
         return
+      }
+
+      // set result as non cropped file
+      const dimen = await getImageDimensions(file);
+      if(outPutDimen && dimen){
+        if(outPutDimen.width === dimen.width && outPutDimen.height === dimen.height){
+          onImageCrop(file);
+        }
       }
 
       setImgSrc(null);
@@ -65,6 +86,7 @@ function CropperWindow({
       const blob = await cropFunRef.current()
 
       const file = blobToFile(blob, filename.replace(/\.[^/.]+$/,''));
+      file.id = Date.now();
 
       setCroppedFile(file);
       onImageCrop(file)
@@ -78,12 +100,12 @@ function CropperWindow({
 
   },[croppedFile, onImageCrop, filename])
 
-  const handleReset = () => {
+  const handleResetImage = () => {
     if(originalFile) setImgSrc(originalFile);
   }
 
   return (
-    <div className='flex flex-col w-full h-full items-center justify-between'>
+    <div className={containerClass}>
       <div className={cropperClass}>
       
         {isPreview ? (
@@ -108,7 +130,7 @@ function CropperWindow({
           )
         }
       </div>
-      <input type="file" id="category-image" accept='image/*' onChange={handleImageSelect} hidden />
+      <input type="file" id="category-image" accept='image/*' ref={fileInputRef} onChange={handleImageSelect} hidden />
       {/* crop image buttons */}
       <div className={buttonsClass}>
 
@@ -125,9 +147,9 @@ function CropperWindow({
 
           </label>
 
-          {/* reset */}
+          {/* crop reset */}
           <span 
-            onClick={handleReset}
+            onClick={handleResetImage}
             className='w-9 h-9 inline-flex items-center justify-center
             cursor-pointer border border-gray-300 rounded-xl transition-all duration-300
             hover:border-primary-300  hover:text-primary-400 hover:shadow-md/10
@@ -155,12 +177,21 @@ function CropperWindow({
             hover:scale-105'>
             <LuEye size={23}/>
           </span>
+          {/* edit */}
+          <span 
+            onClick={() => setIsPreview(false)}
+            className='w-9 h-9 inline-flex items-center justify-center
+            cursor-pointer border border-gray-300 rounded-xl transition-all duration-300
+            hover:border-primary-300  hover:text-primary-400 hover:shadow-md/10
+            hover:scale-105'>
+            <RiImageEditLine size={23}/>
+          </span>
           
         </div>
 
       </div>
     </div>
   )
-}
+});
 
 export default CropperWindow

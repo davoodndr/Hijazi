@@ -174,6 +174,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
                 <ComboBox
                   value={parent}
                   onChange={handleParentChange}
+                  placeholder='Browse parent'
                   items={categories.map(category => 
                     ({ id: category._id, label: category.name })
                   )}

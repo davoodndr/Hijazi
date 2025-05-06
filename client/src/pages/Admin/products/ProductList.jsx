@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { HiHome, HiOutlineTrash } from 'react-icons/hi2';
 import { IoIosArrowForward, IoMdMore } from 'react-icons/io';
-import { LuSearch } from 'react-icons/lu';
+import { LuEye, LuEyeClosed, LuPackagePlus, LuSearch } from 'react-icons/lu';
 import { TbCategoryPlus, TbUserEdit } from "react-icons/tb";
 import ContextMenu from '../../../components/ui/ContextMenu';
 import { Menu, MenuButton } from '@headlessui/react'
@@ -18,10 +18,12 @@ import PreviewImage from '../../../components/ui/PreviewImage'
 import AxiosToast from '../../../utils/AxiosToast';
 import { setLoading } from '../../../store/slices/CommonSlices'
 import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router';
 
-const CategoryList = () => {
+const ProductList = () => {
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -181,14 +183,14 @@ const CategoryList = () => {
       {/* page title & add category button */}
       <div className="mb-5 flex justify-between items-start">
         <div className="flex flex-col">
-          <h3 className='text-xl'>Category Management</h3>
-          <span className='sub-title'>Add, edit and delete categories</span>
+          <h3 className='text-xl'>Product Management</h3>
+          <span className='sub-title'>Add, edit and delete products</span>
         </div>
         <button 
-          onClick={() => setIsAddOpen(true)}
+          onClick={() => navigate('/admin/products/add-product')}
           className='px-4! inline-flex items-center gap-2 text-white'>
-          <TbCategoryPlus size={20} />
-          <span>Add Category</span>
+          <LuPackagePlus size={20} />
+          <span>Add Product</span>
         </button>
       </div>
       
@@ -197,7 +199,7 @@ const CategoryList = () => {
         <HiHome size={20} />
         <IoIosArrowForward size={13} />
         <div className='inline-flex items-center text-sm gap-2'>
-          <span>Categories</span>
+          <span>Products</span>
         </div>
       </div>
 
@@ -230,11 +232,11 @@ const CategoryList = () => {
           <li className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
             <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full">
               <span><input type="checkbox" /></span>
-              <span>Name</span>
-              <span>Slug</span>
-              <span>Parent</span>
-              <span>Status</span>
-              <span>Visibility</span>
+              <span>Product</span>
+              <span>Category</span>
+              <span>Price</span>
+              <span>Stock</span>
+              <span>status</span>
               <span className="text-center">Actions</span>
             </div>
           </li>
@@ -268,8 +270,6 @@ const CategoryList = () => {
                         }
                       }
 
-                      const parent = category.parentId;
-
                       return(
                       
                         <motion.div 
@@ -288,13 +288,13 @@ const CategoryList = () => {
                           {/* Checkbox */}
                           <div><input type="checkbox" /></div>
 
-                          {/* Category Info */}
+                          {/* product Info & thumbnail */}
                           <div className="flex gap-2 items-center">
                             <PreviewImage src={category?.image} alt={category?.name} size="40" zoom="120%" />
                             
                             <div className="inline-flex flex-col capitalize">
-                              <p className="font-semibold">{category?.name}</p>
-                              <p className="text-xs">000 products</p>
+                              <p className="font-semibold">Product Name</p>
+                              <p className="text-xs">SKU - </p>
                               {category?.featured && 
                                 <p className="text-xs text-featured-500 inline-flex items-center w-fit rounded-xl
                                   before:bg-featured-300 before:content[''] before:p-0.75 before:me-1
@@ -304,23 +304,42 @@ const CategoryList = () => {
                             </div>
                           </div>
 
-                          {/* Slug */}
-                          <div>/{category.slug || <span className="text-gray-400">Not added</span>}</div>
+                          {/* category */}
+                          <div className='capitalize'>{category.name || <span className="text-gray-400">Not added</span>}</div>
                           
-                          {/* parent name */}
-                          <div className='capitalize'>{parent?.name || <span className="text-gray-400">Nil</span>}</div>
+                          {/* price */}
+                          <div className='capitalize flex flex-col'>
+                            <span>0000</span>
+                            <span className='text-xs'>Rating</span>
+                          </div>
+
+                          {/* stock */}
+                          <div className='capitalize'>0000</div>
 
                           {/* Status */}
-                          <div>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
+                          <div className='flex flex-col space-y-0.75 '>
+                            <span className={`w-fit px-2 py-0.5 text-xs font-semibold rounded-full capitalize
                               ${statusColors()}`}>
                               {category?.status}
                             </span>
-                          </div>
-                          
-                          {/* visibility */}
-                          <div className='capitalize'>
-                            {category?.visible ? 'visible' : <span className="text-gray-400">Invisible</span>}
+                            {/* visibility */}
+                            <div className='capitalize text-xs w-fit'>
+                              {category?.visible ? 
+                              <span 
+                                className="text-xs text-yellow-500 inline-flex items-center w-fit rounded-xl
+                                before:bg-orange-300 before:content[''] before:p-0.75 before:me-1
+                                before:inline-flex before:items-center before:rounded-full"
+                                >Visible</span> 
+                                
+                                :
+                              
+                                <span 
+                                  className="text-xs text-red-300 inline-flex items-center w-fit rounded-xl
+                                  before:bg-red-300 before:content[''] before:p-0.75 before:me-1
+                                  before:inline-flex before:items-center before:rounded-full"
+                                  >Hidden</span>
+                              }
+                            </div>
                           </div>
 
                           {/* Actions */}
@@ -405,4 +424,4 @@ const CategoryList = () => {
   )
 }
 
-export default CategoryList
+export default ProductList

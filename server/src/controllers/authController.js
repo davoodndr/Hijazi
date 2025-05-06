@@ -293,7 +293,7 @@ export const refreshAccessToken = async(req, res) => {
     }
     res.cookie('accessToken', newAccessToken, cookiesOption);
 
-    return responseMessage(res, 201, true, "New token generated",{newAccessToken})
+    return responseMessage(res, 201, true, "New token generated",{token: newAccessToken})
 
   } catch (error) {
     console.log('refreshAccessToken', error);

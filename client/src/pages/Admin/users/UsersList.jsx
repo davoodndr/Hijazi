@@ -269,7 +269,7 @@ const UsersList = () => {
 
                     const statusColors = () => {
                       switch(user.status){
-                        case 'active': return 'bg-green-100 text-teal-600'
+                        case 'active': return 'bg-green-500/40 text-teal-800'
                         case 'blocked': return 'bg-red-100 text-red-500'
                         default : return 'bg-gray-200 text-gray-400'
                       }

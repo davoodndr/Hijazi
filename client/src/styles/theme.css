@@ -10,8 +10,8 @@
   --color-primary-500: oklch(45% 0.1065 188.73);
   
   /* featured */
-  --color-featured-300: oklch(0.7 0.2565 3.71);
-  --color-featured-500: oklch(0.62 0.2121 10.06);
+  --color-featured-300: oklch(0.7 0.1406 223.94);
+  --color-featured-500: oklch(0.59 0.1406 223.94);
 
   --color-button-text: oklch(97% 0 0);
   --color-error-border: oklch(0.88 0.191 22.216);
@@ -57,5 +57,25 @@
     &::-webkit-scrollbar-thumb {
       background-color: rgba(76,196,187,0.6);
     }
+  }
+}
+
+@layer components{
+  .mandatory{
+    font-size: small;
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    border-radius: 50%;
+    position: relative;
+  }
+  .mandatory::after{
+    content: '*';
+    color: var(--color-red-500);
+    font-size: large;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translate(150%, -35%);
   }
 }

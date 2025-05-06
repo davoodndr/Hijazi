@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import React, { useEffect, useState } from 'react'
 import { FaCheck, FaChevronDown } from 'react-icons/fa6';
 
-function ComboBox({items, value, onChange}) {
+function ComboBox({items = [], value, onChange, placeholder = ''}) {
 
   const [selected, setSelected] = useState(null);
   const [query, setQuery] = useState('')
@@ -19,7 +19,7 @@ function ComboBox({items, value, onChange}) {
   }, [value])
     
   const filteredItems = query ?
-    items.filter((item) => {
+    items?.filter((item) => {
       return item.label.toLowerCase().includes(query.toLowerCase())
     })
     : items;
@@ -41,7 +41,7 @@ function ComboBox({items, value, onChange}) {
               spellCheck={false}
               displayValue={(item) => item?.label}
               onChange={e => setQuery(e.target.value)}
-              placeholder='Select parent category'
+              placeholder={placeholder}
               className='capitalize'
               />
             <ComboboxButton className="group absolute inset-y-0 right-3 px-2.5 !bg-transparent !shadow-none">

@@ -16,6 +16,8 @@ const EditUser = React.lazy(() => import('../../pages/Admin/users/EditUser'))
 const ViewUser = React.lazy(() => import('../../pages/Admin/users/ViewUser'))
 const CategoryList = React.lazy(() => import('../../pages/Admin/categories/CategoryList'))
 const BrandList = React.lazy(() => import('../../pages/Admin/brands/BrandList'))
+const ProductList = React.lazy(() => import('../../pages/Admin/products/ProductList'))
+const AddProduct = React.lazy(() => import('../../pages/Admin/products/AddProduct'))
 
 const AdminRouter = ({user, isLoading}) => {
 
@@ -48,6 +50,11 @@ const AdminRouter = ({user, isLoading}) => {
                 {/* brands tab */}
                 <Route path='brands'>
                   <Route index element={<BrandList />} />
+                </Route>
+                {/* products tab */}
+                <Route path='products'>
+                  <Route index element={<ProductList />} />
+                  <Route path="add-product" element={<AddProduct />} />
                 </Route>
                 
               </Route>

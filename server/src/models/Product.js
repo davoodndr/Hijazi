@@ -9,6 +9,7 @@ const reviewSchema = new mongoose.Schema({
 
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
+  slug: { type: String, required: true, unique: true },
   brand: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', required: true },
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
   price: { type: Number, required: true },
@@ -17,7 +18,7 @@ const productSchema = new mongoose.Schema({
   images: [{ type: String }],
   averageRating: { type: Number, default: 0 },
   numReviews: { type: Number, default: 0 },
-  isFeatured: { type: Boolean, default: false },
+  featured: { type: Boolean, default: false },
   reviews: [reviewSchema],
 }, { timestamps: true });
 

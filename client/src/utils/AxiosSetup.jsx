@@ -41,18 +41,16 @@ Axios.interceptors.response.use(
       originalReq.retry = true;
 
       const refreshToken = localStorage.getItem('refreshToken');
-
+      
       if(refreshToken){
-        try {
-          const newToken = await refreshAccessToken(refreshToken);
-
-          if(newToken){
-            localStorage.setItem('accessToken', newToken);
-            originalReq.headers.Authorization = `Bearer ${newToken}`;
-            return Axios(originalReq);
-          }
-        } catch (error) {
-          console.error('Refresh token failed', err);
+        const newToken = await refreshAccessToken(refreshToken);
+        
+        if(newToken?.status === 401){
+          return Promise.reject(newToken)
+        }else{
+          localStorage.setItem('accessToken', newToken);
+          originalReq.headers.Authorization = `Bearer ${newToken}`;
+          return Axios(originalReq);
         }
       }
     }
@@ -78,7 +76,8 @@ const refreshAccessToken = async(refreshToken) => {
     return token
 
   } catch (error) {
-    console.log(error)
+    console.error(error.response.data.message)
+    return error
   }
 
 }
