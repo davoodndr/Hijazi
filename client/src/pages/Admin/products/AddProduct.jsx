@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { IoIosAdd, IoIosArrowForward } from "react-icons/io";
 import { LuEye, LuEyeClosed, LuMail, LuMapPin, LuPhone, LuUser } from "react-icons/lu";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { CgProfile } from "react-icons/cg";
 import place_holder from '../../../assets/user_placeholder.jpg'
 import { MdOutlineImageSearch } from "react-icons/md";
@@ -17,7 +17,6 @@ import { setLoading } from '../../../store/slices/CommonSlices'
 import { TbArrowBackUp } from "react-icons/tb";
 import { HiHome } from "react-icons/hi2";
 import { uploadAvatar } from '../../../services/ApiActions'
-import ListBox from "../../../components/ui/ListBox";
 import ToggleSwitch from "../../../components/ui/ToggleSwitch";
 import ComboBox from "../../../components/ui/ComboBox";
 import CropperWindow from "../../../components/ui/CropperWindow";
@@ -28,11 +27,10 @@ const AddProduct = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { state } = useLocation()
+  const { categories, brands } = state || {};
   const [roles, setRoles] = useState([]);
   const [status, setStatus] = useState('');
-  const [passwordShowing, setPasswordShowing] = useState(false);
-  const [confirmShowing, setConfirmShowing] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
   const [address, setAddress] = useState([]);
 
   /* input handling */
@@ -49,52 +47,6 @@ const AddProduct = () => {
         [name]: value
       }
     })
-  }
-
-  // image change handling
-  const handleImageSelect = (e) => {
-    const file = e.target.files[0];
-
-    if(file){
-
-      setData(prev => ({...prev, file}));
-      
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result)
-      }
-
-      reader.readAsDataURL(file)
-    }
-  }
-
-  /* address active and deactive */
-  const handleAddressActivation = (e) => {
-
-    const addressContainer = document.querySelector('.hidden-div');
-    //const addressContainer = document.querySelector('.address-container');
-    const divs = addressContainer.querySelectorAll('div')
-    const elements = addressContainer.querySelectorAll('input')
-    const addressFeilds = Array.from(elements).map(el => el.name)
-
-    if(!e.target.checked){
-      setAddress([]);
-      addressFeilds.forEach(item => data[item] = '');
-      addressContainer.classList.remove('show');
-      addressContainer.addEventListener('transitionend',() => {
-        addressContainer.classList.add('hidden')
-      },{once: true})
-
-    }else{
-
-      setAddress(addressFeilds);
-      addressContainer.classList.remove('hidden')
-
-      void addressContainer.offsetWidth;
-
-      addressContainer.classList.add('show')
-
-    }
   }
 
   const handleSubmit = async(e) => {
@@ -181,18 +133,18 @@ const AddProduct = () => {
   };
 
   /* image handling */
-  let imgs = [
-    { id: 'cat', value: 'https://i.imgur.com/CzXTtJV.jpg' },
-    { id: 'dog', value: 'https://i.imgur.com/OB0y6MR.jpg' },
-    { id: 'cheetah', value: 'https://farm2.staticflickr.com/1533/26541536141_41abe98db3_z_d.jpg' },
-    { id: 'bird', value: 'https://farm4.staticflickr.com/3075/3168662394_7d7103de7d_z_d.jpg' },
-    { id: 'whale', value: 'https://farm9.staticflickr.com/8505/8441256181_4e98d8bff5_z_d.jpg' },
-    { id: 'bridge', value: 'https://i.imgur.com/OnwEDW3.jpg' }
-  ]
   const productImageDimen = {width:1024, height: 1024}
   const resetRef = useRef(null);
   const [viewImages, setViewImages] = useState([])
   const [finalImages, setFinalImages] = useState([])
+  const [disableMessage, setDisableMessage] = useState("");
+  const maxLimit =  5;
+
+  useEffect(() => {
+    if(finalImages.length >= maxLimit){
+      setDisableMessage('Maximum image limit reached')
+    }
+  },[finalImages])
 
   /* handling add thumb action */
   const handleAddThumb = () => {
@@ -200,7 +152,7 @@ const AddProduct = () => {
     if(resetRef.current){
       resetRef.current.reset();
     }
-    if(finalImages.length >= 5){
+    if(finalImages.length >= maxLimit){
       toast.error('Maximum limit reached');
     }
   }
@@ -244,21 +196,6 @@ const AddProduct = () => {
           <span className='sub-title'>Enter product details below</span>
         </div>
         <div className="inline-flex items-stretch gap-5">
-          <div className={`inline-flex items-center gap-1.5`}>
-            <input
-              type="checkbox"
-              id="address-ticker"
-              className="peer"
-              onChange={handleAddressActivation}
-            />
-            <label
-              htmlFor="address-ticker"
-              className="!text-[13px] !text-neutral-600 peer-checked:!text-primary-400 
-              peer-checked:!font-semibold cursor-pointer"
-            >
-              Address
-            </label>
-          </div>
           <button
             onClick={() => navigate('/admin/products')} 
             className='!ps-2 !pe-4 !bg-white border border-gray-300 !text-gray-400 
@@ -368,10 +305,9 @@ const AddProduct = () => {
                   value={data.category}
                   placeholder="Browse category"
                   onChange={(category) => setStatus(category)}
-                  items={[
-                    { id: 1, label: 'category1' },
-                    { id: 2, label: 'category2' },
-                  ]} />
+                  items={
+                    categories?.map(item => ({id:item._id, label: item.name})) || []
+                  } />
               </div>
               <div className="">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
@@ -379,22 +315,19 @@ const AddProduct = () => {
                   value={data.brand}
                   onChange={(brand) => setStatus(brand)}
                   placeholder="Browse brand"
-                  items={[
-                    { id: 1, label: 'Active' },
-                    { id: 2, label: 'Inactive' },
-                    { id: 3, label: 'Blocked' },
-                  ]} />
+                  items={
+                    brands?.map(item => ({id: item._id, label: item.name})) || []
+                  } />
               </div>
               <div className="">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 <ComboBox
                   value={data.status}
                   onChange={(status) => setStatus(status)}
-                  placeholder="Browse brand"
+                  placeholder="Browse Status"
                   items={[
                     { id: 1, label: 'Active' },
                     { id: 2, label: 'Inactive' },
-                    { id: 3, label: 'Blocked' },
                   ]} />
               </div>
             </div>
@@ -424,42 +357,46 @@ const AddProduct = () => {
           <div className="border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
             <h2 className="text-md font-medium text-gray-900 flex items-center gap-2 pb-4">Images</h2>
             
-            <div className="flex space-x-30">
+            <div className="flex justify-between space-x-auto">
               
-              <div className="grid grid-cols-2 gap-5 h-fit">
+              <div className="flex w-65 p-4 max-h-95 overflow-y-auto scroll-basic">
+                <div className="grid grid-cols-2 gap-5 h-fit">
 
-                {viewImages.length > 0 && viewImages.map(img => 
+                  {viewImages.length > 0 && viewImages.map(img => 
+                    <ImageThumb
+                      key={img.id} 
+                      src={img.value}
+                      thumbClass='relative w-fit'
+                      imgClass='rounded-xl border border-gray-300 w-25 h-25 overflow-hidden'
+                      Actions={() => {
+                        return(
+                          <div 
+                            onClick={() => {handleThumbDelete(img.id)}}
+                            className="absolute -top-2 -right-2 inline-flex items-center text-white bg-red-500
+                            p-0.5 rounded-full border border-white shadow-md/40 cursor-pointer transition-all duration-300
+                            hover:bg-red-600 hover:scale-110">
+                            <IoClose size={15} />
+                          </div>
+                        )
+                      }}
+                    />
+                  )}
+
                   <ImageThumb
-                    key={img.id} 
-                    src={img.value}
-                    thumbClass='relative w-fit'
-                    imgClass='rounded-xl border w-25 h-25 overflow-hidden'
-                    Actions={() => {
-                      return(
-                        <div 
-                          onClick={() => {handleThumbDelete(img.id)}}
-                          className="absolute -top-2 -right-2 inline-flex items-center text-white bg-red-500
-                          p-0.5 rounded-full border border-white shadow-md/40 cursor-pointer transition-all duration-300
-                          hover:bg-red-600 hover:scale-110">
-                          <IoClose size={15} />
-                        </div>
-                      )
-                    }}
-                  />
-                )}
+                    onClick={handleAddThumb}
+                    imgClass='rounded-xl border border-gray-300 w-25 h-25 overflow-hidden'
+                    />
 
-                <ImageThumb
-                  onClick={handleAddThumb}
-                  imgClass='rounded-xl border border-gray-300 w-25 h-25 overflow-hidden'
-                  />
-
+                </div>
               </div>
+              
 
               <CropperWindow
                 ref={resetRef}
                 onImageCrop={handleCropImage}
                 outputFormat='webp'
                 outPutDimen={productImageDimen}
+                disableMessage={disableMessage}
                 cropperClass="flex w-81 h-81 rounded-3xl overflow-hidden border border-gray-300"
                 buttonsClass="flex justify-center gap-2 py-4"
               />

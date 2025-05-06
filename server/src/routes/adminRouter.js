@@ -37,7 +37,7 @@ adminRouter.patch('/update-category', authenticate, allowRoles(['admin']), updat
 adminRouter.put('/delete-category', authenticate, allowRoles(['admin']), deleteCategory)
 
 /* brand management */
-adminRouter.get('/get-brands', /* authenticate, allowRoles(['admin']), */ getBrands)
+adminRouter.get('/get-brands', authenticate, allowRoles(['admin']), getBrands)
 adminRouter.post('/add-brand', authenticate, allowRoles(['admin']), addBrand)
 adminRouter.post('/upload-brand-logo',authenticate, allowRoles(['admin']), single, uploadBrandLogo);
 adminRouter.patch('/update-brand', authenticate, allowRoles(['admin']), updateBrand)

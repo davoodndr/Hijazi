@@ -19,6 +19,7 @@ import AxiosToast from '../../../utils/AxiosToast';
 import { setLoading } from '../../../store/slices/CommonSlices'
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
+import toast from 'react-hot-toast';
 
 const ProductList = () => {
 
@@ -26,6 +27,7 @@ const ProductList = () => {
   const navigate = useNavigate();
 
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   /* initial data loader */
@@ -36,20 +38,29 @@ const ProductList = () => {
   const fetchCategories = async() => {
     setIsLoading(true)
     try {
-        
-      const response = await Axios({
-        ...ApiBucket.getCategories
-      })
 
-      if(response.data.success){
+      const response = await Promise.all([
+        Axios({
+          ...ApiBucket.getCategories
+        }).then(res => ({categories:res.data.categories})), 
+        Axios({
+          ...ApiBucket.getBrands
+        }).then(res => ({brands:res.data.brands}))
+      ]);
+      
+      if(response){
         
-        const sorted = response.data.categories.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+        const [categoryData, brandData] = response;
+        const sortedCategories = categoryData.categories.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+        const sortedBrands = brandData.brands.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
     
-        setCategories(sorted);
+        setCategories(sortedCategories);
+        setBrands(sortedBrands);
       }
 
     } catch (error) {
-      console.log(error.response.data.message)
+      console.log(error.message || error);
+      toast.error(error.message || 'Unexpected error happened')
     }finally{
       setIsLoading(false)
     }
@@ -187,7 +198,7 @@ const ProductList = () => {
           <span className='sub-title'>Add, edit and delete products</span>
         </div>
         <button 
-          onClick={() => navigate('/admin/products/add-product')}
+          onClick={() => navigate('/admin/products/add-product',{state:{categories, brands}})}
           className='px-4! inline-flex items-center gap-2 text-white'>
           <LuPackagePlus size={20} />
           <span>Add Product</span>
@@ -404,21 +415,6 @@ const ProductList = () => {
           }
         </motion.ul>
       </div>
-
-      <AddCategoryModal
-        categories={categories}
-        isOpen={isAddOpen}
-        onCreate={handleCreate}
-        onClose={() => setIsAddOpen(false)}
-      />
-
-      <EditCategoryModal
-        category={editingCategory}
-        list={categories}
-        isOpen={isEditOpen}
-        onUpdate={handleUpdate}
-        onClose={() => setIsEditOpen(false)}
-      />
 
     </section>
   )

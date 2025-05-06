@@ -14,7 +14,8 @@ const CropperWindow = forwardRef(({
   cropperClass = '', 
   containerClass = '',
   outPutDimen, 
-  outputFormat, 
+  outputFormat,
+  disableMessage = "",
   onImageCrop = ()=> {}, 
   src,
   validFormats = ''
@@ -48,6 +49,11 @@ const CropperWindow = forwardRef(({
   }))
 
   const handleImageSelect = async(e) => {
+
+    if(disableMessage){
+      toast.error(disableMessage);
+      return
+    }
 
     setIsPreview(false);
     
