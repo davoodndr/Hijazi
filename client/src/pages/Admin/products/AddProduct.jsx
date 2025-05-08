@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IoIosAdd, IoIosArrowForward } from "react-icons/io";
 import { LuEye, LuEyeClosed, LuMail, LuMapPin, LuPhone, LuUser } from "react-icons/lu";
 import { useLocation, useNavigate } from "react-router";
@@ -16,12 +16,11 @@ import { useDispatch } from 'react-redux'
 import { setLoading } from '../../../store/slices/CommonSlices'
 import { TbArrowBackUp } from "react-icons/tb";
 import { HiHome } from "react-icons/hi2";
-import { uploadAvatar } from '../../../services/ApiActions'
+import { uploadAvatar, uploadProductImages } from '../../../services/ApiActions'
 import ToggleSwitch from "../../../components/ui/ToggleSwitch";
-import ComboBox from "../../../components/ui/ComboBox";
 import CropperWindow from "../../../components/ui/CropperWindow";
 import ImageThumb from "../../../components/ui/ImageThumb";
-import { imageFileToSrc } from "../../../utils/Utils";
+import { finalizeValues, getImageDimensions, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
 
 const AddProduct = () => {
 
@@ -29,18 +28,22 @@ const AddProduct = () => {
   const dispatch = useDispatch();
   const { state } = useLocation()
   const { categories, brands } = state || {};
-  const [roles, setRoles] = useState([]);
-  const [status, setStatus] = useState('');
-  const [address, setAddress] = useState([]);
+  const [status, setStatus] = useState(null);
+  const [brand, setBrand] = useState(null);
+  const [category, setCategory] = useState(null);
+  const productImageDimen = {width:1024, height: 1024}
 
   /* input handling */
   const [data, setData] = useState({
-    name: "", slug:"", description:"", price:"", stock:"", visible: false, status: "",
+    name: "", slug:"", description:"", price:"", stock:"", visible: true, status: "active",
     brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
   })
 
   const handleChange = (e) => {
-    const { name, value} = e.target;
+    let { name, value} = e.target;
+    if(name === 'name') setData(prev => ({...prev, slug:value.replace(/\s+/g, '-')}))
+    if(name === 'slug') value = value.replace(/\s+/g, '-');
+
     setData(prev => {
       return {
         ...prev,
@@ -52,69 +55,60 @@ const AddProduct = () => {
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    let mandatories = ['username', 'email', 'password', 'confirm'];
-    // adding address field for validation
-    if(address.length) mandatories = mandatories.concat(address);
-    const validateValues = mandatories.every(field => data[field]);
-    if(validateValues){
 
-      if(data.password !== data.confirm){
-        toast.error("Password doesn\'nt match");
+    if(isValidDatas(['name','slug','price','stock','description','category','brand','files'],data)){
+
+      if(!isValidName(data['name']) || !isValidName(data['slug'])){
+        toast.error('Name and slug should have minimum 3 letters')
         return
       }
 
-      if(data?.mobile?.length > 0 && data?.mobile?.length < 10){
-        toast.error("Invalid mobile number");
+      if(!data['files'].length){
+        toast.error("Image is mandatory to create brand");
         return
       }
 
-      if(address?.length && data.pincode?.length < 6){
-        toast.error("Invalid pincode");
-        return
-      }
+      const invalidFile = data.files.find(imgFile => !isValidFile(imgFile));
 
-      data.roles = roles.map(role => role.value);
-      data.status = status?.value || '';
+      if(invalidFile){
+        toast.error('Some of your image files are invalid');
+        return false;
+      }
 
       dispatch(setLoading(true));
       
 
       try {
 
+        /* dimension is checked on image select */
         
-        //removes blank entries from data for creating newUser
-        const filteresData = Object.entries(data).filter(([_,value]) => {
-          if (value === "" || value == null || value == undefined) return false;
-          if (Array.isArray(value) && value.length === 0) return false;
-          return true;
-        });
-        
-        const finalData = Object.fromEntries(filteresData);
+        const finalData = finalizeValues(data);
         
         
         const response = await Axios({
-          ...ApiBucket.addUser,
+          ...ApiBucket.addProduct,
           data: finalData
         })
 
         if(response.data.success){
 
-          const file = finalData.file;
-          let newAvatar = "";
-
-          if(file){
-            newAvatar =  await uploadAvatar(response.data.user._id,file);
-          }
+          const files = finalData.files;
+          const product = response.data.product;
+          const folder = `products/${product.slug.replaceAll('-','_')}`;
+          
+          await uploadProductImages(product._id, folder, files);
 
           AxiosToast(response, false);
           setData({
-            username: "", fullname:"", email:"", mobile:"",
-            address_line:"", city:"", state:"", pincode:"",
-            password:"", confirm:"", file:''
+            name: "", slug:"", description:"", price:"", stock:"", visible: true, status: "active",
+            brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
           })
-          setRoles([]);
-          setStatus('')
-          setImagePreview(null);
+          setBrand(null);
+          setStatus(null);
+          setCategory(null);
+          setViewImages([]);
+          setDisableMessage('');
+          if(resetRef.current) resetRef.current.reset();
         }
         
       } catch (error) {
@@ -133,18 +127,16 @@ const AddProduct = () => {
   };
 
   /* image handling */
-  const productImageDimen = {width:1024, height: 1024}
   const resetRef = useRef(null);
   const [viewImages, setViewImages] = useState([])
-  const [finalImages, setFinalImages] = useState([])
   const [disableMessage, setDisableMessage] = useState("");
   const maxLimit =  5;
 
   useEffect(() => {
-    if(finalImages.length >= maxLimit){
+    if(data.files.length >= maxLimit){
       setDisableMessage('Maximum image limit reached')
     }
-  },[finalImages])
+  },[data.files])
 
   /* handling add thumb action */
   const handleAddThumb = () => {
@@ -152,8 +144,8 @@ const AddProduct = () => {
     if(resetRef.current){
       resetRef.current.reset();
     }
-    if(finalImages.length >= maxLimit){
-      toast.error('Maximum limit reached');
+    if(data.files.length >= maxLimit){
+      toast.error('Maximum image limit reached');
     }
   }
 
@@ -162,7 +154,7 @@ const AddProduct = () => {
     
     if(file){
 
-      setFinalImages(prev => [...prev, file]);
+      setData(prev => ({...prev, files:[...prev.files,file]}));
 
       /* for dispalying images on thumbs */
       try {
@@ -180,7 +172,7 @@ const AddProduct = () => {
   /* handle delete thumb */
   const handleThumbDelete = (id) => {
     setViewImages(prev => prev.filter(item => item.id !== id))
-    setFinalImages(prev => prev.filter(item => item.id !== id))
+    setData(prev => ({...prev, files: files.filter(item => item.id !== id)}))
     if(resetRef.current){
       resetRef.current.reset();
     }
@@ -204,7 +196,7 @@ const AddProduct = () => {
             <span>Back</span>
           </button>
           <button 
-            form="add-user-form"
+            form="add-product-form"
             type="submit"
             className='ps-2! pe-4! inline-flex items-center gap-2 text-white'>
             <IoIosAdd size={25} />
@@ -231,7 +223,7 @@ const AddProduct = () => {
       <div className="flex flex-col space-y-2">
         
         {/* form */}
-        <form onSubmit={handleSubmit}  className="grid grid-cols-[2fr_1fr] gap-2">
+        <form onSubmit={handleSubmit} className="grid grid-cols-[2fr_1fr] gap-2" id="add-product-form">
           {/* basic Information */}
           <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
             <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">
@@ -264,6 +256,7 @@ const AddProduct = () => {
                   name="price"
                   value={data.price}
                   onChange={handleChange}
+                  onInput={(e) => (e.target.value = e.target.value.replace(/[^0-9]/g,''))}
                   type="number"
                   placeholder="Enter product price"
                 />
@@ -299,35 +292,41 @@ const AddProduct = () => {
 
             {/* category, brand, status */}
             <div className="flex flex-col gap-3">
-              <div className="">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <ComboBox
-                  value={data.category}
-                  placeholder="Browse category"
-                  onChange={(category) => setStatus(category)}
-                  items={
-                    categories?.map(item => ({id:item._id, label: item.name})) || []
+              <div>
+                <label className="mandatory">Category</label>
+                <CustomSelect
+                  value={category}
+                  onChange={(val) => {
+                    setCategory(val);
+                    setData(prev => ({...prev, category: val.id}))
+                  }}
+                  options={
+                    categories?.map(item => ({id: item._id, label: item.name})) || []
                   } />
               </div>
-              <div className="">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
-                <ComboBox
-                  value={data.brand}
-                  onChange={(brand) => setStatus(brand)}
-                  placeholder="Browse brand"
-                  items={
+              <div>
+                <label className="mandatory">Brand</label>
+                <CustomSelect
+                  value={brand}
+                  onChange={(val) => {
+                    setBrand(val);
+                    setData(prev => ({...prev, brand: val.id}))
+                  }}
+                  options={
                     brands?.map(item => ({id: item._id, label: item.name})) || []
                   } />
               </div>
-              <div className="">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <ComboBox
-                  value={data.status}
-                  onChange={(status) => setStatus(status)}
-                  placeholder="Browse Status"
-                  items={[
-                    { id: 1, label: 'Active' },
-                    { id: 2, label: 'Inactive' },
+              <div>
+                <label className="mandatory">Status</label>
+                <CustomSelect
+                  value={status || { value: 'active', label: 'Active' }}
+                  onChange={(val) => {
+                    setStatus(val);
+                    setData(prev => ({...prev, status: val.value}))
+                  }}
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'inactive', label: 'Inactive' },
                   ]} />
               </div>
             </div>
@@ -343,6 +342,7 @@ const AddProduct = () => {
               <div className="inline-flex gap-2 items-center">
                 <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Visible</label>
                 <ToggleSwitch
+                  value={data.visible}
                   onChange={(value) => setData(prev => ({...prev,visible:value}))}
                   />
               </div>
@@ -394,6 +394,7 @@ const AddProduct = () => {
               <CropperWindow
                 ref={resetRef}
                 onImageCrop={handleCropImage}
+                validFormats={['jpg','jpeg','png','bmp','webp']}
                 outputFormat='webp'
                 outPutDimen={productImageDimen}
                 disableMessage={disableMessage}

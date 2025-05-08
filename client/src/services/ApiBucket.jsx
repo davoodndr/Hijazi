@@ -122,6 +122,20 @@ const ApiBucket = {
     url: '/api/admin/delete-brand',
     method: 'put'
   },
+
+  /* product */
+  getProducts: {
+    url: '/api/admin/get-products',
+    method: 'get'
+  },
+  addProduct: {
+    url: '/api/admin/add-product',
+    method: 'post'
+  },
+  uploadProductImages: {
+    url: '/api/admin/upload-product-images',
+    method: 'post'
+  }
 }
 
 

@@ -1,7 +1,7 @@
 import React from 'react'
 import { MdOutlineAddAPhoto } from "react-icons/md";
 
-function ImageThumb({thumbClass = '', imgClass = '', src, Actions = () => {}, onClick = ()=> {}}) {
+const ImageThumb = React.memo(({thumbClass = '', imgClass = '', src, Actions = () => {}, onClick = ()=> {}}) => {
   return (
     <div 
       onClick={onClick}
@@ -19,6 +19,6 @@ function ImageThumb({thumbClass = '', imgClass = '', src, Actions = () => {}, on
       <Actions />
     </div>
   )
-}
+})
 
 export default ImageThumb

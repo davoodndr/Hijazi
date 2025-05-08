@@ -1,4 +1,3 @@
-import { single } from "../middleware/multer.js";
 import { uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
 import { responseMessage } from "../utils/messages.js";
 

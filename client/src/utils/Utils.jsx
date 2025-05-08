@@ -28,6 +28,7 @@ export const finalizeValues = (data) => {
   const filtered = Object.entries(data).filter(([_,value]) => {
     if (value === "" || value == null || value == undefined) return false;
     if (Array.isArray(value) && value.length === 0) return false;
+    if(typeof value === 'object' && Object.keys(value).length === 0) return false;
     return true;
   });
 
@@ -52,7 +53,24 @@ export const isValidFileType = (validFormats, file) => {
 // checks all field contain data
 export const isValidDatas = (fields, data) => {
   if(!Array.isArray(fields)) throw new Error("Expects array for valid formats")
-  return fields.every(item => data[item]);
+  
+  return fields.every(item => {
+    const value = data[item];
+  
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+  
+    if (typeof value === 'string') {
+      return value.trim() !== '';
+    }
+  
+    if (typeof value === 'object' && value !== null) {
+      return Object.keys(value).length > 0;
+    }
+  
+    return value !== null && value !== undefined;
+  });
 }
 
 // to extract image dimen

@@ -8,7 +8,7 @@ import ListBox from '../../ui/ListBox';
 import Switch from '../../ui/ToggleSwitch';
 import CropperWindow from '../../ui/CropperWindow';
 import toast from 'react-hot-toast'
-import { finalizeValues, isValidName } from '../../../utils/Utils';
+import { finalizeValues, isValidDatas, isValidName } from '../../../utils/Utils';
 import AxiosToast from '../../../utils/AxiosToast';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';

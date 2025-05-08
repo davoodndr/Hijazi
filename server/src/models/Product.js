@@ -15,7 +15,12 @@ const productSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   stock: { type: Number, default: 0 },
   description: { type: String },
-  images: [{ type: String }],
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active',
+  },
+  images: [String],
   averageRating: { type: Number, default: 0 },
   numReviews: { type: Number, default: 0 },
   featured: { type: Boolean, default: false },

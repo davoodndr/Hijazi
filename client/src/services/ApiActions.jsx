@@ -180,3 +180,32 @@ export const deleteBrandAction = async(folder, brand_id) => {
     return error
   }
 }
+
+export const uploadProductImages = async(product_id, folder, files, public_id= "") => {
+
+  try {
+            
+    const imageData = new FormData();
+    files.forEach(file => {
+      imageData.append('image', file)
+    });
+    imageData.append('public_id', public_id)
+    imageData.append('folder',folder)
+    imageData.append('product_id',product_id)
+
+    const response = await Axios({
+      ...ApiBucket.uploadProductImages,
+      data: imageData,
+      params: {
+        maxFileCount: 5
+      }
+    })
+
+    return response.data.images;
+
+  } catch (error) {
+    console.log(error.response.data.message)
+    return error
+  }
+
+}

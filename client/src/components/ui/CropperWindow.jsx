@@ -9,7 +9,7 @@ import ImageCropper from './ImageCropper';
 import toast from 'react-hot-toast';
 
 
-const CropperWindow = forwardRef(({
+const CropperWindow = React.memo(forwardRef(({
   buttonsClass = '', 
   cropperClass = '', 
   containerClass = '',
@@ -198,6 +198,6 @@ const CropperWindow = forwardRef(({
       </div>
     </div>
   )
-});
+}));
 
 export default CropperWindow

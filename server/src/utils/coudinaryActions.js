@@ -17,8 +17,7 @@ export const uploadImagesToCloudinary = async(folder, files, public_ids = []) =>
 
     files.map(async(file, i) => {
       
-      const public_id = Array.isArray(public_ids) && public_ids.length 
-        ? public_ids[i] : public_ids
+      const public_id = Array.isArray(public_ids) && public_ids.length ? public_ids[i] : public_ids
 
       return await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(

@@ -1,7 +1,7 @@
 import React from 'react'
 import Select from 'react-select'
 
-const CustomSelect = ({focusColor, options, isMulti = false, onChange, value}) => {
+const CustomSelect = React.memo(({focusColor = '#4cc4bb', options, isMulti = false, onChange, value}) => {
 
   const customStyles = {
       control: (base, state) => ({
@@ -42,8 +42,11 @@ const CustomSelect = ({focusColor, options, isMulti = false, onChange, value}) =
       options={options}
       onChange={onChange}
       value={value}
+      formatOptionLabel={({ label }) => (
+        <span className='capitalize'>{label}</span>
+      )}
     />
   )
-}
+})
 
 export default CustomSelect

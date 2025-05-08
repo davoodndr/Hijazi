@@ -26,20 +26,24 @@ const ProductList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   /* initial data loader */
   useEffect(() => {
-    fetchCategories()
+    fetchDatas()
   },[])
 
-  const fetchCategories = async() => {
+  const fetchDatas = async() => {
     setIsLoading(true)
     try {
 
       const response = await Promise.all([
+        Axios({
+          ...ApiBucket.getProducts
+        }).then(res => ({products:res.data.products})), 
         Axios({
           ...ApiBucket.getCategories
         }).then(res => ({categories:res.data.categories})), 
@@ -50,12 +54,14 @@ const ProductList = () => {
       
       if(response){
         
-        const [categoryData, brandData] = response;
+        const [productData, categoryData, brandData] = response;
+        const sortedProducts = productData.products.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
         const sortedCategories = categoryData.categories.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
         const sortedBrands = brandData.brands.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
     
         setCategories(sortedCategories);
         setBrands(sortedBrands);
+        setProducts(sortedProducts);
       }
 
     } catch (error) {
@@ -80,15 +86,15 @@ const ProductList = () => {
   },[query])
 
   /* search filter */
-  const filteredCategories = useMemo(() => {
-    return categories.filter(category =>{
+  const filteredProducts = useMemo(() => {
+    return products.filter(product =>{
 
       const fields = ['name','slug']
 
       return fields.some(field => {
 
-        if(category[field]){
-          return category[field].includes(searchQuery)
+        if(product[field]){
+          return product[field].includes(searchQuery)
         }
         return false
 
@@ -96,7 +102,7 @@ const ProductList = () => {
 
     });
 
-  },[searchQuery, categories])
+  },[searchQuery, products])
 
 
   /* add category action */
@@ -130,7 +136,7 @@ const ProductList = () => {
       
       if(result.isConfirmed){
         dispatch(setLoading(true));
-        const response = await deleteCategoryAction('categories', id);
+        const response = await deleteCategoryAction('products', id);
 
         if(response?.data?.success){
           setCategories(prev => prev.filter(category => category._id !== id));
@@ -181,9 +187,9 @@ const ProductList = () => {
   /* paingation logic */
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  const totalPages = Math.ceil(categories.length / itemsPerPage);
+  const totalPages = Math.ceil(products.length / itemsPerPage);
 
-  const paginatedCategories = filteredCategories.slice(
+  const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -271,10 +277,10 @@ const ProductList = () => {
 
                   <AnimatePresence exitBeforeEnter>
 
-                    {paginatedCategories.map((category, index) => {
+                    {paginatedProducts.map((product, index) => {
 
                       const statusColors = () => {
-                        switch(category.status){
+                        switch(product.status){
                           case 'active': return 'bg-green-500/40 text-teal-800'
                           case 'blocked': return 'bg-red-100 text-red-500'
                           default : return 'bg-gray-200 text-gray-400'
@@ -285,7 +291,7 @@ const ProductList = () => {
                       
                         <motion.div 
                           layout
-                          key={category._id}
+                          key={product._id}
                           custom={index}
                           initial="hidden"
                           animate="visible"
@@ -301,12 +307,12 @@ const ProductList = () => {
 
                           {/* product Info & thumbnail */}
                           <div className="flex gap-2 items-center">
-                            <PreviewImage src={category?.image} alt={category?.name} size="40" zoom="120%" />
+                            <PreviewImage src={product?.images[0]} alt={product?.name} size="40" zoom="120%" />
                             
                             <div className="inline-flex flex-col capitalize">
-                              <p className="font-semibold">Product Name</p>
-                              <p className="text-xs">SKU - </p>
-                              {category?.featured && 
+                              <p className="font-semibold">{product?.name}</p>
+                              <p className="text-xs">SKU - CODE</p>
+                              {product?.featured && 
                                 <p className="text-xs text-featured-500 inline-flex items-center w-fit rounded-xl
                                   before:bg-featured-300 before:content[''] before:p-0.75 before:me-1
                                   before:inline-flex before:items-center before:rounded-full"
@@ -316,26 +322,26 @@ const ProductList = () => {
                           </div>
 
                           {/* category */}
-                          <div className='capitalize'>{category.name || <span className="text-gray-400">Not added</span>}</div>
+                          <div className='capitalize'>{product.category.name}</div>
                           
                           {/* price */}
                           <div className='capitalize flex flex-col'>
-                            <span>0000</span>
+                            <span>{product?.price}</span>
                             <span className='text-xs'>Rating</span>
                           </div>
 
                           {/* stock */}
-                          <div className='capitalize'>0000</div>
+                          <div className='capitalize'>{product?.stock}</div>
 
                           {/* Status */}
                           <div className='flex flex-col space-y-0.75 '>
                             <span className={`w-fit px-2 py-0.5 text-xs font-semibold rounded-full capitalize
                               ${statusColors()}`}>
-                              {category?.status}
+                              {product?.status}
                             </span>
                             {/* visibility */}
                             <div className='capitalize text-xs w-fit'>
-                              {category?.visible ? 
+                              {product?.visible ? 
                               <span 
                                 className="text-xs text-yellow-500 inline-flex items-center w-fit rounded-xl
                                 before:bg-orange-300 before:content[''] before:p-0.75 before:me-1
@@ -345,8 +351,8 @@ const ProductList = () => {
                                 :
                               
                                 <span 
-                                  className="text-xs text-red-300 inline-flex items-center w-fit rounded-xl
-                                  before:bg-red-300 before:content[''] before:p-0.75 before:me-1
+                                  className="text-xs text-red-400 inline-flex items-center w-fit rounded-xl
+                                  before:bg-red-400 before:content[''] before:p-0.75 before:me-1
                                   before:inline-flex before:items-center before:rounded-full"
                                   >Hidden</span>
                               }
@@ -357,8 +363,8 @@ const ProductList = () => {
                           <div className="flex items-center justify-center gap-3 z-50">
                             <div 
                               onClick={() => {
-                                setIsEditOpen(true);
-                                setEditingCategory(category)
+                                /* setIsEditOpen(true);
+                                setEditingCategory(category) */
                               }}
                               className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
                               border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
@@ -379,7 +385,7 @@ const ProductList = () => {
                                     open={open}
                                     items={[
                                       /* { label: 'view category', icon: IoEyeOutline, onClick: () => {} }, */
-                                      { label: 'delete', icon: HiOutlineTrash, onClick: () => handledelete(category._id) }
+                                      { label: 'delete', icon: HiOutlineTrash, onClick: () => handledelete(product._id) }
                                     ]}
                                   />
                                 </>
@@ -399,9 +405,9 @@ const ProductList = () => {
             }
 
           {/* Pagination */}
-          {paginatedCategories && <li
+          {paginatedProducts && <li
             key="pagination"
-            custom={filteredCategories.length + 1}
+            custom={filteredProducts.length + 1}
             className="px-4 py-5"
           >
             
