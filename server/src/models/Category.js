@@ -31,6 +31,12 @@ const categorySchema = new mongoose.Schema({
     ref: 'Category',
     default: null,
   },
+  attributes: [
+    {
+      name: { type: String, required: true }, // e.g., "Size"
+      values: [String]                        // e.g., ["S", "M", "L"]
+    }
+  ],
   order: {
     type: Number,
     default: 0,

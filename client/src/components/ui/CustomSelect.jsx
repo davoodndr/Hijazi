@@ -1,7 +1,9 @@
 import React from 'react'
 import Select from 'react-select'
 
-const CustomSelect = React.memo(({focusColor = '#4cc4bb', options, isMulti = false, onChange, value}) => {
+const CustomSelect = React.memo((
+  {focusColor = '#4cc4bb', options, isMulti = false, onChange, value}
+) => {
 
   const customStyles = {
       control: (base, state) => ({

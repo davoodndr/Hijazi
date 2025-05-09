@@ -28,7 +28,7 @@ const CategoryList = () => {
 
   /* initial data loader */
   useEffect(() => {
-    fetchCategories()
+    fetchCategories();
   },[])
 
   const fetchCategories = async() => {
@@ -99,7 +99,22 @@ const CategoryList = () => {
 
   /* update action handleing */
   const handleUpdate =  (doc) => {
-    setCategories(prev => (prev.map(item => item._id === doc._id ? doc : item)));
+    setCategories(prev => 
+      prev.map(item => {
+        if(item._id === doc._id){
+          return doc;
+        }else if(item.parentId?._id === doc._id){
+          return{
+            ...item,
+            parentId:{
+              ...doc
+            }
+          }
+        }else{
+          return item
+        }
+      })
+    );
     setIsEditOpen(false);
   }
 

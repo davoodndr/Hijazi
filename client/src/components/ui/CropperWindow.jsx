@@ -88,7 +88,7 @@ const CropperWindow = React.memo(forwardRef(({
 
   const handleCrop = useCallback(async() => {
 
-    setIsPreview(false)
+    setIsPreview(true)
     if(cropFunRef.current){
       const blob = await cropFunRef.current()
 
@@ -116,7 +116,7 @@ const CropperWindow = React.memo(forwardRef(({
       <div className={cropperClass}>
       
         {isPreview ? (
-          <img src={imgSrc} className='object-contain w-full' alt="preview" 
+          <img src={imgSrc} className='object-contain w-full border-12 border-white' alt="preview" 
             onError={e => console.log(e.nativeEvent)} 
           />
         ):(

@@ -3,8 +3,7 @@ import { AnimatePresence } from 'motion/react';
 import React, { useState } from 'react'
 import Modal from '../../ui/Modal'
 import { TbCategoryPlus } from 'react-icons/tb';
-import ComboBox from '../../ui/ComboBox';
-import ListBox from '../../ui/ListBox';
+import CustomSelect from '../../ui/CustomSelect';
 import Switch from '../../ui/ToggleSwitch';
 import CropperWindow from '../../ui/CropperWindow';
 import toast from 'react-hot-toast'
@@ -15,6 +14,7 @@ import ApiBucket from '../../../services/ApiBucket';
 import { uploadCategoryImage } from '../../../services/ApiActions';
 import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
+import DynamicInputList from '../../ui/DynamicInputList';
 
 function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
 
@@ -26,7 +26,8 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
 
   /* data input handling */
   const [data, setData] = useState({
-    file: "", name:"", slug:"", parentId:"", status:"", featured:false, visible:false
+    file: "", name:"", slug:"", parentId:"", status:"", 
+    featured:false, visible:false, attributes: []
   });
 
   const handleChange = (e) => {
@@ -40,6 +41,19 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
         [name]: value
       }
     })
+  }
+
+  const handleAttributes = (inputs) => {
+    if(inputs.length){
+      const attrs = inputs.map(item => {
+        return {
+          name: item.data?.name,
+          values: item.data.value?.split(',').filter(Boolean)
+        }
+      })
+
+      setData(prev => ({...prev, attributes:attrs}))
+    }
   }
 
   const handleStatusChange = (val) => {
@@ -82,6 +96,8 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
           toast.error("Image dimention does not match");
           return
         }
+
+        const finalData = finalizeValues(data);
         
         const response = await Axios({
           ...ApiBucket.addCategory,
@@ -131,9 +147,10 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
       {/* should keep this pattern to maintain exit animation */}
       {isOpen && <Modal isOpen={isOpen}>
 
-        <div className='w-150 flex flex-col'>
+        <div className='w-250 flex flex-col'>
 
-          <div className='flex gap-4 mb-5 border-b border-gray-300'>
+          {/* header */}
+          <div className='flex gap-4 mb-5 border-b border-gray-200'>
             <div className='p-3 mb-3 border border-primary-300 rounded-2xl bg-primary-50'>
               <TbCategoryPlus size={20} />
             </div>
@@ -144,24 +161,19 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
           </div>
 
           {/* form inputs */}
-          <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='new-category-form'>
+          <form onSubmit={handleSubmit} className='grid grid-cols-[1fr_1.5fr_1fr] gap-y-2 gap-x-4' id='new-category-form'>
             
+            {/* inputs fields */}
             <div className="flex flex-col gap-2">
               <div className='flex flex-col w-full'>
-                <label className="flex text-sm font-medium">
-                  <span>Name</span>
-                  <span className="text-xl leading-none ms-1 text-red-500">*</span>
-                </label>
+                <label className="mandatory">Name</label>
                 <input type="text" name='name' value={data.name} 
                   onChange={handleChange}
                   spellCheck={false}
                   placeholder='Enter category name'/>
               </div>
               <div className='flex flex-col w-full'>
-                <label className="flex text-sm font-medium">
-                  <span>Slug</span>
-                  <span className="text-xl leading-none ms-1 text-red-500">*</span>
-                </label>
+                <label className="mandatory">Slug</label>
                 <input type="text" name='slug' 
                   value={data.slug} 
                   onChange={handleChange}
@@ -169,13 +181,12 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
                   placeholder='@ex: category-name'/>
               </div>
               <div className='flex flex-col w-full'>
-                <label htmlFor="" className='text-neutral-600! font-semibold!'>Parent</label>
+                <label htmlFor="">Parent</label>
                 
-                <ComboBox
+                <CustomSelect
                   value={parent}
                   onChange={handleParentChange}
-                  placeholder='Browse parent'
-                  items={categories.map(category => 
+                  options={categories.map(category => 
                     ({ id: category._id, label: category.name })
                   )}
                 />
@@ -183,12 +194,12 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
               </div>
 
               <div className='flex flex-col w-full'>
-                <label htmlFor="" className='text-neutral-600! font-semibold!'>Status</label>
+                <label htmlFor="">Status</label>
                 
-                <ListBox
+                <CustomSelect
                   value={status}
                   onChange={handleStatusChange}
-                  items={[
+                  options={[
                     { id: 1, label: 'Active' },
                     { id: 2, label: 'Inactive' },
                   ]}
@@ -212,6 +223,17 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
               </div>
             </div>
 
+            {/* attributes */}
+            <div className="flex flex-col gap-2">
+              <DynamicInputList 
+                title='Attributes'
+                onChange={handleAttributes}
+                containerClass='flex flex-col'
+                inputContainerClass='grid grid-cols-[0.5fr_1fr_0.1fr_auto] gap-x-2 mb-2 items-center'
+                removeBtnClass='!p-2 w-fit h-fit !bg-red-400 hover:!bg-red-500'
+              />
+            </div>
+
             {/* Image */}
             <div className='flex flex-col items-center'>
               <label className="flex text-sm font-medium w-60">
@@ -223,7 +245,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
                 outPutDimen={600}
                 outputFormat='webp'
                 cropperClass="flex items-center justify-center !h-60 !w-60 rounded-2xl overflow-hidden border border-gray-300"
-                buttonsClass="flex items-center justify-between w-60 gap-2 py-2"
+                buttonsClass="flex items-center justify-center w-60 gap-2 py-2"
               />
             </div>
 
