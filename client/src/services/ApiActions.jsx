@@ -181,7 +181,7 @@ export const deleteBrandAction = async(folder, brand_id) => {
   }
 }
 
-export const uploadProductImages = async(product_id, folder, files, public_id= "") => {
+export const uploadProductImages = async(product_id, folder, files, public_ids= [], remove_ids = []) => {
 
   try {
             
@@ -189,7 +189,12 @@ export const uploadProductImages = async(product_id, folder, files, public_id= "
     files.forEach(file => {
       imageData.append('image', file)
     });
-    imageData.append('public_id', public_id)
+    public_ids.forEach(id => {
+      imageData.append('public_ids[]', id);
+    })
+    remove_ids.forEach(id => {
+      imageData.append('remove_ids[]', id);
+    })
     imageData.append('folder',folder)
     imageData.append('product_id',product_id)
 

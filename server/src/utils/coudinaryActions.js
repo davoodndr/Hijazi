@@ -19,7 +19,7 @@ export const uploadImagesToCloudinary = async(folder, files, public_ids = []) =>
       
       const public_id = Array.isArray(public_ids) && public_ids.length ? public_ids[i] : public_ids
 
-      return await new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
             folder: `hijazi/${folder}`,
@@ -35,6 +35,7 @@ export const uploadImagesToCloudinary = async(folder, files, public_ids = []) =>
   
         stream.end(file.buffer);
       });
+
     })
 
   )
@@ -42,21 +43,32 @@ export const uploadImagesToCloudinary = async(folder, files, public_ids = []) =>
   return uploadResults;
 };
 
-export const deleteImageFromCloudinary = async(folder, public_id) => {
+export const deleteImageFromCloudinary = async(folder, public_ids = []) => {
 
   if(!folder) throw new Error("Containing image folder not specified")
 
-  const deleteImage = new Promise((resolve, reject) => {
-    cloudinary.uploader.destroy(`hijazi/${folder}/${public_id}`,
-      {
-        resource_type: 'image'
-      },
-      ((error, result) => {
-        if(error) return reject(error);
-        return resolve(result);
+  public_ids = Array.isArray(public_ids) && public_ids.length ? public_ids : [public_ids]
+
+  const deleteImage = await Promise.all(
+    public_ids.map(id => {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.destroy(`hijazi/${folder}/${id}`,
+          {
+            resource_type: 'image'
+          },
+          ((error, result) => {
+            if(error) return reject(error);
+            return resolve(result);
+          })
+        )
       })
-    )
-  })
+    })
+  )
 
   return deleteImage;
+}
+
+export const getPublicId = (url) => {
+  if(!url) throw new Error('invalid url')
+  return url.split('/').filter(Boolean).pop().split('.')[0]
 }

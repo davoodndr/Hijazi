@@ -15,17 +15,23 @@ import { uploadProductImages } from '../../../services/ApiActions'
 import ToggleSwitch from "../../../components/ui/ToggleSwitch";
 import CropperWindow from "../../../components/ui/CropperWindow";
 import ImageThumb from "../../../components/ui/ImageThumb";
-import { finalizeValues, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
+import { capitalize, finalizeValues, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
 
 const EditProduct = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { state } = useLocation()
-  const { categories, brands } = state || {};
+  const { state } = useLocation();
+  const { categories, brands, currentProduct } = state || {};
   const [status, setStatus] = useState(null);
   const [brand, setBrand] = useState(null);
   const [category, setCategory] = useState(null);
+  
+  /* image handling */
+  const resetRef = useRef(null);
+  const [viewImages, setViewImages] = useState([])
+  const [disableMessage, setDisableMessage] = useState("");
+  const maxLimit =  5;
   const productImageDimen = {width:1024, height: 1024}
 
   /* input handling */
@@ -33,6 +39,46 @@ const EditProduct = () => {
     name: "", slug:"", description:"", price:"", stock:"", visible: true, status: "active",
     brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
   })
+
+  /* initial data from item */
+  useEffect(() => {
+    
+    if(currentProduct){
+      /* setting general datas */
+      setData(prev => ({
+        ...prev,
+        name: currentProduct?.name,
+        slug: currentProduct?.slug,
+        price: currentProduct?.price,
+        stock: currentProduct?.stock,
+        description: currentProduct?.description,
+        category: currentProduct?.category?._id,
+        brand: currentProduct?.brand?._id,
+        status: currentProduct?.status,
+        featured: currentProduct?.featured,
+        visible: currentProduct?.visible
+      }));
+      /* setting dropdown items */
+      setCategory({id:currentProduct?.category?._id, label:currentProduct?.category?.name})
+      setBrand({id:currentProduct?.brand?._id, label:currentProduct?.brand?.name})
+      setStatus({value: currentProduct?.status, label:currentProduct?.status})
+      setViewImages(currentProduct?.images.map(img => {
+          const id = img.split('/').filter(Boolean).pop().split('.')[0];
+          return {id, value: img}
+        })
+      )
+    }
+
+  },[currentProduct])
+
+  /* limits image on maximum */
+  useEffect(() => {
+    if(data.files.length >= maxLimit || viewImages.length >= maxLimit){
+      setDisableMessage('Maximum image limit reached')
+    }else{
+      setDisableMessage(null)
+    }
+  },[data.files, viewImages])
 
   const handleChange = (e) => {
     let { name, value} = e.target;
@@ -50,48 +96,69 @@ const EditProduct = () => {
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-
-    if(isValidDatas(['name','slug','price','stock','description','category','brand','files'],data)){
+    if(isValidDatas(['name','slug','price','stock','description','category','brand'],data)){
 
       if(!isValidName(data['name']) || !isValidName(data['slug'])){
         toast.error('Name and slug should have minimum 3 letters')
         return
       }
 
-      if(!data['files'].length){
-        toast.error("Image is mandatory to create brand");
-        return
-      }
+      const initialList = currentProduct.images;
+      const updatedImageList = viewImages.map(img => img.id);
+      
+      if(data['files'].length){
 
-      const invalidFile = data.files.find(imgFile => !isValidFile(imgFile));
+        const maintainedList = initialList.filter(img => {
+          const id = img.split('/').filter(Boolean).pop().split('.')[0];
+          if(updatedImageList.includes(id)) return id;
+        }).filter(item => Boolean(item));
 
-      if(invalidFile){
-        toast.error('Some of your image files are invalid');
-        return false;
+        console.log(maintainedList.length, data['files'].length)
+        
+        if(data['files'].length + maintainedList.length > maxLimit){
+          toast.error(`Maximum ${maxLimit} files allowed to upload`);
+          return
+        }
+
+        const invalidFile = data.files.find(imgFile => !isValidFile(imgFile));
+
+        if(invalidFile){
+          toast.error('Some of your image files are invalid');
+          return;
+        }
       }
 
       dispatch(setLoading(true));
       
-
       try {
 
         /* dimension is checked on image select */
         
         const finalData = finalizeValues(data);
         
-        
         const response = await Axios({
-          ...ApiBucket.addProduct,
-          data: finalData
+          ...ApiBucket.updateProduct,
+          data: {
+            ...finalData,
+            product_id: currentProduct._id
+          }
         })
 
         if(response.data.success){
 
-          const files = finalData.files;
-          const product = response.data.product;
-          const folder = `products/${product.slug.replaceAll('-','_')}`;
-          
-          await uploadProductImages(product._id, folder, files);
+          if(finalData.files.length){
+            
+            const files = finalData.files;
+            const public_ids = initialList.map(img => {
+              const id = img.split('/').filter(Boolean).pop().split('.')[0];
+              if(!updatedImageList.includes(id)) return id;
+            }).filter(item => Boolean(item));
+
+            const product = response.data.product;
+            const folder = `products/${product.slug.replaceAll('-','_')}`;
+            
+            await uploadProductImages(product._id, folder, files, public_ids);
+          }
 
           AxiosToast(response, false);
           setData({
@@ -104,6 +171,7 @@ const EditProduct = () => {
           setViewImages([]);
           setDisableMessage('');
           if(resetRef.current) resetRef.current.reset();
+          navigate('/admin/products')
         }
         
       } catch (error) {
@@ -120,20 +188,6 @@ const EditProduct = () => {
     }
 
   };
-
-  /* image handling */
-  const resetRef = useRef(null);
-  const [viewImages, setViewImages] = useState([])
-  const [disableMessage, setDisableMessage] = useState("");
-  const maxLimit =  5;
-
-  useEffect(() => {
-    if(data.files.length >= maxLimit){
-      setDisableMessage('Maximum image limit reached')
-    }else{
-      setDisableMessage(null)
-    }
-  },[data.files])
 
   /* handling add thumb action */
   const handleAddThumb = () => {
@@ -181,8 +235,8 @@ const EditProduct = () => {
       {/* page title & add user button */}
       <div className="mb-5 flex justify-between items-start">
         <div className="flex flex-col">
-          <h3 className='text-xl'>Create New Product</h3>
-          <span className='sub-title'>Enter product details bellow</span>
+          <h3 className='text-xl'>Edit Product</h3>
+          <span className='sub-title'>Change product details bellow</span>
         </div>
         <div className="inline-flex items-stretch gap-5">
           <button
@@ -197,7 +251,7 @@ const EditProduct = () => {
             type="submit"
             className='ps-2! pe-4! inline-flex items-center gap-2 text-white'>
             <IoIosAdd size={25} />
-            <span>Create Now</span>
+            <span>Update Now</span>
           </button>
         </div>
         
@@ -212,7 +266,7 @@ const EditProduct = () => {
           <IoIosArrowForward size={13} />
         </div>
         <div className='inline-flex items-center text-sm gap-2'>
-          <span>Add Product</span>
+          <span>Edit Product</span>
         </div>
       </div>
 

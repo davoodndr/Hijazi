@@ -135,7 +135,11 @@ const ApiBucket = {
   uploadProductImages: {
     url: '/api/admin/upload-product-images',
     method: 'post'
-  }
+  },
+  updateProduct: {
+    url: '/api/admin/update-product',
+    method: 'patch'
+  },
 }
 
 

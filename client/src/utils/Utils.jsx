@@ -11,6 +11,10 @@ export const hexToRgba = (hex, alpha = 100) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha / 100})`;
 }
 
+export const capitalize = (value) => {
+  return value?.charAt(0).toUpperCase() + value?.slice(1);
+}
+
 export function isEmailValid(email) {
   // Regular expression for basic email validation
   const emailRegex = /^[a-zA-Z0-9._%+-]+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/;

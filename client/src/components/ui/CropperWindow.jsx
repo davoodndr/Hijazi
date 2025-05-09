@@ -18,7 +18,8 @@ const CropperWindow = React.memo(forwardRef(({
   disableMessage = "",
   onImageCrop = ()=> {}, 
   src,
-  validFormats = ''
+  validFormats = '',
+  /* multiSelect = false */
   
 }, ref) => {
 
@@ -136,7 +137,16 @@ const CropperWindow = React.memo(forwardRef(({
           )
         }
       </div>
-      <input type="file" id="category-image" accept='image/*' ref={fileInputRef} onChange={handleImageSelect} hidden />
+      <input 
+        type="file" 
+        /* multiple = {multiSelect} *///not implimented
+        id="category-image" 
+        accept='image/*' 
+        ref={fileInputRef} 
+        onChange={handleImageSelect} 
+        hidden 
+        />
+      
       {/* crop image buttons */}
       <div className={buttonsClass}>
 

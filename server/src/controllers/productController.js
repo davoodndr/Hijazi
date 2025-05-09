@@ -1,5 +1,5 @@
 import Product from "../models/Product.js";
-import { uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
+import { getPublicId, uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
 import { responseMessage } from "../utils/messages.js";
 
 
@@ -16,7 +16,6 @@ export const getProducts = async(req, res) => {
     return responseMessage(res, 500, false, error.message || error)
   }
 }
-
 
 // add product
 export const addProduct = async(req, res) => {
@@ -51,7 +50,7 @@ export const addProduct = async(req, res) => {
 export const uploadProductImages = async(req, res) => {
 
   const { files } = req; //from middleware
-  const { public_id, product_id, folder } = req.body;
+  const { public_ids, remove_ids, product_id, folder } = req.body;
 
 
   try {
@@ -64,22 +63,74 @@ export const uploadProductImages = async(req, res) => {
       return responseMessage(res, 400, false, "Product id not specified");
     }
     
-    const upload = await uploadImagesToCloudinary(folder, files, public_id);
+    const upload = await uploadImagesToCloudinary(folder, files, public_ids);
 
-    const uploadUrls = upload.map(item => item.secure_url)
+    let uploadUrls = upload.map(item => item.secure_url)
+    const product = await Product.findById(product_id);
+    const existingImages = product.images;
+    const uploadedPublicIds = uploadUrls.map(url => getPublicId(url));
 
-    await Product.findByIdAndUpdate(product_id,
-      {
-        images: uploadUrls
-      },
-    )
+    if(existingImages.length){
+      uploadUrls = [
+        ...uploadUrls,
+        ...existingImages.filter(url => {
+          const publicId = getPublicId(url);
+          if(!uploadedPublicIds.includes(publicId)) return url;
+        }).filter(el => Boolean(el))
+      ].filter(el => Boolean(el));
+    }
 
-    return responseMessage(res, 200, true, "Product images uploaded", {
-      images: uploadUrls
-    })
+    if(uploadUrls.length){
+      await Product.findByIdAndUpdate(product_id,
+        {
+          images: uploadUrls
+        },
+      )
+    }
+
+    /* no need of returning result here as it doesn't require realtime update */
+    return responseMessage(res, 200, true, "Product images uploaded")
 
   } catch (error) {
     console.log('uploadProductImages', error);
+    return responseMessage(res, 500, false, error.message || error);
+  }
+
+}
+
+// update product
+export const updateProduct = async(req, res) => {
+
+  const { product_id, name, slug, price, stock, description, category, brand } = req.body;
+
+  try {
+
+    if(!name || !slug || !price || !stock || !description || !category || !brand){
+      return responseMessage(res, 400, false, "Please fill all mandatory fields");      
+    }
+    
+    if(!product_id) {
+      return responseMessage(res, 400, false, "Product id not specified");
+    }
+
+    const product = await Product.findById(product_id);
+
+    if(!product){
+      return responseMessage(res, 400, false, "Product does not exists");
+    }
+
+    const updated = await Product.findByIdAndUpdate(product_id, 
+      {...req.body},
+      {new: true}
+    );
+
+    return responseMessage(res, 200, true, "Product updated successfully",
+      {product: updated}
+    );
+
+
+  } catch (error) {
+    console.log('updateProduct', error);
     return responseMessage(res, 500, false, error.message || error);
   }
 

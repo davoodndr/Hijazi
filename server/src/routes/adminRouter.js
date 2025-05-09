@@ -13,7 +13,7 @@ import {
 } from "../controllers/usersController.js";
 import { addCategory, deleteCategory, getCategories, updateCategory, uploadCategoryImage } from "../controllers/categoryController.js";
 import { addBrand, deleteBrand, getBrands, updateBrand, uploadBrandLogo } from "../controllers/brandController.js";
-import { addProduct, getProducts, uploadProductImages } from "../controllers/productController.js";
+import { addProduct, getProducts, updateProduct, uploadProductImages } from "../controllers/productController.js";
 
 
 const adminRouter = express.Router();
@@ -48,5 +48,6 @@ adminRouter.put('/delete-brand', authenticate, allowRoles(['admin']), deleteBran
 adminRouter.get('/get-products', authenticate, allowRoles(['admin']), getProducts)
 adminRouter.post('/add-product', authenticate, allowRoles(['admin']), addProduct)
 adminRouter.post('/upload-product-images',authenticate, allowRoles(['admin']), upload, uploadProductImages);
+adminRouter.patch('/update-product', authenticate, allowRoles(['admin']), updateProduct)
 
 export default adminRouter;

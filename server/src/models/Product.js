@@ -24,6 +24,7 @@ const productSchema = new mongoose.Schema({
   averageRating: { type: Number, default: 0 },
   numReviews: { type: Number, default: 0 },
   featured: { type: Boolean, default: false },
+  visible: { type: Boolean, default: true },
   reviews: [reviewSchema],
 }, { timestamps: true });
 

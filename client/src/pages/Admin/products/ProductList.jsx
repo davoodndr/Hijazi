@@ -362,10 +362,10 @@ const ProductList = () => {
                           {/* Actions */}
                           <div className="flex items-center justify-center gap-3 z-50">
                             <div 
-                              onClick={() => {
-                                /* setIsEditOpen(true);
-                                setEditingCategory(category) */
-                              }}
+                              onClick={() => navigate(`/admin/products/${product?.slug}/edit`,
+                                {state: {categories, brands, currentProduct:product}})
+                              }
+                              
                               className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
                               border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
                               <TbUserEdit size={20} />
