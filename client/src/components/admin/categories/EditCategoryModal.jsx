@@ -3,8 +3,6 @@ import { AnimatePresence } from 'motion/react';
 import React, { useEffect, useState } from 'react'
 import Modal from '../../ui/Modal'
 import { TbCategoryPlus } from 'react-icons/tb';
-import ComboBox from '../../ui/ComboBox';
-import ListBox from '../../ui/ListBox';
 import Switch from '../../ui/ToggleSwitch';
 import CropperWindow from '../../ui/CropperWindow';
 import toast from 'react-hot-toast'

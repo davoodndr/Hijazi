@@ -117,3 +117,13 @@ export const imageFileToSrc = (file) => {
     reader.readAsDataURL(file);
   });
 }
+
+// check object value is blank
+export function hasBlankObjectValue(obj) {
+  return Object.values(obj).some(value => {
+    if (typeof value === 'object' && value !== null) {
+      return hasBlankObjectValue(value);
+    }
+    return value === '' || value == null;
+  });
+}

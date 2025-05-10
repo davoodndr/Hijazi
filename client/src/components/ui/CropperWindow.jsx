@@ -9,6 +9,20 @@ import ImageCropper from './ImageCropper';
 import toast from 'react-hot-toast';
 
 
+/**
+ * @typedef {Object} CropperWindowProps
+ * @property {string} buttonsClass
+ * @property {string} cropperClass
+ * @property {string} containerClass
+ * @property {{ width: number, height: number }} outPutDimen
+ * @property {string} outputFormat
+ * @property {string} disableMessage
+ * @property {Function} onImageCrop
+ * @property {string} src
+ * @property {string} validFormats
+ */
+
+/** @type {React.ForwardRefExoticComponent<React.PropsWithoutRef<CropperWindowProps> & React.RefAttributes<any>>} */
 const CropperWindow = React.memo(forwardRef(({
   buttonsClass = '', 
   cropperClass = '', 
@@ -206,6 +220,7 @@ const CropperWindow = React.memo(forwardRef(({
         </div>
 
       </div>
+      
     </div>
   )
 }));

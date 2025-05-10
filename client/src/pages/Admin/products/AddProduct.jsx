@@ -3,7 +3,7 @@ import { IoIosAdd, IoIosArrowForward } from "react-icons/io";
 import { useLocation, useNavigate } from "react-router";
 import AxiosToast from "../../../utils/AxiosToast";
 import toast from "react-hot-toast";
-import { IoClose } from "react-icons/io5";
+import { IoAdd, IoClose } from "react-icons/io5";
 import CustomSelect from "../../../components/ui/CustomSelect";
 import { Axios } from "../../../utils/AxiosSetup";
 import ApiBucket from "../../../services/ApiBucket";
@@ -16,6 +16,7 @@ import ToggleSwitch from "../../../components/ui/ToggleSwitch";
 import CropperWindow from "../../../components/ui/CropperWindow";
 import ImageThumb from "../../../components/ui/ImageThumb";
 import { finalizeValues, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
+import VariantsTable from "../../../components/admin/products/VariantsTable";
 
 const EditProduct = () => {
 
@@ -26,6 +27,8 @@ const EditProduct = () => {
   const [status, setStatus] = useState(null);
   const [brand, setBrand] = useState(null);
   const [category, setCategory] = useState(null);
+  const [attributes, setAttributes] = useState([]);
+  const [variants, setVariants] = useState([])
   const productImageDimen = {width:1024, height: 1024}
 
   /* input handling */
@@ -120,6 +123,8 @@ const EditProduct = () => {
     }
 
   };
+
+  //console.log(variants)
 
   /* image handling */
   const resetRef = useRef(null);
@@ -275,7 +280,7 @@ const EditProduct = () => {
                   value={data.description}
                   onChange={handleChange}
                   rows='5'
-                  placeholder="Enter product stock"
+                  placeholder="Describe your product"
                   className="!h-auto !p-2"
                 ></textarea>
               </div>
@@ -296,6 +301,10 @@ const EditProduct = () => {
                   onChange={(val) => {
                     setCategory(val);
                     setData(prev => ({...prev, category: val.id}))
+                    const cat = categories.find(item => item._id === val.id);
+                    if(cat?.attributes){
+                      setAttributes(cat.attributes);
+                    }
                   }}
                   options={
                     categories?.map(item => ({id: item._id, label: item.name})) || []
@@ -349,7 +358,7 @@ const EditProduct = () => {
         </form>
 
         {/* product images */}
-        <div className="grid grid-cols-[2fr_1fr] gap-2">
+        {/* <div className="grid grid-cols-[2fr_1fr] gap-2">
 
           <div className="border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
             <h2 className="text-md font-medium text-gray-900 flex items-center gap-2 pb-4">Images</h2>
@@ -403,7 +412,20 @@ const EditProduct = () => {
 
           </div>
 
-        </div>
+        </div> */}
+
+        {/* variants */}
+        {attributes.length > 0 && 
+          <div className="border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
+
+            <VariantsTable
+              attributes={attributes}
+              getVariants={setVariants}
+            />
+
+          </div>
+        }
+
       </div>
 
     </section>

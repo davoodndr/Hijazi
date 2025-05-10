@@ -1,0 +1,78 @@
+import { AnimatePresence } from 'motion/react'
+import React from 'react'
+import Modal from './Modal';
+import { TbCategoryPlus } from 'react-icons/tb';
+import CropperWindow from './CropperWindow';
+import LoadingButton from './LoadingButton';
+import { ClipLoader } from 'react-spinners';
+import { useState } from 'react';
+
+function CropperModal(
+  {dimen = {}, isOpen, onResult, onClose, title, subTitle, headerIcon = null}
+) {
+
+  const [image, setImage] = useState(null)
+
+  const handleClose = ()=>{
+    onClose();
+  }
+
+  const Icon = headerIcon;
+
+  return (
+    <AnimatePresence>
+      {isOpen && <Modal isOpen={isOpen}>
+
+        {/* header */}
+        <div 
+          style={{width: `${dimen?.width}px` || 'auto', height:`${dimen?.height}px` || 'auto'}}
+          className='flex flex-col'>
+          <div className='flex gap-4 mb-5 border-b border-gray-300'>
+            <div className='p-3 mb-3 border border-primary-300 rounded-2xl bg-primary-50'>
+              {Icon && <Icon size={20} />}
+            </div>
+            <div className="flex-1 flex flex-col">
+              <h1 className='text-xl'>{title}</h1>
+              <p>{subTitle}</p>
+            </div>
+          </div>
+
+          <CropperWindow
+            onImageCrop={(file) => setImage(file)}
+            outPutDimen={1024}
+            outputFormat='webp'
+            validFormats={['jpg','jpeg','png','bmp',]}
+            containerClass='flex flex-col items-center w-full h-full'
+            cropperClass='flex h-full w-70 !h-70 border border-gray-300 rounded-3xl overflow-hidden'
+            buttonsClass='flex w-full items-center justify-center py-3 gap-2'
+          /> 
+        </div>
+
+        {/* action buttons */}
+        <div className='flex w-full items-center justify-end gap-2 pt-6'>
+          
+          <button
+            onClick={handleClose}
+            className={`px-4! rounded-3xl! inline-flex items-center
+            transition-all duration-300 !text-gray-500 hover:!text-white !bg-gray-300 hover:!bg-gray-400`}>
+
+            <span>Close</span>
+          </button>
+
+          <LoadingButton
+            onClick={() => onResult(image)}
+            text='Save Image'
+            type='submit'
+            form='new-category-form'
+            icon={<ClipLoader color="white" size={23} />}
+            className={`px-4! rounded-3xl! inline-flex items-center
+              transition-all duration-300`}
+          />
+        </div>
+
+      </Modal>}
+    </AnimatePresence>
+  )
+}
+
+export default CropperModal

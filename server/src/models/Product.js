@@ -25,7 +25,6 @@ const productSchema = new mongoose.Schema({
   numReviews: { type: Number, default: 0 },
   featured: { type: Boolean, default: false },
   visible: { type: Boolean, default: true },
-  usesCustomAttributes: { type: Boolean, default: false },
   customAttributes: [
     {
       name: { type: String },
