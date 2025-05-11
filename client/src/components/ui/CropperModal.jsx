@@ -1,14 +1,27 @@
 import { AnimatePresence } from 'motion/react'
-import React from 'react'
 import Modal from './Modal';
-import { TbCategoryPlus } from 'react-icons/tb';
 import CropperWindow from './CropperWindow';
 import LoadingButton from './LoadingButton';
 import { ClipLoader } from 'react-spinners';
 import { useState } from 'react';
 
 function CropperModal(
-  {dimen = {}, isOpen, onResult, onClose, title, subTitle, headerIcon = null}
+  {
+    dimen = {}, 
+    isOpen, 
+    onResult, 
+    onClose, 
+    title, 
+    subTitle, 
+    headerIcon = null, 
+    cropper = {
+      src: null,
+      disableMessage: "",
+      outputFormat: "",
+      validFormats: [],
+      outPutDimen: 0
+    }
+  }
 ) {
 
   const [image, setImage] = useState(null)
@@ -38,10 +51,12 @@ function CropperModal(
           </div>
 
           <CropperWindow
+            src={cropper?.src}
             onImageCrop={(file) => setImage(file)}
-            outPutDimen={1024}
-            outputFormat='webp'
-            validFormats={['jpg','jpeg','png','bmp',]}
+            outPutDimen={cropper?.outPutDimen}
+            disableMessage={cropper?.disableMessage}
+            outputFormat={cropper?.outputFormat}
+            validFormats={cropper?.validFormats}
             containerClass='flex flex-col items-center w-full h-full'
             cropperClass='flex h-full w-70 !h-70 border border-gray-300 rounded-3xl overflow-hidden'
             buttonsClass='flex w-full items-center justify-center py-3 gap-2'

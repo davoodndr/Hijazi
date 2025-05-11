@@ -11,15 +11,15 @@ import toast from 'react-hot-toast';
 
 /**
  * @typedef {Object} CropperWindowProps
- * @property {string} buttonsClass
- * @property {string} cropperClass
- * @property {string} containerClass
- * @property {{ width: number, height: number }} outPutDimen
- * @property {string} outputFormat
- * @property {string} disableMessage
- * @property {Function} onImageCrop
- * @property {string} src
- * @property {string} validFormats
+ * @property {string} buttonsClass - Custom classes for cropper button container
+ * @property {string} cropperClass - Custom classes for cropper container
+ * @property {string} containerClass - Custom classes for cropper window container
+ * @property {{ width: number, height: number }} outPutDimen - Dimention of output file
+ * @property {string} outputFormat - Output file format
+ * @property {string} disableMessage - Message to show disaling the cropper
+ * @property {Function} onImageCrop - Function returns output as blob
+ * @property {string} src - Fills the cropper with a given image
+ * @property {string[]} validFormats - Allowed file extensions to select
  */
 
 /** @type {React.ForwardRefExoticComponent<React.PropsWithoutRef<CropperWindowProps> & React.RefAttributes<any>>} */
@@ -32,7 +32,7 @@ const CropperWindow = React.memo(forwardRef(({
   disableMessage = "",
   onImageCrop = ()=> {}, 
   src,
-  validFormats = '',
+  validFormats = [],
   /* multiSelect = false */
   
 }, ref) => {
@@ -48,6 +48,7 @@ const CropperWindow = React.memo(forwardRef(({
   /* to capture the file from out side in to cropper */
   useEffect(() => {
     setImgSrc(src)
+    if(!src) setImgSrc(null)
   }, [src])
 
   /* reset completely */

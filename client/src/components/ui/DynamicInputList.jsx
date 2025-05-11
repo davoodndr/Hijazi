@@ -103,7 +103,7 @@ const DynamicInputList = (
 
         </div>
       ))}
-      <div className='flex w-100 items-center justify-center p-2'>
+      <div className='flex w-full items-center justify-center p-2'>
         <span 
           onClick={addInput}
           className='inline-flex items-center ps-1 pe-3 py-1 rounded-xl cursor-pointer'>

@@ -5,10 +5,25 @@ import CropperModal from '../../ui/CropperModal';
 import { hasBlankObjectValue, imageFileToSrc } from '../../../utils/Utils';
 import { useEffect } from 'react';
 
-function VariantsTable({attributes, getVariants}) {
+/**
+ * 
+ * @typedef {Object} VariantsTableSettings 
+ * @property {Object[] | undefined} attributes - Attributes to create variants
+ * @property {Function | undefined} getVariants - Function returns variants
+ * @property {{ width: number, height: number }} outPutDimen - Required output dimensions for variant image
+ */
+
+function VariantsTable(
+  {
+    attributes, 
+    getVariants,
+    outPutDimen
+  }
+) {
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(null);
+  const [modalImageSrc, setModalImageSrc] = useState(null);
   const [variants, setVariants] = useState([
     {
       id: Date.now(),
@@ -95,7 +110,8 @@ function VariantsTable({attributes, getVariants}) {
               <select key={attribute.name} 
                 value={variant.attributes[attribute.name]}
                 onChange={e => handleChange(index, attribute.name, e.target.value, true)}
-                className='!text-gray-400 capitalize'
+                className={`capitalize
+                  ${variant.attributes[attribute.name] === "" ? "!text-gray-400" : "!text-gray-800"}`}
               >
                 <option value="" disabled>Select...</option>
                 {attribute?.values.map(item =>
@@ -127,6 +143,7 @@ function VariantsTable({attributes, getVariants}) {
               <label 
                 onClick={() => {
                   setActiveIndex(index);
+                  setModalImageSrc(variant.preview);
                   setIsModalOpen(true);
                 }}
                 htmlFor={`variant-image-${index}`} 
@@ -145,11 +162,17 @@ function VariantsTable({attributes, getVariants}) {
         
       </ul>
       <CropperModal
+        src={modalImageSrc}
         dimen={{width: 450}}
         title="Crop Image"
         subTitle="Crop images as per the required dimention"
         headerIcon={IoImage}
         isOpen={isModalOpen}
+        cropper={{
+          outputFormat: 'webp',
+          validFormats: ['jpg','jpeg','png','bmp'],
+          outPutDimen: outPutDimen
+        }}
         onResult={async(file) => {
           handleChange(activeIndex, 'image', file);
           handleChange(activeIndex, 'preview', await imageFileToSrc(file));
