@@ -1,9 +1,10 @@
 import React from 'react'
 import { useState } from 'react';
-import { IoAdd, IoImage } from 'react-icons/io5';
+import { IoAdd, IoImage, IoTrashOutline } from 'react-icons/io5';
 import CropperModal from '../../ui/CropperModal';
 import { hasBlankObjectValue, imageFileToSrc } from '../../../utils/Utils';
 import { useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 /**
  * 
@@ -15,82 +16,89 @@ import { useEffect } from 'react';
 
 function VariantsTable(
   {
-    attributes, 
-    getVariants,
+    attributes,
+    variants,
+    setVariants,
     outPutDimen
   }
 ) {
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(null);
   const [modalImageSrc, setModalImageSrc] = useState(null);
-  const [variants, setVariants] = useState([
-    {
-      id: Date.now(),
-      attributes: Object.fromEntries(attributes?.map(attr => [attr.name, ''])),
-      sku: '',
-      price: '',
-      stock: '',
-      image: null,
-      preview: null
-    },
-  ]);
+  const [selectedVariants, setSelectedVariants] = useState([])
 
+  /* initialization & output */
   useEffect(() => {
-    const result = variants?.map(item => {
-      if(!hasBlankObjectValue(item)){
-        return {
-          attributes: item.attributes,
-          sku: item.sku,
-          price: item.price,
-          stock: item.stock,
-          image: item.image
-        }
-      }
-    }).filter(Boolean)
-    if(result?.length) getVariants(result)
-  }, [variants])
+    if(!variants.length){
+      addRow();
+    }
+  },[variants])
 
-  const handleChange = (rowIndex, field, value, isAttr = false) => {
-    setVariants(prev => {
-      const updated = [...prev];
-      if (isAttr) {
-        updated[rowIndex].attributes[field] = value;
-      } else {
-        updated[rowIndex][field] = value;
-      }
-      return updated;
-    });
+  const handleChange = ({type = 'update', rowIndex, field, value, isAttr = false, list}) => {
+    setVariants({type, rowIndex, field, value, isAttr, list})
   };
 
   const addRow = () => {
-    setVariants(prev => [
-      ...prev,
-      {
-        id: Date.now(),
-        attributes: Object.fromEntries(attributes.map(attr => [attr.name, ''])),
-        sku: '',
-        price: '',
-        stock: '',
-        image: null,
-        preview: null
-      },
-    ]);
+    setVariants({type: 'insert', value: {
+          id: Date.now(),
+          attributes: Object.fromEntries(attributes.map(attr => [attr.name, ''])),
+          sku: '',
+          price: '',
+          stock: '',
+          image: null,
+          preview: null
+        },
+      }
+    );
   };
+
+  const handleModalResult = async(file) => {
+    if(file && !hasBlankObjectValue(variants[activeIndex], ['image','preview'])){
+      handleChange({rowIndex:activeIndex, field:'image', value:file});
+      const preview = await imageFileToSrc(file)
+      handleChange({rowIndex:activeIndex, field:'preview', value:preview});
+    }else{
+      toast.error('Fill all previous fields to add image')
+    }
+    setIsModalOpen(false);
+    setActiveIndex(null);
+  }
+
+  const handleDeleteVariants = () => {
+    handleChange({type: 'delete', list:selectedVariants})
+    setSelectedVariants([])
+  }
   
   return (
     <>
+      {/* header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-md font-medium text-gray-900">Variants</h2>
-        <div
-          onClick={addRow} 
-          className="inline-flex items-center border border-primary-300 ps-1 pe-2 py-1 rounded-2xl
-          transition-all duration-300 hover:bg-primary-50 cursor-pointer"
-          >
-          <IoAdd size={20} />
-          <span>Add Variant</span>
+        <div className='flex items-center gap-2'>
+
+          {/* delete button */}
+          <div 
+            onClick={handleDeleteVariants}
+            className={`inline-flex bg-gray-200 p-2 rounded-lg cursor-pointer smooth
+            hover:bg-red-400 hover:text-white 
+            ${selectedVariants.length ? '' : 'pointer-events-none cursor-not-allowed opacity-50'}`}> 
+            <IoTrashOutline size={20} />
+          </div>
+
+          {/* add variant button */}
+          <div
+            onClick={addRow} 
+            className="inline-flex items-center border border-primary-300 ps-1 pe-2 py-1 rounded-2xl
+            smooth hover:bg-primary-50 cursor-pointer"
+            >
+            <IoAdd size={20} />
+            <span>Add Variant</span>
+          </div>
         </div>
       </div>
+
+      {/* content */}
       <ul className='flex flex-col gap-2'>
         {/* headers */}
         <li className={`grid grid-flow-col auto-cols-[minmax(0,1fr)] gap-1 capitalize font-semibold`}>
@@ -109,7 +117,12 @@ function VariantsTable(
             {attributes.map(attribute =>
               <select key={attribute.name} 
                 value={variant.attributes[attribute.name]}
-                onChange={e => handleChange(index, attribute.name, e.target.value, true)}
+                onChange={e => handleChange({
+                  rowIndex:index, 
+                  field: attribute.name, 
+                  value:e.target.value, 
+                  isAttr: true
+                })}
                 className={`capitalize
                   ${variant.attributes[attribute.name] === "" ? "!text-gray-400" : "!text-gray-800"}`}
               >
@@ -125,41 +138,51 @@ function VariantsTable(
               type="text"
               placeholder="SKU"
               value={variant.sku}
-              onChange={(e) => handleChange(index, 'sku', e.target.value)}
+              onChange={(e) => handleChange({rowIndex:index,  field:'sku', value:e.target.value})}
             />
             <input
               type="number"
               placeholder="Price"
               value={variant.price}
-              onChange={(e) => handleChange(index, 'price', e.target.value)}
+              onChange={(e) => handleChange({rowIndex:index,  field:'price', value:e.target.value})}
             />
             <input
               type="number"
               placeholder="Stock"
               value={variant.stock}
-              onChange={(e) => handleChange(index, 'stock', e.target.value)}
+              onChange={(e) => handleChange({rowIndex:index,  field:'stock', value:e.target.value})}
             />
-            <div className='border border-gray-300 rounded-lg h-full flex items-center justify-between p-1'>
-              <label 
-                onClick={() => {
-                  setActiveIndex(index);
-                  setModalImageSrc(variant.preview);
-                  setIsModalOpen(true);
-                }}
-                htmlFor={`variant-image-${index}`} 
-                className='cursor-pointer border border-gray-300 rounded-md inline-flex items-center
-                px-2 '
-              >
-                Browse
-              </label>
-              <div className='border border-gray-300 w-7.5'>
-                {/* {console.log(variant)} */}
-                <img src={variant?.preview || null} className='object-contain' alt="" />
+            <div className='flex w-full gap-x-1 items-center'>
+              <div className='flex-1 border border-gray-300 rounded-lg h-full flex items-center justify-between p-1'>
+                <label 
+                  onClick={() => {
+                    setActiveIndex(index);
+                    setModalImageSrc(variant.preview);
+                    setIsModalOpen(true);
+                  }}
+                  htmlFor={`variant-image-${index}`} 
+                  className='cursor-pointer border border-gray-300 rounded-md inline-flex items-center
+                  px-2 '
+                >
+                  Browse
+                </label>
+                <div className='border border-gray-300 w-7.5'>
+                  <img src={variant?.preview || null} className='object-contain' alt="" />
+                </div>
+              </div>
+              <div className='p-2.75 bg-gray-300 inline-flex rounded-lg'>
+                <input type="checkbox" onChange={(e)=> {
+                  if(e.target.checked){
+                    setSelectedVariants(prev => ([...prev, variant?.id]));
+                  }else{
+                    setSelectedVariants(prev => prev.filter(el => el !== variant?.id));
+                  }
+                }} />
               </div>
             </div>
           </li>
         ))}
-        
+
       </ul>
       <CropperModal
         src={modalImageSrc}
@@ -173,19 +196,13 @@ function VariantsTable(
           validFormats: ['jpg','jpeg','png','bmp'],
           outPutDimen: outPutDimen
         }}
-        onResult={async(file) => {
-          handleChange(activeIndex, 'image', file);
-          handleChange(activeIndex, 'preview', await imageFileToSrc(file));
-          setIsModalOpen(false);
-          setActiveIndex(null);
-        }}
+        onResult={handleModalResult}
         onClose={()=> {
           setIsModalOpen(false);
           setActiveIndex(null);
         }}
       />
     </>
-    
   )
 }
 

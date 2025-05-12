@@ -57,14 +57,14 @@ const EditProduct = () => {
     e.preventDefault();
 
 
-    if(isValidDatas(['name','slug','price','stock','description','category','brand','files'],data)){
+    if(isValidDatas(['name','slug','price','stock','description','category','brand'],data)){
 
       if(!isValidName(data['name']) || !isValidName(data['slug'])){
         toast.error('Name and slug should have minimum 3 letters')
         return
       }
 
-      if(!data['files'].length){
+      if(!data['files'].length && !variants.length){
         toast.error("Image is mandatory to create brand");
         return
       }
@@ -127,11 +127,11 @@ const EditProduct = () => {
 
   };
 
-  //console.log(variants)
-
   /* image handling */
   const resetRef = useRef(null);
   const [viewImages, setViewImages] = useState([])
+  const [variantImages, setVariantImages] = useState([])
+  const [variantId, setVaraintId] = useState(null)
   const [disableMessage, setDisableMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const maxLimit =  5;
@@ -143,6 +143,7 @@ const EditProduct = () => {
       setDisableMessage(null)
     }
   },[data.files])
+
 
   /* handle crop image */
   const handleCropImage = async(file) => {
@@ -166,14 +167,60 @@ const EditProduct = () => {
   }
 
   /* handle delete thumb */
-  const handleThumbDelete = (id) => {
-    setViewImages(prev => prev.filter(item => item.id !== id))
-    setData(prev => ({...prev, files: prev.files.filter(item => item.id !== id)}))
-    if(resetRef.current){
-      resetRef.current.reset();
+  const handleThumbDelete = (id, isVariant) => {
+    if(isVariant){
+      setVariantImages(prev => prev.filter(item => item.id !== id))
+      setVariants(prev => prev.map(item => {
+        if(item.id !== id) return item;
+        return {
+          ...item,
+          image: null,
+          preview: null
+        }
+      }))
+    }else{
+      setViewImages(prev => prev.filter(item => item.id !== id))
+      setData(prev => ({...prev, files: prev.files.filter(item => item.id !== id)}))
+      if(resetRef.current){
+        resetRef.current.reset();
+      }
     }
   }
 
+  /* handle actions on variants */
+  const handleVariantActions = (data) => {
+    const { type, list, isAttr, rowIndex, field, value  } = data;
+
+    switch(type){
+
+      case 'insert': 
+        setVariants(prev => ([...prev, value]));
+        break;
+      case 'update': 
+        setVariants(prev => {
+          const updated = [...prev];
+          if (isAttr) {
+            updated[rowIndex].attributes[field] = value;
+          } else {
+            updated[rowIndex][field] = value;
+            if(field === 'preview'){
+              setVariantImages(prev => [...prev, {id: updated[rowIndex].id, value}])
+            }
+          }
+          return updated;
+        })
+        break;
+      case 'delete': 
+        setVariants(prev => prev.filter(item => !list?.includes(item.id)))
+        setVariantImages(prev => prev.filter(item => !list?.includes(item.id)))
+        break;
+
+      default: null
+    }
+    
+  }
+
+  console.log(variants)
 
   return (
 
@@ -353,43 +400,79 @@ const EditProduct = () => {
           </div>
         </form>
 
-        {/* product images and custom variants */}
+        {/* product images and custom attributes */}
         <div className="grid grid-cols-[2fr_1fr] gap-2">
 
           {/* images */}
           <div className="border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
             <h2 className="text-md font-medium text-gray-900 flex items-center gap-2 pb-4">Images</h2>
             
-            <div className="grid grid-cols-4 justify-items-center gap-4">
+            <div className="flex flex-col">
+              <div className="grid grid-cols-4 justify-items-center gap-4">
 
-              {viewImages.length > 0 && viewImages.map(img => 
+                {viewImages.length > 0 && viewImages.map(img => 
+                  <ImageThumb
+                    key={img.id} 
+                    src={img.value}
+                    thumbClass='relative w-fit'
+                    imgClass='rounded-xl border border-gray-300 w-30 h-30 overflow-hidden'
+                    Actions={() => {
+                      return(
+                        <div 
+                          onClick={() => {handleThumbDelete(img.id, false)}}
+                          className="absolute -top-2 -right-2 inline-flex items-center text-white bg-red-500
+                          p-0.5 rounded-full border border-white shadow-md/40 cursor-pointer transition-all duration-300
+                          hover:bg-red-600 hover:scale-110">
+                          <IoClose size={15} />
+                        </div>
+                      )
+                    }}
+                  />
+                )}
+
                 <ImageThumb
-                  key={img.id} 
-                  src={img.value}
-                  thumbClass='relative w-fit'
-                  imgClass='rounded-xl border border-gray-300 w-30 h-30 overflow-hidden'
-                  Actions={() => {
-                    return(
-                      <div 
-                        onClick={() => {handleThumbDelete(img.id)}}
-                        className="absolute -top-2 -right-2 inline-flex items-center text-white bg-red-500
-                        p-0.5 rounded-full border border-white shadow-md/40 cursor-pointer transition-all duration-300
-                        hover:bg-red-600 hover:scale-110">
-                        <IoClose size={15} />
-                      </div>
-                    )
+                  onClick={() => {
+                    setIsModalOpen(true)
                   }}
-                />
-              )}
+                  imgClass='rounded-xl border border-gray-300 w-30 h-30 overflow-hidden'
+                  />
 
-              <ImageThumb
-                onClick={() => {
-                  setIsModalOpen(true)
-                }}
-                imgClass='rounded-xl border border-gray-300 w-30 h-30 overflow-hidden'
-                />
+              </div>
+
+              {variantImages.length > 0 && 
+
+                <>
+                  <span className="mt-10 ps-4 relative before:content-[''] before:bg-sky-400 before:p-1
+                      before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:rounded-full"
+                      >Variant Images</span>
+                  <div className="grid grid-cols-4 justify-items-center gap-4 mt-4">
+                    {variantImages.map(img => 
+                      <ImageThumb
+                        key={img.id} 
+                        src={img.value}
+                        thumbClass='relative w-fit'
+                        imgClass='rounded-xl border border-gray-300 w-30 h-30 overflow-hidden'
+                        Actions={() => {
+                          return(
+                            <div 
+                              onClick={() => {handleThumbDelete(img.id, true)}}
+                              className="absolute -top-2 -right-2 inline-flex items-center text-white bg-red-500
+                              p-0.5 rounded-full border border-white shadow-md/40 cursor-pointer transition-all duration-300
+                              hover:bg-red-600 hover:scale-110">
+                              <IoClose size={15} />
+                            </div>
+                          )
+                        }}
+                      />
+                    )}
+                  </div>
+                </>
+
+              }
 
             </div>
+            
+
             <CropperModal
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}
@@ -407,26 +490,30 @@ const EditProduct = () => {
             />
           </div>
           
-          {/* custom variants */}
-          <div className="h-full w-auto space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
+          {/* custom attributes */}
+          <div 
+            className="h-full w-auto space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs
+            flex flex-col justify-between">
 
-            <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">Use Custom Attributes</h2>
+            <div className="">
+              <h2 className="mb-2 text-md font-medium text-gray-900 flex items-center gap-2">Use Custom Attributes</h2>
 
-            <DynamicInputList
-              onChange={(result) => {
-                const newAttributes = result?.map(item => {
-                  return {
-                    _id: item.id,
-                    name: item.data.name,
-                    values: item.data.value.split(',')
-                  }
-                })
-                setCustomAttributes(newAttributes)
-              }}
-              containerClass='flex flex-col gap-2 h-fit max-h-[180px] overflow-y-auto scroll-basic'
-              inputContainerClass='relative'
-              removeBtnClass='!p-2 absolute top-0.5 right-0.5'
-            />
+              <DynamicInputList
+                onChange={(result) => {
+                  const newAttributes = result?.map(item => {
+                    return {
+                      _id: item.id,
+                      name: item.data.name,
+                      values: item.data.value.split(',')
+                    }
+                  })
+                  setCustomAttributes(newAttributes)
+                }}
+                containerClass='flex flex-col gap-2 max-h-[250px] overflow-y-auto scroll-basic'
+                inputContainerClass='relative'
+                removeBtnClass='!p-2 absolute top-0.5 right-0.5'
+              />
+            </div>
 
             <div className="flex justify-end">
               <button
@@ -447,8 +534,10 @@ const EditProduct = () => {
           <div className="border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
 
             <VariantsTable
+
               attributes={finalAttributes}
-              getVariants={setVariants}
+              variants={variants}
+              setVariants={handleVariantActions}
               outPutDimen={productImageDimen}
             />
 

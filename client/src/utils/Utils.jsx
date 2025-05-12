@@ -119,8 +119,13 @@ export const imageFileToSrc = (file) => {
 }
 
 // check object value is blank
-export function hasBlankObjectValue(obj) {
-  return Object.values(obj).some(value => {
+export function hasBlankObjectValue(obj, exceptions = []) {
+  return Object.entries(obj).some(([key, value]) => {
+
+    if(exceptions.includes(key)){
+      return false;
+    }
+
     if (typeof value === 'object' && value !== null) {
       return hasBlankObjectValue(value);
     }

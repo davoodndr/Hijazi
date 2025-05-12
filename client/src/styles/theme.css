@@ -47,7 +47,7 @@
     background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background-color: rgba(76,196,187,0.3);
+    background-color: rgba(76,196,187,0.2);
     transiton: all 0.3s;
     border-radius: 10px;
     border: 2px solid transparent;
@@ -59,6 +59,7 @@
     }
   }
 }
+
 
 @layer components{
   .mandatory{
@@ -78,4 +79,8 @@
     top: 50%;
     transform: translate(150%, -35%);
   }
+}
+
+@utility smooth {
+  transition: all 0.3s;
 }
