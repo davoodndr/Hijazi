@@ -36,7 +36,7 @@ const EditProduct = () => {
 
   /* input handling */
   const [data, setData] = useState({
-    name: "", slug:"", description:"", price:"", stock:"", visible: true, status: "active",
+    name: "", slug:"", sku:'', description:"", price:"", stock:"", visible: true, status: "active",
     brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
   })
 
@@ -56,15 +56,33 @@ const EditProduct = () => {
   const handleSubmit = async(e) => {
     e.preventDefault();
 
+    const product = {
+      ...data,
+      images: data.files,
+      variants
+    }
 
-    if(isValidDatas(['name','slug','price','stock','description','category','brand'],data)){
+    //console.log(isValidated)
+
+    try {
+
+      const isValidated = validateProduct(product);
+
+
+
+    } catch (error) {
+      AxiosToast(error)
+    }
+
+
+    /* if(isValidDatas(['name','slug','sku','price','stock','description','category','brand'],data)){
 
       if(!isValidName(data['name']) || !isValidName(data['slug'])){
         toast.error('Name and slug should have minimum 3 letters')
         return
       }
 
-      if(!data['files'].length && !variants.length){
+      if(!data['files'].length && !variantImages.length){
         toast.error("Image is mandatory to create brand");
         return
       }
@@ -81,10 +99,8 @@ const EditProduct = () => {
 
       try {
 
-        /* dimension is checked on image select */
-        
+        // dimension is checked on image select
         const finalData = finalizeValues(data);
-        
         
         const response = await Axios({
           ...ApiBucket.addProduct,
@@ -101,7 +117,7 @@ const EditProduct = () => {
 
           AxiosToast(response, false);
           setData({
-            name: "", slug:"", description:"", price:"", stock:"", visible: true, status: "active",
+            name: "", slug:"", sku:"", description:"", price:"", stock:"", visible: true, status: "active",
             brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
           })
           setBrand(null);
@@ -123,7 +139,7 @@ const EditProduct = () => {
 
     }else{
       toast.error("Please fill all mandatories")
-    }
+    } */
 
   };
 
@@ -131,7 +147,6 @@ const EditProduct = () => {
   const resetRef = useRef(null);
   const [viewImages, setViewImages] = useState([])
   const [variantImages, setVariantImages] = useState([])
-  const [variantId, setVaraintId] = useState(null)
   const [disableMessage, setDisableMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const maxLimit =  5;
@@ -169,7 +184,7 @@ const EditProduct = () => {
   /* handle delete thumb */
   const handleThumbDelete = (id, isVariant) => {
     if(isVariant){
-      setVariantImages(prev => prev.filter(item => item.id !== id))
+      setVariantImages(prev => prev.filter(item => item !== id))
       setVariants(prev => prev.map(item => {
         if(item.id !== id) return item;
         return {
@@ -204,7 +219,7 @@ const EditProduct = () => {
           } else {
             updated[rowIndex][field] = value;
             if(field === 'preview'){
-              setVariantImages(prev => [...prev, {id: updated[rowIndex].id, value}])
+              setVariantImages(prev => [...prev, updated[rowIndex].id])
             }
           }
           return updated;
@@ -212,7 +227,7 @@ const EditProduct = () => {
         break;
       case 'delete': 
         setVariants(prev => prev.filter(item => !list?.includes(item.id)))
-        setVariantImages(prev => prev.filter(item => !list?.includes(item.id)))
+        setVariantImages(prev => prev.filter(item => !list?.includes(item)))
         break;
 
       default: null
@@ -220,7 +235,36 @@ const EditProduct = () => {
     
   }
 
-  console.log(variants)
+  function validateProduct(product) {
+
+    if (!product.name?.trim()) throw("Name is required");
+    if (!product.slug?.trim()) throw("Slug is required"); 
+    //if (!product.category?.trim()) throw("Category is required"); 
+    if (!product.brand?.trim()) throw("Brand is required"); 
+    if (!product.images?.length) throw("At least one image is required") 
+
+    const isUsingVariants = product.variants?.length > 0;
+
+    console.log(product.variants.length, product.stock)
+
+    if (!isUsingVariants) {
+      if (!product.sku?.trim()) throw("SKU is required") 
+      if (!product.price || product.price <= 0) throw("Valid price required") 
+      if (!product.stock || product.stock == null || product.stock < 0) throw("Stock must be 0 or more") 
+    } else {
+      const variantErrors = product.variants.map((variant, index) => {
+        const verr = {};
+        if (!variant.sku?.trim()) throw("SKU is required") 
+        if (!variant.price || variant.price <= 0) throw("Price must be greater than 0") 
+        if (variant.stock == null || variant.stock < 0) throw("Stock is required") 
+        if (!variant.attributes || Object.values(variant.attributes).some(v => !v))
+         throw("All attributes must be selected") 
+        return Object.keys(verr).length > 0 ? verr : null;
+      });
+
+    }
+
+  }
 
   return (
 
@@ -282,6 +326,16 @@ const EditProduct = () => {
                   onChange={handleChange}
                   type="text"
                   placeholder="Enter product name"
+                />
+              </div>
+              <div>
+                <label  className="mandatory">SKU / Product Code</label>
+                <input
+                  name="sku"
+                  value={data.sku}
+                  onChange={handleChange}
+                  type="text"
+                  placeholder="Enter product code"
                 />
               </div>
               <div>
@@ -350,7 +404,7 @@ const EditProduct = () => {
                     }
                   }}
                   options={
-                    categories?.map(item => ({id: item._id, label: item.name})) || []
+                    categories?.filter(cat => cat.parentId !== null).map(item => ({id: item._id, label: item.name})) || []
                   } />
               </div>
               <div>
@@ -446,25 +500,39 @@ const EditProduct = () => {
                       before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:rounded-full"
                       >Variant Images</span>
                   <div className="grid grid-cols-4 justify-items-center gap-4 mt-4">
-                    {variantImages.map(img => 
-                      <ImageThumb
-                        key={img.id} 
-                        src={img.value}
-                        thumbClass='relative w-fit'
-                        imgClass='rounded-xl border border-gray-300 w-30 h-30 overflow-hidden'
-                        Actions={() => {
-                          return(
-                            <div 
-                              onClick={() => {handleThumbDelete(img.id, true)}}
-                              className="absolute -top-2 -right-2 inline-flex items-center text-white bg-red-500
-                              p-0.5 rounded-full border border-white shadow-md/40 cursor-pointer transition-all duration-300
-                              hover:bg-red-600 hover:scale-110">
-                              <IoClose size={15} />
-                            </div>
-                          )
-                        }}
-                      />
-                    )}
+                    {variants?.map(variant => {
+                      if(variant.preview){
+                        return (
+                          <ImageThumb
+                            key={variant.id} 
+                            src={variant.preview}
+                            thumbClass='relative w-fit'
+                            imgClass='rounded-xl border border-gray-300 w-30 h-37 overflow-hidden'
+                            Actions={() => {
+                              return(
+                                <>
+                                  <div 
+                                    onClick={() => {handleThumbDelete(variant.id, true)}}
+                                    className="absolute -top-2 -right-2 inline-flex items-center text-white bg-red-500
+                                    p-0.5 rounded-full border border-white shadow-md/40 cursor-pointer transition-all duration-300
+                                    hover:bg-red-600 hover:scale-110">
+                                    <IoClose size={15} />
+                                  </div>
+                                  <div className="border-t border-gray-300 flex gap-2 items-center 
+                                    justify-center h-7 w-full absolute bottom-0 rounded-b-xl">
+                                    {Object.keys(variant?.attributes).slice(0,2).map((key,index) => 
+                                      <span key={index} className={`capitalize text-xs relative`}>
+                                        {key === 'color' ? '' : `${key}:`} {variant?.attributes[key]}
+                                      </span>
+                                    )}
+                                  </div>
+                                </>
+                              )
+                            }}
+                          />
+                        )
+                      }
+                    })}
                   </div>
                 </>
 

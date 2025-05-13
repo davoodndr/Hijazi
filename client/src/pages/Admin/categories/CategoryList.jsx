@@ -93,21 +93,37 @@ const CategoryList = () => {
 
   /* create action handleing */
   const handleCreate =  (doc) => {
-    setCategories(prev => ([...prev, doc]));
+
+    const parent = categories?.find(item => item._id === doc.parentId);
+    const docWithParent = {
+      ...doc,
+      parentId: parent || doc.parentId
+    }
+
+    const sorted = [...categories, docWithParent].sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+    
+    setCategories(sorted);
     setIsAddOpen(false);
   }
 
   /* update action handleing */
   const handleUpdate =  (doc) => {
+
+    const parent = categories?.find(item => item._id === doc.parentId);
+    const docWithParent = {
+      ...doc,
+      parentId: parent || doc.parentId
+    }
+
     setCategories(prev => 
       prev.map(item => {
         if(item._id === doc._id){
-          return doc;
+          return docWithParent;
         }else if(item.parentId?._id === doc._id){
           return{
             ...item,
             parentId:{
-              ...doc
+              ...docWithParent
             }
           }
         }else{
@@ -410,7 +426,7 @@ const CategoryList = () => {
 
       <EditCategoryModal
         category={editingCategory}
-        list={categories}
+        list={categories.filter(item => item._id !== editingCategory?._id)}
         isOpen={isEditOpen}
         onUpdate={handleUpdate}
         onClose={() => setIsEditOpen(false)}

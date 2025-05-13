@@ -78,9 +78,24 @@
     right: 0;
     top: 50%;
     transform: translate(150%, -35%);
+    
   }
 }
 
 @utility smooth {
   transition: all 0.3s;
+}
+
+@utility point-before{
+  &::before{
+    content: '';
+    background-color: var(--color-red-500);
+    position: absolute;
+    display: inline-flex;
+    border-radius:3px;
+    padding: 5px;
+    left: -12px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
 }

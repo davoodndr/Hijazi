@@ -18,6 +18,7 @@ const DynamicInputList = (
     
     const input = value?.map(item => {
       return {
+        ...item,
         id: item?._id,
         data: {
           name: item?.name,
@@ -37,20 +38,13 @@ const DynamicInputList = (
     if(result.length) onChange(result);
   }, [inputs])
 
-  const handleChangeName = (id, newValue) => {
-    setInputs(prev =>
-      prev.map(input =>
-        input.id === id ? { ...input, data: { ...input.data, name:newValue } } : input
-      )
-    );
-  };
-  const handleChangeValue = (id, newValue) => {
-    setInputs(prev =>
-      prev.map(input =>
-        input.id === id ? { ...input, data: { ...input.data, value:newValue } } : input
-      )
-    );
-  };
+  const handleInputs = (rowIndex, field, value) => {
+    setInputs(prev => {
+      const updated = [...prev];
+      updated[rowIndex].data[field] = value;
+      return updated;
+    })
+  }
 
   const addInput = () => {
     setInputs(prev => [...prev, { 
@@ -64,55 +58,62 @@ const DynamicInputList = (
   };
 
   return (
-    <div className={containerClass}>
+    <>
       <label className={titleClass}>
-        {title}
-        <span className='text-gray-400 ms-2'>@ex: Color: red, green, blue</span>
-      </label>
-      {inputs.map((input, index) => (
-        <div key={input.id} className={inputContainerClass}>
-          <input
-            type="text"
-            value={input?.data?.name}
-            onChange={(e) => handleChangeName(input.id, e.target.value)}
-            placeholder={`Attribute ${index + 1}`}
-          />
-          
-          <input
-            type="text"
-            value={input?.data?.value}
-            onChange={(e) => handleChangeValue(input.id, e.target.value)}
-            placeholder={`Values ${index + 1}`}
-          />
-          
-          <button 
-            type='button' 
-            onClick={() => removeInput(input.id)} 
-            disabled={inputs.length === 1}
-            className={removeBtnClass}
-          >
-            <IoTrashOutline size={20} />
-          </button>
+          {title}
+          <span className='text-gray-400 ms-2'>@ex: Color: red, green, blue</span>
+        </label>
+      <div className={containerClass}>
+        
+        {inputs.map((input, index) => (
+          <div key={input.id} className={`${inputContainerClass}`}>
+            <input
+              type="text"
+              value={input?.data?.name}
+              onChange={e => handleInputs(index, 'name', e.target.value)}
+              placeholder={`Attribute ${index + 1}`}
+              disabled={input.parent}
+              className='disabled:text-gray-400 disabled:bg-gray-100'
+              />
+            
+            <input
+              type="text"
+              value={input?.data?.value}
+              onChange={e => handleInputs(index, 'value', e.target.value)}
+              placeholder={`Values ${index + 1}`}
+              disabled={input.parent}
+              className='disabled:text-gray-400 disabled:bg-gray-100'
+            />
+            
+            <button 
+              type='button' 
+              onClick={() => removeInput(input.id)} 
+              disabled={inputs.length === 1 && index < 1 ||  input.parent}
+              className={`${removeBtnClass} disabled:!text-gray-400 disabled:!bg-gray-100 disabled:pointer-events-none disabled:cursor-not-allowed`}
+            >
+              <IoTrashOutline size={20} />
+            </button>
 
-          <div className="flex col-span-full mt-1">
-            <span className='capitalize'>{input?.data?.name && input?.data?.name + ':'}</span>
-            <span className='ms-1 capitalize'>{input?.data?.value}</span>
+            <div className="flex col-span-full mt-1">
+              <span className='capitalize'>{input?.data?.name && input?.data?.name + ':'}</span>
+              <span className='ms-1 capitalize'>{input?.data?.value}</span>
+            </div>
+
+            {/* <pre className='col-span-full'>{JSON.stringify(input.value, null, 2)}</pre> */}
+
           </div>
-
-          {/* <pre className='col-span-full'>{JSON.stringify(input.value, null, 2)}</pre> */}
-
+        ))}
+        <div className='flex w-full items-center justify-center p-2'>
+          <span 
+            onClick={addInput}
+            className='inline-flex items-center ps-1 pe-3 py-1 rounded-xl cursor-pointer'>
+            <IoAdd size={20} />
+            <span>Add new</span>
+          </span>
         </div>
-      ))}
-      <div className='flex w-full items-center justify-center p-2'>
-        <span 
-          onClick={addInput}
-          className='inline-flex items-center ps-1 pe-3 py-1 rounded-xl cursor-pointer'>
-          <IoAdd size={20} />
-          <span>Add new</span>
-        </span>
+        {/* <pre>{JSON.stringify(inputs, null, 2)}</pre> */} {/* for debugging */}
       </div>
-      {/* <pre>{JSON.stringify(inputs, null, 2)}</pre> */} {/* for debugging */}
-    </div>
+    </>
   );
 }
 

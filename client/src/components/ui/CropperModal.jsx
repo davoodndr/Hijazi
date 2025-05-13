@@ -4,6 +4,7 @@ import CropperWindow from './CropperWindow';
 import LoadingButton from './LoadingButton';
 import { ClipLoader } from 'react-spinners';
 import { useState } from 'react';
+import { useEffect } from 'react';
 
 function CropperModal(
   {
@@ -13,7 +14,7 @@ function CropperModal(
     onClose, 
     title, 
     subTitle, 
-    headerIcon = null, 
+    headerIcon = null,
     cropper = {
       src: null,
       disableMessage: "",
@@ -23,6 +24,15 @@ function CropperModal(
     }
   }
 ) {
+  
+  /* reset image on every opens */
+  useEffect(() => {
+    if (isOpen) {
+      setImage(cropper?.src ?? null);
+    } else {
+      setImage(null);
+    }
+  },[isOpen, cropper?.src])
 
   const [image, setImage] = useState(null)
 

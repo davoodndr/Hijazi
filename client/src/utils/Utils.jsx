@@ -132,3 +132,12 @@ export function hasBlankObjectValue(obj, exceptions = []) {
     return value === '' || value == null;
   });
 }
+
+export function findDuplicateAttribute(attributes){
+  const set = new Set();
+  for(let item of attributes){
+    if(set.has(item.name)) return true;
+    set.add(item.name)
+  }
+  return false;
+}

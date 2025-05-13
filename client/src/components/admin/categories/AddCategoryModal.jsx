@@ -7,7 +7,7 @@ import CustomSelect from '../../ui/CustomSelect';
 import Switch from '../../ui/ToggleSwitch';
 import CropperWindow from '../../ui/CropperWindow';
 import toast from 'react-hot-toast'
-import { finalizeValues, isValidDatas, isValidName } from '../../../utils/Utils';
+import { finalizeValues, findDuplicateAttribute, getImageDimensions, isValidDatas, isValidFile, isValidName } from '../../../utils/Utils';
 import AxiosToast from '../../../utils/AxiosToast';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
@@ -22,6 +22,8 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
   const [loading, setIsLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [parent, setParent] = useState(null);
+  const [attributes, setAttributes] = useState([]);
+  const categoryImagedimen = {width:600, height: 600}
     
 
   /* data input handling */
@@ -44,14 +46,20 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
   }
 
   const handleAttributes = (inputs) => {
-    if(inputs.length){
-      const attrs = inputs.map(item => {
+    
+    if(inputs?.length){
+
+      const attrs = inputs.filter(item => !item.parent).map(item => {
         return {
           name: item.data?.name,
           values: item.data.value?.split(',').filter(Boolean)
         }
       })
 
+      if(findDuplicateAttribute([...attributes, ...attrs])){
+        toast.error("This attribute alredy exists", {position:'top-center'});
+      }
+      
       setData(prev => ({...prev, attributes:attrs}))
     }
   }
@@ -64,6 +72,12 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
   const handleParentChange = (val) => {
     setParent(val);
     setData(prev => ({...prev,parentId:val?.id}));
+    const cat = categories?.find(item => item._id === val.id)
+    
+    if(cat?.attributes){
+      const attrs = cat.attributes.map(item => ({...item, parent: true}))
+      setAttributes(attrs)
+    }
   }
 
   const handleSubmit = async(e) => {
@@ -77,7 +91,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
       }
 
       if(!data['file']){
-        toast.error("Image is mandatory to create brand");
+        toast.error("Image is mandatory to create category");
         return
       }
 
@@ -85,6 +99,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
         toast.error("You selected invalid file");
         return
       }
+      
 
       setIsLoading(true)
 
@@ -92,12 +107,17 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
 
         const dimen = await getImageDimensions(data['file']);
       
-        if(dimen.width !== brandImageDimen.width || dimen.height !== brandImageDimen.height){
+        if(dimen.width !== categoryImagedimen.width || dimen.height !== categoryImagedimen.height){
           toast.error("Image dimention does not match");
           return
         }
 
         const finalData = finalizeValues(data);
+
+        if(findDuplicateAttribute([...attributes, ...finalData.attributes])){
+          toast.error("Duplicate attributes not allowed", {position:'top-center'});
+          return
+        }
         
         const response = await Axios({
           ...ApiBucket.addCategory,
@@ -161,7 +181,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
           </div>
 
           {/* form inputs */}
-          <form onSubmit={handleSubmit} className='grid grid-cols-[1fr_1.5fr_1fr] gap-y-2 gap-x-4' id='new-category-form'>
+          <form onSubmit={handleSubmit} className='grid grid-cols-[1fr_1.5fr_1fr] overflow-hidden gap-y-2 gap-x-4' id='new-category-form'>
             
             {/* inputs fields */}
             <div className="flex flex-col gap-2">
@@ -186,7 +206,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
                 <CustomSelect
                   value={parent}
                   onChange={handleParentChange}
-                  options={categories.map(category => 
+                  options={categories?.filter(item => !item.parentId).map(category => 
                     ({ id: category._id, label: category.name })
                   )}
                 />
@@ -225,10 +245,11 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
 
             {/* attributes */}
             <div className="flex flex-col gap-2">
-              <DynamicInputList 
+              <DynamicInputList
                 title='Attributes'
+                value={attributes}
                 onChange={handleAttributes}
-                containerClass='flex flex-col'
+                containerClass='flex flex-col max-h-[50vh] overflow-y-auto scroll-basic'
                 inputContainerClass='grid grid-cols-[0.5fr_1fr_0.1fr_auto] gap-x-2 mb-2 items-center'
                 removeBtnClass='!p-2 w-fit h-fit !bg-red-400 hover:!bg-red-500'
               />
@@ -242,7 +263,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
               </label>
               <CropperWindow
                 onImageCrop={(file) => setData(prev => ({...prev,file}))}
-                outPutDimen={600}
+                outPutDimen={categoryImagedimen}
                 outputFormat='webp'
                 cropperClass="flex items-center justify-center !h-60 !w-60 rounded-2xl overflow-hidden border border-gray-300"
                 buttonsClass="flex items-center justify-center w-60 gap-2 py-2"

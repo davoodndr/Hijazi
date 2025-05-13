@@ -6,7 +6,7 @@ import { TbCategoryPlus } from 'react-icons/tb';
 import Switch from '../../ui/ToggleSwitch';
 import CropperWindow from '../../ui/CropperWindow';
 import toast from 'react-hot-toast'
-import { finalizeValues, getImageDimensions, isValidDatas, isValidFile, isValidName } from '../../../utils/Utils';
+import { finalizeValues, findDuplicateAttribute, getImageDimensions, isValidDatas, isValidFile, isValidName } from '../../../utils/Utils';
 import AxiosToast from '../../../utils/AxiosToast';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
@@ -21,6 +21,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
   const [loading, setIsLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [parent, setParent] = useState(null);
+  const [attributes, setAttributes] = useState([]);
   const categoryImageDimen = {width: 600, height: 600};
     
 
@@ -30,12 +31,18 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
     featured:false, visible:false, attributes: []
   });
 
+  /* initial data */
   useEffect(() => {
   
     if(category){
       setData({...category, file: category?.image});
       const parent = category?.parentId;
-      setParent({id:parent?._id, label: parent?.name})
+      if(parent){
+        const attrs = parent.attributes.map(item => ({...item, parent: true}))
+        setAttributes(attrs)
+        setParent({id:parent?._id, label: parent?.name})
+      }
+      setAttributes(prev => ([...prev, ...category.attributes]))
       setStatus({id:category?.status, label:category?.status})
     }
     
@@ -56,12 +63,16 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
 
   const handleAttributes = (inputs) => {
     if(inputs.length){
-      const attrs = inputs.map(item => {
+      const attrs = inputs.filter(item => !item.parent && !item._id).map(item => {
         return {
           name: item.data?.name,
           values: item.data.value?.split(',').filter(Boolean)
         }
       })
+
+      if(findDuplicateAttribute([...attributes, ...attrs])){
+        toast.error("This attribute alredy exists", {position:'top-center'});
+      }
 
       setData(prev => ({...prev, attributes:attrs}))
     }
@@ -75,6 +86,14 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
   const handleParentChange = (val) => {
     setParent(val);
     setData(prev => ({...prev,parentId:val?.id}));
+    const cat = list?.find(item => item._id === val.id)
+    
+    if(cat?.attributes.length){
+      const attrs = cat.attributes.map(item => ({...item, parent: true}))
+      setAttributes([...attrs, ...category.attributes]);
+    }else{
+      setAttributes(category.attributes)
+    }
   }
 
   const handleSubmit = async(e) => {
@@ -88,7 +107,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
       }
 
       if(!data['file']){
-        toast.error("Image is mandatory to create brand");
+        toast.error("Image is mandatory to create category");
         return
       }
 
@@ -107,6 +126,11 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
         }
 
         const finalData = finalizeValues(data);
+
+        if(finalData.attributes && findDuplicateAttribute([...attributes, ...finalData.attributes])){
+          toast.error("Duplicate attributes not allowed", {position:'top-center'});
+          return
+        }
         
         const response = await Axios({
           ...ApiBucket.updateCategory,
@@ -201,7 +225,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
                 <CustomSelect
                   value={parent}
                   onChange={handleParentChange}
-                  options={list?.map(category => 
+                  options={list?.filter(item => !item.parentId).map(category => 
                     ({ id: category._id, label: category.name })
                   )}
                 />
@@ -244,9 +268,9 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
             <div className="flex flex-col gap-2">
               <DynamicInputList 
                 title='Attributes'
-                value={category?.attributes}
+                value={attributes}
                 onChange={handleAttributes}
-                containerClass='flex flex-col'
+                containerClass='flex flex-col max-h-[50vh] overflow-y-auto scroll-basic'
                 inputContainerClass='grid grid-cols-[0.5fr_1fr_0.1fr_auto] gap-x-2 mb-2 items-center'
                 removeBtnClass='!p-2 w-fit h-fit !bg-red-400 hover:!bg-red-500'
               />
