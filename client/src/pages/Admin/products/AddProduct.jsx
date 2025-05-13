@@ -53,6 +53,18 @@ const EditProduct = () => {
     })
   }
 
+  /* handles category change */
+  const handleChangeCategory = (val) => {
+    setCategory(val);
+    setData(prev => ({...prev, category: val.id}))
+    const cat = categories.find(item => item._id === val.id);
+    if(cat?.attributes){
+      console.log(cat)
+      setAttributes([...cat.parentId?.attributes,...cat.attributes]);
+      setFinalAttributes([...cat.parentId?.attributes,...cat.attributes]);
+    }
+  }
+
   const handleSubmit = async(e) => {
     e.preventDefault();
 
@@ -159,7 +171,6 @@ const EditProduct = () => {
     }
   },[data.files])
 
-
   /* handle crop image */
   const handleCropImage = async(file) => {
     
@@ -239,7 +250,7 @@ const EditProduct = () => {
 
     if (!product.name?.trim()) throw("Name is required");
     if (!product.slug?.trim()) throw("Slug is required"); 
-    //if (!product.category?.trim()) throw("Category is required"); 
+    if (!product.category?.trim()) throw("Category is required"); 
     if (!product.brand?.trim()) throw("Brand is required"); 
     if (!product.images?.length) throw("At least one image is required") 
 
@@ -252,14 +263,12 @@ const EditProduct = () => {
       if (!product.price || product.price <= 0) throw("Valid price required") 
       if (!product.stock || product.stock == null || product.stock < 0) throw("Stock must be 0 or more") 
     } else {
-      const variantErrors = product.variants.map((variant, index) => {
-        const verr = {};
-        if (!variant.sku?.trim()) throw("SKU is required") 
-        if (!variant.price || variant.price <= 0) throw("Price must be greater than 0") 
-        if (variant.stock == null || variant.stock < 0) throw("Stock is required") 
+      product.variants.map((variant, index) => {
+        if (!variant.sku?.trim()) throw("Variant SKU is required") 
+        if (!variant.price || variant.price <= 0) throw("Variant Price must be greater than 0") 
+        if (variant.stock == null || variant.stock < 0) throw("Variant Stock is required") 
         if (!variant.attributes || Object.values(variant.attributes).some(v => !v))
-         throw("All attributes must be selected") 
-        return Object.keys(verr).length > 0 ? verr : null;
+          throw("All attributes must be filled") 
       });
 
     }
@@ -394,15 +403,7 @@ const EditProduct = () => {
                 <label className="mandatory">Category</label>
                 <CustomSelect
                   value={category}
-                  onChange={(val) => {
-                    setCategory(val);
-                    setData(prev => ({...prev, category: val.id}))
-                    const cat = categories.find(item => item._id === val.id);
-                    if(cat?.attributes){
-                      setAttributes(cat.attributes);
-                      setFinalAttributes(cat.attributes);
-                    }
-                  }}
+                  onChange={handleChangeCategory}
                   options={
                     categories?.filter(cat => cat.parentId !== null).map(item => ({id: item._id, label: item.name})) || []
                   } />

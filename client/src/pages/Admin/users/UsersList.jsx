@@ -265,109 +265,118 @@ const UsersList = () => {
               <li className="divide-y divide-gray-300">
 
                 <AnimatePresence exitBeforeEnter>
-                  {paginatedUsers.map((user, index) => {
+                  {paginatedUsers.length > 0 ? 
+                    (paginatedUsers.map((user, index) => {
 
-                    const statusColors = () => {
-                      switch(user.status){
-                        case 'active': return 'bg-green-500/40 text-teal-800'
-                        case 'blocked': return 'bg-red-100 text-red-500'
-                        default : return 'bg-gray-200 text-gray-400'
+                      const statusColors = () => {
+                        switch(user.status){
+                          case 'active': return 'bg-green-500/40 text-teal-800'
+                          case 'blocked': return 'bg-red-100 text-red-500'
+                          default : return 'bg-gray-200 text-gray-400'
+                        }
                       }
-                    }
 
-                    return(
-                    
-                      <motion.div 
-                        layout
-                        key={user._id}
-                        custom={index}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        variants={rowVariants}
-                        whileHover={{
-                          backgroundColor: '#efffeb',
-                          transition: { duration: 0.3 }
-                        }}
-                        className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full gap-2 px-4 py-2 bg-white">
-                        {/* Checkbox */}
-                        <div><input type="checkbox" /></div>
+                      return(
+                      
+                        <motion.div 
+                          layout
+                          key={user._id}
+                          custom={index}
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          variants={rowVariants}
+                          whileHover={{
+                            backgroundColor: '#efffeb',
+                            transition: { duration: 0.3 }
+                          }}
+                          className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full gap-2 px-4 py-2 bg-white">
+                          {/* Checkbox */}
+                          <div><input type="checkbox" /></div>
 
-                        {/* User Info */}
-                        <div className="flex gap-2 items-center">
-                          <div className="w-12 h-12 rounded-full overflow-hidden">
-                            <img src={user?.avatar || place_holder} alt="avatar" className="object-cover w-full h-full" />
-                          </div>
-                          <div className="inline-flex flex-col">
-                            <p className="capitalize">{user?.username}</p>
-                            <p className="text-xs text-gray-500">{user?.email}</p>
-                          </div>
-                        </div>
-
-                        {/* Roles */}
-                        <div className="flex flex-col text-[13px]">
-                          {user.roles.map((role, n) => (
-                            <span key={n} className="capitalize">{role}</span>
-                          ))}
-                        </div>
-
-                        {/* Contact */}
-                        <div>{user.mobile || <span className="text-gray-400">Not added</span>}</div>
-
-                        {/* Status */}
-                        <div>
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
-                            ${statusColors()}`}>
-                            {user.status}
-                          </span>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center justify-center gap-3 z-50">
-                          <div 
-                            onClick={() => navigate('/admin/users/edit-user',{state: {user}})}
-                            className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
-                            border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
-                            <TbUserEdit size={20} />
+                          {/* User Info */}
+                          <div className="flex gap-2 items-center">
+                            <div className="w-12 h-12 rounded-full overflow-hidden">
+                              <img src={user?.avatar || place_holder} alt="avatar" className="object-cover w-full h-full" />
+                            </div>
+                            <div className="inline-flex flex-col">
+                              <p className="capitalize">{user?.username}</p>
+                              <p className="text-xs text-gray-500">{user?.email}</p>
+                            </div>
                           </div>
 
-                          
-                          <Menu as="div" className='relative'>
-                            {({ open }) => (
-                              <>
-                                <MenuButton
-                                  className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                                  border border-gray-300 !text-gray-900 cursor-pointer"
-                                >
-                                  <IoMdMore size={20} />
-                                </MenuButton>
-                                <ContextMenu 
-                                  open={open}
-                                  items={[
-                                    { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user',{state: user}) },
-                                    { label: user?.status === 'blocked' ? 'unblock' : 'block', 
-                                      icon: user?.status === 'blocked' ? CgUnblock : MdBlock, onClick: ()=> handleUserBlock(user) },
-                                    { label: 'delete', icon: HiOutlineTrash, onClick: () => handleUserDelete(user) }
-                                  ]}
-                                />
-                              </>
-                            )}
+                          {/* Roles */}
+                          <div className="flex flex-col text-[13px]">
+                            {user.roles.map((role, n) => (
+                              <span key={n} className="capitalize">{role}</span>
+                            ))}
+                          </div>
+
+                          {/* Contact */}
+                          <div>{user.mobile || <span className="text-gray-400">Not added</span>}</div>
+
+                          {/* Status */}
+                          <div>
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
+                              ${statusColors()}`}>
+                              {user.status}
+                            </span>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center justify-center gap-3 z-50">
+                            <div 
+                              onClick={() => navigate('/admin/users/edit-user',{state: {user}})}
+                              className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
+                              border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
+                              <TbUserEdit size={20} />
+                            </div>
+
                             
-                          </Menu>
+                            <Menu as="div" className='relative'>
+                              {({ open }) => (
+                                <>
+                                  <MenuButton
+                                    className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                    border border-gray-300 !text-gray-900 cursor-pointer"
+                                  >
+                                    <IoMdMore size={20} />
+                                  </MenuButton>
+                                  <ContextMenu 
+                                    open={open}
+                                    items={[
+                                      { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user',{state: user}) },
+                                      { label: user?.status === 'blocked' ? 'unblock' : 'block', 
+                                        icon: user?.status === 'blocked' ? CgUnblock : MdBlock, onClick: ()=> handleUserBlock(user) },
+                                      { label: 'delete', icon: HiOutlineTrash, onClick: () => handleUserDelete(user) }
+                                    ]}
+                                  />
+                                </>
+                              )}
+                              
+                            </Menu>
+                            
+                          </div>
+                        </motion.div>
                           
-                        </div>
-                      </motion.div>
-                        
-                    )
-                  })}
-                  </AnimatePresence>
-                </li>
-              }
+                      )
+                    }))
+                  :
+                  (<div className="flex items-center justify-center h-20 text-primary-400
+                    text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl">
+                    No Users
+                  </div> )
+                  }
+
+                </AnimatePresence>
+
+              </li>
+            }
 
           
 
           {/* Pagination */}
-          {paginatedUsers && <li
+          {paginatedUsers.length > 0 && <li
             key="pagination"
             custom={filteredUsers.length + 1}
             className="px-4 py-5"

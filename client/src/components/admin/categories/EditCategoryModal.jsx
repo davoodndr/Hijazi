@@ -15,6 +15,7 @@ import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
 import CustomSelect from '../../ui/CustomSelect';
 import DynamicInputList from '../../ui/DynamicInputList';
+import { useCallback } from 'react';
 
 function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
 
@@ -22,6 +23,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
   const [status, setStatus] = useState(null);
   const [parent, setParent] = useState(null);
   const [attributes, setAttributes] = useState([]);
+  const [parentAttributes, setParentAttributes] = useState([]);
   const categoryImageDimen = {width: 600, height: 600};
     
 
@@ -39,7 +41,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
       const parent = category?.parentId;
       if(parent){
         const attrs = parent.attributes.map(item => ({...item, parent: true}))
-        setAttributes(attrs)
+        setParentAttributes(attrs)
         setParent({id:parent?._id, label: parent?.name})
       }
       setAttributes(prev => ([...prev, ...category.attributes]))
@@ -61,22 +63,32 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
     })
   }
 
-  const handleAttributes = (inputs) => {
+  const handleAttributes = useCallback((inputs) => {
     if(inputs.length){
-      const attrs = inputs.filter(item => !item.parent && !item._id).map(item => {
+      
+      let attrs = inputs.filter(item => !item.parent).map(item => {
         return {
+          id: item._id || null,
           name: item.data?.name,
           values: item.data.value?.split(',').filter(Boolean)
         }
       })
 
-      if(findDuplicateAttribute([...attributes, ...attrs])){
+      const newAttributes = attributes.map(item => {
+        const updatedItem = attrs.find(el => el.id && el.id === item._id);
+        if(updatedItem){
+          return
+        }
+        return item;
+      }).filter(Boolean)
+
+      if(findDuplicateAttribute([...newAttributes,...parentAttributes, ...attrs])){
         toast.error("This attribute alredy exists", {position:'top-center'});
-      }
+      } 
 
       setData(prev => ({...prev, attributes:attrs}))
     }
-  }
+  },[attributes]);
 
   const handleStatusChange = (val) => {
     setStatus(val);
@@ -86,13 +98,11 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
   const handleParentChange = (val) => {
     setParent(val);
     setData(prev => ({...prev,parentId:val?.id}));
-    const cat = list?.find(item => item._id === val.id)
+    const newParent = list?.find(item => item._id === val.id)
     
-    if(cat?.attributes.length){
-      const attrs = cat.attributes.map(item => ({...item, parent: true}))
-      setAttributes([...attrs, ...category.attributes]);
-    }else{
-      setAttributes(category.attributes)
+    if(newParent?.attributes.length){
+      const attrs = newParent.attributes.map(item => ({...item, parent: true}))
+      setParentAttributes([...attrs]);
     }
   }
 
@@ -127,10 +137,12 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
 
         const finalData = finalizeValues(data);
 
-        if(finalData.attributes && findDuplicateAttribute([...attributes, ...finalData.attributes])){
+        if(finalData.attributes && 
+          findDuplicateAttribute([...parentAttributes, ...finalData.attributes])){
           toast.error("Duplicate attributes not allowed", {position:'top-center'});
           return
         }
+
         
         const response = await Axios({
           ...ApiBucket.updateCategory,
@@ -154,10 +166,14 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
 
           AxiosToast(response, false);
           setData({
-            file: "", name:"", slug:"", parentId:"", status:"", featured:false, visible:false
+            file: "", name:"", slug:"", parentId:"", status:"", 
+            featured:false, visible:false, attributes: []
           })
           setStatus(null);
           setParent(null);
+          setAttributes([]);
+          setParentAttributes([]);
+
 
           onUpdate(updatedCategory);
 
@@ -266,9 +282,11 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
 
             {/* attributes */}
             <div className="flex flex-col gap-2">
+
               <DynamicInputList 
                 title='Attributes'
                 value={attributes}
+                disabledValues={parentAttributes}
                 onChange={handleAttributes}
                 containerClass='flex flex-col max-h-[50vh] overflow-y-auto scroll-basic'
                 inputContainerClass='grid grid-cols-[0.5fr_1fr_0.1fr_auto] gap-x-2 mb-2 items-center'

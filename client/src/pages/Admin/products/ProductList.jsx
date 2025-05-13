@@ -276,8 +276,9 @@ const ProductList = () => {
                 <li className="divide-y divide-gray-300">
 
                   <AnimatePresence exitBeforeEnter>
-
-                    {paginatedProducts.map((product, index) => {
+                    
+                    {paginatedProducts.length > 0 ?
+                      ( paginatedProducts.map((product, index) => {
 
                       const statusColors = () => {
                         switch(product.status){
@@ -396,7 +397,12 @@ const ProductList = () => {
                           </div>
                         </motion.div>
                                               
-                      )})
+                      )}))
+                      :
+                      (<div className="flex items-center justify-center h-20 text-primary-400
+                        text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl">
+                        No products
+                      </div> )
                     }
 
                   </AnimatePresence>
@@ -405,7 +411,7 @@ const ProductList = () => {
             }
 
           {/* Pagination */}
-          {paginatedProducts && <li
+          {paginatedProducts.length > 0 && <li
             key="pagination"
             custom={filteredProducts.length + 1}
             className="px-4 py-5"

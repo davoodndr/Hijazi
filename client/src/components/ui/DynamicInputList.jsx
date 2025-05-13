@@ -3,7 +3,14 @@ import { IoAdd, IoTrashOutline } from 'react-icons/io5';
 
 const DynamicInputList = (
   {
-    title, titleClass, containerClass,inputContainerClass, removeBtnClass, onChange = () => {}, value
+    title, 
+    titleClass, 
+    containerClass,
+    inputContainerClass, 
+    removeBtnClass, 
+    onChange = () => {}, 
+    value,
+    disabledValues
   }
 ) => {
   const [inputs, setInputs] = useState([
@@ -65,6 +72,40 @@ const DynamicInputList = (
         </label>
       <div className={containerClass}>
         
+        {disabledValues?.length > 0 && disabledValues.map((input, index) => (
+          <div key={input._id} className={`${inputContainerClass}`}>
+            <input
+              type="text"
+              value={input.name}
+              disabled
+              className='disabled:text-gray-400 disabled:bg-gray-100'
+              />
+            
+            <input
+              type="text"
+              value={input.values.join(',')}
+              disabled
+              className='disabled:text-gray-400 disabled:bg-gray-100'
+            />
+            
+            <button 
+              type='button' 
+              disabled
+              className={`${removeBtnClass}
+               disabled:!text-gray-400 disabled:!bg-gray-100 disabled:pointer-events-none
+                disabled:cursor-not-allowed`}
+            >
+              <IoTrashOutline size={20} />
+            </button>
+
+            <div className="flex col-span-full mt-1">
+              <span className='capitalize'>{input.name && input.name + ':'}</span>
+              <span className='ms-1 capitalize'>{input.values.join(',')}</span>
+            </div>
+
+          </div>
+        ))}
+
         {inputs.map((input, index) => (
           <div key={input.id} className={`${inputContainerClass}`}>
             <input
