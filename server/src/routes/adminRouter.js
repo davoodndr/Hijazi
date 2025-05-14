@@ -1,6 +1,6 @@
 import express from "express";
 import { allowRoles, authenticate } from "../middleware/authMiddleware.js";
-import { upload } from "../middleware/multer.js";
+import { productUpload, upload } from "../middleware/multer.js";
 import { uploadSingleImage } from "../controllers/commonController.js";
 import { 
   addUser, 
@@ -47,7 +47,7 @@ adminRouter.put('/delete-brand', authenticate, allowRoles(['admin']), deleteBran
 /* product management */
 adminRouter.get('/get-products', authenticate, allowRoles(['admin']), getProducts)
 adminRouter.post('/add-product', authenticate, allowRoles(['admin']), addProduct)
-adminRouter.post('/upload-product-images',authenticate, allowRoles(['admin']), upload, uploadProductImages);
+adminRouter.post('/upload-product-images',authenticate, allowRoles(['admin']), productUpload, uploadProductImages);
 adminRouter.patch('/update-product', authenticate, allowRoles(['admin']), updateProduct)
 
 export default adminRouter;

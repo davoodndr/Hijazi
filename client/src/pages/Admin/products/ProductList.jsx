@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { HiHome, HiOutlineTrash } from 'react-icons/hi2';
-import { IoIosArrowForward, IoMdMore } from 'react-icons/io';
+import { IoIosArrowDown, IoIosArrowForward, IoMdMore } from 'react-icons/io';
 import { LuEye, LuEyeClosed, LuPackagePlus, LuSearch } from 'react-icons/lu';
 import { TbCategoryPlus, TbUserEdit } from "react-icons/tb";
 import ContextMenu from '../../../components/ui/ContextMenu';
@@ -55,6 +55,25 @@ const ProductList = () => {
       if(response){
         
         const [productData, categoryData, brandData] = response;
+        /* const extractedProducts = productData.products.flatMap(product => {
+          if(product.variants.length){
+            return product.variants.map(variant => ({
+              ...product,
+              images:null,
+              variants: null,
+              baseImage: product.images[0],
+              ...variant
+            }))
+          }else{
+            return {
+              ...product,
+              image: product.images[0]
+            }
+          }
+          
+        }) */
+        
+        // const sortedProducts = extractedProducts.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
         const sortedProducts = productData.products.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
         const sortedCategories = categoryData.categories.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
         const sortedBrands = brandData.brands.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
@@ -287,6 +306,19 @@ const ProductList = () => {
                           default : return 'bg-gray-200 text-gray-400'
                         }
                       }
+                      
+                      const variants = product.variants;
+                      let price, stock = 0;
+                    
+                      if(variants.length){
+                        const prices = variants.map(item => {
+                          stock += item.stock;
+                          return item.price
+                        })
+                        const min = Math.min(...prices);
+                        const max = Math.max(...prices);
+                        price = `${min === max ? min : `${min} - ${max}`}`
+                      } 
 
                       return(
                       
@@ -307,17 +339,21 @@ const ProductList = () => {
                           <div><input type="checkbox" /></div>
 
                           {/* product Info & thumbnail */}
-                          <div className="flex gap-2 items-center">
-                            <PreviewImage src={product?.images[0]} alt={product?.name} size="40" zoom="120%" />
+                          <div className="flex gap-2 items-center relative">
+
+                            {/* varinats expand arrow */}
+                            <div 
+                              className={`absolute top-1/2 -left-5 -translate-y-1/2 cursor-pointer
+                                ${product.variants?.length ? 'text-gray-800' : 'text-gray-300'}`}>
+                              <IoIosArrowDown />
+                            </div>
+
+                            <PreviewImage src={product?.images[0]?.url} alt={product?.name} size="40" zoom="120%" />
                             
                             <div className="inline-flex flex-col capitalize">
                               <p className="font-semibold">{product?.name}</p>
                               <p className="text-xs">SKU - CODE</p>
-                              {product?.featured && 
-                                <p className="text-xs text-featured-500 inline-flex items-center w-fit rounded-xl
-                                  before:bg-featured-300 before:content[''] before:p-0.75 before:me-1
-                                  before:inline-flex before:items-center before:rounded-full"
-                                >Featured</p>
+                              {product?.featured &&  <p className="point-before">Featured</p>
                               }
                             </div>
                           </div>
@@ -327,12 +363,12 @@ const ProductList = () => {
                           
                           {/* price */}
                           <div className='capitalize flex flex-col'>
-                            <span>{product?.price}</span>
+                            <span>{price}</span>
                             <span className='text-xs'>Rating</span>
                           </div>
 
                           {/* stock */}
-                          <div className='capitalize'>{product?.stock}</div>
+                          <div className='capitalize'>{stock}</div>
 
                           {/* Status */}
                           <div className='flex flex-col space-y-0.75 '>

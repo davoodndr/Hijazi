@@ -59,7 +59,6 @@ const EditProduct = () => {
     setData(prev => ({...prev, category: val.id}))
     const cat = categories.find(item => item._id === val.id);
     if(cat?.attributes){
-      console.log(cat)
       setAttributes([...cat.parentId?.attributes,...cat.attributes]);
       setFinalAttributes([...cat.parentId?.attributes,...cat.attributes]);
     }
@@ -70,88 +69,59 @@ const EditProduct = () => {
 
     const product = {
       ...data,
-      images: data.files,
       variants
     }
 
-    //console.log(isValidated)
-
-    try {
-
-      const isValidated = validateProduct(product);
-
-
-
-    } catch (error) {
-      AxiosToast(error)
+    if(!isValidName(product['name']) || !isValidName(product['slug'])){
+      toast.error('Name and slug should have minimum 3 letters')
+      return
     }
 
+    const invalidFile = product.files.find(imgFile => !isValidFile(imgFile));
 
-    /* if(isValidDatas(['name','slug','sku','price','stock','description','category','brand'],data)){
+    if(invalidFile){
+      toast.error('Some of your image files are invalid');
+      return false;
+    }
 
-      if(!isValidName(data['name']) || !isValidName(data['slug'])){
-        toast.error('Name and slug should have minimum 3 letters')
-        return
-      }
-
-      if(!data['files'].length && !variantImages.length){
-        toast.error("Image is mandatory to create brand");
-        return
-      }
-
-      const invalidFile = data.files.find(imgFile => !isValidFile(imgFile));
-
-      if(invalidFile){
-        toast.error('Some of your image files are invalid');
-        return false;
-      }
-
-      dispatch(setLoading(true));
+    dispatch(setLoading(true));
       
+    try {
 
-      try {
+      validateProduct(product);
+      validateVariants(product)
+  
+      const response = await Axios({
+        ...ApiBucket.addProduct,
+        data: product
+      })
 
-        // dimension is checked on image select
-        const finalData = finalizeValues(data);
+      if(response.data.success){
+
+        const resultProduct = response.data.product;
         
-        const response = await Axios({
-          ...ApiBucket.addProduct,
-          data: finalData
+        await uploadProductImages(product, resultProduct._id);
+
+        AxiosToast(response, false);
+        setData({
+          name: "", slug:"", sku:"", description:"", price:"", stock:"", visible: true, status: "active",
+          brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
         })
+        setBrand(null);
+        setStatus(null);
+        setCategory(null);
+        setViewImages([]);
+        setDisableMessage('');
+        if(resetRef.current) resetRef.current.reset();
 
-        if(response.data.success){
-
-          const files = finalData.files;
-          const product = response.data.product;
-          const folder = `products/${product.slug.replaceAll('-','_')}`;
-          
-          await uploadProductImages(product._id, folder, files);
-
-          AxiosToast(response, false);
-          setData({
-            name: "", slug:"", sku:"", description:"", price:"", stock:"", visible: true, status: "active",
-            brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
-          })
-          setBrand(null);
-          setStatus(null);
-          setCategory(null);
-          setViewImages([]);
-          setDisableMessage('');
-          if(resetRef.current) resetRef.current.reset();
-        }
-        
-      } catch (error) {
-        console.log(error.response.data)
-        AxiosToast(error)
-      }finally{
-        dispatch(setLoading(false))
       }
 
-      return
-
-    }else{
-      toast.error("Please fill all mandatories")
-    } */
+    } catch (error) {
+      console.log(error?.response?.data || error)
+      AxiosToast(error)
+    }finally{
+      dispatch(setLoading(false))
+    }
 
   };
 
@@ -251,12 +221,11 @@ const EditProduct = () => {
     if (!product.name?.trim()) throw("Name is required");
     if (!product.slug?.trim()) throw("Slug is required"); 
     if (!product.category?.trim()) throw("Category is required"); 
-    if (!product.brand?.trim()) throw("Brand is required"); 
-    if (!product.images?.length) throw("At least one image is required") 
+    if (!product.brand?.trim()) throw("Brand is required");
+    if (!product.description?.trim()) throw("Description is required");
+    if (!product.files?.length) throw("At least one image is required")
 
     const isUsingVariants = product.variants?.length > 0;
-
-    console.log(product.variants.length, product.stock)
 
     if (!isUsingVariants) {
       if (!product.sku?.trim()) throw("SKU is required") 
@@ -266,13 +235,39 @@ const EditProduct = () => {
       product.variants.map((variant, index) => {
         if (!variant.sku?.trim()) throw("Variant SKU is required") 
         if (!variant.price || variant.price <= 0) throw("Variant Price must be greater than 0") 
-        if (variant.stock == null || variant.stock < 0) throw("Variant Stock is required") 
+        if (!variant.stock || variant.stock < 0) throw("Variant Stock is required") 
         if (!variant.attributes || Object.values(variant.attributes).some(v => !v))
           throw("All attributes must be filled") 
       });
 
     }
 
+  }
+
+  function validateVariants(product){
+    const attributes = product.variants.map(item => {
+      return {
+        ...item.attributes,
+        sku: item.sku
+      }
+    });
+
+    const set = new Set();
+    for(let attr of attributes) {
+      
+      const flatted = Object.entries(attr).filter(([key, val]) => key !== 'sku').flat().join('').trim();
+      if(set.has(attr.sku)){
+        console.log(attr, flatted)
+        throw("Duplicate sku not allowed in variant")
+      }
+      if(set.has(flatted)){
+        console.log(attr, flatted)
+        throw("Duplicate variant not allowed")
+      }
+      set.add(attr.sku)
+      set.add(flatted)
+      
+    }
   }
 
   return (

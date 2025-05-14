@@ -87,15 +87,14 @@
 }
 
 @utility point-before{
+  @apply relative text-xs text-featured-500 inline-flex items-center w-fit;
   &::before{
-    content: '';
-    background-color: var(--color-red-500);
-    position: absolute;
-    display: inline-flex;
-    border-radius:3px;
-    padding: 5px;
-    left: -12px;
-    top: 50%;
-    transform: translateY(-50%);
+    @apply p-1 me-1 inline-flex items-center content-[''] bg-featured-300 rounded-full;
+  }
+}
+
+@custom-variant point-before {
+  &::before{
+    @slot;
   }
 }

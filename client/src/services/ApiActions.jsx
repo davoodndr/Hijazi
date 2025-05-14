@@ -181,7 +181,49 @@ export const deleteBrandAction = async(folder, brand_id) => {
   }
 }
 
-export const uploadProductImages = async(product_id, folder, files, public_ids= [], remove_ids = []) => {
+export const uploadProductImages = async(product, product_id) => {
+
+  try {
+            
+    const formData = new FormData();
+    const slug = product.slug.replaceAll('-','_')
+
+
+    product?.files?.forEach((file,i) => {
+      formData.append('productImages', file);
+      formData.append('productImageIds', `product_${slug}_${i+1}`);
+    });
+    
+    const variants = product?.variants;
+    if(variants && variants.length){
+      variants.forEach((item, i) => {
+        if(item.image){
+          formData.append('variantImages', item.image);
+          formData.append('variantImageIds', `variant_${slug}_${item.sku}`)
+        }
+      })
+    }
+
+    formData.append('folder',`products/${slug}`)
+    formData.append('product_id',product_id)
+
+    const response = await Axios({
+      ...ApiBucket.uploadProductImages,
+      data: formData
+    })
+
+    console.log(response.data)
+
+    return response.data;
+
+  } catch (error) {
+    console.log(error?.response?.data?.message || error)
+    return error
+  }
+
+}
+
+/* export const uploadProductImages = async(product_id, folder, files, public_ids= [], remove_ids = [], maxCount = 5) => {
 
   try {
             
@@ -202,7 +244,7 @@ export const uploadProductImages = async(product_id, folder, files, public_ids= 
       ...ApiBucket.uploadProductImages,
       data: imageData,
       params: {
-        maxFileCount: 5
+        maxFileCount: maxCount
       }
     })
 
@@ -213,4 +255,4 @@ export const uploadProductImages = async(product_id, folder, files, public_ids= 
     return error
   }
 
-}
+} */

@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true },
   brand: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', required: true },
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
-  price: { type: Number, required: true },
+  price: { type: Number },
   stock: { type: Number, default: 0 },
   description: { type: String },
   status: {
@@ -20,7 +20,10 @@ const productSchema = new mongoose.Schema({
     enum: ['active', 'inactive'],
     default: 'active',
   },
-  images: [String],
+  images: [{
+    url: String,
+    public_id: String
+  }],
   averageRating: { type: Number, default: 0 },
   numReviews: { type: Number, default: 0 },
   featured: { type: Boolean, default: false },
@@ -37,7 +40,10 @@ const productSchema = new mongoose.Schema({
       sku: String,
       price: Number,
       stock: Number,
-      image: String
+      image: {
+        url: String,
+        public_id: String
+      }
     }
   ],
   reviews: [reviewSchema],

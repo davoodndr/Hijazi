@@ -30,4 +30,27 @@ export const upload = (req, res, next) => {
 
 }
 
+export const productUpload = (req, res, next) => {
+
+  const multerUpload = multer({
+    storage,
+    limits: { fileSize: 1 * 1024 * 1024 },
+  }).fields([
+    { name: 'productImages' },
+    { name: 'variantImages' }
+  ]);
+
+  multerUpload(req, res, (err) => {
+    
+    if (err) {
+      if (err instanceof multer.MulterError) {
+        return responseMessage(res, 400, false, err.message);
+      }
+      return responseMessage(res, 500, false, err.message);
+    }
+    next();
+  });
+
+}
+
 
