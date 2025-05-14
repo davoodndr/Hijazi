@@ -124,22 +124,14 @@ const ProductList = () => {
   },[searchQuery, products])
 
 
-  /* add category action */
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
-
-  /* create action handleing */
-  const handleCreate =  (doc) => {
-    setCategories(prev => ([...prev, doc]));
-    setIsAddOpen(false);
-  }
-
-  /* update action handleing */
-  const handleUpdate =  (doc) => {
-    setCategories(prev => (prev.map(item => item._id === doc._id ? doc : item)));
-    setIsEditOpen(false);
-  }
+  /* variant expand */
+  const [expanded, setExpanded] = useState({});
+  const toggleExpand = (productId) => {
+    setExpanded((prev) => ({
+      ...prev,
+      [productId]: !prev[productId]
+    }));
+  };
 
   /* handle delete category */
   const handledelete = async(id) => {
@@ -255,27 +247,27 @@ const ProductList = () => {
       </div>
 
       {/* content - first div fot smooth animaion */}
-      <div className="relative flex w-full">
+      <div className="relative flex flex-col w-full bg-white rounded-3xl shadow-lg border border-gray-200">
+        {/* Header */}
+        <div className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
+          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full">
+            <span><input type="checkbox" /></span>
+            <span>Product</span>
+            <span>Category</span>
+            <span>Price</span>
+            <span>Stock</span>
+            <span>status</span>
+            <span className="text-center">Actions</span>
+          </div>
+        </div>
         <motion.ul 
           layout
           variants={containerVariants}
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="flex flex-col w-full h-full text-sm text-gray-700 bg-white rounded-3xl
-            shadow-lg border border-gray-200">
-          {/* Header */}
-          <li className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
-            <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full">
-              <span><input type="checkbox" /></span>
-              <span>Product</span>
-              <span>Category</span>
-              <span>Price</span>
-              <span>Stock</span>
-              <span>status</span>
-              <span className="text-center">Actions</span>
-            </div>
-          </li>
+          className="flex flex-col w-full h-full text-sm text-gray-700">
+          
 
             {/* Rows */}
             {isLoading ? 
@@ -294,7 +286,7 @@ const ProductList = () => {
 
                 <li className="divide-y divide-gray-300">
 
-                  <AnimatePresence exitBeforeEnter>
+                  <AnimatePresence mode='wait' exitBeforeEnter>
                     
                     {paginatedProducts.length > 0 ?
                       ( paginatedProducts.map((product, index) => {
@@ -308,7 +300,7 @@ const ProductList = () => {
                       }
                       
                       const variants = product.variants;
-                      let price, stock = 0;
+                      let price, stock = 0, variantLen = variants.length;
                     
                       if(variants.length){
                         const prices = variants.map(item => {
@@ -321,6 +313,8 @@ const ProductList = () => {
                       } 
 
                       return(
+
+                        <>
                       
                         <motion.div 
                           layout
@@ -334,7 +328,8 @@ const ProductList = () => {
                             backgroundColor: '#efffeb',
                             transition: { duration: 0.3 }
                           }}
-                          className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full px-4 py-2 bg-white">
+                          className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full px-4 py-2 bg-white"
+                        >
                           {/* Checkbox */}
                           <div><input type="checkbox" /></div>
 
@@ -343,16 +338,24 @@ const ProductList = () => {
 
                             {/* varinats expand arrow */}
                             <div 
-                              className={`absolute top-1/2 -left-5 -translate-y-1/2 cursor-pointer
-                                ${product.variants?.length ? 'text-gray-800' : 'text-gray-300'}`}>
+                              onClick={() => toggleExpand(product._id)}
+                              className={`absolute top-1/2 -left-5 -translate-y-1/2 cursor-pointer smooth
+                                hover:text-featured-500
+                                ${product.variants?.length ? 
+                                  'text-gray-800' : 
+                                  'text-gray-300 pointer-events-none cursor-not-allowed'}`}>
                               <IoIosArrowDown />
                             </div>
 
-                            <PreviewImage src={product?.images[0]?.url} alt={product?.name} size="40" zoom="120%" />
+                            <PreviewImage src={product?.images[0]?.url} alt={product?.name} size="40" zoom="120%"
+                              thumbClass="rounded-xl border border-gray-300 w-12 h-12"
+                            />
                             
                             <div className="inline-flex flex-col capitalize">
                               <p className="font-semibold">{product?.name}</p>
-                              <p className="text-xs">SKU - CODE</p>
+                              <p className="text-xs">
+                                {variantLen ? variantLen + ` Variant${variantLen > 1 ? 's': ''}` : product.sku}
+                              </p>
                               {product?.featured &&  <p className="point-before">Featured</p>
                               }
                             </div>
@@ -380,17 +383,15 @@ const ProductList = () => {
                             <div className='capitalize text-xs w-fit'>
                               {product?.visible ? 
                               <span 
-                                className="text-xs text-yellow-500 inline-flex items-center w-fit rounded-xl
-                                before:bg-orange-300 before:content[''] before:p-0.75 before:me-1
-                                before:inline-flex before:items-center before:rounded-full"
+                                className="text-xs text-yellow-600 point-before point-before:bg-yellow-500
+                                point-before:p-0.75"
                                 >Visible</span> 
                                 
                                 :
                               
                                 <span 
-                                  className="text-xs text-red-400 inline-flex items-center w-fit rounded-xl
-                                  before:bg-red-400 before:content[''] before:p-0.75 before:me-1
-                                  before:inline-flex before:items-center before:rounded-full"
+                                  className="text-xs text-red-400 point-before point-before:bg-red-400
+                                  point-before:p-0.75"
                                   >Hidden</span>
                               }
                             </div>
@@ -431,8 +432,57 @@ const ProductList = () => {
                             </Menu>
                             
                           </div>
+
+                          
+
                         </motion.div>
-                                              
+
+                        {/* variant items */}
+                          {expanded[product._id] && product.variants?.length > 0 && 
+                            product.variants.map((variant, i) =>
+                              <motion.div 
+                                layout
+                                key={variant.sku}
+                                custom={i}
+                                initial="hidden"
+                                animate="visible"
+                                exit="exit"
+                                variants={rowVariants}
+                                whileHover={{
+                                  backgroundColor: '#efffeb',
+                                  transition: { duration: 0.3 }
+                                }}
+                                className='grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full px-4 py-1 bg-gray-100/60'>
+
+                                <div><input type="checkbox" /></div>
+                                <div className="flex gap-2 items-center relative">
+                                  <PreviewImage src={variant.image?.url} alt={product?.name} zoom="80%"
+                                    thumbClass="rounded-xl border border-gray-300 w-10 h-10"
+                                    />
+                                
+                                  <div className="inline-flex flex-col capitalize">
+                                    <p className="text-xs">SKU: {variant.sku}</p>
+                                  </div>
+                                </div>
+                                <div className='flex flex-col uppercase text-xs'>
+                                  {Object.keys(variant.attributes).map(key => 
+                                    <div key={key}>
+                                      <span className='text-gray-400'>{key}:</span>
+                                      <span>{variant.attributes[key]}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                {/* price */}
+                                <div className='capitalize flex flex-col'>
+                                  <span>{variant.price}</span>
+                                  <span className='text-xs'>Rating</span>
+                                </div>
+                                {/* stock */}
+                                <div className='capitalize'>{variant.stock}</div>
+                              </motion.div>
+                            )
+                          }
+                        </>                    
                       )}))
                       :
                       (<div className="flex items-center justify-center h-20 text-primary-400

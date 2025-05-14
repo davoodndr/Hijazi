@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 
 const portalRoot = document.getElementById('portal');
 
-const PreviewImage = ({ src, alt = 'Image', size = '40', zoom = '125%' }) => {
+const PreviewImage = ({thumbClass, src, alt = 'Image', zoom = '125%' }) => {
   const [showPreview, setShowPreview] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
@@ -28,7 +28,7 @@ const PreviewImage = ({ src, alt = 'Image', size = '40', zoom = '125%' }) => {
     <>
       {/* Thumbnail */}
       <div
-        className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-300"
+        className={`relative overflow-hidden ${thumbClass}`}
         onMouseEnter={handleMouseEnter}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
@@ -49,8 +49,8 @@ const PreviewImage = ({ src, alt = 'Image', size = '40', zoom = '125%' }) => {
             <div
               className="w-40 h-40 rounded-lg border-4 border-white outline outline-gray-400 bg-white overflow-hidden
               animate-zoomFadeIn"
-              style={{ 
-                transform: `scale(${zoom})`, 
+              style={{
+                transform: `scale(${zoom})`, //not working
                 transition: 'transform 0.2s ease-in-out',
                 boxShadow: 'rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.4) 0px 3px 7px -3px'
               }}

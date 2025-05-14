@@ -322,7 +322,9 @@ const CategoryList = () => {
 
                         {/* Category Info */}
                         <div className="flex gap-2 items-center">
-                          <PreviewImage src={category?.image} alt={category?.name} size="40" zoom="120%" />
+                          <PreviewImage src={category?.image} alt={category?.name} size="40" zoom="120%" 
+                            thumbClass="rounded-xl border border-gray-300 w-12 h-12"
+                          />
                           
                           <div className="inline-flex flex-col capitalize">
                             <p className="font-semibold">{category?.name}</p>
