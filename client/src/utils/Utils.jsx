@@ -1,3 +1,6 @@
+import { Axios } from "./AxiosSetup";
+import AxiosToast from "./AxiosToast";
+
 export const hexToRgba = (hex, alpha = 100) => {
 
   if (typeof hex !== 'string' || !/^#([A-Fa-f0-9]{6})$/.test(hex)) {
@@ -140,4 +143,27 @@ export function findDuplicateAttribute(attributes){
     set.add(item.name)
   }
   return false;
+}
+
+export const fetchImageAsFile = async(url, filename = 'image')=> {
+
+  try {
+    
+    //axios not giving the blob
+
+    const response = await fetch(url, {
+      mode: 'cors'
+    });
+    
+    const blob = await response.blob();
+    const file = new File([blob], filename, { type: blob.type });
+    return file;
+
+  } catch (error) {
+    console.log(error)
+    AxiosToast(error)
+  }
+  
+
+  
 }

@@ -1,5 +1,5 @@
 import Product from "../models/Product.js";
-import { getPublicId, uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
+import { deleteImageFromCloudinary, getPublicId, uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
 import { responseMessage } from "../utils/messages.js";
 
 
@@ -71,6 +71,15 @@ export const uploadProductImages = async(req, res) => {
 
     let product = await Product.findById(product_id);
 
+    if(remove_ids?.length){
+
+      const updatedImgs = product.images?.filter(img => !remove_ids.includes(img.public_id));
+      
+      await deleteImageFromCloudinary(folder,remove_ids)
+      product.images = updatedImgs
+      
+    }
+
     if(productImages.length){
       const upload = await uploadImagesToCloudinary(folder, productImages, productImageIds);
       const uploadResults = upload?.map(item => ({url: item.secure_url, public_id: item.public_id}));
@@ -78,13 +87,8 @@ export const uploadProductImages = async(req, res) => {
       if(uploadResults.length){
         
         const updatedImages =  updateProductImages(product.images, upload);
+        product.images = updatedImages;
 
-        product = await Product.findByIdAndUpdate(product_id,
-          {
-            images: updatedImages
-          },
-          {new: true}
-        )
       }
     }
 
@@ -113,10 +117,10 @@ export const uploadProductImages = async(req, res) => {
           }
           return variant;
         })
-
-        await product.save();
       }
     }
+
+    await product.save();
 
     // no need of returning result here as it doesn't require realtime update
     return responseMessage(res, 200, true, "Product images uploaded")

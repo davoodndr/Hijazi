@@ -1,3 +1,4 @@
+import { removeItem } from "motion/react";
 import { Axios } from "../utils/AxiosSetup";
 import AxiosToast from "../utils/AxiosToast";
 import ApiBucket from "./ApiBucket";
@@ -181,26 +182,37 @@ export const deleteBrandAction = async(folder, brand_id) => {
   }
 }
 
-export const uploadProductImages = async(product, product_id) => {
+export const uploadProductImages = async(product, product_id, remove_ids = []) => {
 
   try {
             
     const formData = new FormData();
     const slug = product.slug.replaceAll('-','_')
-
+    
 
     product?.files?.forEach((file,i) => {
-      formData.append('productImages', file);
-      formData.append('productImageIds', `product_${slug}_${i+1}`);
+      if(file instanceof File){
+        formData.append('productImages', file);
+        formData.append('productImageIds', `product_${slug}_${i + 1}`);
+      }
     });
     
     const variants = product?.variants;
     if(variants && variants.length){
       variants.forEach((item, i) => {
-        if(item.image){
+        if(item.image && item.image instanceof File){
           formData.append('variantImages', item.image);
           formData.append('variantImageIds', `variant_${slug}_${item.sku}`)
         }
+      })
+    }
+
+    console.log('removes',remove_ids)
+    //console.log(variants)
+
+    if(remove_ids.length){
+      remove_ids.forEach(id => {
+        formData.append('remove_ids', id);
       })
     }
 
@@ -211,6 +223,7 @@ export const uploadProductImages = async(product, product_id) => {
       ...ApiBucket.uploadProductImages,
       data: formData
     })
+
 
     console.log(response.data)
 

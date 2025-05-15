@@ -64,69 +64,7 @@ const EditProduct = () => {
     }
   }
 
-  const handleSubmit = async(e) => {
-    e.preventDefault();
-
-    const product = {
-      ...data,
-      variants
-    }
-
-    if(!isValidName(product['name']) || !isValidName(product['slug'])){
-      toast.error('Name and slug should have minimum 3 letters')
-      return
-    }
-
-    const invalidFile = product.files.find(imgFile => !isValidFile(imgFile));
-
-    if(invalidFile){
-      toast.error('Some of your image files are invalid');
-      return false;
-    }
-
-    dispatch(setLoading(true));
-      
-    try {
-
-      validateProduct(product);
-      validateVariants(product)
-  
-      const response = await Axios({
-        ...ApiBucket.addProduct,
-        data: product
-      })
-
-      if(response.data.success){
-
-        const resultProduct = response.data.product;
-        
-        await uploadProductImages(product, resultProduct._id);
-
-        AxiosToast(response, false);
-        setData({
-          name: "", slug:"", sku:"", description:"", price:"", stock:"", visible: true, status: "active",
-          brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
-        })
-        setBrand(null);
-        setStatus(null);
-        setCategory(null);
-        setViewImages([]);
-        setDisableMessage('');
-        if(resetRef.current) resetRef.current.reset();
-
-      }
-
-    } catch (error) {
-      console.log(error?.response?.data || error)
-      AxiosToast(error)
-    }finally{
-      dispatch(setLoading(false))
-    }
-
-  };
-
   /* image handling */
-  const resetRef = useRef(null);
   const [viewImages, setViewImages] = useState([])
   const [variantImages, setVariantImages] = useState([])
   const [disableMessage, setDisableMessage] = useState("");
@@ -177,9 +115,6 @@ const EditProduct = () => {
     }else{
       setViewImages(prev => prev.filter(item => item.id !== id))
       setData(prev => ({...prev, files: prev.files.filter(item => item.id !== id)}))
-      if(resetRef.current){
-        resetRef.current.reset();
-      }
     }
   }
 
@@ -269,6 +204,67 @@ const EditProduct = () => {
       
     }
   }
+
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+
+    const product = {
+      ...data,
+      variants
+    }
+
+    if(!isValidName(product['name']) || !isValidName(product['slug'])){
+      toast.error('Name and slug should have minimum 3 letters')
+      return
+    }
+
+    const invalidFile = product.files.find(imgFile => !isValidFile(imgFile));
+
+    if(invalidFile){
+      toast.error('Some of your image files are invalid');
+      return false;
+    }
+
+    dispatch(setLoading(true));
+      
+    try {
+
+      validateProduct(product);
+      validateVariants(product)
+  
+      const response = await Axios({
+        ...ApiBucket.addProduct,
+        data: product
+      })
+
+      if(response.data.success){
+
+        const resultProduct = response.data.product;
+        
+        await uploadProductImages(product, resultProduct._id);
+
+        AxiosToast(response, false);
+        setData({
+          name: "", slug:"", sku:"", description:"", price:"", stock:"", visible: true, status: "active",
+          brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
+        })
+        setBrand(null);
+        setStatus(null);
+        setCategory(null);
+        setViewImages([]);
+        setDisableMessage('');
+        if(resetRef.current) resetRef.current.reset();
+
+      }
+
+    } catch (error) {
+      console.log(error?.response?.data || error)
+      AxiosToast(error)
+    }finally{
+      dispatch(setLoading(false))
+    }
+
+  };
 
   return (
 

@@ -116,7 +116,7 @@ function VariantsTable(
           <li key={variant.id} className={`grid grid-flow-col auto-cols-[minmax(0,1fr)] gap-1 items-center capitalize`}>
             {attributes.map(attribute =>
               <select key={attribute.name} 
-                value={variant.attributes[attribute.name]}
+                value={variant.attributes[attribute.name] ?? ""}
                 onChange={e => handleChange({
                   rowIndex:index, 
                   field: attribute.name, 
@@ -124,7 +124,7 @@ function VariantsTable(
                   isAttr: true
                 })}
                 className={`capitalize
-                  ${variant.attributes[attribute.name] === "" ? "!text-gray-400" : "!text-gray-800"}`}
+                  ${!variant.attributes[attribute.name] ? "!text-gray-400" : "!text-gray-800"}`}
               >
                 <option value="" disabled>Select...</option>
                 {attribute?.values.map(item =>

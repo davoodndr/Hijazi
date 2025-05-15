@@ -114,7 +114,8 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
 
         const finalData = finalizeValues(data);
 
-        if(findDuplicateAttribute([...attributes, ...finalData.attributes])){
+        if(finalData.attributes && 
+          findDuplicateAttribute([...attributes, ...finalData.attributes])){
           toast.error("Duplicate attributes not allowed", {position:'top-center'});
           return
         }

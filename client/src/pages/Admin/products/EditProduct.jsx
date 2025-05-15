@@ -15,7 +15,7 @@ import { uploadProductImages } from '../../../services/ApiActions'
 import ToggleSwitch from "../../../components/ui/ToggleSwitch";
 import CropperWindow from "../../../components/ui/CropperWindow";
 import ImageThumb from "../../../components/ui/ImageThumb";
-import { capitalize, finalizeValues, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
+import { capitalize, fetchImageAsFile, finalizeValues, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
 import CropperModal from "../../../components/ui/CropperModal";
 import DynamicInputList from "../../../components/ui/DynamicInputList";
 import VariantsTable from "../../../components/admin/products/VariantsTable";
@@ -35,7 +35,6 @@ const EditProduct = () => {
   const [variants, setVariants] = useState([])
   
   /* image handling */
-  const resetRef = useRef(null);
   const [viewImages, setViewImages] = useState([])
   const [variantImages, setVariantImages] = useState([])
   const [disableMessage, setDisableMessage] = useState("");
@@ -88,7 +87,7 @@ const EditProduct = () => {
             preview: variant.image?.url || null
           }
         }))
-        setVariantImages(currentProduct.variants.map(variant => variant.image?.public_id ))
+        setVariantImages(currentProduct.variants.map(variant => variant.image?.public_id ).filter(Boolean))
       }
     }
 
@@ -127,46 +126,242 @@ const EditProduct = () => {
     }
   }
 
+  /* handle crop image */
+  const handleCropImage = async(file) => {
+    
+    if(file){
+
+      setData(prev => ({...prev, files:[...prev.files,file]}));
+
+      /* for dispalying images on thumbs */
+      try {
+        const src = await imageFileToSrc(file);
+        
+        setViewImages(prev => [...prev,  {id: file.id, value: src}]);
+        
+      } catch (err) {
+        console.error('Error reading file:', err);
+      }
+
+    }
+    setIsModalOpen(false)
+  }
+
+  /* handle delete thumb */
+  const handleThumbDelete = (id, isVariant) => {
+    if(isVariant){
+      setVariantImages(prev => prev.filter(item => item !== id))
+      setVariants(prev => prev.map(item => {
+        if(item.id !== id) return item;
+        return {
+          ...item,
+          image: null,
+          preview: null
+        }
+      }))
+    }else{
+      setViewImages(prev => prev.filter(item => item.id !== id))
+      setData(prev => ({...prev, files: prev.files.filter(item => item.id !== id)}))
+    }
+  }
+
+  /* handle actions on variants */
+  const handleVariantActions = (data) => {
+    const { type, list, isAttr, rowIndex, field, value  } = data;
+
+    switch(type){
+
+      case 'insert': 
+        setVariants(prev => ([...prev, value]));
+        break;
+      case 'update': 
+        setVariants(prev => {
+          const updated = [...prev];
+          if (isAttr) {
+            updated[rowIndex].attributes[field] = value;
+          } else {
+            updated[rowIndex][field] = value;
+            if(field === 'preview'){
+              setVariantImages(prev => [...prev, updated[rowIndex].id])
+            }
+          }
+          return updated;
+        })
+        break;
+      case 'delete': 
+        setVariants(prev => prev.filter(item => !list?.includes(item.id)))
+        setVariantImages(prev => prev.filter(item => !list?.includes(item)))
+        break;
+
+      default: null
+    }
+    
+  }
+
+  function validateProduct(product) {
+
+    if (!product.name?.trim()) throw("Name is required");
+    if (!product.slug?.trim()) throw("Slug is required"); 
+    if (!product.category?.trim()) throw("Category is required"); 
+    if (!product.brand?.trim()) throw("Brand is required");
+    if (!product.description?.trim()) throw("Description is required");
+    if (!product.files?.length) throw("At least one image is required")
+
+    const isUsingVariants = product.variants?.length > 0;
+
+    if (!isUsingVariants) {
+      if (!product.sku?.trim()) throw("SKU is required") 
+      if (!product.price || product.price <= 0) throw("Valid price required") 
+      if (!product.stock || product.stock == null || product.stock < 0) throw("Stock must be 0 or more") 
+    } else {
+      product.variants.map((variant, index) => {
+        if (!variant.sku?.trim()) throw("Variant SKU is required") 
+        if (!variant.price || variant.price <= 0) throw("Variant Price must be greater than 0") 
+        if (!variant.stock || variant.stock < 0) throw("Variant Stock is required") 
+        if (!variant.attributes || Object.values(variant.attributes).some(v => !v))
+          throw("All attributes must be filled") 
+      });
+
+    }
+
+  }
+
+  function validateVariants(product){
+    const attributes = product.variants.map(item => {
+      return {
+        ...item.attributes,
+        sku: item.sku
+      }
+    });
+
+    const set = new Set();
+    for(let attr of attributes) {
+      
+      const flatted = Object.entries(attr).filter(([key, val]) => key !== 'sku').flat().join('').trim();
+      if(set.has(attr.sku)){
+        console.log(attr, flatted)
+        throw("Duplicate sku not allowed in variant")
+      }
+      if(set.has(flatted)){
+        console.log(attr, flatted)
+        throw("Duplicate variant not allowed")
+      }
+      set.add(attr.sku)
+      set.add(flatted)
+      
+    }
+  }
+
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    if(isValidDatas(['name','slug','price','stock','description','category','brand'],data)){
+      const product = {
+        ...data,
+        variants
+      }
 
-      if(!isValidName(data['name']) || !isValidName(data['slug'])){
+      if(!isValidName(product['name']) || !isValidName(product['slug'])){
         toast.error('Name and slug should have minimum 3 letters')
         return
       }
 
-      const initialList = currentProduct.images;
+      const remove_ids = []
+      const initialImageList = currentProduct.images;
       const updatedImageList = viewImages.map(img => img.id);
       
-      if(data['files'].length){
+      if(product['files'].length){
 
-        const maintainedList = initialList.filter(img => {
-          const id = img.split('/').filter(Boolean).pop().split('.')[0];
-          if(updatedImageList.includes(id)) return id;
-        }).filter(item => Boolean(item));
-
-        console.log(maintainedList.length, data['files'].length)
-        
-        if(data['files'].length + maintainedList.length > maxLimit){
-          toast.error(`Maximum ${maxLimit} files allowed to upload`);
-          return
-        }
-
-        const invalidFile = data.files.find(imgFile => !isValidFile(imgFile));
+        const invalidFile = product.files.find(imgFile => !isValidFile(imgFile));
 
         if(invalidFile){
           toast.error('Some of your image files are invalid');
           return;
         }
+
+        const maintainedList = initialImageList.map(img => {
+          if(updatedImageList.includes(img.public_id)) {
+            return img.public_id;
+          }
+        }).filter(Boolean);
+
+        
+        if(product['files'].length + maintainedList.length > maxLimit){
+          toast.error(`Maximum ${maxLimit} files allowed to upload`);
+          return
+        }
+        
+        // place temp items to arrange the files to get missing index
+        if(maintainedList.length){
+          maintainedList.forEach((el, i) => {
+            const slot = Number(el.split('_').filter(Boolean).pop())
+            if(slot){
+              product.files.splice(slot - 1, 0, el)
+            }
+          })
+        };
+        
       }
 
-      dispatch(setLoading(true));
+      //deleted images hadnling
+      if(updatedImageList.length < initialImageList.length){
+        initialImageList.forEach(img => {
+          if(!updatedImageList.includes(img.public_id)){
+            remove_ids.push(img.public_id);
+          }
+        })
+      }
+
+      // if the variant sku is changed the image url & public_id should be changed
+      // this code is to find chages and download file to reupload
+      const oldVariants = currentProduct.variants;
+      const modifiedVariants = oldVariants.map(item => {
+        const modified = product.variants.find(el => el.id === item._id && el.sku !== item.sku)
+        if(modified && modified.image){
+          remove_ids.push(modified.image.public_id)
+          return {id: modified.id, url: modified.image.url}
+        }
+      }).filter(Boolean)
+
+      const downloads = await Promise.all(
+        modifiedVariants.map(item => {
+          return fetchImageAsFile(item.url, `${item.id}`)
+        })
+      )
+
+      // update variants with downloaded images
+      if(downloads.length){
+        product.variants = product.variants.map(variant => {
+          const modified = downloads.find(img => img.name === variant.id);
+          if(modified){
+            return {
+              ...variant,
+              image: modified
+            }
+          }
+          return variant;
+        })
+      }
+
+      console.log(product, remove_ids)
+
+      try {
+        
+        //validateProduct(product)
+
+        await uploadProductImages(product, currentProduct._id, remove_ids)
+        
+      } catch (error) {
+        console.log(error?.response?.data || error)
+        AxiosToast(error)
+      }finally{
+        dispatch(setLoading(false))
+      }
+
+      /* dispatch(setLoading(true));
       
       try {
 
-        /* dimension is checked on image select */
+        //dimension is checked on image select
         
         const finalData = finalizeValues(data);
         
@@ -204,86 +399,14 @@ const EditProduct = () => {
           setCategory(null);
           setViewImages([]);
           setDisableMessage('');
-          if(resetRef.current) resetRef.current.reset();
           navigate('/admin/products')
         }
         
-      } catch (error) {
-        console.log(error.response.data)
-        AxiosToast(error)
-      }finally{
-        dispatch(setLoading(false))
-      }
+       */
 
-      return
-
-    }else{
-      toast.error("Please fill all mandatories")
-    }
+      
 
   };
-
-  /* handle crop image */
-  const handleCropImage = async(file) => {
-    
-    if(file){
-
-      setData(prev => ({...prev, files:[...prev.files,file]}));
-
-      /* for dispalying images on thumbs */
-      try {
-        const src = await imageFileToSrc(file);
-        
-        setViewImages(prev => [...prev,  {id: file.id, value: src}]);
-        
-      } catch (err) {
-        console.error('Error reading file:', err);
-      }
-
-    }
-  }
-
-  /* handle delete thumb */
-  const handleThumbDelete = (id) => {
-    setViewImages(prev => prev.filter(item => item.id !== id))
-    setData(prev => ({...prev, files: prev.files.filter(item => item.id !== id)}))
-    if(resetRef.current){
-      resetRef.current.reset();
-    }
-  }
-
-  /* handle actions on variants */
-  const handleVariantActions = (data) => {
-    const { type, list, isAttr, rowIndex, field, value  } = data;
-
-    switch(type){
-
-      case 'insert': 
-        setVariants(prev => ([...prev, value]));
-        break;
-      case 'update': 
-        setVariants(prev => {
-          const updated = [...prev];
-          if (isAttr) {
-            updated[rowIndex].attributes[field] = value;
-          } else {
-            updated[rowIndex][field] = value;
-            if(field === 'preview'){
-              setVariantImages(prev => [...prev, updated[rowIndex].id])
-            }
-          }
-          return updated;
-        })
-        break;
-      case 'delete': 
-        setVariants(prev => prev.filter(item => !list?.includes(item.id)))
-        setVariantImages(prev => prev.filter(item => !list?.includes(item)))
-        break;
-
-      default: null
-    }
-    
-  }
 
   return (
 
@@ -612,7 +735,6 @@ const EditProduct = () => {
           <div className="border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
 
             <VariantsTable
-
               attributes={finalAttributes}
               variants={variants}
               setVariants={handleVariantActions}

@@ -16,11 +16,9 @@ export const uploadImagesToCloudinary = async(folder, files, public_ids = []) =>
   const uploadResults = await Promise.all(
 
     files.map(async(file, i) => {
-
-      //console.log('upload',public_ids)
       
       const public_id = Array.isArray(public_ids) && public_ids.length ? public_ids[i] : public_ids
-      //console.log('public_id',public_id)
+      
       return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           {
@@ -56,7 +54,8 @@ export const deleteImageFromCloudinary = async(folder, public_ids = []) => {
       return new Promise((resolve, reject) => {
         cloudinary.uploader.destroy(`hijazi/${folder}/${id}`,
           {
-            resource_type: 'image'
+            resource_type: 'image',
+            invalidate: true
           },
           ((error, result) => {
             if(error) return reject(error);
