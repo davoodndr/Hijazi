@@ -105,7 +105,10 @@ export const uploadProductImages = async(req, res) => {
           if(matching){
             return {
               ...variant.toObject(),
-              image: matching
+              image: {
+                ...matching,
+                public_id: matching.public_id.split('/').filter(Boolean).pop()
+              }
             }
           }
           return variant;

@@ -3,7 +3,7 @@ import { IoIosAdd, IoIosArrowForward } from "react-icons/io";
 import { useLocation, useNavigate } from "react-router";
 import AxiosToast from "../../../utils/AxiosToast";
 import toast from "react-hot-toast";
-import { IoClose } from "react-icons/io5";
+import { IoClose, IoImage } from "react-icons/io5";
 import CustomSelect from "../../../components/ui/CustomSelect";
 import { Axios } from "../../../utils/AxiosSetup";
 import ApiBucket from "../../../services/ApiBucket";
@@ -16,6 +16,9 @@ import ToggleSwitch from "../../../components/ui/ToggleSwitch";
 import CropperWindow from "../../../components/ui/CropperWindow";
 import ImageThumb from "../../../components/ui/ImageThumb";
 import { capitalize, finalizeValues, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
+import CropperModal from "../../../components/ui/CropperModal";
+import DynamicInputList from "../../../components/ui/DynamicInputList";
+import VariantsTable from "../../../components/admin/products/VariantsTable";
 
 const EditProduct = () => {
 
@@ -26,17 +29,23 @@ const EditProduct = () => {
   const [status, setStatus] = useState(null);
   const [brand, setBrand] = useState(null);
   const [category, setCategory] = useState(null);
+  const [attributes, setAttributes] = useState([]);
+  const [customAttributes, setCustomAttributes] = useState([]);
+  const [finalAttributes, setFinalAttributes] = useState([]);
+  const [variants, setVariants] = useState([])
   
   /* image handling */
   const resetRef = useRef(null);
   const [viewImages, setViewImages] = useState([])
+  const [variantImages, setVariantImages] = useState([])
   const [disableMessage, setDisableMessage] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const maxLimit =  5;
   const productImageDimen = {width:1024, height: 1024}
 
   /* input handling */
   const [data, setData] = useState({
-    name: "", slug:"", description:"", price:"", stock:"", visible: true, status: "active",
+    name: "", slug:"", sku:'', description:"", price:"", stock:"", visible: true, status: "active",
     brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
   })
 
@@ -48,6 +57,7 @@ const EditProduct = () => {
       setData(prev => ({
         ...prev,
         name: currentProduct?.name,
+        sku: currentProduct?.sku,
         slug: currentProduct?.slug,
         price: currentProduct?.price,
         stock: currentProduct?.stock,
@@ -59,14 +69,27 @@ const EditProduct = () => {
         visible: currentProduct?.visible
       }));
       /* setting dropdown items */
-      setCategory({id:currentProduct?.category?._id, label:currentProduct?.category?.name})
+      handleChangeCategory({
+        ...currentProduct.category, 
+        id:currentProduct.category._id,
+        label:currentProduct.category.name,
+      })
       setBrand({id:currentProduct?.brand?._id, label:currentProduct?.brand?.name})
       setStatus({value: currentProduct?.status, label:currentProduct?.status})
-      setViewImages(currentProduct?.images.map(img => {
-          const id = img.split('/').filter(Boolean).pop().split('.')[0];
-          return {id, value: img}
+      setViewImages(currentProduct?.images?.map(img => {
+          return {id:img.public_id, value: img.url}
         })
       )
+      if(currentProduct.variants.length){
+        setVariants(currentProduct.variants.map(variant => {
+          return {
+            ...variant,
+            id: variant._id,
+            preview: variant.image?.url || null
+          }
+        }))
+        setVariantImages(currentProduct.variants.map(variant => variant.image?.public_id ))
+      }
     }
 
   },[currentProduct])
@@ -91,6 +114,17 @@ const EditProduct = () => {
         [name]: value
       }
     })
+  }
+
+    /* handles category change */
+  const handleChangeCategory = (val) => {
+    setCategory(val);
+    setData(prev => ({...prev, category: val.id}))
+    const cat = categories.find(item => item._id === val.id);
+    if(cat?.attributes){
+      setAttributes([...cat.parentId?.attributes,...cat.attributes]);
+      setFinalAttributes([...cat.parentId?.attributes,...cat.attributes]);
+    }
   }
 
   const handleSubmit = async(e) => {
@@ -189,17 +223,6 @@ const EditProduct = () => {
 
   };
 
-  /* handling add thumb action */
-  const handleAddThumb = () => {
-    
-    if(resetRef.current){
-      resetRef.current.reset();
-    }
-    if(data.files.length >= maxLimit){
-      toast.error('Maximum image limit reached');
-    }
-  }
-
   /* handle crop image */
   const handleCropImage = async(file) => {
     
@@ -227,6 +250,39 @@ const EditProduct = () => {
     if(resetRef.current){
       resetRef.current.reset();
     }
+  }
+
+  /* handle actions on variants */
+  const handleVariantActions = (data) => {
+    const { type, list, isAttr, rowIndex, field, value  } = data;
+
+    switch(type){
+
+      case 'insert': 
+        setVariants(prev => ([...prev, value]));
+        break;
+      case 'update': 
+        setVariants(prev => {
+          const updated = [...prev];
+          if (isAttr) {
+            updated[rowIndex].attributes[field] = value;
+          } else {
+            updated[rowIndex][field] = value;
+            if(field === 'preview'){
+              setVariantImages(prev => [...prev, updated[rowIndex].id])
+            }
+          }
+          return updated;
+        })
+        break;
+      case 'delete': 
+        setVariants(prev => prev.filter(item => !list?.includes(item.id)))
+        setVariantImages(prev => prev.filter(item => !list?.includes(item)))
+        break;
+
+      default: null
+    }
+    
   }
 
   return (
@@ -292,6 +348,16 @@ const EditProduct = () => {
                 />
               </div>
               <div>
+                <label  className="mandatory">SKU / Product Code</label>
+                <input
+                  name="sku"
+                  value={data?.sku ?? ""}
+                  onChange={handleChange}
+                  type="text"
+                  placeholder="Enter product code"
+                />
+              </div>
+              <div>
                 <label  className="mandatory">Slug</label>
                 <input
                   name="slug"
@@ -305,7 +371,7 @@ const EditProduct = () => {
                 <label  className="mandatory">Price</label>
                 <input
                   name="price"
-                  value={data.price}
+                  value={data?.price ?? ""}
                   onChange={handleChange}
                   onInput={(e) => (e.target.value = e.target.value.replace(/[^0-9]/g,''))}
                   type="number"
@@ -316,7 +382,7 @@ const EditProduct = () => {
                 <label  className="mandatory">Stock</label>
                 <input
                   name="stock"
-                  value={data.stock}
+                  value={data?.stock ?? ""}
                   onChange={handleChange}
                   type="number"
                   placeholder="Enter product stock"
@@ -326,7 +392,7 @@ const EditProduct = () => {
                 <label  className="mandatory">Description</label>
                 <textarea
                   name="description"
-                  value={data.description}
+                  value={data?.description ?? ""}
                   onChange={handleChange}
                   rows='5'
                   placeholder="Enter product stock"
@@ -337,7 +403,7 @@ const EditProduct = () => {
           </div>
 
           {/* Organaization Information */}
-          <div className="h-fit space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
+          <div className="h-full space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
 
             <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">Organization</h2>
 
@@ -347,12 +413,9 @@ const EditProduct = () => {
                 <label className="mandatory">Category</label>
                 <CustomSelect
                   value={category}
-                  onChange={(val) => {
-                    setCategory(val);
-                    setData(prev => ({...prev, category: val.id}))
-                  }}
+                  onChange={handleChangeCategory}
                   options={
-                    categories?.map(item => ({id: item._id, label: item.name})) || []
+                    categories?.filter(cat => cat.parentId !== null).map(item => ({id: item._id, label: item.name})) || []
                   } />
               </div>
               <div>
@@ -402,62 +465,163 @@ const EditProduct = () => {
           </div>
         </form>
 
-        {/* product images */}
+        {/* product images & custom attributes */}
         <div className="grid grid-cols-[2fr_1fr] gap-2">
 
           <div className="border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
             <h2 className="text-md font-medium text-gray-900 flex items-center gap-2 pb-4">Images</h2>
-            
-            <div className="flex justify-between space-x-auto">
+
+            <div className="flex flex-col">
+              <div className="grid grid-cols-4 justify-items-center gap-4">
               
-              <div className="flex w-65 p-4 max-h-95 overflow-y-auto scroll-basic">
-                <div className="grid grid-cols-2 gap-5 h-fit">
-
-                  {viewImages.length > 0 && viewImages.map(img => 
-                    <ImageThumb
-                      key={img.id} 
-                      src={img.value}
-                      thumbClass='relative w-fit'
-                      imgClass='rounded-xl border border-gray-300 w-25 h-25 overflow-hidden'
-                      Actions={() => {
-                        return(
-                          <div 
-                            onClick={() => {handleThumbDelete(img.id)}}
-                            className="absolute -top-2 -right-2 inline-flex items-center text-white bg-red-500
-                            p-0.5 rounded-full border border-white shadow-md/40 cursor-pointer transition-all duration-300
-                            hover:bg-red-600 hover:scale-110">
-                            <IoClose size={15} />
-                          </div>
-                        )
-                      }}
-                    />
-                  )}
-
+                {viewImages.length > 0 && viewImages.map(img => 
                   <ImageThumb
-                    onClick={handleAddThumb}
-                    imgClass='rounded-xl border border-gray-300 w-25 h-25 overflow-hidden'
-                    />
+                    key={img.id} 
+                    src={img.value}
+                    thumbClass='relative w-fit'
+                    imgClass='rounded-xl border border-gray-300 w-30 h-30 overflow-hidden'
+                    Actions={() => {
+                      return(
+                        <div 
+                          onClick={() => {handleThumbDelete(img.id, false)}}
+                          className="absolute -top-2 -right-2 inline-flex items-center text-white bg-red-500
+                          p-0.5 rounded-full border border-white shadow-md/40 cursor-pointer transition-all duration-300
+                          hover:bg-red-600 hover:scale-110">
+                          <IoClose size={15} />
+                        </div>
+                      )
+                    }}
+                  />
+                )}
 
-                </div>
+                <ImageThumb
+                  onClick={() => {
+                    setIsModalOpen(true)
+                  }}
+                  imgClass='rounded-xl border border-gray-300 w-30 h-30 overflow-hidden'
+                  />
+
               </div>
+
+              {variantImages.length > 0 && 
               
+                <>
+                  <span className="mt-10 ps-4 relative before:content-[''] before:bg-sky-400 before:p-1
+                      before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:rounded-full"
+                      >Variant Images</span>
+                  <div className="grid grid-cols-4 justify-items-center gap-4 mt-4">
+                    {variants?.map(variant => {
+                      if(variant.preview){
+                        return (
+                          <ImageThumb
+                            key={variant.id || variant._id} 
+                            src={variant.preview}
+                            thumbClass='relative w-fit'
+                            imgClass='rounded-xl border border-gray-300 w-30 h-37 overflow-hidden'
+                            Actions={() => {
+                              return(
+                                <>
+                                  <div 
+                                    onClick={() => {handleThumbDelete(variant.id, true)}}
+                                    className="absolute -top-2 -right-2 inline-flex items-center text-white bg-red-500
+                                    p-0.5 rounded-full border border-white shadow-md/40 cursor-pointer transition-all duration-300
+                                    hover:bg-red-600 hover:scale-110">
+                                    <IoClose size={15} />
+                                  </div>
+                                  <div className="border-t border-gray-300 flex gap-2 items-center 
+                                    justify-center h-7 w-full absolute bottom-0 rounded-b-xl">
+                                    {Object.keys(variant?.attributes).slice(0,2).map((key,index) => 
+                                      <span key={index} className={`capitalize text-xs relative`}>
+                                        {key === 'color' ? '' : `${key}:`} {variant?.attributes[key]}
+                                      </span>
+                                    )}
+                                  </div>
+                                </>
+                              )
+                            }}
+                          />
+                        )
+                      }
+                    })}
+                  </div>
+                </>
 
-              <CropperWindow
-                ref={resetRef}
-                onImageCrop={handleCropImage}
-                validFormats={['jpg','jpeg','png','bmp','webp']}
-                outputFormat='webp'
-                outPutDimen={productImageDimen}
-                disableMessage={disableMessage}
-                cropperClass="flex w-81 h-81 rounded-3xl overflow-hidden border border-gray-300"
-                buttonsClass="flex justify-center gap-2 py-4"
+              }
+
+            </div>
+
+            <CropperModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              dimen={{width: 450}}
+              title="Crop Image"
+              subTitle="Crop images as per the required dimention"
+              headerIcon={IoImage}
+              onResult={handleCropImage}
+              cropper={{
+                outputFormat: 'webp',
+                validFormats: ['jpg','jpeg','png','bmp','webp'],
+                outPutDimen: productImageDimen,
+                disableMessage
+              }}
+            />
+
+          </div>
+
+          {/* custom attributes */}
+          <div 
+            className="h-full w-auto space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs
+            flex flex-col justify-between">
+
+            <div className="">
+              <h2 className="mb-2 text-md font-medium text-gray-900 flex items-center gap-2">Use Custom Attributes</h2>
+
+              <DynamicInputList
+                onChange={(result) => {
+                  const newAttributes = result?.map(item => {
+                    return {
+                      _id: item.id,
+                      name: item.data.name,
+                      values: item.data.value.split(',')
+                    }
+                  })
+                  setCustomAttributes(newAttributes)
+                }}
+                containerClass='flex flex-col gap-2 max-h-[250px] overflow-y-auto scroll-basic'
+                inputContainerClass='relative'
+                removeBtnClass='!p-2 absolute top-0.5 right-0.5'
               />
+            </div>
 
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setFinalAttributes([...attributes, ...customAttributes])
+                }}
+                type="button"
+                className="!px-4 !py-2"
+              >Apply</button>
             </div>
 
           </div>
 
         </div>
+
+        {/* variants */}
+        {finalAttributes?.length > 0 && 
+          <div className="border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
+
+            <VariantsTable
+
+              attributes={finalAttributes}
+              variants={variants}
+              setVariants={handleVariantActions}
+              outPutDimen={productImageDimen}
+            />
+
+          </div>
+        }
+
       </div>
 
     </section>

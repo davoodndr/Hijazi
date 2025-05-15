@@ -12,7 +12,7 @@ import ApiBucket from '../../../services/ApiBucket';
 import { Axios } from '../../../utils/AxiosSetup';
 import AdminPagination from '../../../components/ui/AdminPagination';
 import Skeleton from '../../../components/ui/Skeleton';
-import EditCategoryModal from '../../../components/admin/categories/EditCategoryModal';
+import ImagePlaceHolder from '../../../components/ui/ImagePlaceHolder';
 import { deleteCategoryAction } from '../../../services/ApiActions';
 import PreviewImage from '../../../components/ui/PreviewImage'
 import AxiosToast from '../../../utils/AxiosToast';
@@ -283,39 +283,36 @@ const ProductList = () => {
                 </li>
               </>
               :
+              <li className="divide-y divide-gray-300">
 
-                <li className="divide-y divide-gray-300">
+                <AnimatePresence exitBeforeEnter>
+                  
+                  {paginatedProducts.length > 0 ?
+                    ( paginatedProducts.map((product, index) => {
 
-                  <AnimatePresence mode='wait' exitBeforeEnter>
-                    
-                    {paginatedProducts.length > 0 ?
-                      ( paginatedProducts.map((product, index) => {
-
-                      const statusColors = () => {
-                        switch(product.status){
-                          case 'active': return 'bg-green-500/40 text-teal-800'
-                          case 'blocked': return 'bg-red-100 text-red-500'
-                          default : return 'bg-gray-200 text-gray-400'
-                        }
+                    const statusColors = () => {
+                      switch(product.status){
+                        case 'active': return 'bg-green-500/40 text-teal-800'
+                        case 'blocked': return 'bg-red-100 text-red-500'
+                        default : return 'bg-gray-200 text-gray-400'
                       }
-                      
-                      const variants = product.variants;
-                      let price, stock = 0, variantLen = variants.length;
+                    }
                     
-                      if(variants.length){
-                        const prices = variants.map(item => {
-                          stock += item.stock;
-                          return item.price
-                        })
-                        const min = Math.min(...prices);
-                        const max = Math.max(...prices);
-                        price = `${min === max ? min : `${min} - ${max}`}`
-                      } 
+                    const variants = product.variants;
+                    let price, stock = 0, variantLen = variants.length;
+                  
+                    if(variants.length){
+                      const prices = variants.map(item => {
+                        stock += item.stock;
+                        return item.price
+                      })
+                      const min = Math.min(...prices);
+                      const max = Math.max(...prices);
+                      price = `${min === max ? min : `${min} - ${max}`}`
+                    } 
 
-                      return(
-
-                        <>
-                      
+                    return(
+                      <React.Fragment key={product._id}>
                         <motion.div 
                           layout
                           key={product._id}
@@ -362,11 +359,18 @@ const ProductList = () => {
                           </div>
 
                           {/* category */}
-                          <div className='capitalize'>{product.category.name}</div>
+                          <div className='capitalize flex flex-col'>
+                            <span>{product.category.name}</span>
+                            {product.category.parentId && 
+                              <span className='text-xs text-gray-400'>
+                                {categories?.find(cat => cat._id === product.category?.parentId)?.name}
+                              </span>
+                            }
+                          </div>
                           
                           {/* price */}
                           <div className='capitalize flex flex-col'>
-                            <span>{price}</span>
+                            <span className='price-before'>{price}</span>
                             <span className='text-xs'>Rating</span>
                           </div>
 
@@ -438,62 +442,61 @@ const ProductList = () => {
                         </motion.div>
 
                         {/* variant items */}
-                          {expanded[product._id] && product.variants?.length > 0 && 
-                            product.variants.map((variant, i) =>
-                              <motion.div 
-                                layout
-                                key={variant.sku}
-                                custom={i}
-                                initial="hidden"
-                                animate="visible"
-                                exit="exit"
-                                variants={rowVariants}
-                                whileHover={{
-                                  backgroundColor: '#efffeb',
-                                  transition: { duration: 0.3 }
-                                }}
-                                className='grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full px-4 py-1 bg-gray-100/60'>
+                        {expanded[product._id] && product.variants?.length > 0 && 
+                          product.variants.map((variant, i) =>
+                            <div
+                              key={variant.sku}
+                              className='grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full px-4 py-1
+                              bg-gray-100/60 smooth hover:bg-primary-50/50'>
 
-                                <div><input type="checkbox" /></div>
-                                <div className="flex gap-2 items-center relative">
-                                  <PreviewImage src={variant.image?.url} alt={product?.name} zoom="80%"
-                                    thumbClass="rounded-xl border border-gray-300 w-10 h-10"
-                                    />
+                              <div><input type="checkbox" /></div>
+                              <div className="flex gap-2 items-center relative">
+                                {variant.image?.url ? 
+                                  (<PreviewImage src={variant.image?.url} alt={product?.name} zoom="80%"
+                                  thumbClass="rounded-xl border border-gray-300 w-10 h-10"
+                                  />)
+                                  :
+                                  (<ImagePlaceHolder
+                                    size={18}
+                                    className="rounded-xl border border-gray-300 bg-gray-200 text-gray-500/60 w-10 h-10"
+                                    />)
+                                }
                                 
-                                  <div className="inline-flex flex-col capitalize">
-                                    <p className="text-xs">SKU: {variant.sku}</p>
+                              
+                                <div className="inline-flex flex-col capitalize">
+                                  <p className="text-xs">SKU: {variant.sku}</p>
+                                </div>
+                              </div>
+                              <div className='flex flex-col uppercase text-xs'>
+                                {Object.keys(variant.attributes).map((key, i) => 
+                                  <div key={i}>
+                                    <span className='text-gray-400'>{key}:</span>
+                                    <span>{variant.attributes[key]}</span>
                                   </div>
-                                </div>
-                                <div className='flex flex-col uppercase text-xs'>
-                                  {Object.keys(variant.attributes).map(key => 
-                                    <div key={key}>
-                                      <span className='text-gray-400'>{key}:</span>
-                                      <span>{variant.attributes[key]}</span>
-                                    </div>
-                                  )}
-                                </div>
-                                {/* price */}
-                                <div className='capitalize flex flex-col'>
-                                  <span>{variant.price}</span>
-                                  <span className='text-xs'>Rating</span>
-                                </div>
-                                {/* stock */}
-                                <div className='capitalize'>{variant.stock}</div>
-                              </motion.div>
-                            )
-                          }
-                        </>                    
-                      )}))
-                      :
-                      (<div className="flex items-center justify-center h-20 text-primary-400
-                        text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl">
-                        No products
-                      </div> )
-                    }
+                                )}
+                              </div>
+                              {/* price */}
+                              <div className='capitalize flex flex-col'>
+                                <span className='price-before'>{variant.price}</span>
+                                <span className='text-xs'>Rating</span>
+                              </div>
+                              {/* stock */}
+                              <div className='capitalize'>{variant.stock}</div>
+                            </div>
+                          )
+                        }
+                      </React.Fragment>                    
+                    )}))
+                    :
+                    (<div className="flex items-center justify-center h-20 text-primary-400
+                      text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl">
+                      No products
+                    </div> )
+                  }
 
-                  </AnimatePresence>
+                </AnimatePresence>
 
-                </li>
+              </li>
             }
 
           {/* Pagination */}

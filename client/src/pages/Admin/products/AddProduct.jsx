@@ -547,7 +547,7 @@ const EditProduct = () => {
               onResult={handleCropImage}
               cropper={{
                 outputFormat: 'webp',
-                validFormats: ['jpg','jpeg','png','bmp'],
+                validFormats: ['jpg','jpeg','png','bmp','webp'],
                 outPutDimen: productImageDimen,
                 disableMessage
               }}

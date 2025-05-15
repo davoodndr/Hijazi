@@ -98,3 +98,16 @@
     @slot;
   }
 }
+
+@utility price-before{
+  @apply relative inline-flex items-center w-fit;
+  &::before{
+    @apply inline-flex items-center content-["₹"] text-xs text-gray-500/80;
+  }
+}
+
+@custom-variant price-before {
+  &::before{
+    @slot;
+  }
+}
