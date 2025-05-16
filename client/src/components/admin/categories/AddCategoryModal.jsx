@@ -159,6 +159,11 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
   }
 
   const handleClose = ()=>{
+    setData({
+      file: "", name:"", slug:"", parentId:"", status:"", featured:false, visible:false
+    })
+    setStatus(null);
+    setParent(null);
     onClose();
   }
   

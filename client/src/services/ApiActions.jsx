@@ -192,8 +192,9 @@ export const uploadProductImages = async(product, product_id, remove_ids = []) =
 
     product?.files?.forEach((file,i) => {
       if(file instanceof File){
+        console.log(file, i)
         formData.append('productImages', file);
-        formData.append('productImageIds', `product_${slug}_${i + 1}`);
+        formData.append('productImageIds[]', `product_${slug}_${i + 1}`);
       }
     });
     
@@ -202,7 +203,7 @@ export const uploadProductImages = async(product, product_id, remove_ids = []) =
       variants.forEach((item, i) => {
         if(item.image && item.image instanceof File){
           formData.append('variantImages', item.image);
-          formData.append('variantImageIds', `variant_${slug}_${item.sku}`)
+          formData.append('variantImageIds[]', `@variant_${slug}_${item.sku}`)
         }
       })
     }
@@ -212,7 +213,7 @@ export const uploadProductImages = async(product, product_id, remove_ids = []) =
 
     if(remove_ids.length){
       remove_ids.forEach(id => {
-        formData.append('remove_ids', id);
+        formData.append('remove_ids[]', id);
       })
     }
 

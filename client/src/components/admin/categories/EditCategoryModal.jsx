@@ -194,6 +194,14 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
   }
 
   const handleClose = ()=>{
+    setData({
+      file: "", name:"", slug:"", parentId:"", status:"", 
+      featured:false, visible:false, attributes: []
+    })
+    setStatus(null);
+    setParent(null);
+    setAttributes([]);
+    setParentAttributes([]);
     onClose();
   }
   

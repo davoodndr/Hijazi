@@ -56,6 +56,8 @@ const EditProduct = () => {
   /* handles category change */
   const handleChangeCategory = (val) => {
     setCategory(val);
+    setVariants([])
+    setVariantImages([])
     setData(prev => ({...prev, category: val.id}))
     const cat = categories.find(item => item._id === val.id);
     if(cat?.attributes){
@@ -192,11 +194,9 @@ const EditProduct = () => {
       
       const flatted = Object.entries(attr).filter(([key, val]) => key !== 'sku').flat().join('').trim();
       if(set.has(attr.sku)){
-        console.log(attr, flatted)
         throw("Duplicate sku not allowed in variant")
       }
       if(set.has(flatted)){
-        console.log(attr, flatted)
         throw("Duplicate variant not allowed")
       }
       set.add(attr.sku)
@@ -229,8 +229,11 @@ const EditProduct = () => {
       
     try {
 
+      //console.log(product, customAttributes)
+
       validateProduct(product);
-      validateVariants(product)
+      validateVariants(product);
+
   
       const response = await Axios({
         ...ApiBucket.addProduct,
@@ -253,7 +256,6 @@ const EditProduct = () => {
         setCategory(null);
         setViewImages([]);
         setDisableMessage('');
-        if(resetRef.current) resetRef.current.reset();
 
       }
 

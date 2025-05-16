@@ -73,10 +73,23 @@ export const uploadProductImages = async(req, res) => {
 
     if(remove_ids?.length){
 
-      const updatedImgs = product.images?.filter(img => !remove_ids.includes(img.public_id));
+      const productRemoves =  remove_ids?.filter(el => !el.match('@variant'))
+      const variantRemoves =  remove_ids?.filter(el => el.match('@variant'))
+      const updatedProductImgs = product.images?.filter(img => !remove_ids.includes(img.public_id));
       
       await deleteImageFromCloudinary(folder,remove_ids)
-      product.images = updatedImgs
+      if(productRemoves?.length) product.images = updatedProductImgs
+      if(variantRemoves.length) {
+        product.variants = product?.variants?.map(variant => {
+          if(variantRemoves.includes(variant?.image?.public_id)){
+            return {
+              ...variant.toObject(),
+              image: null
+            }
+          }
+          return variant
+        })
+      }
       
     }
 

@@ -13,7 +13,6 @@ import { TbArrowBackUp } from "react-icons/tb";
 import { HiHome } from "react-icons/hi2";
 import { uploadProductImages } from '../../../services/ApiActions'
 import ToggleSwitch from "../../../components/ui/ToggleSwitch";
-import CropperWindow from "../../../components/ui/CropperWindow";
 import ImageThumb from "../../../components/ui/ImageThumb";
 import { capitalize, fetchImageAsFile, finalizeValues, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
 import CropperModal from "../../../components/ui/CropperModal";
@@ -118,6 +117,8 @@ const EditProduct = () => {
     /* handles category change */
   const handleChangeCategory = (val) => {
     setCategory(val);
+    setVariants([])
+    setVariantImages([])
     setData(prev => ({...prev, category: val.id}))
     const cat = categories.find(item => item._id === val.id);
     if(cat?.attributes){
@@ -205,7 +206,7 @@ const EditProduct = () => {
     if (!product.category?.trim()) throw("Category is required"); 
     if (!product.brand?.trim()) throw("Brand is required");
     if (!product.description?.trim()) throw("Description is required");
-    if (!product.files?.length) throw("At least one image is required")
+    if (!product.files?.length && !viewImages.length) throw("At least one image is required")
 
     const isUsingVariants = product.variants?.length > 0;
 
@@ -265,9 +266,9 @@ const EditProduct = () => {
         return
       }
 
-      const remove_ids = []
-      const initialImageList = currentProduct.images;
-      const updatedImageList = viewImages.map(img => img.id);
+      let remove_ids = []
+      const initialImageList = currentProduct?.images?.map(el => el?.public_id);
+      const updatedImageList = viewImages?.map(img => img?.id);
       
       if(product['files'].length){
 
@@ -278,37 +279,52 @@ const EditProduct = () => {
           return;
         }
 
-        const maintainedList = initialImageList.map(img => {
-          if(updatedImageList.includes(img.public_id)) {
-            return img.public_id;
-          }
-        }).filter(Boolean);
+        const maintainedList = initialImageList.filter(img => updatedImageList.includes(img));
 
         
         if(product['files'].length + maintainedList.length > maxLimit){
           toast.error(`Maximum ${maxLimit} files allowed to upload`);
           return
         }
+
         
         // place temp items to arrange the files to get missing index
+        const indexList = maintainedList?.map(el => {
+          return {
+            index: Number(el.split('_').filter(Boolean).pop()) - 1,
+            value: el
+          }
+        })
         if(maintainedList.length){
-          maintainedList.forEach((el, i) => {
-            const slot = Number(el.split('_').filter(Boolean).pop())
-            if(slot){
-              product.files.splice(slot - 1, 0, el)
-            }
+          let list = new Array(maintainedList.length + product.files.length).fill(null);
+          
+          indexList.forEach(({index, value}) => {
+            list[index] = value
           })
+
+          let fileIndex = 0;
+          for(let i = 0; i < list.length; i++){
+            if(list[i] === null && fileIndex < list.length){
+              list[i] = product.files[fileIndex++];
+            }
+          }
+          
+          product.files = list;
+            
         };
-        
+
       }
 
       //deleted images hadnling
       if(updatedImageList.length < initialImageList.length){
-        initialImageList.forEach(img => {
-          if(!updatedImageList.includes(img.public_id)){
-            remove_ids.push(img.public_id);
-          }
-        })
+        remove_ids = [...remove_ids, ...initialImageList.filter(el => !updatedImageList.includes(el))]
+      }
+
+      //variant image delete handling
+      const initialVariantImages = currentProduct?.variants.map(el => el?.image?.public_id).filter(Boolean);
+      const updatedVariantImages = product.variants.map(el => el?.image?.public_id).filter(Boolean);
+      if(updatedVariantImages.length < initialVariantImages.length){
+        remove_ids = [...remove_ids, ...initialVariantImages.filter(el => !updatedVariantImages.includes(el))];
       }
 
       // if the variant sku is changed the image url & public_id should be changed
@@ -342,56 +358,28 @@ const EditProduct = () => {
         })
       }
 
-      console.log(product, remove_ids)
+      dispatch(setLoading(true));
+
 
       try {
         
-        //validateProduct(product)
+        validateProduct(product)
+        validateVariants(product)
 
-        await uploadProductImages(product, currentProduct._id, remove_ids)
-        
-      } catch (error) {
-        console.log(error?.response?.data || error)
-        AxiosToast(error)
-      }finally{
-        dispatch(setLoading(false))
-      }
-
-      /* dispatch(setLoading(true));
-      
-      try {
-
-        //dimension is checked on image select
-        
-        const finalData = finalizeValues(data);
-        
         const response = await Axios({
           ...ApiBucket.updateProduct,
           data: {
-            ...finalData,
+            ...product,
             product_id: currentProduct._id
           }
         })
 
-        if(response.data.success){
-
-          if(finalData.files.length){
-            
-            const files = finalData.files;
-            const public_ids = initialList.map(img => {
-              const id = img.split('/').filter(Boolean).pop().split('.')[0];
-              if(!updatedImageList.includes(id)) return id;
-            }).filter(item => Boolean(item));
-
-            const product = response.data.product;
-            const folder = `products/${product.slug.replaceAll('-','_')}`;
-            
-            await uploadProductImages(product._id, folder, files, public_ids);
-          }
+        if(response?.data?.success){
+          await uploadProductImages(product, currentProduct._id, remove_ids);
 
           AxiosToast(response, false);
           setData({
-            name: "", slug:"", description:"", price:"", stock:"", visible: true, status: "active",
+            name: "", slug:"", sku:"", description:"", price:"", stock:"", visible: true, status: "active",
             brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
           })
           setBrand(null);
@@ -402,9 +390,14 @@ const EditProduct = () => {
           navigate('/admin/products')
         }
         
-       */
+      } catch (error) {
 
-      
+        console.log(error?.response?.data || error)
+        AxiosToast(error)
+
+      }finally{
+        dispatch(setLoading(false))
+      }
 
   };
 
