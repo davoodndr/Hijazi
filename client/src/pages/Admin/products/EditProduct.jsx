@@ -18,6 +18,7 @@ import { capitalize, fetchImageAsFile, finalizeValues, imageFileToSrc, isValidDa
 import CropperModal from "../../../components/ui/CropperModal";
 import DynamicInputList from "../../../components/ui/DynamicInputList";
 import VariantsTable from "../../../components/admin/products/VariantsTable";
+import { useCallback } from "react";
 
 const EditProduct = () => {
 
@@ -44,7 +45,7 @@ const EditProduct = () => {
   /* input handling */
   const [data, setData] = useState({
     name: "", slug:"", sku:'', description:"", price:"", stock:"", visible: true, status: "active",
-    brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
+    brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: [], customAttributes: []
   })
 
   /* initial data from item */
@@ -68,7 +69,6 @@ const EditProduct = () => {
       }));
       /* setting dropdown items */
       handleChangeCategory({
-        ...currentProduct.category, 
         id:currentProduct.category._id,
         label:currentProduct.category.name,
       })
@@ -78,6 +78,10 @@ const EditProduct = () => {
           return {id:img.public_id, value: img.url}
         })
       )
+      if(currentProduct?.customAttributes.length){
+        setCustomAttributes(currentProduct.customAttributes)
+        setFinalAttributes(prev => [...prev, ...currentProduct.customAttributes])
+      }
       if(currentProduct.variants.length){
         setVariants(currentProduct.variants.map(variant => {
           return {
@@ -121,10 +125,9 @@ const EditProduct = () => {
     setVariantImages([])
     setData(prev => ({...prev, category: val.id}))
     const cat = categories.find(item => item._id === val.id);
-    if(cat?.attributes){
-      setAttributes([...cat.parentId?.attributes,...cat.attributes]);
-      setFinalAttributes([...cat.parentId?.attributes,...cat.attributes]);
-    }
+    setAttributes([...cat?.parentId?.attributes,...cat?.attributes].filter(Boolean));
+    setFinalAttributes([...cat?.parentId?.attributes,...cat?.attributes,...customAttributes].filter(Boolean));
+
   }
 
   /* handle crop image */
@@ -165,6 +168,18 @@ const EditProduct = () => {
       setData(prev => ({...prev, files: prev.files.filter(item => item.id !== id)}))
     }
   }
+
+  /* handle custom attributes */
+  const handleCustomAttributes = useCallback((result) => {
+    const newAttributes = result?.map(item => {
+      return {
+        id: item.id,
+        name: item.data.name,
+        values: item.data.value.split(',')
+      }
+    })
+    setData({...data, customAttributes: newAttributes})
+  },[customAttributes]);
 
   /* handle actions on variants */
   const handleVariantActions = (data) => {
@@ -287,7 +302,6 @@ const EditProduct = () => {
           return
         }
 
-        
         // place temp items to arrange the files to get missing index
         const indexList = maintainedList?.map(el => {
           return {
@@ -359,7 +373,6 @@ const EditProduct = () => {
       }
 
       dispatch(setLoading(true));
-
 
       try {
         
@@ -631,7 +644,7 @@ const EditProduct = () => {
                         return (
                           <ImageThumb
                             key={variant.id || variant._id} 
-                            src={variant.preview}
+                            src={variant?.preview}
                             thumbClass='relative w-fit'
                             imgClass='rounded-xl border border-gray-300 w-30 h-37 overflow-hidden'
                             Actions={() => {
@@ -648,7 +661,7 @@ const EditProduct = () => {
                                     justify-center h-7 w-full absolute bottom-0 rounded-b-xl">
                                     {Object.keys(variant?.attributes).slice(0,2).map((key,index) => 
                                       <span key={index} className={`capitalize text-xs relative`}>
-                                        {key === 'color' ? '' : `${key}:`} {variant?.attributes[key]}
+                                        {variant?.attributes[key]}
                                       </span>
                                     )}
                                   </div>
@@ -693,16 +706,8 @@ const EditProduct = () => {
               <h2 className="mb-2 text-md font-medium text-gray-900 flex items-center gap-2">Use Custom Attributes</h2>
 
               <DynamicInputList
-                onChange={(result) => {
-                  const newAttributes = result?.map(item => {
-                    return {
-                      _id: item.id,
-                      name: item.data.name,
-                      values: item.data.value.split(',')
-                    }
-                  })
-                  setCustomAttributes(newAttributes)
-                }}
+                value={customAttributes}
+                onChange={handleCustomAttributes}
                 containerClass='flex flex-col gap-2 max-h-[250px] overflow-y-auto scroll-basic'
                 inputContainerClass='relative'
                 removeBtnClass='!p-2 absolute top-0.5 right-0.5'
@@ -712,7 +717,7 @@ const EditProduct = () => {
             <div className="flex justify-end">
               <button
                 onClick={() => {
-                  setFinalAttributes([...attributes, ...customAttributes])
+                  setFinalAttributes([...attributes, ...data?.customAttributes])
                 }}
                 type="button"
                 className="!px-4 !py-2"

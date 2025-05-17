@@ -26,7 +26,7 @@ const DynamicInputList = (
     const input = value?.map(item => {
       return {
         ...item,
-        id: item?._id,
+        id: item?._id || item?.id,
         data: {
           name: item?.name,
           value: item?.values?.join(',')
@@ -105,7 +105,7 @@ const DynamicInputList = (
 
           </div>
         ))}
-
+        
         {inputs.map((input, index) => (
           <div key={input.id} className={`${inputContainerClass}`}>
             <input

@@ -313,6 +313,7 @@ const ProductList = () => {
 
                     return(
                       <React.Fragment key={product._id}>
+
                         <motion.div 
                           layout
                           key={product._id}
@@ -325,166 +326,184 @@ const ProductList = () => {
                             backgroundColor: '#efffeb',
                             transition: { duration: 0.3 }
                           }}
-                          className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full px-4 py-2 bg-white"
+                          className="bg-white"
                         >
-                          {/* Checkbox */}
-                          <div><input type="checkbox" /></div>
 
-                          {/* product Info & thumbnail */}
-                          <div className="flex gap-2 items-center relative">
+                          <div
+                            className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] 
+                            items-center w-full px-4 py-2"
+                          >
+                            {/* Checkbox */}
+                            <div><input type="checkbox" /></div>
 
-                            {/* varinats expand arrow */}
-                            <div 
-                              onClick={() => toggleExpand(product._id)}
-                              className={`absolute top-1/2 -left-5 -translate-y-1/2 cursor-pointer smooth
-                                hover:text-featured-500
-                                ${product.variants?.length ? 
-                                  'text-gray-800' : 
-                                  'text-gray-300 pointer-events-none cursor-not-allowed'}`}>
-                              <IoIosArrowDown />
+                            {/* product Info & thumbnail */}
+                            <div className="flex gap-2 items-center relative">
+
+                              {/* varinats expand arrow */}
+                              <div 
+                                onClick={() => toggleExpand(product._id)}
+                                className={`absolute top-1/2 -left-5 -translate-y-1/2 cursor-pointer smooth
+                                  hover:text-featured-500
+                                  ${product.variants?.length ? 
+                                    'text-gray-800' : 
+                                    'text-gray-300 pointer-events-none cursor-not-allowed'}`}>
+                                <IoIosArrowDown />
+                              </div>
+
+                              <PreviewImage src={product?.images[0]?.url} alt={product?.name} size="40" zoom="120%"
+                                thumbClass="rounded-xl border border-gray-300 w-12 h-12"
+                              />
+                              
+                              <div className="inline-flex flex-col capitalize">
+                                <p className="font-semibold">{product?.name}</p>
+                                <p className="text-xs">
+                                  {variantLen ? variantLen + ` Variant${variantLen > 1 ? 's': ''}` : product.sku}
+                                </p>
+                                {product?.featured &&  <p className="point-before">Featured</p>
+                                }
+                              </div>
                             </div>
 
-                            <PreviewImage src={product?.images[0]?.url} alt={product?.name} size="40" zoom="120%"
-                              thumbClass="rounded-xl border border-gray-300 w-12 h-12"
-                            />
-                            
-                            <div className="inline-flex flex-col capitalize">
-                              <p className="font-semibold">{product?.name}</p>
-                              <p className="text-xs">
-                                {variantLen ? variantLen + ` Variant${variantLen > 1 ? 's': ''}` : product.sku}
-                              </p>
-                              {product?.featured &&  <p className="point-before">Featured</p>
+                            {/* category */}
+                            <div className='capitalize flex flex-col'>
+                              <span>{product.category.name}</span>
+                              {product.category.parentId && 
+                                <span className='text-xs text-gray-400'> 
+                                  <span className='me-1'>of:</span>
+                                  {categories?.find(cat => cat._id === product.category?.parentId)?.name}
+                                </span>
                               }
                             </div>
-                          </div>
+                            
+                            {/* price */}
+                            <div className='capitalize flex flex-col'>
+                              <span className='price-before'>{price}</span>
+                              <span className='text-xs'>Rating</span>
+                            </div>
 
-                          {/* category */}
-                          <div className='capitalize flex flex-col'>
-                            <span>{product.category.name}</span>
-                            {product.category.parentId && 
-                              <span className='text-xs text-gray-400'>
-                                {categories?.find(cat => cat._id === product.category?.parentId)?.name}
+                            {/* stock */}
+                            <div className='capitalize'>{stock}</div>
+
+                            {/* Status */}
+                            <div className='flex flex-col space-y-0.75 '>
+                              <span className={`w-fit px-2 py-0.5 text-xs font-semibold rounded-full capitalize
+                                ${statusColors()}`}>
+                                {product?.status}
                               </span>
-                            }
-                          </div>
-                          
-                          {/* price */}
-                          <div className='capitalize flex flex-col'>
-                            <span className='price-before'>{price}</span>
-                            <span className='text-xs'>Rating</span>
-                          </div>
-
-                          {/* stock */}
-                          <div className='capitalize'>{stock}</div>
-
-                          {/* Status */}
-                          <div className='flex flex-col space-y-0.75 '>
-                            <span className={`w-fit px-2 py-0.5 text-xs font-semibold rounded-full capitalize
-                              ${statusColors()}`}>
-                              {product?.status}
-                            </span>
-                            {/* visibility */}
-                            <div className='capitalize text-xs w-fit'>
-                              {product?.visible ? 
-                              <span 
-                                className="text-xs text-yellow-600 point-before point-before:bg-yellow-500
-                                point-before:p-0.75"
-                                >Visible</span> 
-                                
-                                :
-                              
+                              {/* visibility */}
+                              <div className='capitalize text-xs w-fit'>
+                                {product?.visible ? 
                                 <span 
-                                  className="text-xs text-red-400 point-before point-before:bg-red-400
+                                  className="text-xs text-yellow-600 point-before point-before:bg-yellow-500
                                   point-before:p-0.75"
-                                  >Hidden</span>
-                              }
+                                  >Visible</span> 
+                                  
+                                  :
+                                
+                                  <span 
+                                    className="text-xs text-red-400 point-before point-before:bg-red-400
+                                    point-before:p-0.75"
+                                    >Hidden</span>
+                                }
+                              </div>
                             </div>
-                          </div>
 
-                          {/* Actions */}
-                          <div className="flex items-center justify-center gap-3 z-50">
-                            <div 
-                              onClick={() => navigate(`/admin/products/${product?.slug}/edit`,
-                                {state: {categories, brands, currentProduct:product}})
-                              }
+                            {/* Actions */}
+                            <div className="flex items-center justify-center gap-3 z-50">
+                              <div 
+                                onClick={() => navigate(`/admin/products/${product?.slug}/edit`,
+                                  {state: {categories, brands, currentProduct:product}})
+                                }
+                                
+                                className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
+                                border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
+                                <TbUserEdit size={20} />
+                              </div>
+
                               
-                              className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
-                              border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
-                              <TbUserEdit size={20} />
+                              <Menu as="div" className='relative'>
+                                {({ open }) => (
+                                  <>
+                                    <MenuButton
+                                      className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                      border border-gray-300 !text-gray-900 cursor-pointer"
+                                    >
+                                      <IoMdMore size={20} />
+                                    </MenuButton>
+                                    <ContextMenu 
+                                      open={open}
+                                      items={[
+                                        /* { label: 'view category', icon: IoEyeOutline, onClick: () => {} }, */
+                                        { label: 'delete', icon: HiOutlineTrash, onClick: () => handledelete(product._id) }
+                                      ]}
+                                    />
+                                  </>
+                                )}
+                                
+                              </Menu>
+                              
                             </div>
 
                             
-                            <Menu as="div" className='relative'>
-                              {({ open }) => (
-                                <>
-                                  <MenuButton
-                                    className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                                    border border-gray-300 !text-gray-900 cursor-pointer"
-                                  >
-                                    <IoMdMore size={20} />
-                                  </MenuButton>
-                                  <ContextMenu 
-                                    open={open}
-                                    items={[
-                                      /* { label: 'view category', icon: IoEyeOutline, onClick: () => {} }, */
-                                      { label: 'delete', icon: HiOutlineTrash, onClick: () => handledelete(product._id) }
-                                    ]}
-                                  />
-                                </>
-                              )}
-                              
-                            </Menu>
-                            
-                          </div>
 
-                          
+                          </div>
 
                         </motion.div>
 
                         {/* variant items */}
-                        {expanded[product._id] && product.variants?.length > 0 && 
-                          product.variants.map((variant, i) =>
-                            <div
-                              key={variant.sku}
-                              className='grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full px-4 py-1
-                              bg-gray-100/60 smooth hover:bg-primary-50/50'>
+                         <AnimatePresence>
+                          {expanded[product._id] && product.variants?.length > 0 && 
+                            product.variants.map((variant, i) =>
+                              <motion.div
+                                key={variant._id}
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="overflow-hidden border-b-gray-200"
+                              >
+                                <div
+                                  key={variant.sku}
+                                  className='grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full px-4 py-1
+                                  bg-gray-100/60 smooth hover:bg-primary-50/50 group group:-z-1'>
 
-                              <div><input type="checkbox" /></div>
-                              <div className="flex gap-2 items-center relative">
-                                {variant.image?.url ? 
-                                  (<PreviewImage src={variant.image?.url} alt={product?.name} zoom="80%"
-                                  thumbClass="rounded-xl border border-gray-300 w-10 h-10"
-                                  />)
-                                  :
-                                  (<ImagePlaceHolder
-                                    size={18}
-                                    className="rounded-xl border border-gray-300 bg-gray-200 text-gray-500/60 w-10 h-10"
-                                    />)
-                                }
-                                
-                              
-                                <div className="inline-flex flex-col capitalize">
-                                  <p className="text-xs">SKU: {variant.sku}</p>
-                                </div>
-                              </div>
-                              <div className='flex flex-col uppercase text-xs'>
-                                {Object.keys(variant.attributes).map((key, i) => 
-                                  <div key={i}>
-                                    <span className='text-gray-400'>{key}:</span>
-                                    <span>{variant.attributes[key]}</span>
+                                  <div><input type="checkbox" /></div>
+                                  <div className="flex gap-2 items-center relative">
+                                    {variant.image?.url ? 
+                                      (<PreviewImage src={variant.image?.url} alt={product?.name} zoom="80%"
+                                      thumbClass="rounded-xl border border-gray-300 w-10 h-10"
+                                      />)
+                                      :
+                                      (<ImagePlaceHolder
+                                        size={18}
+                                        className="rounded-xl border border-gray-300 bg-gray-200 text-gray-500/60 w-10 h-10"
+                                        />)
+                                    }
+                                    
+                                    <div className="inline-flex flex-col capitalize">
+                                      <p className="text-xs">SKU: {variant.sku}</p>
+                                    </div>
                                   </div>
-                                )}
-                              </div>
-                              {/* price */}
-                              <div className='capitalize flex flex-col'>
-                                <span className='price-before'>{variant.price}</span>
-                                <span className='text-xs'>Rating</span>
-                              </div>
-                              {/* stock */}
-                              <div className='capitalize'>{variant.stock}</div>
-                            </div>
-                          )
-                        }
+                                  <div className='flex flex-col uppercase text-xs'>
+                                    {Object.keys(variant.attributes).map((key, i) => 
+                                      <div key={i}>
+                                        <span className='text-gray-400'>{key}:</span>
+                                        <span>{variant.attributes[key]}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* price */}
+                                  <div className='capitalize flex flex-col'>
+                                    <span className='price-before'>{variant.price}</span>
+                                    <span className='text-xs'>Rating</span>
+                                  </div>
+                                  {/* stock */}
+                                  <div className='capitalize'>{variant.stock}</div>
+                                </div>
+                              </motion.div>
+                            )
+                          }
+                        </AnimatePresence>
                       </React.Fragment>                    
                     )}))
                     :

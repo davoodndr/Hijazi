@@ -60,10 +60,8 @@ const EditProduct = () => {
     setVariantImages([])
     setData(prev => ({...prev, category: val.id}))
     const cat = categories.find(item => item._id === val.id);
-    if(cat?.attributes){
-      setAttributes([...cat.parentId?.attributes,...cat.attributes]);
-      setFinalAttributes([...cat.parentId?.attributes,...cat.attributes]);
-    }
+    setAttributes([...cat?.parentId?.attributes,...cat?.attributes].filter(Boolean));
+    setFinalAttributes([...cat?.parentId?.attributes,...cat?.attributes].filter(Boolean));
   }
 
   /* image handling */
@@ -182,6 +180,7 @@ const EditProduct = () => {
   }
 
   function validateVariants(product){
+    
     const attributes = product.variants.map(item => {
       return {
         ...item.attributes,
@@ -189,12 +188,13 @@ const EditProduct = () => {
       }
     });
 
+    // custom attributes already included
     const set = new Set();
     for(let attr of attributes) {
       
       const flatted = Object.entries(attr).filter(([key, val]) => key !== 'sku').flat().join('').trim();
       if(set.has(attr.sku)){
-        throw("Duplicate sku not allowed in variant")
+        throw("Duplicate sku not allowed")
       }
       if(set.has(flatted)){
         throw("Duplicate variant not allowed")
@@ -225,15 +225,16 @@ const EditProduct = () => {
       return false;
     }
 
+    if(customAttributes.length){
+      product.customAttributes = customAttributes;
+    }
+
     dispatch(setLoading(true));
       
     try {
-
-      //console.log(product, customAttributes)
-
+      
       validateProduct(product);
       validateVariants(product);
-
   
       const response = await Axios({
         ...ApiBucket.addProduct,
@@ -254,7 +255,12 @@ const EditProduct = () => {
         setBrand(null);
         setStatus(null);
         setCategory(null);
+        setVariants([]);
+        setAttributes([]);
+        setCustomAttributes([])
+        setFinalAttributes([])
         setViewImages([]);
+        setVariantImages([])
         setDisableMessage('');
 
       }
@@ -516,7 +522,7 @@ const EditProduct = () => {
                                     justify-center h-7 w-full absolute bottom-0 rounded-b-xl">
                                     {Object.keys(variant?.attributes).slice(0,2).map((key,index) => 
                                       <span key={index} className={`capitalize text-xs relative`}>
-                                        {key === 'color' ? '' : `${key}:`} {variant?.attributes[key]}
+                                        {variant?.attributes[key]}
                                       </span>
                                     )}
                                   </div>
@@ -564,7 +570,7 @@ const EditProduct = () => {
                 onChange={(result) => {
                   const newAttributes = result?.map(item => {
                     return {
-                      _id: item.id,
+                      id: item.id,
                       name: item.data.name,
                       values: item.data.value.split(',')
                     }

@@ -10,7 +10,7 @@ const reviewSchema = new mongoose.Schema({
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
   slug: { type: String, required: true, unique: true },
-  sku: { type: String },
+  sku: { type: String, unique: true },
   brand: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', required: true },
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
   price: { type: Number },
@@ -38,7 +38,7 @@ const productSchema = new mongoose.Schema({
   variants: [
     {
       attributes: mongoose.Schema.Types.Mixed, // e.g., { Size: "M", Color: "Red" }
-      sku: String,
+      sku: { type: String, unique: true },
       price: Number,
       stock: Number,
       image: {

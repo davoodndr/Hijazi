@@ -19,7 +19,7 @@ export const getProducts = async(req, res) => {
 
 // add product
 export const addProduct = async(req, res) => {
-  const { name, slug, price, stock, description, category, brand, variants } = req.body;
+  const { name, sku, slug, price, stock, description, category, brand, variants } = req.body;
 
   try {
     
@@ -33,6 +33,12 @@ export const addProduct = async(req, res) => {
     
     if(existingSlug){
       return responseMessage(res, 400, false, "Same product already exists");   
+    }
+
+    const skuVerifyMsg = await verifyProductSku(sku, variants);
+
+    if(skuVerifyMsg){
+      return responseMessage(res, 400, false, skuVerifyMsg); 
     }
 
     const newProduct = await Product.create(req.body);
@@ -236,3 +242,39 @@ const validateProduct = (
 
   return msg;
 };
+
+const verifyProductSku = async (productSku, variants) =>{
+  let msg = null;
+  const products = await Product.find();
+
+  const globalSkuList = products.flatMap(product => {
+    const variantSkus = product?.variants?.map(variant => variant.sku).filter(Boolean) || [];
+    const productSku = product?.sku ? [product.sku] : [];
+    return [...productSku, ...variantSkus];
+  });
+
+  const newSkuList = [productSku, ...variants?.map(variant => {
+      return variant?.sku
+    })
+  ].filter(Boolean)
+
+  // local check inside same list
+  if(newSkuList?.length){
+    const set = new Set();
+    for(let sku of newSkuList){
+      if(set.has(sku)){
+        msg = "SKU already in use";
+      }
+      set.add(sku)
+    }
+  }
+
+  if(globalSkuList?.length && newSkuList?.length){
+    const duplicateSku = globalSkuList.find(sku => newSkuList.includes(sku));
+    if(duplicateSku){
+      msg = "SKU already in use";
+    }
+  }
+
+  return msg;
+}
