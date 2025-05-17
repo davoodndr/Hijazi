@@ -181,6 +181,51 @@ const EditProduct = () => {
     setData({...data, customAttributes: newAttributes})
   },[customAttributes]);
 
+  /* handling delete custom attribute */
+  const handleDeleteCustomAttribute = (id) => {
+
+    const remaining = data?.customAttributes.filter(attr => attr.id !== id)
+    setData(prev => ({...prev,  customAttributes:  remaining}))
+    setCustomAttributes(remaining)
+    setFinalAttributes([...attributes, ...remaining])
+
+    //setup for remove the attribute from variant
+    /* custom attr will be stored in variants attributes 
+    through final attributes */
+    const removedVariatns = variants.map(variant => {
+      
+      return {
+        ...variant,
+        attributes: [...attributes, ...remaining].reduce((acc, attr) => {
+          acc[attr.name] = '';
+          return acc
+        },{})
+      }
+    })
+
+    setVariants(removedVariatns)
+  }
+
+  /* handle apply custom attributes */
+  const handleApplyAttributes = () => {
+                  
+    const allAttrs = [...attributes, ...data?.customAttributes];
+    setCustomAttributes(data?.customAttributes)
+    setFinalAttributes(allAttrs)
+
+    // reset the variant attributes with new
+    setVariants(prev => prev.map(variant => {
+      return {
+        ...variant,
+        attributes: allAttrs.reduce((acc, attr) => {
+                      acc[attr.name] = '';
+                      return acc;
+                    }, {})
+      }
+    }))
+    
+  }
+
   /* handle actions on variants */
   const handleVariantActions = (data) => {
     const { type, list, isAttr, rowIndex, field, value  } = data;
@@ -276,6 +321,7 @@ const EditProduct = () => {
         variants
       }
 
+
       if(!isValidName(product['name']) || !isValidName(product['slug'])){
         toast.error('Name and slug should have minimum 3 letters')
         return
@@ -296,7 +342,6 @@ const EditProduct = () => {
 
         const maintainedList = initialImageList.filter(img => updatedImageList.includes(img));
 
-        
         if(product['files'].length + maintainedList.length > maxLimit){
           toast.error(`Maximum ${maxLimit} files allowed to upload`);
           return
@@ -379,6 +424,8 @@ const EditProduct = () => {
         validateProduct(product)
         validateVariants(product)
 
+        console.log(product)
+
         const response = await Axios({
           ...ApiBucket.updateProduct,
           data: {
@@ -393,12 +440,17 @@ const EditProduct = () => {
           AxiosToast(response, false);
           setData({
             name: "", slug:"", sku:"", description:"", price:"", stock:"", visible: true, status: "active",
-            brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
+            brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: [], customAttributes: []
           })
           setBrand(null);
           setStatus(null);
           setCategory(null);
+          setVariants([]);
+          setAttributes([]);
+          setCustomAttributes([])
+          setFinalAttributes([])
           setViewImages([]);
+          setVariantImages([])
           setDisableMessage('');
           navigate('/admin/products')
         }
@@ -454,7 +506,6 @@ const EditProduct = () => {
           <span>Edit Product</span>
         </div>
       </div>
-
 
       <div className="flex flex-col space-y-2">
         
@@ -708,6 +759,7 @@ const EditProduct = () => {
               <DynamicInputList
                 value={customAttributes}
                 onChange={handleCustomAttributes}
+                onRemove={handleDeleteCustomAttribute}
                 containerClass='flex flex-col gap-2 max-h-[250px] overflow-y-auto scroll-basic'
                 inputContainerClass='relative'
                 removeBtnClass='!p-2 absolute top-0.5 right-0.5'
@@ -716,9 +768,7 @@ const EditProduct = () => {
 
             <div className="flex justify-end">
               <button
-                onClick={() => {
-                  setFinalAttributes([...attributes, ...data?.customAttributes])
-                }}
+                onClick={handleApplyAttributes}
                 type="button"
                 className="!px-4 !py-2"
               >Apply</button>

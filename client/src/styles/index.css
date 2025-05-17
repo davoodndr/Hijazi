@@ -118,29 +118,34 @@ button:hover{
   overflow: auto;
 }
 
-
 body.swal2-shown > [aria-hidden='true'] {
   transition: 0.3s filter;
   filter: blur(3px);
 }
 
 .swal2-popup{
-  border-radius: 40px;
-  min-width: 450px;
-  width: 300px;
+  @apply min-w-[400px] w-fit rounded-4xl
 }
-
+.swal2-icon{
+  @apply size-15 mt-8
+}
+.swal2-title{
+  @apply text-xl
+}
+.swal2-html-container{
+  @apply text-[15px] flex flex-col px-20 pb-5 pt-1
+}
 .swal2-actions{
-  display: flex;
-  justify-content: end;
-  width: 100%;
-  padding: 0 20px;
-  margin-top: 35px;
+  @apply flex justify-end w-full px-5 gap-2
 }
-
 .swal2-actions button{
-  border-radius: 15px;
-  transition: all 0.3s;
+  @apply smooth rounded-xl
+}
+.swal2-confirm{
+  @apply bg-primary-400 hover:bg-primary-500 px-4 
+}
+.swal2-cancel{
+  @apply bg-gray-300 hover:bg-gray-500 px-4
 }
 
 .swal_fadeIn {

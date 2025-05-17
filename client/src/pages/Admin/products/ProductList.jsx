@@ -20,6 +20,7 @@ import { setLoading } from '../../../store/slices/CommonSlices'
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
+import { MdOutlineArchive } from 'react-icons/md';
 
 const ProductList = () => {
 
@@ -55,25 +56,6 @@ const ProductList = () => {
       if(response){
         
         const [productData, categoryData, brandData] = response;
-        /* const extractedProducts = productData.products.flatMap(product => {
-          if(product.variants.length){
-            return product.variants.map(variant => ({
-              ...product,
-              images:null,
-              variants: null,
-              baseImage: product.images[0],
-              ...variant
-            }))
-          }else{
-            return {
-              ...product,
-              image: product.images[0]
-            }
-          }
-          
-        }) */
-        
-        // const sortedProducts = extractedProducts.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
         const sortedProducts = productData.products.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
         const sortedCategories = categoryData.categories.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
         const sortedBrands = brandData.brands.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
@@ -133,7 +115,37 @@ const ProductList = () => {
     }));
   };
 
-  /* handle delete category */
+  /* handle archive product */
+  const handleArchive = async(id) => {
+
+    Alert({
+      icon: 'question',
+      title: "Are you sure?",
+      text: 'Once archived the product, users cannot view or access this product.',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, archive now',
+      customClass: {
+        popup: '!w-[400px]',
+        confirmButton: '!bg-orange-500 hover:!bg-orange-600'
+      },
+    }).then(async result => {
+      
+      if(result.isConfirmed){
+        dispatch(setLoading(true));
+        const response = await deleteCategoryAction('products', id);
+
+        if(response?.data?.success){
+          setCategories(prev => prev.filter(category => category._id !== id));
+          AxiosToast(response, false);
+        }else{
+          AxiosToast(response);
+        }
+        dispatch(setLoading(false))
+      }
+    })
+
+  }
+  /* handle delete product */
   const handledelete = async(id) => {
 
     Alert({
@@ -368,8 +380,8 @@ const ProductList = () => {
                             <div className='capitalize flex flex-col'>
                               <span>{product.category.name}</span>
                               {product.category.parentId && 
-                                <span className='text-xs text-gray-400'> 
-                                  <span className='me-1'>of:</span>
+                                <span className='text-[11px] text-gray-400'> 
+                                  <span className='me-1'>in</span>
                                   {categories?.find(cat => cat._id === product.category?.parentId)?.name}
                                 </span>
                               }
@@ -434,6 +446,7 @@ const ProductList = () => {
                                       open={open}
                                       items={[
                                         /* { label: 'view category', icon: IoEyeOutline, onClick: () => {} }, */
+                                        { label: 'archive', icon: MdOutlineArchive, onClick: () => handleArchive(product._id) },
                                         { label: 'delete', icon: HiOutlineTrash, onClick: () => handledelete(product._id) }
                                       ]}
                                     />
@@ -443,9 +456,6 @@ const ProductList = () => {
                               </Menu>
                               
                             </div>
-
-                            
-
                           </div>
 
                         </motion.div>
@@ -468,7 +478,7 @@ const ProductList = () => {
                                   bg-gray-100/60 smooth hover:bg-primary-50/50 group group:-z-1'>
 
                                   <div><input type="checkbox" /></div>
-                                  <div className="flex gap-2 items-center relative">
+                                  <div className="flex gap-2 items-center relative ms-2">
                                     {variant.image?.url ? 
                                       (<PreviewImage src={variant.image?.url} alt={product?.name} zoom="80%"
                                       thumbClass="rounded-xl border border-gray-300 w-10 h-10"
@@ -476,7 +486,7 @@ const ProductList = () => {
                                       :
                                       (<ImagePlaceHolder
                                         size={18}
-                                        className="rounded-xl border border-gray-300 bg-gray-200 text-gray-500/60 w-10 h-10"
+                                        className="rounded-xl border border-gray-300 bg-white text-gray-500/60 w-10 h-10"
                                         />)
                                     }
                                     

@@ -8,7 +8,8 @@ const DynamicInputList = (
     containerClass,
     inputContainerClass, 
     removeBtnClass, 
-    onChange = () => {}, 
+    onChange = () => {},
+    onRemove = () => {},
     value,
     disabledValues
   }
@@ -25,7 +26,6 @@ const DynamicInputList = (
     
     const input = value?.map(item => {
       return {
-        ...item,
         id: item?._id || item?.id,
         data: {
           name: item?.name,
@@ -42,7 +42,8 @@ const DynamicInputList = (
       if(item?.data?.name && item?.data?.value) return item
     }).filter(Boolean);
 
-    if(result.length) onChange(result);
+    // custom attributes can't delete on enable this
+    /* if(result.length)  */onChange(result);
   }, [inputs])
 
   const handleInputs = (rowIndex, field, value) => {
@@ -62,6 +63,7 @@ const DynamicInputList = (
 
   const removeInput = (id) => {
     setInputs(prev => prev.filter(input => input.id !== id));
+    onRemove(id)
   };
 
   return (
@@ -140,8 +142,6 @@ const DynamicInputList = (
               <span className='ms-1 capitalize'>{input?.data?.value}</span>
             </div>
 
-            {/* <pre className='col-span-full'>{JSON.stringify(input.value, null, 2)}</pre> */}
-
           </div>
         ))}
         <div className='flex w-full items-center justify-center p-2'>
@@ -152,7 +152,6 @@ const DynamicInputList = (
             <span>Add new</span>
           </span>
         </div>
-        {/* <pre>{JSON.stringify(inputs, null, 2)}</pre> */} {/* for debugging */}
       </div>
     </>
   );

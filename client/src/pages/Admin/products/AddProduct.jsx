@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { IoIosAdd, IoIosArrowForward } from "react-icons/io";
 import { useLocation, useNavigate } from "react-router";
 import AxiosToast from "../../../utils/AxiosToast";
@@ -37,7 +37,7 @@ const EditProduct = () => {
   /* input handling */
   const [data, setData] = useState({
     name: "", slug:"", sku:'', description:"", price:"", stock:"", visible: true, status: "active",
-    brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
+    brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: [], customAttributes: []
   })
 
   const handleChange = (e) => {
@@ -118,6 +118,52 @@ const EditProduct = () => {
     }
   }
 
+  /* handle custom attributes */
+  const handleCustomAttributes = useCallback((result) => {
+    const newAttributes = result?.map(item => {
+      return {
+        id: item.id,
+        name: item.data.name,
+        values: item.data.value.split(',')
+      }
+    })
+    setData({...data, customAttributes: newAttributes})
+  },[customAttributes]);
+
+  /* handling delete custom attribute */
+  const handleDeleteCustomAttribute = (id) => {
+
+    //const removed =  data?.customAttributes.find(el => el.id === id)
+
+    const remaining = data?.customAttributes.filter(attr => attr.id !== id)
+    setData(prev => ({...prev,  customAttributes:  remaining}))
+    setCustomAttributes(remaining)
+    setFinalAttributes([...attributes, ...remaining])
+
+    //setup for remove the attribute from variant
+    /* custom attr will be stored in variants attributes 
+    through final attributes */
+    /* const removedVariatns = variants.map(variant => {
+      const rem = Object.entries(variant?.attributes).filter(([key, val]) => key !== removed['name']);
+      return {
+        ...variant,
+        attributes: Object.fromEntries(rem)
+      }
+    }) */
+    const removedVariatns = variants.map(variant => {
+      
+      return {
+        ...variant,
+        attributes: [...attributes, ...remaining].reduce((acc, attr) => {
+          acc[attr.name] = '';
+          return acc
+        },{})
+      }
+    })
+
+    setVariants(removedVariatns)
+  }
+
   /* handle actions on variants */
   const handleVariantActions = (data) => {
     const { type, list, isAttr, rowIndex, field, value  } = data;
@@ -148,6 +194,26 @@ const EditProduct = () => {
 
       default: null
     }
+    
+  }
+
+  /* handle apply custom attributes */
+  const handleApplyAttributes = () => {
+                  
+    const allAttrs = [...attributes, ...data?.customAttributes];
+    setCustomAttributes(data?.customAttributes)
+    setFinalAttributes(allAttrs)
+
+    // reset the variant attributes with new
+    setVariants(prev => prev.map(variant => {
+      return {
+        ...variant,
+        attributes: allAttrs.reduce((acc, attr) => {
+                      acc[attr.name] = '';
+                      return acc;
+                    }, {})
+      }
+    }))
     
   }
 
@@ -225,9 +291,6 @@ const EditProduct = () => {
       return false;
     }
 
-    if(customAttributes.length){
-      product.customAttributes = customAttributes;
-    }
 
     dispatch(setLoading(true));
       
@@ -567,16 +630,9 @@ const EditProduct = () => {
               <h2 className="mb-2 text-md font-medium text-gray-900 flex items-center gap-2">Use Custom Attributes</h2>
 
               <DynamicInputList
-                onChange={(result) => {
-                  const newAttributes = result?.map(item => {
-                    return {
-                      id: item.id,
-                      name: item.data.name,
-                      values: item.data.value.split(',')
-                    }
-                  })
-                  setCustomAttributes(newAttributes)
-                }}
+                value={customAttributes}
+                onChange={handleCustomAttributes}
+                onRemove={handleDeleteCustomAttribute}
                 containerClass='flex flex-col gap-2 max-h-[250px] overflow-y-auto scroll-basic'
                 inputContainerClass='relative'
                 removeBtnClass='!p-2 absolute top-0.5 right-0.5'
@@ -585,9 +641,7 @@ const EditProduct = () => {
 
             <div className="flex justify-end">
               <button
-                onClick={() => {
-                  setFinalAttributes([...attributes, ...customAttributes])
-                }}
+                onClick={handleApplyAttributes}
                 type="button"
                 className="!px-4 !py-2"
               >Apply</button>
@@ -602,7 +656,6 @@ const EditProduct = () => {
           <div className="border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
 
             <VariantsTable
-
               attributes={finalAttributes}
               variants={variants}
               setVariants={handleVariantActions}

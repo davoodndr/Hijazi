@@ -23,7 +23,7 @@ export const addProduct = async(req, res) => {
 
   try {
     
-    const msg = validateProduct(name, slug, price, stock, description, category, brand, variants)
+    const msg = validateProduct(name, sku, slug, price, stock, description, category, brand, variants)
 
     if(msg.length){
       return responseMessage(res, 400, false, msg);      
@@ -176,18 +176,22 @@ function updateProductImages(currentImages, uploadedImages) {
 // update product
 export const updateProduct = async(req, res) => {
 
-  const { product_id, name, slug, price, stock, description, category, brand } = req.body;
+  
+  const { product_id, name, sku, slug, price, stock, description, category, brand, variants } = req.body;
+  
 
   try {
-
-    if(!name || !slug || !price || !stock || !description || !category || !brand){
-      return responseMessage(res, 400, false, "Please fill all mandatory fields");      
-    }
     
     if(!product_id) {
       return responseMessage(res, 400, false, "Product id not specified");
     }
 
+    const msg = validateProduct(name, sku, slug, price, stock, description, category, brand, variants)
+
+    if(msg.length){
+      return responseMessage(res, 400, false, msg);      
+    }
+    
     const product = await Product.findById(product_id);
 
     if(!product){
@@ -212,13 +216,13 @@ export const updateProduct = async(req, res) => {
 }
 
 const validateProduct = (
-  name, slug, price, stock, description, category, brand, variants,
+  name, sku, slug, price, stock, description, category, brand, variants,
   exceptions = []
 ) => {
   let msg = "";
   const isExcepted = (field) => exceptions.includes(field);
 
-  if (variants.length) {
+  if (variants?.length) {
     variants.map((variant, index) => {
       if (!isExcepted('variant.sku') && !variant.sku?.trim())
         msg = "Variant SKU is required";

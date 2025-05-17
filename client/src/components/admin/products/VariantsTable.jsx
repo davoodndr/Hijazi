@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useLayoutEffect, useRef } from 'react'
 import { useState } from 'react';
 import { IoAdd, IoImage, IoTrashOutline } from 'react-icons/io5';
 import CropperModal from '../../ui/CropperModal';
 import { hasBlankObjectValue, imageFileToSrc } from '../../../utils/Utils';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { MdOutlineImageSearch } from 'react-icons/md';
 
 /**
  * 
@@ -27,20 +28,65 @@ function VariantsTable(
   const [activeIndex, setActiveIndex] = useState(null);
   const [modalImageSrc, setModalImageSrc] = useState(null);
   const [selectedVariants, setSelectedVariants] = useState([])
+  const [colCount, setColCount] = useState(0);
+  const [lastColWidth, setLastColWidth] = useState(0);
+  const lastColRef = useRef(null);
 
   /* initialization & output */
   useEffect(() => {
     if(!variants.length){
       addRow();
+    }else{
+      getColCount(variants[0])
     }
   },[variants])
+
+  /* changes on attribute change */
+  useLayoutEffect(() => {
+    if(variants.length){
+      const updatedVariant = {
+        ...variants[0],
+        attributes,
+      }
+      getColCount(updatedVariant)
+    }
+  },[attributes])
+
+  /* for adjusting the lastCol width of table header */
+  useEffect(() => {
+
+    const updateWidth = () => {
+      if (lastColRef.current) {
+        const width = lastColRef.current.getBoundingClientRect().width;
+        if (width > 0 && width !== lastColWidth) {
+          setLastColWidth(width);
+        }
+      }
+    };
+
+    let timer = setTimeout(() => {
+      updateWidth();
+    }, 0); // initial
+
+    // Optional: Watch window resize too
+    window.addEventListener('resize', updateWidth);
+
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('resize', updateWidth);
+    };
+  },[])
+
+  const gridTemplate = lastColWidth
+    ? `19px repeat(${colCount}, 1fr) ${lastColWidth}px`
+    : `19px repeat(${colCount}, 1fr) auto`;
 
   const handleChange = ({type = 'update', rowIndex, field, value, isAttr = false, list}) => {
     setVariants({type, rowIndex, field, value, isAttr, list})
   };
 
   const addRow = () => {
-    setVariants({type: 'insert', value: {
+    const variant = {
           id: Date.now(),
           attributes: Object.fromEntries(attributes.map(attr => [attr.name, ''])),
           sku: '',
@@ -48,10 +94,20 @@ function VariantsTable(
           stock: '',
           image: null,
           preview: null
-        },
-      }
-    );
+        };
+
+    setVariants({type: 'insert', value: variant})
+
   };
+
+  const getColCount = (variant) => {
+    const topLevelCount = Object.keys(variant).filter(
+      key => !['id','_id', 'image', 'preview', 'attributes'].includes(key)
+    ).length;
+
+    const attributeCount = Object.keys(variant.attributes).length;
+    setColCount(topLevelCount + attributeCount)
+  }
 
   const handleModalResult = async(file) => {
     if(file && !hasBlankObjectValue(variants[activeIndex], ['image','preview'])){
@@ -101,19 +157,40 @@ function VariantsTable(
       {/* content */}
       <ul className='flex flex-col gap-2'>
         {/* headers */}
-        <li className={`grid grid-flow-col auto-cols-[minmax(0,1fr)] gap-1 capitalize font-semibold`}>
+        <li
+          style={{
+            gridTemplateColumns: gridTemplate
+          }} 
+          className={`grid gap-1 capitalize font-semibold`}
+        >
+          <span></span>
           {attributes.map(item =>
             <span key={item.name}>{item.name}</span>
           )}
           <span>sku</span>
           <span>price</span>
           <span>stock</span>
-          <span>image</span>
+          <span className='inline-flex w-fit'>image</span>
         </li>
 
         {/* dynamic rows */}
-        {variants.map((variant, index) => (
-          <li key={variant.id} className={`grid grid-flow-col auto-cols-[minmax(0,1fr)] gap-1 items-center capitalize`}>
+        {variants.map((variant, index) => {
+
+          return(<li
+            style={{
+              gridTemplateColumns: gridTemplate
+            }}
+            key={variant.id} className={`grid gap-1 items-center capitalize`}
+          >
+            <div className='pe-1.5 inline-flex rounded-lg'>
+              <input type="checkbox" onChange={(e)=> {
+                if(e.target.checked){
+                  setSelectedVariants(prev => ([...prev, variant?.id]));
+                }else{
+                  setSelectedVariants(prev => prev.filter(el => el !== variant?.id));
+                }
+              }} />
+            </div>
             {attributes.map(attribute =>
               <select key={attribute.name} 
                 value={variant.attributes[attribute.name] ?? ""}
@@ -152,36 +229,24 @@ function VariantsTable(
               value={variant.stock}
               onChange={(e) => handleChange({rowIndex:index,  field:'stock', value:e.target.value})}
             />
-            <div className='flex w-full gap-x-1 items-center'>
-              <div className='flex-1 border border-gray-300 rounded-lg h-full flex items-center justify-between p-1'>
-                <label 
-                  onClick={() => {
-                    setActiveIndex(index);
-                    setModalImageSrc(variant.preview);
-                    setIsModalOpen(true);
-                  }}
-                  htmlFor={`variant-image-${index}`} 
-                  className='cursor-pointer border border-gray-300 rounded-md inline-flex items-center
-                  px-2 '
-                >
-                  Browse
-                </label>
-                <div className='border border-gray-300 w-7.5'>
-                  <img src={variant?.preview || null} className='object-contain' alt="" />
-                </div>
-              </div>
-              <div className='p-2.75 bg-gray-300 inline-flex rounded-lg'>
-                <input type="checkbox" onChange={(e)=> {
-                  if(e.target.checked){
-                    setSelectedVariants(prev => ([...prev, variant?.id]));
-                  }else{
-                    setSelectedVariants(prev => prev.filter(el => el !== variant?.id));
-                  }
-                }} />
-              </div>
+            <div ref={lastColRef} className='flex w-fit h-full items-center whitespace-nowrap'>
+              <label 
+                onClick={() => {
+                  setActiveIndex(index);
+                  setModalImageSrc(variant.preview);
+                  setIsModalOpen(true);
+                }}
+                htmlFor={`variant-image-${index}`} 
+                style={{backgroundImage: `url(${variant?.preview || null})`}}
+                className={` min-w-10 w-full h-full cursor-pointer border border-gray-300 rounded-md 
+                  inline-flex items-center justify-center bg-contain bg-center bg-no-repeat
+                  smooth hover:border-primary-300`}
+              >
+                {!variant?.preview && <MdOutlineImageSearch size={25} />}
+              </label>
             </div>
-          </li>
-        ))}
+          </li>)
+        })}
 
       </ul>
       <CropperModal

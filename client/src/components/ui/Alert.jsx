@@ -5,9 +5,12 @@ import Swal from 'sweetalert2';
  * @typedef {import('sweetalert2').SweetAlertOptions} SweetAlertOptions
  */
 
+
 /**
  * @param {SweetAlertOptions} options
  */
+
+
 const Alert = (options) => {
   return Swal.fire({
     ...options,
@@ -17,9 +20,7 @@ const Alert = (options) => {
     hideClass: {
       popup: 'swal_fadeOut',
     },
-    customClass: {
-      popup: 'swal-backdrop',
-    },
+    buttonsStyling: false
   });
 };
 
