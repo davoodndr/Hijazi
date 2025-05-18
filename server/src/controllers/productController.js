@@ -215,6 +215,34 @@ export const updateProduct = async(req, res) => {
 
 }
 
+//archive / softdelete peoduct
+export const changeProductStatus = async(req, res) => {
+
+  const { product_id, status, visibility } = req.body;
+
+  try {
+
+    const product = await Product.findById(product_id);
+
+    if(!product){
+      return responseMessage(res, 400, false, "Product not found");
+    }
+
+    if(status) {
+      product.status = status
+    }else{
+      product.visible = visibility
+    }
+    await product.save();
+
+    return responseMessage(res, 200, true, "Product archived successfully");
+    
+  } catch (error) {
+    console.log('changeProductStatus',error)
+    return responseMessage(res, 500, false, error.message || error)
+  }
+}
+
 const validateProduct = (
   name, sku, slug, price, stock, description, category, brand, variants,
   exceptions = []

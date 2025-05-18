@@ -19,6 +19,10 @@ import AddBrandModal from '../../../components/admin/brands/AddBrandModal'
 import { MdOutlineEdit } from "react-icons/md";
 import EditBrandModal from "../../../components/admin/brands/EditBrandModal";
 import { setLoading } from "../../../store/slices/CommonSlices";
+import DropdownButton from "../../../components/ui/DropdownButton";
+import { FaSort } from "react-icons/fa6";
+import { BsSortDown, BsSortDownAlt } from "react-icons/bs";
+import { CiFilter } from "react-icons/ci";
 
 
 function BrandList() {
@@ -212,8 +216,65 @@ function BrandList() {
             className='pl-10! rounded-xl! bg-white' />
         </div>
 
-        <div>
-          <span>Filter</span>
+        {/* filter sort */}
+        <div className='flex items-center h-full gap-x-2'>
+          {/* sort */}
+          <DropdownButton
+            label='sort'
+            icon={<FaSort className='text-lg me-1' />}
+            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
+            items={[
+              { id: 'priceltoh', 
+                icon: <BsSortDownAlt className='text-xl'/>,
+                text: <span className={`capitalize`}> price: low to high </span>,
+                onclick: () => {}
+              },
+              { id: 'pricehtol', 
+                icon: <BsSortDown className='text-xl'/>,
+                text: <span className={`capitalize`}> price: high to low</span>,
+                onclick: () => {}
+              },
+              { id: 'newfirst', 
+                icon: <BsSortDown className='text-xl'/>,
+                text: <span className={`capitalize`}> Newest First</span>,
+                onclick: () => {}
+              },
+              { id: 'oldfirst', 
+                icon: <BsSortDownAlt className='text-xl'/>,
+                text: <span className={`capitalize`}> Oldest First</span>,
+                onclick: () => {}
+              },
+            ]}
+          />
+
+          {/* filter */}
+          <DropdownButton
+            label='filter'
+            icon={<CiFilter className='text-lg me-1' />}
+            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
+            items={[
+              { id: 'featured', 
+                icon: <span className='text-xl point-before'></span>,
+                text: <span className={`capitalize`}> featured </span>,
+                onclick: () => {}
+              },
+              { id: 'active', 
+                icon: <span className='text-xl point-before point-before:bg-green-400'></span>,
+                text: <span className={`capitalize`}> active </span>,
+                onclick: () => {}
+              },
+              { id: 'inactive', 
+                icon: <span className='text-xl point-before point-before:bg-gray-400'></span>,
+                text: <span className={`capitalize`}> inactive </span>,
+                onclick: () => {}
+              },
+              { id: 'outofstock', 
+                icon: <span className='text-xl point-before point-before:bg-red-400'></span>,
+                text: <span className={`capitalize`}> out of stock </span>,
+                onclick: () => {}
+              },
+            ]}
+          />
         </div>
         
       </div>
@@ -272,11 +333,20 @@ function BrandList() {
                                 <ContextMenu
                                   open={open}
                                   items={[
-                                    {label: 'edit', icon: MdOutlineEdit, onClick: ()=> {
-                                      setIsEditOpen(true);
-                                      setEditingBrand(brand);
-                                    }},
-                                    {label: 'delete', icon: HiOutlineTrash, onClick: ()=> handledelete(brand._id)}
+                                    { id: 'edit',
+                                      icon: <MdOutlineEdit className='text-xl'/>, 
+                                      text: <span className={`capitalize`}> edit </span>,
+                                      onClick: ()=> {
+                                        setIsEditOpen(true);
+                                        setEditingBrand(brand);
+                                      }
+                                    },
+                                    { id: 'delete', 
+                                      icon: <HiOutlineTrash className='text-xl' />,
+                                      text: <span className={`capitalize`}> delete </span>,
+                                      onClick: () => handledelete(brand._id) ,
+                                      itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
+                                    }
                                   ]}
                                 />
                               </>

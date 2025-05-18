@@ -1,19 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { HiHome, HiOutlineTrash } from 'react-icons/hi2';
-import { IoIosArrowDown, IoIosArrowForward, IoMdMore } from 'react-icons/io';
+import { IoIosArrowDown, IoIosArrowForward, IoMdCheckmarkCircleOutline, IoMdMore } from 'react-icons/io';
 import { LuEye, LuEyeClosed, LuPackagePlus, LuSearch } from 'react-icons/lu';
-import { TbCategoryPlus, TbUserEdit } from "react-icons/tb";
+import { TbUserEdit } from "react-icons/tb";
 import ContextMenu from '../../../components/ui/ContextMenu';
 import { Menu, MenuButton } from '@headlessui/react'
 import Alert from '../../../components/ui/Alert';
-import AddCategoryModal from '../../../components/admin/categories/AddCategoryModal';
 import ApiBucket from '../../../services/ApiBucket';
 import { Axios } from '../../../utils/AxiosSetup';
 import AdminPagination from '../../../components/ui/AdminPagination';
 import Skeleton from '../../../components/ui/Skeleton';
 import ImagePlaceHolder from '../../../components/ui/ImagePlaceHolder';
-import { deleteCategoryAction } from '../../../services/ApiActions';
+import { CiFilter } from "react-icons/ci";
 import PreviewImage from '../../../components/ui/PreviewImage'
 import AxiosToast from '../../../utils/AxiosToast';
 import { setLoading } from '../../../store/slices/CommonSlices'
@@ -21,6 +20,10 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
 import { MdOutlineArchive } from 'react-icons/md';
+import ToggleSwitch from '../../../components/ui/ToggleSwitch';
+import { FaRegCircleXmark, FaSort } from "react-icons/fa6";
+import { BsSortDown, BsSortDownAlt } from "react-icons/bs";
+import DropdownButton from '../../../components/ui/DropdownButton';
 
 const ProductList = () => {
 
@@ -56,7 +59,8 @@ const ProductList = () => {
       if(response){
         
         const [productData, categoryData, brandData] = response;
-        const sortedProducts = productData.products.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+        const sortedProducts = productData.products.filter(p => p.status !== 'archived')
+        .sort((a,b) => b.createdAt.localeCompare(a.createdAt))
         const sortedCategories = categoryData.categories.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
         const sortedBrands = brandData.brands.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
     
@@ -116,39 +120,136 @@ const ProductList = () => {
   };
 
   /* handle archive product */
-  const handleArchive = async(id) => {
+  const handleStatusChange = async(id,status) => {
+
+    let data = {};
+    let statusChange = null;
+
+    switch(status){
+
+      case 'archived': 
+        data = {
+          text: 'Yes, archive now', 
+          msg: 'The archived products get out of all type of access.',
+          color: '!bg-orange-500 hover:!bg-orange-600'
+        };
+        statusChange = 'archived'
+        break;
+      case 'active' : 
+        data = {
+          text: 'Yes, deactivate now', 
+          msg: 'The inactive product won\'t accessible any more.',
+          color: '!bg-pink-500 hover:!bg-pink-600'
+        };
+        statusChange = 'inactive'
+        break;
+      case 'inactive' : 
+        data = {
+          text: 'Yes, activate now', 
+          msg: 'Making active product allow all product operations.',
+          color: ''
+        };
+        statusChange = 'active'
+        break;
+
+      default : null;
+    }
 
     Alert({
       icon: 'question',
       title: "Are you sure?",
-      text: 'Once archived the product, users cannot view or access this product.',
+      text: data.msg,
       showCancelButton: true,
-      confirmButtonText: 'Yes, archive now',
+      confirmButtonText: data.text,
       customClass: {
         popup: '!w-[400px]',
-        confirmButton: '!bg-orange-500 hover:!bg-orange-600'
+        confirmButton: data.color
       },
     }).then(async result => {
       
       if(result.isConfirmed){
         dispatch(setLoading(true));
-        const response = await deleteCategoryAction('products', id);
+        
+        try {
 
-        if(response?.data?.success){
-          setCategories(prev => prev.filter(category => category._id !== id));
-          AxiosToast(response, false);
-        }else{
-          AxiosToast(response);
+          const response = await Axios({
+            ...ApiBucket.changeProductStatus,
+            data: {
+              product_id: id,
+              status: statusChange,
+            }
+          })
+
+          if(response?.data?.success){
+            setProducts(prev => prev.filter(product => product._id !== id));
+            AxiosToast(response, false);
+          }
+          
+        } catch (error) {
+          AxiosToast(error)
+        }finally{
+          dispatch(setLoading(false))
         }
-        dispatch(setLoading(false))
       }
     })
 
   }
+
+  /* handle product visibility */
+  const handleVisibility = (product) => {
+    
+    Alert({
+      icon: 'question',
+      title: "Are you sure?",
+      text: product.visible ? 'This product will be hidden for users' : 'This product will be shown for users',
+      showCancelButton: true,
+      confirmButtonText: product.visible ? 'Yes, hide now' : 'Yes, show now',
+      customClass: {
+        popup: '!w-[400px]',
+        confirmButton: `!bg-${product.visible ? 'red' : 'green'}-500 
+          hover:!bg-${product.visible ? 'red' : 'green'}-600`
+      },
+    }).then(async result => {
+      
+      if(result.isConfirmed){
+        dispatch(setLoading(true));
+        
+        try {
+
+          const response = await Axios({
+            ...ApiBucket.changeProductStatus,
+            data: {
+              product_id: product._id,
+              visibility: !product.visible
+            }
+          })
+
+          if(response?.data?.success){
+            setProducts(prev => prev.map(p => {
+              if(p._id === product._id){
+                return {
+                  ...p,
+                  visible: !p.visible
+                }
+              }
+              return p
+            }));
+            AxiosToast(response, false);
+          }
+          
+        } catch (error) {
+          AxiosToast(error)
+        }finally{
+          dispatch(setLoading(false))
+        }
+      }
+    })
+  }
+
   /* handle delete product */
   const handledelete = async(id) => {
 
-    Alert({
+    /* Alert({
       icon: 'question',
       title: "Are you sure?",
       text: 'This action cannot revert back',
@@ -159,17 +260,11 @@ const ProductList = () => {
       
       if(result.isConfirmed){
         dispatch(setLoading(true));
-        const response = await deleteCategoryAction('products', id);
-
-        if(response?.data?.success){
-          setCategories(prev => prev.filter(category => category._id !== id));
-          AxiosToast(response, false);
-        }else{
-          AxiosToast(response);
-        }
+        
         dispatch(setLoading(false))
       }
-    })
+    }) */
+   toast.error('Not implimented yet',{position: 'top-center'})
 
   }
 
@@ -252,8 +347,65 @@ const ProductList = () => {
             className='pl-10! rounded-xl! bg-white' />
         </div>
 
-        <div>
-          <span>Filter</span>
+        {/* filter sort */}
+        <div className='flex items-center h-full gap-x-2'>
+          {/* sort */}
+          <DropdownButton
+            label='sort'
+            icon={<FaSort className='text-lg me-1' />}
+            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
+            items={[
+              { id: 'priceltoh', 
+                icon: <BsSortDownAlt className='text-xl'/>,
+                text: <span className={`capitalize`}> price: low to high </span>,
+                onclick: () => {}
+              },
+              { id: 'pricehtol', 
+                icon: <BsSortDown className='text-xl'/>,
+                text: <span className={`capitalize`}> price: high to low</span>,
+                onclick: () => {}
+              },
+              { id: 'newfirst', 
+                icon: <BsSortDown className='text-xl'/>,
+                text: <span className={`capitalize`}> Newest First</span>,
+                onclick: () => {}
+              },
+              { id: 'oldfirst', 
+                icon: <BsSortDownAlt className='text-xl'/>,
+                text: <span className={`capitalize`}> Oldest First</span>,
+                onclick: () => {}
+              },
+            ]}
+          />
+
+          {/* filter */}
+          <DropdownButton
+            label='filter'
+            icon={<CiFilter className='text-lg me-1' />}
+            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
+            items={[
+              { id: 'featured', 
+                icon: <span className='text-xl point-before'></span>,
+                text: <span className={`capitalize`}> featured </span>,
+                onclick: () => {}
+              },
+              { id: 'active', 
+                icon: <span className='text-xl point-before point-before:bg-green-400'></span>,
+                text: <span className={`capitalize`}> active </span>,
+                onclick: () => {}
+              },
+              { id: 'inactive', 
+                icon: <span className='text-xl point-before point-before:bg-gray-400'></span>,
+                text: <span className={`capitalize`}> inactive </span>,
+                onclick: () => {}
+              },
+              { id: 'outofstock', 
+                icon: <span className='text-xl point-before point-before:bg-red-400'></span>,
+                text: <span className={`capitalize`}> out of stock </span>,
+                onclick: () => {}
+              },
+            ]}
+          />
         </div>
         
       </div>
@@ -262,13 +414,14 @@ const ProductList = () => {
       <div className="relative flex flex-col w-full bg-white rounded-3xl shadow-lg border border-gray-200">
         {/* Header */}
         <div className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
-          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full">
+          <div className="grid grid-cols-[40px_2fr_1fr_1fr_1fr_1fr_1fr_88px] items-center w-full">
             <span><input type="checkbox" /></span>
             <span>Product</span>
             <span>Category</span>
             <span>Price</span>
             <span>Stock</span>
             <span>status</span>
+            <span>visible</span>
             <span className="text-center">Actions</span>
           </div>
         </div>
@@ -342,7 +495,7 @@ const ProductList = () => {
                         >
 
                           <div
-                            className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] 
+                            className="grid grid-cols-[40px_2fr_1fr_1fr_1fr_1fr_1fr_88px] 
                             items-center w-full px-4 py-2"
                           >
                             {/* Checkbox */}
@@ -397,27 +550,20 @@ const ProductList = () => {
                             <div className='capitalize'>{stock}</div>
 
                             {/* Status */}
-                            <div className='flex flex-col space-y-0.75 '>
-                              <span className={`w-fit px-2 py-0.5 text-xs font-semibold rounded-full capitalize
+                            <div>
+                              <span className={`w-fit px-2 py-1 text-xs font-semibold rounded-full capitalize
                                 ${statusColors()}`}>
                                 {product?.status}
                               </span>
-                              {/* visibility */}
-                              <div className='capitalize text-xs w-fit'>
-                                {product?.visible ? 
-                                <span 
-                                  className="text-xs text-yellow-600 point-before point-before:bg-yellow-500
-                                  point-before:p-0.75"
-                                  >Visible</span> 
-                                  
-                                  :
-                                
-                                  <span 
-                                    className="text-xs text-red-400 point-before point-before:bg-red-400
-                                    point-before:p-0.75"
-                                    >Hidden</span>
-                                }
-                              </div>
+                            </div>
+
+                            {/* visible */}
+                            <div className='ps-3'>
+                              <ToggleSwitch 
+                                size={4}
+                                value={product.visible}
+                                onChange={() => handleVisibility(product)}
+                              />
                             </div>
 
                             {/* Actions */}
@@ -445,9 +591,35 @@ const ProductList = () => {
                                     <ContextMenu 
                                       open={open}
                                       items={[
-                                        /* { label: 'view category', icon: IoEyeOutline, onClick: () => {} }, */
-                                        { label: 'archive', icon: MdOutlineArchive, onClick: () => handleArchive(product._id) },
-                                        { label: 'delete', icon: HiOutlineTrash, onClick: () => handledelete(product._id) }
+                                        { id: 'view', 
+                                          icon: <LuEye className='text-xl'/>,
+                                          text: <span className={`capitalize`}> view </span>,
+                                          onclick: () => {}
+                                        },
+                                        { id: 'status', 
+                                          icon: product.status === 'active' ? 
+                                          <IoMdCheckmarkCircleOutline className='text-xl text-primary-400' />
+                                          : <FaRegCircleXmark className='text-xl' />,
+                                          text: <span className={`capitalize`}> {product.status} </span>,
+                                          tail: <ToggleSwitch 
+                                                  size={4}
+                                                  value={product.visible}
+                                                  onChange={() => 
+                                                    handleStatusChange(product._id, product.status)
+                                                  }
+                                                />
+                                        },
+                                        { id: 'archive', 
+                                          icon: <MdOutlineArchive className='text-xl'/>,
+                                          text: <span className={`capitalize`}> archive </span>, 
+                                          onClick: () => handleStatusChange(product._id, product) 
+                                        },
+                                        { id: 'delete', 
+                                          icon: <HiOutlineTrash className='text-xl' />,
+                                          text: <span className={`capitalize`}> delete </span>,
+                                          onClick: () => handledelete(product._id) ,
+                                          itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
+                                        }
                                       ]}
                                     />
                                   </>

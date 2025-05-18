@@ -424,8 +424,6 @@ const EditProduct = () => {
         validateProduct(product)
         validateVariants(product)
 
-        console.log(product)
-
         const response = await Axios({
           ...ApiBucket.updateProduct,
           data: {

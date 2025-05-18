@@ -140,6 +140,10 @@ const ApiBucket = {
     url: '/api/admin/update-product',
     method: 'patch'
   },
+  changeProductStatus: {
+    url: '/api/admin/change-product-status',
+    method: 'patch'
+  },
 }
 
 

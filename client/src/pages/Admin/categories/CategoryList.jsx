@@ -18,6 +18,10 @@ import PreviewImage from '../../../components/ui/PreviewImage'
 import AxiosToast from '../../../utils/AxiosToast';
 import { setLoading } from '../../../store/slices/CommonSlices'
 import { useDispatch } from 'react-redux';
+import DropdownButton from '../../../components/ui/DropdownButton';
+import { FaSort } from 'react-icons/fa6';
+import { BsSortDown, BsSortDownAlt } from 'react-icons/bs';
+import { CiFilter } from 'react-icons/ci';
 
 const CategoryList = () => {
 
@@ -241,34 +245,90 @@ const CategoryList = () => {
             className='pl-10! rounded-xl! bg-white' />
         </div>
 
-        <div>
-          <span>Filter</span>
+        {/* filter sort */}
+        <div className='flex items-center h-full gap-x-2'>
+          {/* sort */}
+          <DropdownButton
+            label='sort'
+            icon={<FaSort className='text-lg me-1' />}
+            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
+            items={[
+              { id: 'priceltoh', 
+                icon: <BsSortDownAlt className='text-xl'/>,
+                text: <span className={`capitalize`}> price: low to high </span>,
+                onclick: () => {}
+              },
+              { id: 'pricehtol', 
+                icon: <BsSortDown className='text-xl'/>,
+                text: <span className={`capitalize`}> price: high to low</span>,
+                onclick: () => {}
+              },
+              { id: 'newfirst', 
+                icon: <BsSortDown className='text-xl'/>,
+                text: <span className={`capitalize`}> Newest First</span>,
+                onclick: () => {}
+              },
+              { id: 'oldfirst', 
+                icon: <BsSortDownAlt className='text-xl'/>,
+                text: <span className={`capitalize`}> Oldest First</span>,
+                onclick: () => {}
+              },
+            ]}
+          />
+
+          {/* filter */}
+          <DropdownButton
+            label='filter'
+            icon={<CiFilter className='text-lg me-1' />}
+            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
+            items={[
+              { id: 'featured', 
+                icon: <span className='text-xl point-before'></span>,
+                text: <span className={`capitalize`}> featured </span>,
+                onclick: () => {}
+              },
+              { id: 'active', 
+                icon: <span className='text-xl point-before point-before:bg-green-400'></span>,
+                text: <span className={`capitalize`}> active </span>,
+                onclick: () => {}
+              },
+              { id: 'inactive', 
+                icon: <span className='text-xl point-before point-before:bg-gray-400'></span>,
+                text: <span className={`capitalize`}> inactive </span>,
+                onclick: () => {}
+              },
+              { id: 'outofstock', 
+                icon: <span className='text-xl point-before point-before:bg-red-400'></span>,
+                text: <span className={`capitalize`}> out of stock </span>,
+                onclick: () => {}
+              },
+            ]}
+          />
         </div>
         
       </div>
 
       {/* content - first div fot smooth animaion */}
-      <div className="relative flex w-full">
+      <div className="relative flex flex-col w-full bg-white rounded-3xl shadow-lg border border-gray-200">
+        {/* Header */}
+        <div className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
+          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full">
+            <span><input type="checkbox" /></span>
+            <span>Name</span>
+            <span>Slug</span>
+            <span>Parent</span>
+            <span>Status</span>
+            <span>Visibility</span>
+            <span className="text-center">Actions</span>
+          </div>
+        </div>
         <motion.ul 
           layout
           variants={containerVariants}
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="flex flex-col w-full h-full text-sm text-gray-700 bg-white rounded-3xl
-            shadow-lg border border-gray-200">
-          {/* Header */}
-          <li className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
-            <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full">
-              <span><input type="checkbox" /></span>
-              <span>Name</span>
-              <span>Slug</span>
-              <span>Parent</span>
-              <span>Status</span>
-              <span>Visibility</span>
-              <span className="text-center">Actions</span>
-            </div>
-          </li>
+          className="flex flex-col w-full h-full text-sm text-gray-700">
 
             {/* Rows */}
             {isLoading ? 
@@ -304,7 +364,7 @@ const CategoryList = () => {
 
                     return(
                     
-                      <motion.div 
+                      <motion.div
                         layout
                         key={category._id}
                         custom={index}
@@ -316,81 +376,91 @@ const CategoryList = () => {
                           backgroundColor: '#efffeb',
                           transition: { duration: 0.3 }
                         }}
-                        className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full px-4 py-2 bg-white">
-                        {/* Checkbox */}
-                        <div><input type="checkbox" /></div>
+                      >
+                    
+                        <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] 
+                          items-center w-full px-4 py-2 bg-white"
+                        >
+                          {/* Checkbox */}
+                          <div><input type="checkbox" /></div>
 
-                        {/* Category Info */}
-                        <div className="flex gap-2 items-center">
-                          <PreviewImage src={category?.image} alt={category?.name} size="40" zoom="120%" 
-                            thumbClass="rounded-xl border border-gray-300 w-12 h-12"
-                          />
-                          
-                          <div className="inline-flex flex-col capitalize">
-                            <p className="font-semibold">{category?.name}</p>
-                            <p className="text-xs">000 products</p>
-                            {category?.featured && 
-                              <p className="text-xs text-featured-500 inline-flex items-center w-fit rounded-xl
-                                before:bg-featured-300 before:content[''] before:p-0.75 before:me-1
-                                before:inline-flex before:items-center before:rounded-full"
-                              >Featured</p>
-                            }
-                          </div>
-                        </div>
-
-                        {/* Slug */}
-                        <div>/{category.slug || <span className="text-gray-400">Not added</span>}</div>
-                        
-                        {/* parent name */}
-                        <div className='capitalize'>{parent?.name || <span className="text-gray-400">Nil</span>}</div>
-
-                        {/* Status */}
-                        <div>
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
-                            ${statusColors()}`}>
-                            {category?.status}
-                          </span>
-                        </div>
-                        
-                        {/* visibility */}
-                        <div className='capitalize'>
-                          {category?.visible ? 'visible' : <span className="text-gray-400">Invisible</span>}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center justify-center gap-3 z-50">
-                          <div 
-                            onClick={() => {
-                              setIsEditOpen(true);
-                              setEditingCategory(category)
-                            }}
-                            className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
-                            border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
-                            <TbUserEdit size={20} />
-                          </div>
-
-                          
-                          <Menu as="div" className='relative'>
-                            {({ open }) => (
-                              <>
-                                <MenuButton
-                                  className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                                  border border-gray-300 !text-gray-900 cursor-pointer"
-                                >
-                                  <IoMdMore size={20} />
-                                </MenuButton>
-                                <ContextMenu 
-                                  open={open}
-                                  items={[
-                                    /* { label: 'view category', icon: IoEyeOutline, onClick: () => {} }, */
-                                    { label: 'delete', icon: HiOutlineTrash, onClick: () => handledelete(category._id) }
-                                  ]}
-                                />
-                              </>
-                            )}
+                          {/* Category Info */}
+                          <div className="flex gap-2 items-center">
+                            <PreviewImage src={category?.image} alt={category?.name} size="40" zoom="120%" 
+                              thumbClass="rounded-xl border border-gray-300 w-12 h-12"
+                            />
                             
-                          </Menu>
+                            <div className="inline-flex flex-col capitalize">
+                              <p className="font-semibold">{category?.name}</p>
+                              <p className="text-xs">000 products</p>
+                              {category?.featured && 
+                                <p className="text-xs text-featured-500 inline-flex items-center w-fit rounded-xl
+                                  before:bg-featured-300 before:content[''] before:p-0.75 before:me-1
+                                  before:inline-flex before:items-center before:rounded-full"
+                                >Featured</p>
+                              }
+                            </div>
+                          </div>
+
+                          {/* Slug */}
+                          <div>/{category.slug || <span className="text-gray-400">Not added</span>}</div>
                           
+                          {/* parent name */}
+                          <div className='capitalize'>{parent?.name || <span className="text-gray-400">Nil</span>}</div>
+
+                          {/* Status */}
+                          <div>
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
+                              ${statusColors()}`}>
+                              {category?.status}
+                            </span>
+                          </div>
+                          
+                          {/* visibility */}
+                          <div className='capitalize'>
+                            {category?.visible ? 'visible' : <span className="text-gray-400">Invisible</span>}
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center justify-center gap-3 z-50">
+                            <div 
+                              onClick={() => {
+                                setIsEditOpen(true);
+                                setEditingCategory(category)
+                              }}
+                              className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
+                              border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
+                              <TbUserEdit size={20} />
+                            </div>
+
+                            
+                            <Menu as="div" className='relative'>
+                              {({ open }) => (
+                                <>
+                                  <MenuButton
+                                    className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                    border border-gray-300 !text-gray-900 cursor-pointer"
+                                  >
+                                    <IoMdMore size={20} />
+                                  </MenuButton>
+                                  <ContextMenu 
+                                    open={open}
+                                    items={[
+                                      /* { label: 'view category', icon: IoEyeOutline, onClick: () => {} }, */
+                                      { id: 'delete', 
+                                        icon: <HiOutlineTrash className='text-xl' />,
+                                        text: <span className={`capitalize`}> delete </span>,
+                                        onClick: () => handledelete(category._id) ,
+                                        itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
+                                      }
+                                    ]}
+                                  />
+                                </>
+                              )}
+                              
+                            </Menu>
+                            
+                          </div>
                         </div>
                       </motion.div>
                                             

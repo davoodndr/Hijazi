@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { LuSearch, LuUserRoundPlus } from "react-icons/lu";
+import { LuEye, LuSearch, LuUserRoundPlus } from "react-icons/lu";
 import ApiBucket from '../../../services/ApiBucket';
 import { Axios } from '../../../utils/AxiosSetup';
 import place_holder from '../../../assets/user_placeholder.jpg'
@@ -11,13 +11,16 @@ import ContextMenu from '../../../components/ui/ContextMenu';
 import { MdBlock } from "react-icons/md";
 import { CgUnblock } from "react-icons/cg";
 import AdminPagination from '../../../components/ui/AdminPagination';
-import { IoEyeOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router';
 import { blockUserAction, deleteUserAction } from '../../../services/ApiActions';
 import AxiosToast from '../../../utils/AxiosToast';
 import Alert from '../../../components/ui/Alert'
 import { Menu, MenuButton } from '@headlessui/react';
 import Skeleton from '../../../components/ui/Skeleton';
+import DropdownButton from '../../../components/ui/DropdownButton';
+import { FaSort } from 'react-icons/fa6';
+import { BsSortDown, BsSortDownAlt } from 'react-icons/bs';
+import { CiFilter } from 'react-icons/ci';
 
 const UsersList = () => {
 
@@ -220,32 +223,87 @@ const UsersList = () => {
             className='pl-10! rounded-xl! bg-white' />
         </div>
 
-        <div>
-          <span>Filter</span>
+        {/* filter sort */}
+        <div className='flex items-center h-full gap-x-2'>
+          {/* sort */}
+          <DropdownButton
+            label='sort'
+            icon={<FaSort className='text-lg me-1' />}
+            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
+            items={[
+              { id: 'priceltoh', 
+                icon: <BsSortDownAlt className='text-xl'/>,
+                text: <span className={`capitalize`}> price: low to high </span>,
+                onclick: () => {}
+              },
+              { id: 'pricehtol', 
+                icon: <BsSortDown className='text-xl'/>,
+                text: <span className={`capitalize`}> price: high to low</span>,
+                onclick: () => {}
+              },
+              { id: 'newfirst', 
+                icon: <BsSortDown className='text-xl'/>,
+                text: <span className={`capitalize`}> Newest First</span>,
+                onclick: () => {}
+              },
+              { id: 'oldfirst', 
+                icon: <BsSortDownAlt className='text-xl'/>,
+                text: <span className={`capitalize`}> Oldest First</span>,
+                onclick: () => {}
+              },
+            ]}
+          />
+
+          {/* filter */}
+          <DropdownButton
+            label='filter'
+            icon={<CiFilter className='text-lg me-1' />}
+            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
+            items={[
+              { id: 'featured', 
+                icon: <span className='text-xl point-before'></span>,
+                text: <span className={`capitalize`}> featured </span>,
+                onclick: () => {}
+              },
+              { id: 'active', 
+                icon: <span className='text-xl point-before point-before:bg-green-400'></span>,
+                text: <span className={`capitalize`}> active </span>,
+                onclick: () => {}
+              },
+              { id: 'inactive', 
+                icon: <span className='text-xl point-before point-before:bg-gray-400'></span>,
+                text: <span className={`capitalize`}> inactive </span>,
+                onclick: () => {}
+              },
+              { id: 'outofstock', 
+                icon: <span className='text-xl point-before point-before:bg-red-400'></span>,
+                text: <span className={`capitalize`}> out of stock </span>,
+                onclick: () => {}
+              },
+            ]}
+          />
         </div>
         
       </div>
 
-      <div className="flex w-full relative">
+      <div className="relative flex flex-col w-full bg-white rounded-3xl shadow-lg border border-gray-200">
+        {/* Header */}
+        <div className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
+          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full">
+            <span><input type="checkbox" /></span>
+            <span>User</span>
+            <span>Roles</span>
+            <span>Contact</span>
+            <span>Status</span>
+            <span className="text-center">Actions</span>
+          </div>
+        </div>
         <motion.ul 
           layout
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="w-full text-sm text-gray-700 bg-white rounded-3xl
-            shadow-lg border border-gray-200">
-          {/* Header */}
-          <li
-            className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
-            <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full gap-2">
-              <span><input type="checkbox" /></span>
-              <span>User</span>
-              <span>Roles</span>
-              <span>Contact</span>
-              <span>Status</span>
-              <span className="text-center">Actions</span>
-            </div>
-          </li>
+          className="flex flex-col w-full h-full text-sm text-gray-700">
 
             {/* Rows */}
             {loading ? 
@@ -277,8 +335,8 @@ const UsersList = () => {
                       }
 
                       return(
-                      
-                        <motion.div 
+                        
+                        <motion.div
                           layout
                           key={user._id}
                           custom={index}
@@ -290,75 +348,97 @@ const UsersList = () => {
                             backgroundColor: '#efffeb',
                             transition: { duration: 0.3 }
                           }}
-                          className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full gap-2 px-4 py-2 bg-white">
-                          {/* Checkbox */}
-                          <div><input type="checkbox" /></div>
+                        >
+                      
+                          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] 
+                            items-center w-full px-4 py-2 bg-white"
+                          >
+                            {/* Checkbox */}
+                            <div><input type="checkbox" /></div>
 
-                          {/* User Info */}
-                          <div className="flex gap-2 items-center">
-                            <div className="w-12 h-12 rounded-full overflow-hidden">
-                              <img src={user?.avatar || place_holder} alt="avatar" className="object-cover w-full h-full" />
-                            </div>
-                            <div className="inline-flex flex-col">
-                              <p className="capitalize">{user?.username}</p>
-                              <p className="text-xs text-gray-500">{user?.email}</p>
-                            </div>
-                          </div>
-
-                          {/* Roles */}
-                          <div className="flex flex-col text-[13px]">
-                            {user.roles.map((role, n) => (
-                              <span key={n} className="capitalize">{role}</span>
-                            ))}
-                          </div>
-
-                          {/* Contact */}
-                          <div>{user.mobile || <span className="text-gray-400">Not added</span>}</div>
-
-                          {/* Status */}
-                          <div>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
-                              ${statusColors()}`}>
-                              {user.status}
-                            </span>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex items-center justify-center gap-3 z-50">
-                            <div 
-                              onClick={() => navigate('/admin/users/edit-user',{state: {user}})}
-                              className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
-                              border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
-                              <TbUserEdit size={20} />
+                            {/* User Info */}
+                            <div className="flex gap-2 items-center">
+                              <div className="w-12 h-12 rounded-full overflow-hidden">
+                                <img src={user?.avatar || place_holder} alt="avatar" className="object-cover w-full h-full" />
+                              </div>
+                              <div className="inline-flex flex-col">
+                                <p className="capitalize">{user?.username}</p>
+                                <p className="text-xs text-gray-500">{user?.email}</p>
+                              </div>
                             </div>
 
-                            
-                            <Menu as="div" className='relative'>
-                              {({ open }) => (
-                                <>
-                                  <MenuButton
-                                    className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                                    border border-gray-300 !text-gray-900 cursor-pointer"
-                                  >
-                                    <IoMdMore size={20} />
-                                  </MenuButton>
-                                  <ContextMenu 
-                                    open={open}
-                                    items={[
-                                      { label: 'view user', icon: IoEyeOutline, onClick: () => navigate('/admin/users/view-user',{state: user}) },
-                                      { label: user?.status === 'blocked' ? 'unblock' : 'block', 
-                                        icon: user?.status === 'blocked' ? CgUnblock : MdBlock, onClick: ()=> handleUserBlock(user) },
-                                      { label: 'delete', icon: HiOutlineTrash, onClick: () => handleUserDelete(user) }
-                                    ]}
-                                  />
-                                </>
-                              )}
+                            {/* Roles */}
+                            <div className="flex flex-col text-[13px]">
+                              {user.roles.map((role, n) => (
+                                <span key={n} className="capitalize">{role}</span>
+                              ))}
+                            </div>
+
+                            {/* Contact */}
+                            <div>{user.mobile || <span className="text-gray-400">Not added</span>}</div>
+
+                            {/* Status */}
+                            <div>
+                              <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
+                                ${statusColors()}`}>
+                                {user.status}
+                              </span>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center justify-center gap-3 z-50">
+                              <div 
+                                onClick={() => navigate('/admin/users/edit-user',{state: {user}})}
+                                className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
+                                border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
+                                <TbUserEdit size={20} />
+                              </div>
+
                               
-                            </Menu>
-                            
+                              <Menu as="div" className='relative'>
+                                {({ open }) => (
+                                  <>
+                                    <MenuButton
+                                      className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                      border border-gray-300 !text-gray-900 cursor-pointer"
+                                    >
+                                      <IoMdMore size={20} />
+                                    </MenuButton>
+                                    <ContextMenu 
+                                      open={open}
+                                      items={[
+                                        { id: 'view user', 
+                                          icon: <LuEye className='text-xl' />,
+                                          text: <span className={`capitalize`}> view user </span>,
+                                          onClick: () => navigate('/admin/users/view-user',{state: user}) 
+                                        },
+                                        { id: 'block', 
+                                          icon: user?.status === 'blocked' ? 
+                                          <CgUnblock className='text-xl' /> : 
+                                          <MdBlock className='text-xl' />,
+                                          text: <span className={`capitalize`}> 
+                                            {user?.status === 'blocked' ? 'unblock' : 'block'} 
+                                          </span>,
+                                          onClick: ()=> handleUserBlock(user) 
+                                        },
+                                        
+                                        { id: 'delete', 
+                                          icon: <HiOutlineTrash className='text-xl' />,
+                                          text: <span className={`capitalize`}> delete </span>,
+                                          onClick: () => handleUserDelete(user) ,
+                                          itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
+                                        }
+                                      ]}
+                                    />
+                                  </>
+                                )}
+                                
+                              </Menu>
+                              
+                            </div>
                           </div>
+                        
                         </motion.div>
-                          
                       )
                     }))
                   :

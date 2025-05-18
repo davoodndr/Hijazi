@@ -1,7 +1,6 @@
 
 import { MenuItem, MenuItems } from '@headlessui/react';
 import { AnimatePresence, motion } from 'motion/react';
-import React from 'react'
 
 function ContextMenu({items, open, itemHeight = 10}) {
 
@@ -21,20 +20,20 @@ function ContextMenu({items, open, itemHeight = 10}) {
         >
           {items && items.map(item => 
             
-            <MenuItem key={item.label}>
+            <MenuItem key={item.id}>
               <li 
-                onClick={() => {
-                  item.onClick();
-                }}
-                className={`flex items-center gap-2 cursor-pointer transition-all duration-300
-                  border-gray-200 hover:bg-primary-25 
-                  ${item.label === 'delete' ? 'bg-red-100/50 hover:text-red-400 hover:bg-red-200/50':''}`}
+                onClick={() => item.onClick()}
+                className={`flex items-center gap-2 cursor-pointer smooth
+                  border-gray-200 hover:bg-primary-25 justify-between ${item.itemClass}`}
                 style={{
                   padding: `${itemHeight}px 12px`
                 }}
               >
-                {<item.icon className={`text-xl `} />}
-                <span className={`capitalize`}>{item.label}</span>
+                <div className='inline-flex items-center gap-2'>
+                  {item.icon}
+                  {item.text}
+                </div>
+                {item.tail}
               </li>
             </MenuItem>
             

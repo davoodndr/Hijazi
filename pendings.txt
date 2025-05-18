@@ -1,0 +1,3 @@
+add more fields to variants like, name, status etc..
+variant actions like change status
+create filer for unarchive product
