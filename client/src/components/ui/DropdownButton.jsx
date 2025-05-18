@@ -1,8 +1,9 @@
 import { Menu, MenuButton } from '@headlessui/react'
 import { IoIosArrowDown } from 'react-icons/io'
 import ContextMenu from './ContextMenu'
+import React from 'react'
 
-function DropdownButton({icon, label, onClick, className, items}) {
+const DropdownButton = React.memo(({icon, label, onClick, className, items}) => {
   return (
     <Menu as="div" className='h-full'>
       {({open}) => (
@@ -28,6 +29,6 @@ function DropdownButton({icon, label, onClick, className, items}) {
 
     </Menu>
   )
-}
+})
 
 export default DropdownButton

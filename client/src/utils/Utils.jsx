@@ -167,3 +167,26 @@ export const fetchImageAsFile = async(url, filename = 'image')=> {
 
   
 }
+
+export const getEffectivePrice = (product) => {
+  if (product.price != null) return product.price;
+
+  if (Array.isArray(product.variants) && product.variants.length > 0) {
+    const variantPrices = product.variants
+      .map(v => v.price)
+      .filter(p => p != null);
+
+    return variantPrices.length > 0 ? Math.min(...variantPrices) : Infinity;
+  }
+
+  return Infinity;
+}
+
+export const sortProductsByPrice = (products, order = 'asc') => {
+  return [...products].sort((a, b) => {
+    const priceA = getEffectivePrice(a);
+    const priceB = getEffectivePrice(b);
+
+    return order === 'asc' ? priceA - priceB : priceB - priceA;
+  });
+}

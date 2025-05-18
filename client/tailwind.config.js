@@ -1,14 +1,23 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/**/*.{html,js,ts,jsx,tsx}", // Adjust this based on your project structure
+    "./src/**/*.{html,js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {},
   },
-  plugins: [
-    plugin(function ({ addVariant }) {
-      addVariant('checked-within', '&:has(input[type="checkbox"]:checked, input[type="radio"]:checked)');
-    }),
+  safelist: [
+    'border',
+    'border-red-500',
+    'border-blue-500',
+    'rounded-md',
+    'p-1',
+    'bg-blue-100',
+    'text-blue-800',
+    'text-white',
+    'bg-blue-500',
+    'bg-gray-100',
+    'text-gray-900',
   ],
+  plugins: [],
 }

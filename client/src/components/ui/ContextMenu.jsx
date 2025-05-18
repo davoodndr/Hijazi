@@ -1,8 +1,12 @@
 
 import { MenuItem, MenuItems } from '@headlessui/react';
 import { AnimatePresence, motion } from 'motion/react';
+import React from 'react';
+import { useState } from 'react';
 
-function ContextMenu({items, open, itemHeight = 10}) {
+const ContextMenu = React.memo(({items, open, itemHeight = 10}) => {
+
+  const [checked, setChecked] = useState({});
 
   return (
     <AnimatePresence>
@@ -21,10 +25,11 @@ function ContextMenu({items, open, itemHeight = 10}) {
           {items && items.map(item => 
             
             <MenuItem key={item.id}>
-              <li 
-                onClick={() => item.onClick()}
+              <div
+                htmlFor={item?.htmlFor ?? ''} 
+                onClick={(e) => item.onClick()}
                 className={`flex items-center gap-2 cursor-pointer smooth
-                  border-gray-200 hover:bg-primary-25 justify-between ${item.itemClass}`}
+                  border-gray-200 hover:bg-primary-25 justify-between !text-sm ${item.itemClass}`}
                 style={{
                   padding: `${itemHeight}px 12px`
                 }}
@@ -34,7 +39,7 @@ function ContextMenu({items, open, itemHeight = 10}) {
                   {item.text}
                 </div>
                 {item.tail}
-              </li>
+              </div>
             </MenuItem>
             
           )}
@@ -44,6 +49,6 @@ function ContextMenu({items, open, itemHeight = 10}) {
   );
 
   
-}
+})
 
 export default ContextMenu

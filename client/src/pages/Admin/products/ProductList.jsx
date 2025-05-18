@@ -19,11 +19,15 @@ import { setLoading } from '../../../store/slices/CommonSlices'
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
-import { MdOutlineArchive } from 'react-icons/md';
+import { MdOutlineArchive, MdOutlineUnarchive } from 'react-icons/md';
 import ToggleSwitch from '../../../components/ui/ToggleSwitch';
 import { FaRegCircleXmark, FaSort } from "react-icons/fa6";
 import { BsSortDown, BsSortDownAlt } from "react-icons/bs";
 import DropdownButton from '../../../components/ui/DropdownButton';
+import MultiSelect from '../../../components/ui/MultiSelect';
+import { sortProductsByPrice } from '../../../utils/Utils';
+import { containerVariants, rowVariants } from '../../../utils/Anim';
+import { useCallback } from 'react';
 
 const ProductList = () => {
 
@@ -59,8 +63,7 @@ const ProductList = () => {
       if(response){
         
         const [productData, categoryData, brandData] = response;
-        const sortedProducts = productData.products.filter(p => p.status !== 'archived')
-        .sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+        const sortedProducts = productData.products.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
         const sortedCategories = categoryData.categories.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
         const sortedBrands = brandData.brands.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
     
@@ -80,6 +83,7 @@ const ProductList = () => {
   /* debouncer */
   const [query, setQuery] = useState('');
   const [searchQuery, setSearchQuery] = useState(query);
+  const [filter, setFilter] = useState({})
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -94,21 +98,60 @@ const ProductList = () => {
   const filteredProducts = useMemo(() => {
     return products.filter(product =>{
 
-      const fields = ['name','slug']
+      if(searchQuery){
+        const fields = ['name','slug']
 
-      return fields.some(field => {
+        return fields.some(field => {
 
-        if(product[field]){
-          return product[field].includes(searchQuery)
-        }
-        return false
+          if(product[field]){
+            return product[field].includes(searchQuery)
+          }
+          return false
 
-      })
+        })
+
+      }else{
+
+        if(!filter || !Object.keys(filter).length) return product;
+        const [[key, value]] = Object.entries(filter)
+        return product[key] === value
+      }
 
     });
 
-  },[searchQuery, products])
+  },[searchQuery, filter, products])
 
+
+  /* sort data */
+  const sortData = (need, order) => {
+    let sorted; 
+    
+    switch (need) {
+      case 'price':
+        sorted = sortProductsByPrice(products, order);
+        break;
+
+      default:
+        sorted = [...products].sort((a, b) => {
+          const aVal = a[need];
+          const bVal = b[need];
+
+          if (typeof aVal === 'string' && typeof bVal === 'string') {
+            return order === 'asc'
+              ? aVal.localeCompare(bVal)
+              : bVal.localeCompare(aVal);
+          }
+
+          return order === 'asc'
+            ? (aVal > bVal ? 1 : aVal < bVal ? -1 : 0)
+            : (aVal < bVal ? 1 : aVal > bVal ? -1 : 0);
+        });
+    }
+
+    if(sorted?.length){
+      setProducts(sorted);
+    }
+  }
 
   /* variant expand */
   const [expanded, setExpanded] = useState({});
@@ -126,15 +169,6 @@ const ProductList = () => {
     let statusChange = null;
 
     switch(status){
-
-      case 'archived': 
-        data = {
-          text: 'Yes, archive now', 
-          msg: 'The archived products get out of all type of access.',
-          color: '!bg-orange-500 hover:!bg-orange-600'
-        };
-        statusChange = 'archived'
-        break;
       case 'active' : 
         data = {
           text: 'Yes, deactivate now', 
@@ -181,7 +215,8 @@ const ProductList = () => {
           })
 
           if(response?.data?.success){
-            setProducts(prev => prev.filter(product => product._id !== id));
+            const updated = response.data.product;
+            setProducts(prev => prev.map(product => product._id === updated._id ? updated : product));
             AxiosToast(response, false);
           }
           
@@ -206,8 +241,8 @@ const ProductList = () => {
       confirmButtonText: product.visible ? 'Yes, hide now' : 'Yes, show now',
       customClass: {
         popup: '!w-[400px]',
-        confirmButton: `!bg-${product.visible ? 'red' : 'green'}-500 
-          hover:!bg-${product.visible ? 'red' : 'green'}-600`
+        confirmButton: `${product.visible ? '!bg-red-500 hover:!bg-red-600' 
+          : '!bg-green-500 hover:!bg-green-600'}`
       },
     }).then(async result => {
       
@@ -246,6 +281,58 @@ const ProductList = () => {
     })
   }
 
+  /* handle product visibility */
+  const handleMakeArchive = (product) => {
+    
+    Alert({
+      icon: 'question',
+      title: "Are you sure?",
+      text: product.archived ? 'This product get out of all type of access.' 
+        : 'This product will get all type of access',
+      showCancelButton: true,
+      confirmButtonText: product.archived ? 'Yes, archive now' : 'Yes, unarchive now',
+      customClass: {
+        popup: '!w-[400px]',
+        confirmButton: `${product.archived ? '!bg-orange-500 hover:!bg-orange-600' 
+          : '!bg-green-500 hover:!bg-green-600'}`
+      },
+    }).then(async result => {
+      
+      if(result.isConfirmed){
+        dispatch(setLoading(true));
+        
+        try {
+
+          const response = await Axios({
+            ...ApiBucket.changeProductStatus,
+            data: {
+              product_id: product._id,
+              visibility: !product.archived
+            }
+          })
+
+          if(response?.data?.success){
+            setProducts(prev => prev.map(p => {
+              if(p._id === product._id){
+                return {
+                  ...p,
+                  archived: !p.archived
+                }
+              }
+              return p
+            }));
+            AxiosToast(response, false);
+          }
+          
+        } catch (error) {
+          AxiosToast(error)
+        }finally{
+          dispatch(setLoading(false))
+        }
+      }
+    })
+  }
+
   /* handle delete product */
   const handledelete = async(id) => {
 
@@ -267,40 +354,6 @@ const ProductList = () => {
    toast.error('Not implimented yet',{position: 'top-center'})
 
   }
-
-  const containerVariants = {
-    hidden: {
-      transition: {
-        staggerChildren: 0.05,
-        staggerDirection: -1,
-      },
-    },
-    visible: {
-      transition: {
-        staggerChildren: 0.05,
-      },
-    },
-  };
-
-  const rowVariants = {
-    hidden: { opacity: 0, y:-20 },
-    visible: {
-      opacity: 1,
-      y:0,
-      transition: {
-        duration: 0.5,
-        ease: 'easeOut',
-      },
-    },
-    exit: {
-      opacity: 0,
-      y: -20,
-      transition: {
-        duration: 0.3,
-        ease: 'easeIn',
-      },
-    },
-  };
 
   /* paingation logic */
   const [currentPage, setCurrentPage] = useState(1);
@@ -352,59 +405,69 @@ const ProductList = () => {
           {/* sort */}
           <DropdownButton
             label='sort'
-            icon={<FaSort className='text-lg me-1' />}
+            icon={<FaSort className='text-md me-1' />}
             className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
-            items={[
+            items={useMemo(() => [
               { id: 'priceltoh', 
                 icon: <BsSortDownAlt className='text-xl'/>,
                 text: <span className={`capitalize`}> price: low to high </span>,
-                onclick: () => {}
+                onClick: () => sortData('price')
               },
               { id: 'pricehtol', 
                 icon: <BsSortDown className='text-xl'/>,
                 text: <span className={`capitalize`}> price: high to low</span>,
-                onclick: () => {}
+                onClick: () => sortData('price','desc')
               },
               { id: 'newfirst', 
                 icon: <BsSortDown className='text-xl'/>,
                 text: <span className={`capitalize`}> Newest First</span>,
-                onclick: () => {}
+                onClick: () => sortData('createdAt','asc')
               },
               { id: 'oldfirst', 
                 icon: <BsSortDownAlt className='text-xl'/>,
                 text: <span className={`capitalize`}> Oldest First</span>,
-                onclick: () => {}
+                onClick: () => sortData('createdAt','desc')
               },
-            ]}
+            ],[])}
           />
 
           {/* filter */}
           <DropdownButton
             label='filter'
             icon={<CiFilter className='text-lg me-1' />}
-            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
-            items={[
-              { id: 'featured', 
+            className=' bg-white border border-gray-300 rounded-xl !text-gray-600'
+            items={useMemo(() => [
+              { id: 'none',
+                icon: <span className='text-xl point-before point-before:bg-gray-300'></span>,
+                text: <span className={`capitalize`}> None </span>,
+                onClick: () => setFilter({})
+              },
+              { id: 'featured',
                 icon: <span className='text-xl point-before'></span>,
                 text: <span className={`capitalize`}> featured </span>,
-                onclick: () => {}
+                onClick: () => setFilter({'featured':true})
               },
               { id: 'active', 
                 icon: <span className='text-xl point-before point-before:bg-green-400'></span>,
                 text: <span className={`capitalize`}> active </span>,
-                onclick: () => {}
+                onClick: () => setFilter({'status':'active'})
               },
               { id: 'inactive', 
                 icon: <span className='text-xl point-before point-before:bg-gray-400'></span>,
                 text: <span className={`capitalize`}> inactive </span>,
-                onclick: () => {}
+                onClick: () => setFilter({'status':'inactive'})
               },
               { id: 'outofstock', 
                 icon: <span className='text-xl point-before point-before:bg-red-400'></span>,
                 text: <span className={`capitalize`}> out of stock </span>,
-                onclick: () => {}
+                onClick: () => setFilter({'stock':0})
               },
-            ]}
+              { id: 'archived', 
+                icon: <span className='text-xl point-before point-before:bg-yellow-400'></span>,
+                text: <span className={`capitalize`}> archived </span>,
+                onClick: () => setFilter({'archived':true})
+              },
+            ],[])}
           />
         </div>
         
@@ -488,15 +551,15 @@ const ProductList = () => {
                           exit="exit"
                           variants={rowVariants}
                           whileHover={{
-                            backgroundColor: '#efffeb',
+                            backgroundColor: product.archived ? '' : '#efffeb',
                             transition: { duration: 0.3 }
                           }}
-                          className="bg-white"
+                          className={`${product.archived ? 'cursor-not-allowed pointer-events-none bg-gray-100 grayscale-100 !opacity-50' : 'bg-white'}`}
                         >
 
                           <div
-                            className="grid grid-cols-[40px_2fr_1fr_1fr_1fr_1fr_1fr_88px] 
-                            items-center w-full px-4 py-2"
+                            className={`grid grid-cols-[40px_2fr_1fr_1fr_1fr_1fr_1fr_88px] 
+                              items-center w-full px-4 py-2`}
                           >
                             {/* Checkbox */}
                             <div><input type="checkbox" /></div>
@@ -553,7 +616,7 @@ const ProductList = () => {
                             <div>
                               <span className={`w-fit px-2 py-1 text-xs font-semibold rounded-full capitalize
                                 ${statusColors()}`}>
-                                {product?.status}
+                                {product.archived ? 'archived' : product?.status}
                               </span>
                             </div>
 
@@ -582,7 +645,7 @@ const ProductList = () => {
                               <Menu as="div" className='relative'>
                                 {({ open }) => (
                                   <>
-                                    <MenuButton
+                                    <MenuButton as="div"
                                       className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
                                       border border-gray-300 !text-gray-900 cursor-pointer"
                                     >
@@ -590,7 +653,7 @@ const ProductList = () => {
                                     </MenuButton>
                                     <ContextMenu 
                                       open={open}
-                                      items={[
+                                      items={useMemo(() => [
                                         { id: 'view', 
                                           icon: <LuEye className='text-xl'/>,
                                           text: <span className={`capitalize`}> view </span>,
@@ -603,16 +666,19 @@ const ProductList = () => {
                                           text: <span className={`capitalize`}> {product.status} </span>,
                                           tail: <ToggleSwitch 
                                                   size={4}
-                                                  value={product.visible}
+                                                  value={product.status === 'active'}
                                                   onChange={() => 
                                                     handleStatusChange(product._id, product.status)
                                                   }
                                                 />
                                         },
                                         { id: 'archive', 
-                                          icon: <MdOutlineArchive className='text-xl'/>,
-                                          text: <span className={`capitalize`}> archive </span>, 
-                                          onClick: () => handleStatusChange(product._id, product) 
+                                          icon: product.archived ? <MdOutlineArchive className='text-xl'/>
+                                            : <MdOutlineUnarchive className='text-xl' />,
+                                          text: <span className={`capitalize`}> {
+                                            product.archived ? 'unarchive' : 'archive'
+                                          } </span>, 
+                                          onClick: () => handleMakeArchive(product) 
                                         },
                                         { id: 'delete', 
                                           icon: <HiOutlineTrash className='text-xl' />,
@@ -620,7 +686,7 @@ const ProductList = () => {
                                           onClick: () => handledelete(product._id) ,
                                           itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
                                         }
-                                      ]}
+                                      ],[])}
                                     />
                                   </>
                                 )}

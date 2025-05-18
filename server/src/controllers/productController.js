@@ -235,7 +235,7 @@ export const changeProductStatus = async(req, res) => {
     }
     await product.save();
 
-    return responseMessage(res, 200, true, "Product archived successfully");
+    return responseMessage(res, 200, true, "Product archived successfully",{product});
     
   } catch (error) {
     console.log('changeProductStatus',error)

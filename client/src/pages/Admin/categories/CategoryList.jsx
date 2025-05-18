@@ -22,6 +22,7 @@ import DropdownButton from '../../../components/ui/DropdownButton';
 import { FaSort } from 'react-icons/fa6';
 import { BsSortDown, BsSortDownAlt } from 'react-icons/bs';
 import { CiFilter } from 'react-icons/ci';
+import { containerVariants, rowVariants } from '../../../utils/Anim';
 
 const CategoryList = () => {
 
@@ -165,40 +166,6 @@ const CategoryList = () => {
     })
 
   }
-
-  const containerVariants = {
-    hidden: {
-      transition: {
-        staggerChildren: 0.05,
-        staggerDirection: -1,
-      },
-    },
-    visible: {
-      transition: {
-        staggerChildren: 0.05,
-      },
-    },
-  };
-
-  const rowVariants = {
-    hidden: { opacity: 0, y:-20 },
-    visible: {
-      opacity: 1,
-      y:0,
-      transition: {
-        duration: 0.5,
-        ease: 'easeOut',
-      },
-    },
-    exit: {
-      opacity: 0,
-      y: -20,
-      transition: {
-        duration: 0.3,
-        ease: 'easeIn',
-      },
-    },
-  };
 
   /* paingation logic */
   const [currentPage, setCurrentPage] = useState(1);
