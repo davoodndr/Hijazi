@@ -27,7 +27,7 @@ const Navbar = () => {
   }, [isExpaned])
 
   return (
-    <header className="flex flex-col sticky top-0 bg-white">
+    <header className="flex flex-col sticky top-0 bg-white z-1000">
 
       {/* header middle */}
       <div className='flex flex-row w-full justify-center'>

@@ -8,7 +8,9 @@ const UserLayout = () => {
   return (
     <>
       <Navbar />
-        <Outlet />
+        <main className='w-full flex justify-center bg-white'>
+          <Outlet />
+        </main>
       <Footer />
       
       <Toaster

@@ -25,6 +25,7 @@
   --color-status-blue: oklch(0.72 0.0505 157.41);
 
   --radius-input-border: 10px;
+  --text-slider-header-title: 22px
 
 }
 
@@ -80,6 +81,22 @@
     transform: translate(150%, -35%);
     
   }
+
+  /* .next-btn{
+    @apply absolute -right-8 top-1/2 -translate-y-1/2 z-200 inline-flex justify-center
+     border border-gray-300 hover:border-primary-300 p-2 rounded-full cursor-pointer 
+     smooth bg-primary-50 text-gray-400 opacity-0
+  }
+  .prev-btn{
+    @apply absolute -left-8 top-1/2 -translate-y-1/2 z-200 inline-flex justify-center
+     border border-gray-300 hover:border-primary-300 p-2 rounded-full cursor-pointer 
+     smooth bg-primary-50 text-gray-400 opacity-0
+  } */
+  .nav-btn{
+    @apply border bg-primary-50 border-primary-400/20 text-primary-400/60 p-1.5 rounded-full smooth
+      hover:bg-primary-300 hover:text-white cursor-pointer z-150
+  }
+  
 }
 
 @utility smooth {

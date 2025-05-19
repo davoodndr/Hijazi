@@ -24,7 +24,6 @@ import ToggleSwitch from '../../../components/ui/ToggleSwitch';
 import { FaRegCircleXmark, FaSort } from "react-icons/fa6";
 import { BsSortDown, BsSortDownAlt } from "react-icons/bs";
 import DropdownButton from '../../../components/ui/DropdownButton';
-import MultiSelect from '../../../components/ui/MultiSelect';
 import { sortProductsByPrice } from '../../../utils/Utils';
 import { containerVariants, rowVariants } from '../../../utils/Anim';
 import { useCallback } from 'react';

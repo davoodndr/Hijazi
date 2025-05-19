@@ -34,7 +34,7 @@ const AccountDropDown = ({user}) => {
           ) :
           (
             <div className='flex flex-col p-5'>
-              <p className='my-1'>To access acoount</p>
+              <p className='my-1'>To access account</p>
               <Link to={'/login'} className='border border-neutral-300 w-fit py-1 hover:bg-primary-50
                 transition-all duration-300 px-5 cursor-pointer hover:scale-103 hover:border-primary-300'>Login / Sign up</Link>
             </div>
