@@ -7,13 +7,13 @@ import { Autoplay, Pagination, Navigation, EffectFade } from 'swiper/modules';
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
 
-function MulticardSlider({cards}) {
+function MulticardSlider({cardCount = 7, cards, title, className}) {
 
   return (
-    <section className="relative group">
+    <section className={`relative group ${className}`}>
 
       <div className="flex items-center justify-between mb-[20px]">
-        <h3 className="text-slider-header-title"><span className="text-primary-400">Popular</span> Categories</h3>
+        {title}
         <div className="relative inline-flex gap-2">
           {/* nav buttons */}
           <div className={`custom-swiper-button-prev nav-btn `}>
@@ -29,10 +29,8 @@ function MulticardSlider({cards}) {
       <div className="custom-swiper-pagination absolute !bottom-8
         z-100 w-full flex justify-center"></div>
 
-      
-
       <Swiper
-        slidesPerView={7}
+        slidesPerView={cardCount}
         spaceBetween={100}
         speed={800}
         autoplay={{ 
