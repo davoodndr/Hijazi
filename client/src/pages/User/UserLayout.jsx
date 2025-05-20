@@ -3,15 +3,18 @@ import Navbar from '../../components/user/Navbar'
 import { Outlet } from 'react-router'
 import Footer from '../../components/user/Footer'
 import { Toaster } from 'react-hot-toast'
+import AnimateAppear from '../../components/user/AnimateAppear'
 
 const UserLayout = () => {
   return (
     <>
       <Navbar />
-        <main className='w-full flex justify-center bg-white'>
+        <main className='w-full flex flex-col items-center justify-center bg-white'>
           <Outlet />
         </main>
-      <Footer />
+      <AnimateAppear>
+        <Footer />
+      </AnimateAppear>
       
       <Toaster
         position='top-right'

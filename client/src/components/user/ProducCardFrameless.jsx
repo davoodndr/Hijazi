@@ -2,9 +2,9 @@ import React from 'react'
 import StarRating from './StarRating'
 import { TbShoppingBagPlus } from "react-icons/tb";
 
-function ProducCardSmall({image}) {
+function ProducCardFrameless({image}) {
   return (
-    <div className="w-[190px] rounded-3xl overflow-hidden bg-white px-3 pt-3">
+    <div className="w-[170px] rounded-2xl overflow-hidden">
       <div className="relative overflow-hidden max-h-[320px] group/item rounded-2xl 
         border border-primary-400/30">
         
@@ -56,4 +56,4 @@ function ProducCardSmall({image}) {
   )
 }
 
-export default ProducCardSmall
+export default ProducCardFrameless

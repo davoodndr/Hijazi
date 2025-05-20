@@ -5,7 +5,7 @@ import { Link } from 'react-router'
 const Footer = () => {
 
   return (
-    <footer className='flex flex-col items-center w-full'>
+    <footer className='flex flex-col items-center w-full bg-gray-100'>
       <div className="grid lg:grid-cols-4 md:grid-cols-3 items-start w-9/10 pt-10">
         <div className="mb-5">
           <h3 className='mb-4'>Registered Office Address</h3>

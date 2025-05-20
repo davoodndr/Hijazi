@@ -6,23 +6,46 @@ import "swiper/css/effect-fade";
 import { Autoplay, Pagination, Navigation, EffectFade } from 'swiper/modules';
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
+// @ts-check
+import React from "react";
 
-function MulticardSlider({cardCount = 7, cards, title, className}) {
+/**
+ * @typedef {Object} MultiCardSliderSettings
+ * @property {number} [cardCount] - Number of cards in view
+ * @property {number} [space] - Space between cards
+ * @property {React.ReactNode[]} cards - Cards list
+ * @property {React.ReactNode[] | string} [title] - Title for Slider
+ * @property {string} [className] - Classes for Slider
+ * @property {string} [slideClass] - Classes for single slide
+ * @property {string} [titleClass] - Classes for title wrapper
+ * @property {boolean} [showButtons] - Show/hide navigation buttons
+ */
+
+/**
+ * @param {MultiCardSliderSettings} props
+ */
+function MulticardSliderComponent ({
+  cardCount = 7, space = 100, cards, title, 
+  className = '', slideClass = '', titleClass = '',
+  showButtons = true
+}){
 
   return (
-    <section className={`relative group ${className}`}>
+    <div className={`relative group ${className}`}>
 
-      <div className="flex items-center justify-between mb-[20px]">
+      <div className={`flex items-center justify-between ${titleClass}`}>
         {title}
-        <div className="relative inline-flex gap-2">
-          {/* nav buttons */}
-          <div className={`custom-swiper-button-prev nav-btn `}>
-            <IoIosArrowBack className="text-lg" />
+        {showButtons && 
+          <div className="relative inline-flex gap-2">
+            {/* nav buttons */}
+            <div className={`custom-swiper-button-prev nav-btn `}>
+              <IoIosArrowBack className="text-lg" />
+            </div>
+            <div className={`custom-swiper-button-next nav-btn `}>
+              <IoIosArrowForward className="text-lg" />
+            </div>
           </div>
-          <div className={`custom-swiper-button-next nav-btn `}>
-            <IoIosArrowForward className="text-lg" />
-          </div>
-        </div>
+        }
       </div>
 
       {/* pagination */}
@@ -31,13 +54,12 @@ function MulticardSlider({cardCount = 7, cards, title, className}) {
 
       <Swiper
         slidesPerView={cardCount}
-        spaceBetween={100}
+        spaceBetween={space}
         speed={800}
         autoplay={{ 
           delay: 3000,
           pauseOnMouseEnter: true
         }}
-        pauseOnMouseEnter={true}
         loop={true}
         effect="fade"
         pagination={{
@@ -54,15 +76,17 @@ function MulticardSlider({cardCount = 7, cards, title, className}) {
         {cards.map((el, i) =>{
 
           return (
-            <SwiperSlide key={i} className=" bg-white">
+            <SwiperSlide key={i} className={slideClass}>
               {el}
             </SwiperSlide>
           )
         })}
       </Swiper>
       
-    </section>
+    </div>
   )
-}
+};
+
+const MulticardSlider = React.memo(MulticardSliderComponent)
 
 export default MulticardSlider

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaStar } from "react-icons/fa";
 
-export default function StarRating({ maxStars = 5 }) {
+function StarRatingComponent ({ maxStars = 5 }){
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(null);
 
@@ -26,3 +26,7 @@ export default function StarRating({ maxStars = 5 }) {
     </div>
   );
 }
+
+const StarRating = React.memo(StarRatingComponent)
+
+export default StarRating
