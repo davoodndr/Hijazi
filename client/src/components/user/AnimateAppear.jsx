@@ -11,7 +11,7 @@ function AnimateComponent({children, className=''}) {
   return (
     <motion.section 
       ref={ref} 
-      initial={scrollDir === 'down' ? {opacity: 0, y:-200} : {opacity: 0, y:200}}
+      initial={scrollDir === 'down' ? {opacity: 0, y:-100} : {opacity: 0, y:100}}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{duration: 0.6, ease: 'easeOut'}}
       className={className}

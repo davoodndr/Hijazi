@@ -18,6 +18,7 @@ import React from "react";
  * @property {string} [className] - Classes for Slider
  * @property {string} [slideClass] - Classes for single slide
  * @property {string} [titleClass] - Classes for title wrapper
+ * @property {string} [buttonClass] - Classes for button wrapper
  * @property {boolean} [showButtons] - Show/hide navigation buttons
  */
 
@@ -26,7 +27,7 @@ import React from "react";
  */
 function MulticardSliderComponent ({
   cardCount = 7, space = 100, cards, title, 
-  className = '', slideClass = '', titleClass = '',
+  className = '', slideClass = '', titleClass = '', buttonClass = '',
   showButtons = true
 }){
 
@@ -36,7 +37,7 @@ function MulticardSliderComponent ({
       <div className={`flex items-center justify-between ${titleClass}`}>
         {title}
         {showButtons && 
-          <div className="relative inline-flex gap-2">
+          <div className={`relative inline-flex gap-2 ${buttonClass}`}>
             {/* nav buttons */}
             <div className={`custom-swiper-button-prev nav-btn `}>
               <IoIosArrowBack className="text-lg" />

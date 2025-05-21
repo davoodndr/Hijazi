@@ -3,13 +3,13 @@ import StarRating from './StarRating'
 import { TbHeart, TbShoppingBagPlus } from "react-icons/tb";
 import { FaRegEye } from 'react-icons/fa';
 import ProductCardBadge from './ProductCardBadge';
+import { IoIosHeartEmpty } from 'react-icons/io';
 
-function ProducCardFrameless({image}) {
+function ProducCard({image}) {
   return (
-    <div className="w-[170px] rounded-2xl overflow-hidden group/item cursor-pointer">
-
-      
-      <div className="relative overflow-hidden max-h-[320px] rounded-2xl 
+    <div className="w-[260px] rounded-4xl overflow-hidden bg-white px-3 pt-3 group/item
+      border border-gray-300 smooth hover:shadow-lg/20 hover:border-primary-300 cursor-pointer">
+      <div className="relative overflow-hidden max-h-[320px] rounded-3xl 
         border border-primary-400/30">
         
         {/* action buttons */}
@@ -24,13 +24,13 @@ function ProducCardFrameless({image}) {
           </a>
           <a className="ps-1 pe-2 py-1.5 inline-flex bg-white border-l-1 border-gray-300
            hover:bg-primary-400 hover:text-white">
-            <FaRegEye className='text-2xl' />
+            <FaRegEye className='text-xl' />
           </a>
 
         </div> */}
 
         {/* image */}
-        <div className="relative overflow-hidden rounded-2xl cursor-pointer smooth 
+        <div className="relative overflow-hidden rounded-3xl cursor-pointer smooth 
           peer-hover:blur-[2px]">
 
           <a className=''>
@@ -38,20 +38,20 @@ function ProducCardFrameless({image}) {
             <img className="hover-img" src="assets/imgs/shop/product-2-2.jpg" alt=""/>
           </a>
         </div>
-        
+
         {/* badge */}
         <ProductCardBadge
           title='Hot'
         />
+
       </div>
 
       {/* detail */}
-      <div className="flex flex-col px-2 py-3 relative">
-        <h2 className='text-[15px] !font-bold'>
-          <a>Lorem ipsum dolor</a>
-        </h2>
-        <div className="py-1">
-          <span className='text-lg'>
+      <div className="flex flex-col px-2 pt-3 pb-5 relative">
+        <span className='text-xs mb-0.25'>Cateogry</span>
+        <p className='text-lg !font-bold '>Lorem ipsum dolor</p>
+        <div className="py-0.25 mb-2">
+          <span className='text-xl'>
             <StarRating />
           </span>
         </div>
@@ -61,7 +61,6 @@ function ProducCardFrameless({image}) {
           <span className="old-price price-before line-through text-gray-400">245.8</span>
         </div>
 
-        {/* cart button */}
         <div className='absolute right-0 bottom-3 inline-flex flex-col gap-1 z-10'>
           <div className='sale-icon opacity-0 scale-0 group-hover/item:opacity-100 group-hover/item:scale-100'>
             <TbHeart className='text-2xl' />
@@ -75,4 +74,4 @@ function ProducCardFrameless({image}) {
   )
 }
 
-export default ProducCardFrameless
+export default ProducCard

@@ -16,6 +16,7 @@ import banner_2 from "../../assets/banners/banner-1.png"
 import banner_3 from "../../assets/banners/banner-2.png"
 import banner_4 from "../../assets/banners/banner-3.png"
 import banner_9 from "../../assets/banners/banner-9.jpg"
+import banner_10 from "../../assets/banners/banner-10.jpg"
 import brand_1 from "../../assets/brands/brand-1.png"
 import brand_2 from "../../assets/brands/brand-2.png"
 import brand_3 from "../../assets/brands/brand-3.png"
@@ -32,6 +33,7 @@ import ProducCardFrameless from '../../components/user/ProducCardFrameless.jsx'
 import AnimateAppear from '../../components/user/AnimateAppear'
 import BrandCard from '../../components/user/BrandCard'
 import ProducCardSmall from '../../components/user/ProducCardSmall.jsx'
+import ProducCard from '../../components/user/ProductCard.jsx'
 
 const Home = () => {
   return (
@@ -66,23 +68,9 @@ const Home = () => {
           />
         </AnimateAppear>
 
-        {/* Banner-1 */}
-        <AnimateAppear className='py-4 mb-10'>
-          <div className="relative">
-            <img src={banner_1} alt=""/>
-            <div className="absolute top-1/2 z-2 -translate-y-1/2 py-[20px] px-[30px]">
-              <h4 className="font-bold mb-[15px] mt-4 !text-primary-400 text-xl">Repair Services</h4>
-              <h1 className="font-bold text-5xl leading-1.5 mb-2">We're an Apple <br/>Authorised Service Provider</h1>
-              <button className="inline-flex items-center gap-1 !px-5 smooth hover:gap-2">Learn More 
-                <IoMdArrowForward className='text-xl' />
-              </button>
-            </div>
-          </div>
-        </AnimateAppear>
-
         {/* popular categories */}
         <AnimateAppear>
-          <MulticardSlider className='mb-10' titleClass='mb-4'
+          <MulticardSlider className='mb-10' titleClass='mb-2'
             space={100}
             title={
               <h3 className="text-slider-header-title">
@@ -101,6 +89,41 @@ const Home = () => {
             ],[])}
           />
         </AnimateAppear>
+
+        {/* Banner-1 */}
+        <AnimateAppear className='py-4 mb-10'>
+          <div className="relative">
+            <img src={banner_1} alt=""/>
+            <div className="absolute top-1/2 z-2 -translate-y-1/2 py-[20px] px-[30px]">
+              <h4 className="font-bold mb-[15px] mt-4 !text-primary-400 text-xl">Repair Services</h4>
+              <h1 className="font-bold text-5xl leading-1.5 mb-2">We're an Apple <br/>Authorised Service Provider</h1>
+              <button className="inline-flex items-center gap-1 !px-5 smooth hover:gap-2">Learn More 
+                <IoMdArrowForward className='text-xl' />
+              </button>
+            </div>
+          </div>
+        </AnimateAppear>
+
+        {/* featured products */}
+        <div className='flex flex-col mb-15'>
+          <h3 className="text-slider-header-title mb-5">
+            <span className="text-primary-400">Featured</span> Products
+          </h3>
+        
+          <div className="flex flex-col items-center w-full bg-primary-25 py-10">
+            
+            <div className='grid grid-cols-4 gap-8 w-[92%]'>
+              <ProducCard image={category_1} />
+              <ProducCard image={category_2} />
+              <ProducCard image={category_3} />
+              <ProducCard image={category_4} />
+              <ProducCard image={category_1} />
+              <ProducCard image={category_2} />
+              <ProducCard image={category_3} />
+              <ProducCard image={category_4} />
+            </div>
+          </div>
+        </div>
 
         {/* banner-2 */}
         <AnimateAppear>
@@ -196,29 +219,150 @@ const Home = () => {
       </div>
 
       {/* monthly best sell*/}
-      <div className='flex w-full justify-center bg-gray-100 py-15 mb-10'>
-        <div className="flex flex-col w-9/10">
-          <h3 className="text-slider-header-title">
-            <span className="text-primary-400">Popular</span> Categories
-          </h3>
+      <AnimateAppear className='w-full'>
+        <div className='flex w-full justify-center bg-gray-100 py-15 mb-10'>
+          <div className="flex flex-col w-10/12">
+            <h3 className="text-slider-header-title mb-8">
+              <span className="text-primary-400">Monthly</span> Best Sell
+            </h3>
 
-          <div className="flex gap-3">
+            <div className="flex gap-3">
 
-            <div className="basis-[23%] h-[338px] inline-flex rounded-4xl overflow-hidden">
-              <img src={banner_9} alt="" />
+              <div className="w-[25%] h-[338px] inline-flex rounded-4xl overflow-hidden relative">
+                <div className='absolute top-[40%] left-5 -translate-y-1/2 
+                  inline-flex flex-col max-w-[40%]'>
+                  <span className='text-gray-400 mb-1'>Womans Area</span>
+                  <h3 className='text-lg mb-4 smooth hover:translate-x-2 !text-white'>Save 17% on All Items</h3>
+
+                  <div className='text-primary-300 inline-flex items-center gap-1
+                    smooth hover:gap-3 cursor-pointer'>
+                    <span>Shop Now</span>
+                    <IoMdArrowForward />
+                  </div>
+                </div>
+                <img src={banner_9} alt="" />
+              </div>
+
+              <div className="w-[75%]">
+                <MulticardSlider titleClass='mb-3 !justify-end'
+                  cardCount={4}
+                  space={30}
+                  cards={[
+                    <ProducCardSmall image={category_1} />,
+                    <ProducCardSmall image={category_2} />,
+                    <ProducCardSmall image={category_3} />,
+                    <ProducCardSmall image={category_4} />,
+                    <ProducCardSmall image={category_5} />,
+                    <ProducCardSmall image={category_6} />,
+                    <ProducCardSmall image={category_7} />,
+                    <ProducCardSmall image={category_8} />,
+                  ]}
+                />
+              </div>
             </div>
 
-            <div className="flex-grow inline-flex">
-              <MulticardSlider
-                showButtons={false}
-                cards={[
-                  <ProducCardSmall image={category_1} />,
-                ]}
-              />
-            </div>
           </div>
-
         </div>
+      </AnimateAppear>
+
+      {/* top selling */}
+      <div className='flex w-10/12'>
+        <AnimateAppear>
+          <div className='grid grid-cols-4 mt-8 mb-18 gap-7'>
+          
+            <div className='w-full h-[300px] overflow-hidden relative'>
+              <div className='absolute top-1/2 left-5 -translate-y-1/2 
+                inline-flex flex-col max-w-[50%]'>
+                <span className='text-gray-400 mb-1'>Shoes Zone</span>
+                <h3 className='text-lg mb-4 smooth hover:translate-x-2'>Save 17% on All Items</h3>
+
+                <div className='text-primary-400 inline-flex items-center gap-1
+                  smooth hover:gap-3 cursor-pointer'>
+                  <span>Shop Now</span>
+                  <IoMdArrowForward />
+                </div>
+              </div>
+              <img src={banner_10} className='object-cover' alt="" />
+            </div>
+
+            <div className='flex flex-col'>
+              <h4 className='relative border-b border-gray-300 text-lg pb-2 mb-5
+                after:content-[""] after:w-15 after:h-0.5 after:absolute 
+                after:bottom-0 after:left-0 after:bg-primary-400'
+              >Deals & Outlet</h4>
+
+              <div className="flex flex-col h-full justify-between">
+                {Array(3).fill(null).map((el, i) => 
+                  <div key={i} className='flex gap-5 cursor-pointer'>
+                    <div className='w-[25%]'>
+                      <img src={`thumbnails/thumbnail-${++i}.jpg`} className='w-100' alt="" />
+                    </div>
+                    <div className='flex-grow inline-flex flex-col justify-center gap-3'>
+                      <p className='capitalize font-semibold text-[15px] tracking-wide'>fish print pathced Bag</p>
+                      <div className='flex gap-1 items-center'>
+                        <span className='text-[17px] font-semibold text-primary-400 price-before 
+                          price-before:!text-[13px] !items-start leading-4.5'>238.85</span>
+                        <span className="old-price price-before line-through text-gray-400">245.8</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+            <div className='flex flex-col'>
+              <h4 className='relative border-b border-gray-300 text-lg pb-2 mb-5
+                after:content-[""] after:w-15 after:h-0.5 after:absolute 
+                after:bottom-0 after:left-0 after:bg-primary-400'
+              >Top Selling</h4>
+
+              <div className="flex flex-col h-full justify-between">
+                {Array(3).fill(null).map((el, i) => 
+                  <div key={i} className='flex gap-5 cursor-pointer'>
+                    <div className='w-[25%]'>
+                      <img src={`thumbnails/thumbnail-${++i + 3}.jpg`} className='w-100' alt="" />
+                    </div>
+                    <div className='flex-grow inline-flex flex-col justify-center gap-3'>
+                      <p className='capitalize font-semibold text-[15px] tracking-wide'>fish print pathced Bag</p>
+                      <div className='flex gap-1 items-center'>
+                        <span className='text-[17px] font-semibold text-primary-400 price-before 
+                          price-before:!text-[13px] !items-start leading-4.5'>238.85</span>
+                        <span className="old-price price-before line-through text-gray-400">245.8</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+            <div className='flex flex-col'>
+              <h4 className='relative border-b border-gray-300 text-lg pb-2 mb-5
+                after:content-[""] after:w-15 after:h-0.5 after:absolute 
+                after:bottom-0 after:left-0 after:bg-primary-400'
+              >Hot Releases</h4>
+
+              <div className="flex flex-col h-full justify-between">
+                {Array(3).fill(null).map((el, i) => 
+                  <div key={i} className='flex gap-5 cursor-pointer'>
+                    <div className='w-[25%]'>
+                      <img src={`thumbnails/thumbnail-${++i + 6}.jpg`} className='w-100' alt="" />
+                    </div>
+                    <div className='flex-grow inline-flex flex-col justify-center gap-3'>
+                      <p className='capitalize font-semibold text-[15px] tracking-wide'>fish print pathced Bag</p>
+                      <div className='flex gap-1 items-center'>
+                        <span className='text-[17px] font-semibold text-primary-400 price-before 
+                          price-before:!text-[13px] !items-start leading-4.5'>238.85</span>
+                        <span className="old-price price-before line-through text-gray-400">245.8</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+          </div>
+        </AnimateAppear>
       </div>
     </>
   )

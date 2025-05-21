@@ -2,7 +2,9 @@ import React from 'react'
 
 const CategoryCard = React.memo(({image, categoryName = ''}) => {
   return (
-    <div className="w-[166px] relative bg-white rounded-3xl border border-gray-300 overflow-hidden">
+    <div className="w-[166px] relative bg-white rounded-3xl 
+      border border-gray-300 overflow-hidden cursor-pointer
+      smooth hover:shadow-md/20 my-3 hover:border-primary-300">
       <figure className="m-2 rounded-2xl flex overflow-hidden">
         <img src={image} alt="" />
       </figure>

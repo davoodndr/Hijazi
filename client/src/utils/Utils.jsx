@@ -190,3 +190,7 @@ export const sortProductsByPrice = (products, order = 'asc') => {
     return order === 'asc' ? priceA - priceB : priceB - priceA;
   });
 }
+
+export const generateRandomColor = () => {
+  return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')
+}

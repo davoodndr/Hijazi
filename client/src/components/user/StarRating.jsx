@@ -5,24 +5,33 @@ function StarRatingComponent ({ maxStars = 5 }){
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(null);
 
-  return (
-    <div className="flex gap-0.1">
-      {[...Array(maxStars)].map((_, i) => {
-        const fill = hover !== null ? hover : rating;
-        const isFilled = i < fill;
+  const fill = hover !== null ? hover : rating;
+  const percentage = Math.round((fill / maxStars) * 100);
 
-        return (
-          <div
+  return (
+    <div className='flex items-center gap-1'>
+      <div className="inline-flex gap-0.1">
+        {[...Array(maxStars)].map((_, i) => {
+          
+          const isFilled = i < fill;
+          
+          return (
+            <div
             key={i}
             onMouseEnter={() => setHover(i + 1)}
             onMouseLeave={() => setHover(null)}
             onClick={() => setRating(i + 1)}
             className="text-gray-300 hover:text-yellow-400 focus:outline-none cursor-pointer"
-          >
-            <FaStar className={`text-sm ${isFilled ? 'text-yellow-400' : ''}`}/>
-          </div>
-        );
-      })}
+            >
+              <FaStar className={`text-sm ${isFilled ? 'text-yellow-400' : ''}`}/>
+            </div>
+          );
+        })}
+      </div>
+      {/* Percentage display */}
+      {percentage > 0 && <div className="text-xs text-gray-600 leading-0 inline-flex">
+        {percentage}%
+      </div>}
     </div>
   );
 }

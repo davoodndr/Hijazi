@@ -85,6 +85,11 @@
     @apply border bg-primary-50 border-primary-400/20 text-primary-400/60 p-1.5 rounded-full smooth
       hover:bg-primary-300 hover:text-white cursor-pointer z-150
   }
+
+  .sale-icon{
+    @apply p-1 rounded-xl cursor-pointer border bg-white shadow-md border-gray-300 text-primary-400 
+    smooth hover:bg-primary-50 hover:border-primary-400 hover:shadow-md hover:scale-110
+  }
   
 }
 
