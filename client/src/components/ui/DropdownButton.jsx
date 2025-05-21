@@ -3,7 +3,7 @@ import { IoIosArrowDown } from 'react-icons/io'
 import ContextMenu from './ContextMenu'
 import React from 'react'
 
-const DropdownButton = React.memo(({icon, label, onClick, className, items}) => {
+function DropdownButtonComponent({icon, label, onClick, className, items}){
   return (
     <Menu as="div" className='h-full'>
       {({open}) => (
@@ -11,7 +11,7 @@ const DropdownButton = React.memo(({icon, label, onClick, className, items}) => 
         <>
           <MenuButton as="div"
             onClick={onClick}
-            className={`inline-flex h-full items-center !ps-2 !pe-3 py-1 cursor-pointer 
+            className={`inline-flex h-full items-center ps-2 pe-3 py-1 cursor-pointer 
               relative ${className}`}
           >
             {icon}
@@ -29,6 +29,8 @@ const DropdownButton = React.memo(({icon, label, onClick, className, items}) => 
 
     </Menu>
   )
-})
+}
+
+const DropdownButton = React.memo(DropdownButtonComponent)
 
 export default DropdownButton

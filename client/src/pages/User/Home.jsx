@@ -34,6 +34,8 @@ import AnimateAppear from '../../components/user/AnimateAppear'
 import BrandCard from '../../components/user/BrandCard'
 import ProducCardSmall from '../../components/user/ProducCardSmall.jsx'
 import ProducCard from '../../components/user/ProductCard.jsx'
+import { Link } from 'react-router'
+import { MdOutlineKeyboardDoubleArrowRight } from "react-icons/md";
 
 const Home = () => {
   return (
@@ -106,9 +108,19 @@ const Home = () => {
 
         {/* featured products */}
         <div className='flex flex-col mb-15'>
-          <h3 className="text-slider-header-title mb-5">
-            <span className="text-primary-400">Featured</span> Products
-          </h3>
+          <div className="flex w-full justify-between mb-5">
+            <h3 className="text-slider-header-title">
+              <span className="text-primary-400">Featured</span> Products
+            </h3>
+
+            <Link to='/collections'
+              className='inline-flex gap-1 items-center text-gray-400 smooth
+              hover:text-primary-400 point-before point-before:!p-0.75 underline'
+            >
+              <span className='font-semibold'>View All</span>
+              <MdOutlineKeyboardDoubleArrowRight className='text-xl' />
+            </Link>
+          </div>
         
           <div className="flex flex-col items-center w-full bg-primary-25 py-10">
             
@@ -286,10 +298,7 @@ const Home = () => {
             </div>
 
             <div className='flex flex-col'>
-              <h4 className='relative border-b border-gray-300 text-lg pb-2 mb-5
-                after:content-[""] after:w-15 after:h-0.5 after:absolute 
-                after:bottom-0 after:left-0 after:bg-primary-400'
-              >Deals & Outlet</h4>
+              <h4 className='lined-header-small'>Deals & Outlet</h4>
 
               <div className="flex flex-col h-full justify-between">
                 {Array(3).fill(null).map((el, i) => 
@@ -311,10 +320,7 @@ const Home = () => {
 
             </div>
             <div className='flex flex-col'>
-              <h4 className='relative border-b border-gray-300 text-lg pb-2 mb-5
-                after:content-[""] after:w-15 after:h-0.5 after:absolute 
-                after:bottom-0 after:left-0 after:bg-primary-400'
-              >Top Selling</h4>
+              <h4 className='lined-header-small'>Top Selling</h4>
 
               <div className="flex flex-col h-full justify-between">
                 {Array(3).fill(null).map((el, i) => 
@@ -336,10 +342,7 @@ const Home = () => {
 
             </div>
             <div className='flex flex-col'>
-              <h4 className='relative border-b border-gray-300 text-lg pb-2 mb-5
-                after:content-[""] after:w-15 after:h-0.5 after:absolute 
-                after:bottom-0 after:left-0 after:bg-primary-400'
-              >Hot Releases</h4>
+              <h4 className='lined-header-small'>Hot Releases</h4>
 
               <div className="flex flex-col h-full justify-between">
                 {Array(3).fill(null).map((el, i) => 

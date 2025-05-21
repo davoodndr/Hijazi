@@ -9,7 +9,7 @@ const UserLayout = () => {
   return (
     <>
       <Navbar />
-        <main className='w-full flex flex-col items-center justify-center bg-white'>
+        <main className='w-full min-h-[calc(100vh-100px)] flex flex-col items-center bg-white'>
           <Outlet />
         </main>
       <AnimateAppear>

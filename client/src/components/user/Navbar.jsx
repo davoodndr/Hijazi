@@ -11,7 +11,7 @@ import UserSearchBar from './UserSearchBar';
 import MobileNav from './MobileNav';
 import UserMenus from './UserMenus';
 
-const Navbar = () => {
+function NavbarComponent(){
 
   const { user } = useSelector(state => state.user);
   const [currentUser, setCurrentUser] = useState(null);
@@ -27,7 +27,7 @@ const Navbar = () => {
   }, [isExpaned])
 
   return (
-    <header className="flex flex-col sticky top-0 bg-white z-1000">
+    <header className="flex flex-col sticky top-0 bg-white z-1000 shadow-sm">
 
       {/* header middle */}
       <div className='flex flex-row w-full justify-center'>
@@ -90,5 +90,7 @@ const Navbar = () => {
     </header>
   )
 }
+
+const Navbar = React.memo(NavbarComponent);
 
 export default Navbar

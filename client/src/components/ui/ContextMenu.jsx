@@ -1,10 +1,10 @@
 
-import { MenuItem, MenuItems } from '@headlessui/react';
+import { MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { AnimatePresence, motion } from 'motion/react';
 import React from 'react';
 import { useState } from 'react';
 
-const ContextMenu = React.memo(({items, open, itemHeight = 10}) => {
+function ContextMenuComponent({items, open, itemHeight = 10}) {
 
   const [checked, setChecked] = useState({});
 
@@ -25,21 +25,25 @@ const ContextMenu = React.memo(({items, open, itemHeight = 10}) => {
           {items && items.map(item => 
             
             <MenuItem key={item.id}>
-              <div
-                htmlFor={item?.htmlFor ?? ''} 
-                onClick={(e) => item.onClick()}
-                className={`flex items-center gap-2 cursor-pointer smooth
-                  border-gray-200 hover:bg-primary-25 justify-between !text-sm ${item.itemClass}`}
-                style={{
-                  padding: `${itemHeight}px 12px`
-                }}
-              >
-                <div className='inline-flex items-center gap-2'>
-                  {item.icon}
-                  {item.text}
-                </div>
-                {item.tail}
-              </div>
+              {item.custom ? 
+                (item.custom)
+                :
+                (<div
+                  htmlFor={item?.htmlFor ?? ''} 
+                  onClick={(e) => item.onClick()}
+                  className={`flex items-center gap-2 cursor-pointer smooth
+                    border-gray-200 hover:bg-primary-25 justify-between text-sm ${item.itemClass}`}
+                  style={{
+                    padding: `${itemHeight}px 12px`
+                  }}
+                >
+                  <div className='inline-flex items-center gap-2'>
+                    {item.icon}
+                    {item.text}
+                  </div>
+                  {item.tail}
+                </div>)
+              }
             </MenuItem>
             
           )}
@@ -49,6 +53,8 @@ const ContextMenu = React.memo(({items, open, itemHeight = 10}) => {
   );
 
   
-})
+}
+
+const ContextMenu = React.memo(ContextMenuComponent);
 
 export default ContextMenu

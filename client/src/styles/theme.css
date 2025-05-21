@@ -90,6 +90,17 @@
     @apply p-1 rounded-xl cursor-pointer border bg-white shadow-md border-gray-300 text-primary-400 
     smooth hover:bg-primary-50 hover:border-primary-400 hover:shadow-md hover:scale-110
   }
+
+  .lined-header-small{
+    @apply relative border-b border-gray-300 text-base pb-2 mb-5
+            after:content-[""] after:w-15 after:h-0.5 after:absolute 
+            after:bottom-0 after:left-0 after:bg-primary-400
+  }
+
+  .menu-bg{
+    @apply flex items-center cursor-pointer smooth
+            border-gray-200 hover:bg-primary-25 text-sm
+  }
   
 }
 
