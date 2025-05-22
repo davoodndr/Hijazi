@@ -52,7 +52,7 @@ function ProducCardFrameless({image}) {
         </h2>
         <div className="py-1">
           <span className='text-lg'>
-            <StarRating />
+            <StarRating starClass='text-base' />
           </span>
         </div>
         <div className='flex gap-1 items-center'>

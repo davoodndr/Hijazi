@@ -12,9 +12,7 @@ const UserLayout = () => {
         <main className='w-full min-h-[calc(100vh-100px)] flex flex-col items-center bg-white'>
           <Outlet />
         </main>
-      <AnimateAppear>
-        <Footer />
-      </AnimateAppear>
+      <Footer />
       
       <Toaster
         position='top-right'

@@ -36,8 +36,18 @@ import ProducCardSmall from '../../components/user/ProducCardSmall.jsx'
 import ProducCard from '../../components/user/ProductCard.jsx'
 import { Link } from 'react-router'
 import { MdOutlineKeyboardDoubleArrowRight } from "react-icons/md";
+import { useDispatch } from 'react-redux'
+import { useEffect } from 'react'
+import { setLoading } from '../../store/slices/CommonSlices.jsx'
 
-const Home = () => {
+function HomeComponent(){
+
+  const dispatch = useDispatch();
+  
+  useEffect(() => {
+    dispatch(setLoading(false))
+  },[])
+
   return (
     <>
       <div className='flex flex-col w-9/10'>
@@ -367,8 +377,11 @@ const Home = () => {
           </div>
         </AnimateAppear>
       </div>
+
     </>
   )
 }
+
+const Home = React.memo(HomeComponent)
 
 export default Home

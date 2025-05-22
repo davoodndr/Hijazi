@@ -53,7 +53,7 @@ function ProducCardSmall({image}) {
         </h2>
         <div className="py-1">
           <span className='text-lg'>
-            <StarRating />
+            <StarRating starClass='text-sm' />
           </span>
         </div>
         <div className='flex gap-1 items-center'>

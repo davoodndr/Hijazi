@@ -1,21 +1,26 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { BsBag } from "react-icons/bs";
 import { BiUser } from "react-icons/bi";
 import { BsHeart } from "react-icons/bs";
 import { RiMenu3Fill } from "react-icons/ri";
 import logo from "../../assets/logo.svg"
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AccountDropDown from './AccountDropDown';
 import UserSearchBar from './UserSearchBar';
 import MobileNav from './MobileNav';
 import UserMenus from './UserMenus';
+import { setLoading } from '../../store/slices/CommonSlices'
 
 function NavbarComponent(){
 
-  const { user } = useSelector(state => state.user);
+  let { user, common } = useSelector(state => state);
+  user = user.user;
+  const { loading } = common;
   const [currentUser, setCurrentUser] = useState(null);
   const [isExpaned, setIsExpanded] = useState(false);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   /* settingup depending on user role */
   useEffect(() => {
@@ -37,9 +42,14 @@ function NavbarComponent(){
           <div className='inline-flex items-center w-5/10'>
 
             {/* logo */}
-            <Link to={'/'}className='w-20 h-13 md:w-25 md:h-15 inline-flex items-center'>
+            <div
+              onClick={() => {
+                dispatch(setLoading(true))
+                navigate('/')
+              }} 
+              className='w-20 h-13 md:w-25 md:h-15 inline-flex items-center cursor-pointer'>
               <img src={logo} className='object-contain w-full' alt="logo" />
-            </Link>
+            </div>
 
             {/* main menu */}
             <UserMenus />

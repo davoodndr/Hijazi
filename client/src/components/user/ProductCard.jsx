@@ -52,7 +52,7 @@ function ProducCard({image}) {
         <p className='text-lg !font-bold '>Lorem ipsum dolor</p>
         <div className="py-0.25 mb-2">
           <span className='text-xl'>
-            <StarRating />
+            <StarRating starClass='text-base' />
           </span>
         </div>
         <div className='flex gap-1 items-center'>

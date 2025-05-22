@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { FaStar } from "react-icons/fa";
 
-function StarRatingComponent({ maxStars = 5, showPercentage = false }){
+function StarRatingComponent(
+  { maxStars = 5, showPercentage = false, starClass = '' }
+){
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(null);
 
@@ -18,12 +20,13 @@ function StarRatingComponent({ maxStars = 5, showPercentage = false }){
           return (
             <div
             key={i}
-            onMouseEnter={() => setHover(i + 1)}
-            onMouseLeave={() => setHover(null)}
-            onClick={() => setRating(i + 1)}
-            className="text-gray-300 hover:text-yellow-400 focus:outline-none cursor-pointer"
+              onMouseEnter={() => setHover(i + 1)}
+              onMouseLeave={() => setHover(null)}
+              onClick={() => setRating(i + 1)}
+              className={`text-gray-300 hover:text-yellow-400 
+                focus:outline-none cursor-pointer ${starClass}`}
             >
-              <FaStar className={`text-sm ${isFilled ? 'text-yellow-400' : ''}`}/>
+              <FaStar className={`${isFilled ? 'text-yellow-400' : ''}`}/>
             </div>
           );
         })}
