@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FaStar } from "react-icons/fa";
 
-function StarRatingComponent ({ maxStars = 5 }){
+function StarRatingComponent({ maxStars = 5, showPercentage = false }){
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(null);
 
@@ -29,7 +29,7 @@ function StarRatingComponent ({ maxStars = 5 }){
         })}
       </div>
       {/* Percentage display */}
-      {percentage > 0 && <div className="text-xs text-gray-600 leading-0 inline-flex">
+      {showPercentage && percentage > 0 && <div className="text-xs text-gray-600 leading-0 inline-flex">
         {percentage}%
       </div>}
     </div>

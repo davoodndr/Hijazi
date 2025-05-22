@@ -8,7 +8,7 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import React from "react";
 
 
-function SliderComponent ({slides, className = ''}) {
+function SliderComponent({slides, className = ''}) {
 
 
   return (
@@ -43,23 +43,24 @@ function SliderComponent ({slides, className = ''}) {
         {slides.map((el, i) =>{
 
           return (
-            <SwiperSlide key={i} className="!h-100 bg-white">
+            <SwiperSlide key={i}
+              className="!h-100 bg-white">
               <div className="flex items-center h-9/10">
                 <div className="flex-5/12 !h-full inline-flex items-start">
                   <div className="ms-14 h-full inline-flex flex-col space-y-2 justify-center w-[80%]">
-                    <h4 className="text-[25px] animate-in-x-100">{el.title_1}</h4>
-                    <h2 className="text-[40px] capitalize animate-in-x-200">{el.title_2}</h2>
-                    <h1 className="text-[60px] !font-bold capitalize animate-in-x-300">{el.title_3}</h1>
-                    <p className="text-[16px] animate-in-x-400 ">{el.title_4}</p>
+                    <h4 className="text-[25px] animate-in-x-100">{el?.title_1}</h4>
+                    <h2 className="text-[40px] capitalize animate-in-x-200">{el?.title_2}</h2>
+                    <h1 className="text-[60px] !font-bold capitalize animate-in-x-300">{el?.title_3}</h1>
+                    <p className="text-[16px] animate-in-x-400 ">{el?.title_4}</p>
                     <div className="flex py-3 px-8 animate-in-x-500">
                       <span className="text-[14px] bg-sky-400 py-2 px-7" > 
-                        {el.button_text} 
+                        {el?.button_text} 
                       </span>
                     </div>
                   </div>
                 </div>
                 <div className="flex-7/12 ps-5 inline-flex animate-in-x-600">
-                  <img className="object-cover !w-11/12" src={el.image} alt=""/>
+                  <img className="object-cover !w-11/12" src={el?.image} alt=""/>
                 </div>
               </div>
             </SwiperSlide>

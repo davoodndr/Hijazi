@@ -87,8 +87,8 @@
   }
 
   .sale-icon{
-    @apply p-1 rounded-xl cursor-pointer border bg-white shadow-md border-gray-300 text-primary-400 
-    smooth hover:bg-primary-50 hover:border-primary-400 hover:shadow-md hover:scale-110
+    @apply p-1 rounded-xl cursor-pointer bg-primary-400 shadow-md border border-primary-400 text-gray-200 
+    smooth hover:bg-white hover:text-primary-400 hover:border-primary-400 hover:shadow-md hover:scale-110
   }
 
   .lined-header-small{
@@ -101,7 +101,33 @@
     @apply flex items-center cursor-pointer smooth
             border-gray-200 hover:bg-primary-25 text-sm
   }
-  
+
+  /* image preview */
+  /* Skeleton loader */
+  .easyPulseSkeleton {
+    @apply rounded-sm relative overflow-hidden;
+    mask-image: -webkit-radial-gradient(center, white, black);
+    animation: pulse 2s ease-in-out 0.5s infinite;
+  }
+
+  /* Zoom container */
+  .EasyZoomImageHoverMainContainer {
+    @apply relative;
+  }
+
+  .EasyZoomHoverSmallImage {}
+
+  /* Magnified image container */
+  .EasyZoomImageZoomHoverContainer {
+    @apply overflow-hidden smooth;
+  }
+
+  /* Zoom lens */
+  .easy-zoom-lens {
+    @apply opacity-50 border border-gray-300 rounded-md 
+      bg-[url('data:image/gif;base64,R0lGODlhZABkAPABAHOf4fj48yH5BAEAAAEALAAAAABkAGQAAAL+jI+py+0PowOB2oqvznz7Dn5iSI7SiabqWrbj68bwTLL2jUv0Lvf8X8sJhzmg0Yc8mojM5kmZjEKPzqp1MZVqs7Cr98rdisOXr7lJHquz57YwDV8j3XRb/C7v1vcovD8PwicY8VcISDGY2GDIKKf4mNAoKQZZeXg5aQk5yRml+dgZ2vOpKGraQpp4uhqYKsgKi+H6iln7N8sXG4u7p2s7ykvnyxos/DuMWtyGfKq8fAwd5nzGHN067VUtiv2lbV3GDfY9DhQu7p1pXoU+rr5ODk/j7sSePk9Ub33PlN+4jx8v4JJ/RQQa3EDwzcGFiBLi6AfN4UOGCyXegGjIoh0fisQ0rsD4y+NHjgZFqgB5y2Qfks1UPmEZ0OVLlIcKAAA7')] 
+    
+  }
 }
 
 

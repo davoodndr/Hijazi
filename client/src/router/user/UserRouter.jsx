@@ -11,6 +11,7 @@ const Login = React.lazy(() => import("../../pages/User/Auth/Login"))
 const Home = React.lazy(() => import("../../pages/User/Home"))
 const ProductListing = React.lazy(() => import("../../pages/User/ProductListing"))
 const SearchPage = React.lazy(() => import("../../pages/User/SearchPage"))
+const ProductPage = React.lazy(() => import("../../pages/User/ProductPage"))
 
 const UserRouter = ({user, isLoading}) => {
 
@@ -30,6 +31,9 @@ const UserRouter = ({user, isLoading}) => {
 
           {/* product listing */}
           <Route path="collections" element={<ProductListing />} />
+
+          {/* product view */}
+          <Route path="product" element={<ProductPage />} />
 
         </Route>
       </Routes>

@@ -62,7 +62,7 @@ function ProducCardFrameless({image}) {
         </div>
 
         {/* cart button */}
-        <div className='absolute right-0 bottom-3 inline-flex flex-col gap-1 z-10'>
+        <div className='absolute right-1 bottom-3 inline-flex flex-col gap-1 z-10'>
           <div className='sale-icon opacity-0 scale-0 group-hover/item:opacity-100 group-hover/item:scale-100'>
             <TbHeart className='text-2xl' />
           </div>

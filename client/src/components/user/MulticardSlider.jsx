@@ -1,9 +1,8 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
-import "swiper/css/pagination";
 import "swiper/css/effect-fade";
-import { Autoplay, Pagination, Navigation, EffectFade } from 'swiper/modules';
+import { Autoplay, Navigation } from 'swiper/modules';
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
 // @ts-check
@@ -62,7 +61,6 @@ function MulticardSliderComponent ({
           pauseOnMouseEnter: true
         }}
         loop={true}
-        effect="fade"
         pagination={{
           el: '.custom-swiper-pagination',
           clickable: true,
@@ -72,7 +70,7 @@ function MulticardSliderComponent ({
           nextEl: '.custom-swiper-button-next',
           prevEl: '.custom-swiper-button-prev'
         }}
-        modules={[Autoplay,  /* Pagination, */Navigation]}
+        modules={[Autoplay, Navigation]}
       >
         {cards.map((el, i) =>{
 
