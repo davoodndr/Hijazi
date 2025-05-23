@@ -97,6 +97,7 @@ function ProductListingComponent() {
             <BadgeButton text='filter' />
           </div>
 
+          {/* sort button */}
           <div className=''>
             <DropdownButton
               label='Sort by'
@@ -143,7 +144,8 @@ function ProductListingComponent() {
             />
           </div>
         </div>
-
+        
+        {/* products */}
         <div className='flex-grow grid grid-cols-4 gap-6 h-fit'>
           {Array(8).fill(null).map((product, i) => {
             return (
@@ -152,6 +154,7 @@ function ProductListingComponent() {
           })}
         </div>
         
+        {/* pagination */}
         <div className='border-t border-gray-300 py-5 mt-5 flex justify-center'>
           <AdminPagination />
         </div>

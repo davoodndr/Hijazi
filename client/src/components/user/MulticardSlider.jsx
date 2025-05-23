@@ -65,7 +65,7 @@ function MulticardSliderComponent ({
           el: '.custom-swiper-pagination',
           clickable: true,
         }}
-        wrapperClass="flex items-center h-full"
+        wrapperClass="flex items-center h-full my-5"
         navigation={{
           nextEl: '.custom-swiper-button-next',
           prevEl: '.custom-swiper-button-prev'

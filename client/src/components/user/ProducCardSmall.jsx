@@ -33,8 +33,8 @@ function ProducCardSmall({image}) {
           peer-hover:blur-[2px]">
 
           <a className=''>
-            <img className="group-hover/item:scale-110 smooth !duration-1000" src={image} alt=""/>
-            <img className="hover-img" src="assets/imgs/shop/product-2-2.jpg" alt=""/>
+            <img className="group-hover/item:scale-110 smooth !duration-1000" src={image} loading='lazy' alt=""/>
+            {/* <img className="hover-img" src="assets/imgs/shop/product-2-2.jpg" alt=""/> */}
           </a>
         </div>
 

@@ -60,7 +60,7 @@ function SliderComponent({slides, className = ''}) {
                   </div>
                 </div>
                 <div className="flex-7/12 ps-5 inline-flex animate-in-x-600">
-                  <img className="object-cover !w-11/12" src={el?.image} alt=""/>
+                  <img className="object-cover !w-11/12" loading="lazy" src={el?.image} alt=""/>
                 </div>
               </div>
             </SwiperSlide>

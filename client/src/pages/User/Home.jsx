@@ -39,6 +39,7 @@ import { MdOutlineKeyboardDoubleArrowRight } from "react-icons/md";
 import { useDispatch } from 'react-redux'
 import { useEffect } from 'react'
 import { setLoading } from '../../store/slices/CommonSlices.jsx'
+import StarRating from '../../components/user/StarRating.jsx'
 
 function HomeComponent(){
 
@@ -82,7 +83,7 @@ function HomeComponent(){
 
         {/* popular categories */}
         <AnimateAppear>
-          <MulticardSlider className='mb-10' titleClass='mb-2'
+          <MulticardSlider className='mb-10'
             space={100}
             title={
               <h3 className="text-slider-header-title">
@@ -105,7 +106,7 @@ function HomeComponent(){
         {/* Banner-1 */}
         <AnimateAppear className='py-4 mb-10'>
           <div className="relative">
-            <img src={banner_1} alt=""/>
+            <img src={banner_1} loading='lazy' alt=""/>
             <div className="absolute top-1/2 z-2 -translate-y-1/2 py-[20px] px-[30px]">
               <h4 className="font-bold mb-[15px] mt-4 !text-primary-400 text-xl">Repair Services</h4>
               <h1 className="font-bold text-5xl leading-1.5 mb-2">We're an Apple <br/>Authorised Service Provider</h1>
@@ -152,7 +153,7 @@ function HomeComponent(){
           <div className='mb-10 flex gap-7'>
             <div className="flex-4">
               <div className="relative">
-                <img src={banner_2} alt=""/>
+                <img src={banner_2} loading='lazy' alt=""/>
                 <div className="absolute z-2 top-1/2 -translate-y-1/2 py-3 px-8">
                   <span className='text-md'>Smart Offer</span>
                   <h4 className='text-xl mb-5'>Save 20% on <br/>Woman Bag</h4>
@@ -166,7 +167,7 @@ function HomeComponent(){
             </div>
             <div className="flex-4">
               <div className="relative">
-                <img src={banner_3} alt=""/>
+                <img src={banner_3} loading='lazy' alt=""/>
                 <div className="absolute z-2 top-1/2 -translate-y-1/2 py-3 px-8">
                   <span className='text-md'>Smart Offer</span>
                   <h4 className='text-xl mb-5'>Save 20% on <br/>Woman Bag</h4>
@@ -180,7 +181,7 @@ function HomeComponent(){
             </div>
             <div className="flex-4">
               <div className="relative">
-                <img src={banner_4} alt=""/>
+                <img src={banner_4} loading='lazy' alt=""/>
                 <div className="absolute z-2 top-1/2 -translate-y-1/2 py-3 px-8">
                   <span className='text-md'>Smart Offer</span>
                   <h4 className='text-xl mb-5'>Save 20% on <br/>Woman Bag</h4>
@@ -197,7 +198,7 @@ function HomeComponent(){
 
         {/* new arrivals */}
         <AnimateAppear>
-          <MulticardSlider className='mb-10' titleClass='mb-4'
+          <MulticardSlider className='mb-10'
             space={140}
             title={
               <h3 className="text-slider-header-title">
@@ -219,7 +220,7 @@ function HomeComponent(){
 
         {/* brands */}
         <AnimateAppear>
-          <MulticardSlider className='mb-10' titleClass='mb-4'
+          <MulticardSlider className='mb-10'
             space={60}
             title={
               <h3 className="text-slider-header-title">
@@ -262,11 +263,11 @@ function HomeComponent(){
                     <IoMdArrowForward />
                   </div>
                 </div>
-                <img src={banner_9} alt="" />
+                <img src={banner_9} loading='lazy' alt="" />
               </div>
 
               <div className="w-[75%]">
-                <MulticardSlider titleClass='mb-3 !justify-end'
+                <MulticardSlider titleClass='!justify-end'
                   cardCount={4}
                   space={30}
                   cards={[
@@ -304,7 +305,7 @@ function HomeComponent(){
                   <IoMdArrowForward />
                 </div>
               </div>
-              <img src={banner_10} className='object-cover' alt="" />
+              <img src={banner_10} loading='lazy' className='object-cover' alt="" />
             </div>
 
             <div className='flex flex-col'>
@@ -314,10 +315,11 @@ function HomeComponent(){
                 {Array(3).fill(null).map((el, i) => 
                   <div key={i} className='flex gap-5 cursor-pointer'>
                     <div className='w-[25%]'>
-                      <img src={`thumbnails/thumbnail-${++i}.jpg`} className='w-100' alt="" />
+                      <img src={`thumbnails/thumbnail-${++i}.jpg`} loading='lazy' className='w-100' alt="" />
                     </div>
-                    <div className='flex-grow inline-flex flex-col justify-center gap-3'>
+                    <div className='flex-grow inline-flex flex-col justify-center space-y-0.5'>
                       <p className='capitalize font-semibold text-[15px] tracking-wide'>fish print pathced Bag</p>
+                      <StarRating />
                       <div className='flex gap-1 items-center'>
                         <span className='text-[17px] font-semibold text-primary-400 price-before 
                           price-before:!text-[13px] !items-start leading-4.5'>238.85</span>
@@ -336,10 +338,11 @@ function HomeComponent(){
                 {Array(3).fill(null).map((el, i) => 
                   <div key={i} className='flex gap-5 cursor-pointer'>
                     <div className='w-[25%]'>
-                      <img src={`thumbnails/thumbnail-${++i + 3}.jpg`} className='w-100' alt="" />
+                      <img src={`thumbnails/thumbnail-${++i + 3}.jpg`} loading='lazy' className='w-100' alt="" />
                     </div>
-                    <div className='flex-grow inline-flex flex-col justify-center gap-3'>
+                    <div className='flex-grow inline-flex flex-col justify-center space-y-0.5'>
                       <p className='capitalize font-semibold text-[15px] tracking-wide'>fish print pathced Bag</p>
+                      <StarRating />
                       <div className='flex gap-1 items-center'>
                         <span className='text-[17px] font-semibold text-primary-400 price-before 
                           price-before:!text-[13px] !items-start leading-4.5'>238.85</span>
@@ -358,10 +361,11 @@ function HomeComponent(){
                 {Array(3).fill(null).map((el, i) => 
                   <div key={i} className='flex gap-5 cursor-pointer'>
                     <div className='w-[25%]'>
-                      <img src={`thumbnails/thumbnail-${++i + 6}.jpg`} className='w-100' alt="" />
+                      <img src={`thumbnails/thumbnail-${++i + 6}.jpg`} loading='lazy' className='w-100' alt="" />
                     </div>
-                    <div className='flex-grow inline-flex flex-col justify-center gap-3'>
+                    <div className='flex-grow inline-flex flex-col justify-center space-y-0.5'>
                       <p className='capitalize font-semibold text-[15px] tracking-wide'>fish print pathced Bag</p>
+                      <StarRating />
                       <div className='flex gap-1 items-center'>
                         <span className='text-[17px] font-semibold text-primary-400 price-before 
                           price-before:!text-[13px] !items-start leading-4.5'>238.85</span>

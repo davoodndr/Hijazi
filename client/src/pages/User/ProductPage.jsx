@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import ProductImageViewer from '../../components/ui/ProductImageViewer'
 import StarRating from '../../components/user/StarRating'
 import { Link } from 'react-router'
@@ -6,6 +6,8 @@ import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io'
 import { FaRegHeart } from 'react-icons/fa'
 import user_placeholder from '../../assets/user_placeholder.jpg'
 import { IoArrowUndoOutline } from "react-icons/io5";
+import MulticardSlider from '../../components/user/MulticardSlider'
+import ProductCardMed from '../../components/user/ProductCardMed'
 
 function ProductPageComponent() {
   return (
@@ -159,7 +161,7 @@ function ProductPageComponent() {
 
         {/* additional info */}
         <h2 className='lined-header-small text-xl mb-10'>Additional info</h2>
-        <ul className="w-[80%] mb-30 border border-gray-300 divide-y divide-gray-300">
+        <ul className="w-[80%] mb-20 border border-gray-300 divide-y divide-gray-300">
           <li className="flex divide-x divide-gray-200 text-base">
             <span className='w-[40%] px-5 py-2'>Stand Up</span>
             <p className='flex-grow px-5 py-2'>35″L x 24″W x 37-45″H(front to back wheel)</p>
@@ -220,7 +222,7 @@ function ProductPageComponent() {
 
         {/* reviews and percentage */}
         <h2 className='lined-header-small text-2xl mb-10'>Reviews (3)</h2>
-        <div className="flex">
+        <div className="flex mb-15">
 
           {/* reviews */}
           <div className="flex-grow inline-flex flex-col space-y-5 divide-y divide-gray-200">
@@ -228,15 +230,15 @@ function ProductPageComponent() {
             <div className="flex space-x-5 pb-3">
 
               {/* avatar */}
-              <div className="inline-flex flex-col items-center">
-                <div className='w-17 rounded-full overflow-hidden'>
+              <div className="w-[12%] inline-flex flex-col items-center overflow-hidden">
+                <div className='w-17 rounded-full overflow-hidden mb-1'>
                   <img src={user_placeholder} alt="" />
                 </div>
-                <p className='font-semibold tracking-wide'>Jacky Chan</p>
+                <p className='w-full font-semibold text-center truncate leading-4 tracking-wide mb-0.5'>Jacky Chan johnsdkjasjdjasdasdi</p>
                 <p className="text-xs">Since 2012</p>
               </div>
               {/* review */}
-              <div className="inline-flex flex-col space-y-1">
+              <div className="flex-grow inline-flex flex-col space-y-1">
                 <div className="product-rate d-inline-block">
                   <StarRating />
                 </div>
@@ -321,36 +323,54 @@ function ProductPageComponent() {
                 <span>5 star</span>
                 <div className={`review-progress before:w-[50%]`} >
                     <span className='px-3 z-5'>50%</span>
-                  </div>
+                </div>
               </div>
               <div className="flex space-x-3 leading-5">
                 <span>4 star</span>
-                <div className={`review-progress before:w-[20%]`} >
+                <div className={`review-progress before:w-[25%]`} >
                     <span className='px-3 z-5'>25%</span>
-                  </div>
+                </div>
               </div>
               <div className="flex space-x-3 leading-5">
                 <span>3 star</span>
                 <div className={`review-progress before:w-[45%]`} >
                     <span className='px-3 z-5'>45%</span>
-                  </div>
+                </div>
               </div>
               <div className="flex space-x-3 leading-5">
                 <span>2 star</span>
                 <div className={`review-progress before:w-[65%]`} >
                     <span className='px-3 z-5'>65%</span>
-                  </div>
+                </div>
               </div>
               <div className="flex space-x-3 leading-5">
                 <span>1 star</span>
                 <div className={`review-progress before:w-[85%]`} >
                     <span className='px-3 z-5'>85%</span>
-                  </div>
+                </div>
               </div>
             </div>
           </div>
 
         </div>
+      </div>
+
+      {/* related products */}
+      <div className='w-full mb-10'>
+
+        <MulticardSlider 
+          cardCount={5}
+          space={30}
+          title={<h2 className='lined-header-small flex-grow text-2xl mb-5 me-5'>Related products</h2>}
+          cards={
+            Array(8).fill(null).map((product, i) => {
+              return (
+                <ProductCardMed image={`categories/category-thumb-${++i}.jpg`} />
+              )
+            })
+          }
+        />
+
       </div>
       
     </section>

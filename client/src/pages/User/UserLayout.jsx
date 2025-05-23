@@ -9,9 +9,9 @@ const UserLayout = () => {
   return (
     <>
       <Navbar />
-        <main className='w-full min-h-[calc(100vh-100px)] flex flex-col items-center bg-white'>
-          <Outlet />
-        </main>
+      <main className='w-full min-h-[calc(100vh-100px)] flex flex-col items-center bg-white'>
+        <Outlet />
+      </main>
       <Footer />
       
       <Toaster

@@ -29,6 +29,7 @@
 
 }
 
+
 .text-title{
   @apply font-semibold
 }
@@ -103,8 +104,9 @@
   }
 
   .review-progress{
-    @apply bg-gray-200 flex-grow text-xs inline-flex items-center relative
-      before:absolute before:content-[''] before:bg-primary-400 before:h-full
+    @apply bg-gray-200 flex-grow text-xs inline-flex items-center relative 
+        rounded-sm overflow-hidden text-white
+      before:absolute before:content-[''] before:bg-primary-400 before:h-full before:rounded-sm
   }
 
   /* image preview */

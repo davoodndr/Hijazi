@@ -14,9 +14,7 @@ import { setLoading } from '../../store/slices/CommonSlices'
 
 function NavbarComponent(){
 
-  let { user, common } = useSelector(state => state);
-  user = user.user;
-  const { loading } = common;
+  let { user } = useSelector(state => state.user);
   const [currentUser, setCurrentUser] = useState(null);
   const [isExpaned, setIsExpanded] = useState(false);
   const navigate = useNavigate();
@@ -48,7 +46,7 @@ function NavbarComponent(){
                 navigate('/')
               }} 
               className='w-20 h-13 md:w-25 md:h-15 inline-flex items-center cursor-pointer'>
-              <img src={logo} className='object-contain w-full' alt="logo" />
+              <img src={logo} className='object-contain w-full' loading='lazy' alt="logo" />
             </div>
 
             {/* main menu */}
