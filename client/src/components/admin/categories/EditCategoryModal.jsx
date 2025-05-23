@@ -24,12 +24,13 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
   const [parent, setParent] = useState(null);
   const [attributes, setAttributes] = useState([]);
   const [parentAttributes, setParentAttributes] = useState([]);
-  const categoryImageDimen = {width: 600, height: 600};
+  const categoryImageDimen = {width: 440, height: 440};
+  const categoryThumbdimen = {width:300, height: 300}
     
 
   /* data input handling */
   const [data, setData] = useState({
-    file: "", name:"", slug:"", parentId:"", status:"", 
+    file: "", thumb: "", name:"", slug:"", parentId:"", status:"", 
     featured:false, visible:false, attributes: []
   });
 
@@ -37,7 +38,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
   useEffect(() => {
   
     if(category){
-      setData({...category, file: category?.image});
+      setData({...category, file: category?.image?.url});
       const parent = category?.parentId;
       if(parent){
         const attrs = parent.attributes.map(item => ({...item, parent: true}))
@@ -155,13 +156,17 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
         if(response.data.success){
 
           const updatedCategory = response.data.category;
-          const public_id = updatedCategory.image.split('/').filter(Boolean).pop().split('.')[0]
+          const image_public_id = updatedCategory?.image?.public_id || finalData.slug.replaceAll('-', '_');
+          const thumb_public_id = updatedCategory?.thumb?.public_id || `${finalData.slug.replaceAll('-', '_')}_thumb`;
 
           if(isValidFile(finalData.file)){
-            const image = await uploadCategoryImage(
-              updatedCategory._id,'categories','image',finalData.file, public_id
+            const updatedImages = await uploadCategoryImage(
+              updatedCategory._id,'categories',
+              {file: finalData.file, thumb: finalData.thumb}, 
+              {file: image_public_id, thumb: thumb_public_id}
             );
-            updatedCategory.image = image;
+            updatedCategory.image = updatedImages.image;
+            updatedCategory.thumb = updatedImages.thumb;
           }
 
           AxiosToast(response, false);
@@ -310,8 +315,9 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
               </label>
               <CropperWindow
                 src={data?.file}
-                onImageCrop={(file) => setData(prev => ({...prev,file}))}
+                onImageCrop={(files) => setData(prev => ({...prev,file: files.file, thumb: files.thumb}))}
                 outPutDimen={categoryImageDimen}
+                thumbDimen={categoryThumbdimen}
                 outputFormat='webp'
                 cropperClass="flex items-center justify-center !h-60 !w-60 rounded-2xl overflow-hidden border border-gray-300"
                 buttonsClass="flex items-center justify-center w-60 gap-2 py-2"

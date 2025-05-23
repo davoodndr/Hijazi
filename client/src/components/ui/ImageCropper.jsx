@@ -3,7 +3,7 @@ import Cropper from 'react-easy-crop';
 import useSafeImage from '../../hooks/useSafeImage'
 
 const ImageCropper = ({ 
-  imageSrc, className = '', format = 'jpeg', onCrop, outPutDimen
+  imageSrc, className = '', format = 'jpeg', onCrop/* , outPutDimen */
 }) => {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -13,7 +13,7 @@ const ImageCropper = ({
   useEffect(() => {
 
     if(onCrop && typeof onCrop === 'function'){
-      onCrop(() => getCroppedImg(imageSrc, croppedAreaPixels, format, outPutDimen));
+      onCrop((outPutDimen) => getCroppedImg(imageSrc, croppedAreaPixels, format, outPutDimen));
     }
 
   },[imageSrc, croppedAreaPixels, onCrop])

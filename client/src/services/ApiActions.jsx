@@ -48,13 +48,15 @@ export const uploadSingleImage = async(folder, fieldName, file, public_id= "") =
 
 }
 
-export const uploadCategoryImage = async(category_id, folder, fieldName, file, public_id= "") => {
+export const uploadCategoryImage = async(category_id, folder, files, public_id) => {
 
   try {
-            
+
     const imageData = new FormData();
-    imageData.append('image', file)
-    imageData.append('public_id', public_id)
+    imageData.append('image', files.file)
+    imageData.append('public_id', public_id.file)
+    imageData.append('image', files.thumb)
+    imageData.append('public_id', public_id.thumb)
     imageData.append('folder',folder)
     imageData.append('category_id',category_id)
 
@@ -64,7 +66,7 @@ export const uploadCategoryImage = async(category_id, folder, fieldName, file, p
       /* params: {fieldName} */
     })
 
-    return response.data.image;
+    return response.data;
 
   } catch (error) {
     return error

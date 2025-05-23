@@ -23,11 +23,12 @@ import toast from 'react-hot-toast';
  */
 
 /** @type {React.ForwardRefExoticComponent<React.PropsWithoutRef<CropperWindowProps> & React.RefAttributes<any>>} */
-const CropperWindow = React.memo(forwardRef(({
+function CropperWindowComponent({
   buttonsClass = '', 
   cropperClass = '', 
   containerClass = '',
   outPutDimen, 
+  thumbDimen, 
   outputFormat,
   disableMessage = "",
   onImageCrop = ()=> {}, 
@@ -35,7 +36,7 @@ const CropperWindow = React.memo(forwardRef(({
   validFormats = [],
   /* multiSelect = false */
   
-}, ref) => {
+}, ref) {
 
   const cropFunRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -105,13 +106,17 @@ const CropperWindow = React.memo(forwardRef(({
 
     setIsPreview(true)
     if(cropFunRef.current){
-      const blob = await cropFunRef.current()
+      const imageBlob = await cropFunRef.current(outPutDimen);
+      const thumBlob = await cropFunRef.current(thumbDimen);
 
-      const file = blobToFile(blob, filename.replace(/\.[^/.]+$/,''));
+      const file = blobToFile(imageBlob, filename.replace(/\.[^/.]+$/,''));
       file.id = Date.now();
 
+      const thumb = blobToFile(thumBlob, filename.replace(/\.[^/.]+$/,''));
+      thumb.id = file.id;
+
       setCroppedFile(file);
-      onImageCrop(file)
+      onImageCrop({file, thumb})
       /* set to preview */
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -224,6 +229,8 @@ const CropperWindow = React.memo(forwardRef(({
       
     </div>
   )
-}));
+};
+
+const CropperWindow = React.memo(forwardRef(CropperWindowComponent));
 
 export default CropperWindow

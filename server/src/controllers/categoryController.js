@@ -50,6 +50,7 @@ export const uploadCategoryImage = async(req, res) => {
   const { files } = req; //from middleware
   const { public_id, category_id, folder } = req.body;
 
+
   try {
 
     if (!req.files || req.files.length === 0) {
@@ -62,15 +63,31 @@ export const uploadCategoryImage = async(req, res) => {
     
     const upload = await uploadImagesToCloudinary(folder, files, public_id)
 
+    let image = {}, thumb = {};
+
+    upload.forEach(item => {
+      const public_id = item.public_id.split('/').filter(Boolean).pop();
+      if(public_id.match('thumb')) {
+        thumb = {
+          url : item.secure_url,
+          public_id
+        }
+      }else{
+        image = {
+          url : item.secure_url,
+          public_id
+        }
+      }
+    })
+
     await Category.findByIdAndUpdate(category_id,
       {
-        image: upload[0].secure_url
+        image, thumb
       },{upsert: true}
     )
 
     return responseMessage(res, 200, true, "Category image uploaded", {
-      _id: upload[0].public_id,
-      image: upload[0].secure_url
+      image, thumb
     })
 
   } catch (error) {

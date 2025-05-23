@@ -10,7 +10,7 @@ export const upload = (req, res, next) => {
     use req.query / req.params
   */
   
-  const { fieldName = 'image', maxFileMb = 1, maxFileCount = 1 } = req.query;
+  const { fieldName = 'image', maxFileMb = 1, maxFileCount = 2 } = req.query;
 
   const multerUpload = multer({
     storage,
@@ -23,8 +23,10 @@ export const upload = (req, res, next) => {
       if (err instanceof multer.MulterError) {
         return responseMessage(res, 400, false, err.message);
       }
+      
       return responseMessage(res, 500, false, err.message);
     }
+    
     next();
   });
 

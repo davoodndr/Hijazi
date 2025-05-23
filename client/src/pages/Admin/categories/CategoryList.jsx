@@ -23,6 +23,7 @@ import { FaSort } from 'react-icons/fa6';
 import { BsSortDown, BsSortDownAlt } from 'react-icons/bs';
 import { CiFilter } from 'react-icons/ci';
 import { containerVariants, rowVariants } from '../../../utils/Anim';
+import ImagePlaceHolder from '../../../components/ui/ImagePlaceHolder';
 
 const CategoryList = () => {
 
@@ -113,6 +114,8 @@ const CategoryList = () => {
 
   /* update action handleing */
   const handleUpdate =  (doc) => {
+
+    console.log(doc)
 
     const parent = categories?.find(item => item._id === doc.parentId);
     const docWithParent = {
@@ -353,9 +356,16 @@ const CategoryList = () => {
 
                           {/* Category Info */}
                           <div className="flex gap-2 items-center">
-                            <PreviewImage src={category?.image} alt={category?.name} size="40" zoom="120%" 
-                              thumbClass="rounded-xl border border-gray-300 w-12 h-12"
-                            />
+                            {category?.image?.url ? 
+                              (<PreviewImage src={category?.thumb?.url} alt={category?.name} size="40" zoom="120%" 
+                                thumbClass="rounded-xl border border-gray-300 w-12 h-12"
+                              />)
+                              :
+                              (<ImagePlaceHolder
+                                size={22}
+                                className="rounded-xl border border-gray-300 bg-white text-gray-500/60 w-12 h-12"
+                                />)
+                            }
                             
                             <div className="inline-flex flex-col capitalize">
                               <p className="font-semibold">{category?.name}</p>

@@ -18,8 +18,12 @@ const categorySchema = new mongoose.Schema({
     default: '',
   },
   image: {
-    type: String, 
-    default: '',
+    url: String, 
+    public_id: String,
+  },
+  thumb: {
+    url: String, 
+    public_id: String,
   },
   status: {
     type: String,

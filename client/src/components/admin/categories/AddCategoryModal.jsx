@@ -23,12 +23,13 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
   const [status, setStatus] = useState(null);
   const [parent, setParent] = useState(null);
   const [attributes, setAttributes] = useState([]);
-  const categoryImagedimen = {width:600, height: 600}
+  const categoryImagedimen = {width:440, height: 440}
+  const categoryThumbdimen = {width:300, height: 300}
     
 
   /* data input handling */
   const [data, setData] = useState({
-    file: "", name:"", slug:"", parentId:"", status:"", 
+    file: "", thumb: "", name:"", slug:"", parentId:"", status:"", 
     featured:false, visible:false, attributes: []
   });
 
@@ -100,7 +101,6 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
         return
       }
       
-
       setIsLoading(true)
 
       try {
@@ -113,6 +113,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
         }
 
         const finalData = finalizeValues(data);
+        
 
         if(finalData.attributes && 
           findDuplicateAttribute([...attributes, ...finalData.attributes])){
@@ -129,9 +130,14 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
 
           const newCategory = response.data.category;
 
-          const image = await uploadCategoryImage(newCategory._id,'categories','image',finalData.file);
+          const updatedImages = await uploadCategoryImage(
+            newCategory._id,'categories',
+            {file: finalData.file, thumb: finalData.thumb},
+            {file: finalData.slug.replaceAll('-', '_'), thumb: `${finalData.slug.replaceAll('-', '_')}_thumb`}
+          );
           
-          newCategory.image = image;
+          newCategory.image = updatedImages.image;
+          newCategory.thumb = updatedImages.thumb;
 
           AxiosToast(response, false);
           setData({
@@ -268,8 +274,9 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
                 <span className="text-xl leading-none ms-1 text-red-500">*</span>
               </label>
               <CropperWindow
-                onImageCrop={(file) => setData(prev => ({...prev,file}))}
+                onImageCrop={(files) => setData(prev => ({...prev,file: files.file, thumb: files.thumb}))}
                 outPutDimen={categoryImagedimen}
+                thumbDimen={categoryThumbdimen}
                 outputFormat='webp'
                 cropperClass="flex items-center justify-center !h-60 !w-60 rounded-2xl overflow-hidden border border-gray-300"
                 buttonsClass="flex items-center justify-center w-60 gap-2 py-2"

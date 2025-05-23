@@ -436,6 +436,7 @@ const ImageZoomOnHover = function ImageZoomOnHover(
       >
         <img
           className="EasyZoomHoverSmallImage w-full h-full object-contain smooth"
+          loading='lazy'
           onLoad={handleImageLoad}
           ref={imgRef}
           style={{ maxWidth: '100%', maxHeight: '100%' }}
