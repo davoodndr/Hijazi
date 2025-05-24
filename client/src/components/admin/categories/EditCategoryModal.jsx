@@ -89,7 +89,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
 
       setData(prev => ({...prev, attributes:attrs}))
     }
-  },[attributes]);
+  },[attributes, data]);
 
   const handleStatusChange = (val) => {
     setStatus(val);

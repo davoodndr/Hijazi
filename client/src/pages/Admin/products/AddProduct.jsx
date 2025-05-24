@@ -32,7 +32,8 @@ const EditProduct = () => {
   const [customAttributes, setCustomAttributes] = useState([]);
   const [finalAttributes, setFinalAttributes] = useState([]);
   const [variants, setVariants] = useState([])
-  const productImageDimen = {width:1024, height: 1024}
+  const productImageDimen = {width:1200, height: 1200}
+  const productThumbDimen = {width:450, height: 450}
 
   /* input handling */
   const [data, setData] = useState({
@@ -80,17 +81,20 @@ const EditProduct = () => {
   },[data.files])
 
   /* handle crop image */
-  const handleCropImage = async(file) => {
+  const handleCropImage = async(files) => {
     
-    if(file){
+    if(files){
 
-      setData(prev => ({...prev, files:[...prev.files,file]}));
+      setData(prev => ({
+        ...prev, 
+        files:[...prev.files, files]
+      }));
 
-      /* for dispalying images on thumbs */
+      // for dispalying images on thumbs
       try {
-        const src = await imageFileToSrc(file);
+        const src = await imageFileToSrc(files.thumb);
         
-        setViewImages(prev => [...prev,  {id: file.id, value: src}]);
+        setViewImages(prev => [...prev,  {id: files.thumb.id, value: src}]);
         
       } catch (err) {
         console.error('Error reading file:', err);
@@ -108,15 +112,20 @@ const EditProduct = () => {
         if(item.id !== id) return item;
         return {
           ...item,
+          files: null,
           image: null,
           preview: null
         }
       }))
     }else{
       setViewImages(prev => prev.filter(item => item.id !== id))
-      setData(prev => ({...prev, files: prev.files.filter(item => item.id !== id)}))
+      setData(prev => ({
+        ...prev,
+        files: prev.files.filter(item => item.file.id !== id),
+      }))
     }
   }
+  
 
   /* handle custom attributes */
   const handleCustomAttributes = useCallback((result) => {
@@ -128,7 +137,7 @@ const EditProduct = () => {
       }
     })
     setData({...data, customAttributes: newAttributes})
-  },[customAttributes]);
+  },[customAttributes, data]);
 
   /* handling delete custom attribute */
   const handleDeleteCustomAttribute = (id) => {
@@ -284,7 +293,7 @@ const EditProduct = () => {
       return
     }
 
-    const invalidFile = product.files.find(imgFile => !isValidFile(imgFile));
+    const invalidFile = product.files.find(item => !isValidFile(item.file));
 
     if(invalidFile){
       toast.error('Some of your image files are invalid');
@@ -313,7 +322,7 @@ const EditProduct = () => {
         AxiosToast(response, false);
         setData({
           name: "", slug:"", sku:"", description:"", price:"", stock:"", visible: true, status: "active",
-          brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: []
+          brand:"", category:"", featured:false, width:0, height: 0, weight:0, thumbs:[]
         })
         setBrand(null);
         setStatus(null);
@@ -417,6 +426,7 @@ const EditProduct = () => {
                   onChange={handleChange}
                   type="text"
                   placeholder="@eg: product-name"
+                  className="lowercase"
                 />
               </div>
               <div>
@@ -616,6 +626,7 @@ const EditProduct = () => {
                 outputFormat: 'webp',
                 validFormats: ['jpg','jpeg','png','bmp','webp'],
                 outPutDimen: productImageDimen,
+                thumbDimen: productThumbDimen,
                 disableMessage
               }}
             />

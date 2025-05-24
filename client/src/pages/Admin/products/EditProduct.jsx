@@ -40,7 +40,8 @@ const EditProduct = () => {
   const [disableMessage, setDisableMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const maxLimit =  5;
-  const productImageDimen = {width:1024, height: 1024}
+  const productImageDimen = {width:1200, height: 1200}
+  const productThumbDimen = {width:450, height: 450}
 
   /* input handling */
   const [data, setData] = useState({
@@ -75,7 +76,7 @@ const EditProduct = () => {
       setBrand({id:currentProduct?.brand?._id, label:currentProduct?.brand?.name})
       setStatus({value: currentProduct?.status, label:currentProduct?.status})
       setViewImages(currentProduct?.images?.map(img => {
-          return {id:img.public_id, value: img.url}
+          return {id:img.public_id, value: img.thumb}
         })
       )
       if(currentProduct?.customAttributes.length){
@@ -87,14 +88,15 @@ const EditProduct = () => {
           return {
             ...variant,
             id: variant._id,
-            preview: variant.image?.url || null
+            files: variant.image,
+            preview: variant.image?.thumb || null
           }
         }))
         setVariantImages(currentProduct.variants.map(variant => variant.image?.public_id ).filter(Boolean))
       }
     }
 
-  },[currentProduct])
+  },[])
 
   /* limits image on maximum */
   useEffect(() => {
@@ -131,17 +133,20 @@ const EditProduct = () => {
   }
 
   /* handle crop image */
-  const handleCropImage = async(file) => {
+  const handleCropImage = async(files) => {
     
-    if(file){
+    if(files){
 
-      setData(prev => ({...prev, files:[...prev.files,file]}));
+      setData(prev => ({
+        ...prev, 
+        files:[...prev.files, files]
+      }));
 
       /* for dispalying images on thumbs */
       try {
-        const src = await imageFileToSrc(file);
+        const src = await imageFileToSrc(files.thumb);
         
-        setViewImages(prev => [...prev,  {id: file.id, value: src}]);
+        setViewImages(prev => [...prev,  {id: files.thumb.id, value: src}]);
         
       } catch (err) {
         console.error('Error reading file:', err);
@@ -159,13 +164,17 @@ const EditProduct = () => {
         if(item.id !== id) return item;
         return {
           ...item,
+          files: null,
           image: null,
           preview: null
         }
       }))
     }else{
       setViewImages(prev => prev.filter(item => item.id !== id))
-      setData(prev => ({...prev, files: prev.files.filter(item => item.id !== id)}))
+      setData(prev => ({
+        ...prev,
+        files: prev.files.filter(item => item.file.id !== id),
+      }))
     }
   }
 
@@ -179,7 +188,7 @@ const EditProduct = () => {
       }
     })
     setData({...data, customAttributes: newAttributes})
-  },[customAttributes]);
+  },[customAttributes, data]);
 
   /* handling delete custom attribute */
   const handleDeleteCustomAttribute = (id) => {
@@ -329,11 +338,11 @@ const EditProduct = () => {
 
       let remove_ids = []
       const initialImageList = currentProduct?.images?.map(el => el?.public_id);
-      const updatedImageList = viewImages?.map(img => img?.id);
+      const updatedImageList = viewImages?.map(img => img?.id);      
       
       if(product['files'].length){
 
-        const invalidFile = product.files.find(imgFile => !isValidFile(imgFile));
+        const invalidFile = product.files.find(item => !isValidFile(item.file));
 
         if(invalidFile){
           toast.error('Some of your image files are invalid');
@@ -389,37 +398,41 @@ const EditProduct = () => {
       // if the variant sku is changed the image url & public_id should be changed
       // this code is to find chages and download file to reupload
       const oldVariants = currentProduct.variants;
-      const modifiedVariants = oldVariants.map(item => {
-        const modified = product.variants.find(el => el.id === item._id && el.sku !== item.sku)
-        if(modified && modified.image){
+      const modifiedVariants = oldVariants.map(variant => {
+        const modified = product.variants.find(el => el.id === variant._id && el.sku !== variant.sku)
+        // checking is sku differ old & not changed the image file
+        if(modified && modified.image && !modified?.files?.file){
           remove_ids.push(modified.image.public_id)
-          return {id: modified.id, url: modified.image.url}
+          return {id: modified.id, image: modified.image}
         }
       }).filter(Boolean)
-
-      const downloads = await Promise.all(
-        modifiedVariants.map(item => {
-          return fetchImageAsFile(item.url, `${item.id}`)
-        })
-      )
-
-      // update variants with downloaded images
-      if(downloads.length){
-        product.variants = product.variants.map(variant => {
-          const modified = downloads.find(img => img.name === variant.id);
-          if(modified){
-            return {
-              ...variant,
-              image: modified
-            }
-          }
-          return variant;
-        })
-      }
 
       dispatch(setLoading(true));
 
       try {
+
+        const downloads = await Promise.all(
+          modifiedVariants.map(async item => {
+            const file = await fetchImageAsFile(item.image.url, `${item.id}`);
+            const thumb = await fetchImageAsFile(item.image.thumb, `${item.id}`);
+
+            return {file, thumb}
+          })
+        )
+
+        // update variants with downloaded images
+        if(downloads.length){
+          product.variants = product.variants.map(variant => {
+            const modified = downloads.find(img => img.file.name === variant.id);
+            if(modified){
+              return {
+                ...variant,
+                files: modified
+              }
+            }
+            return variant;
+          })
+        }
         
         validateProduct(product)
         validateVariants(product)
@@ -519,7 +532,7 @@ const EditProduct = () => {
                 <label className="mandatory">Product name</label>
                 <input
                   name="name"
-                  value={data.name}
+                  value={data?.name}
                   onChange={handleChange}
                   type="text"
                   placeholder="Enter product name"
@@ -539,10 +552,11 @@ const EditProduct = () => {
                 <label  className="mandatory">Slug</label>
                 <input
                   name="slug"
-                  value={data.slug}
+                  value={data?.slug}
                   onChange={handleChange}
                   type="text"
                   placeholder="@eg: product-name"
+                  className="lowercase"
                 />
               </div>
               <div>
@@ -740,6 +754,7 @@ const EditProduct = () => {
                 outputFormat: 'webp',
                 validFormats: ['jpg','jpeg','png','bmp','webp'],
                 outPutDimen: productImageDimen,
+                thumbDimen: productThumbDimen,
                 disableMessage
               }}
             />

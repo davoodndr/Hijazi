@@ -192,19 +192,24 @@ export const uploadProductImages = async(product, product_id, remove_ids = []) =
     const slug = product.slug.replaceAll('-','_')
     
 
-    product?.files?.forEach((file,i) => {
-      if(file instanceof File){
-        formData.append('productImages', file);
+    product?.files?.forEach((item,i) => {
+      if(item.file instanceof File){
+        formData.append('productImages', item.file);
         formData.append('productImageIds[]', `product_${slug}_${i + 1}`);
+        formData.append('productImages', item.thumb);
+        formData.append('productImageIds[]', `product_${slug}_${i + 1}_thumb`);
       }
     });
+    
     
     const variants = product?.variants;
     if(variants && variants.length){
       variants.forEach((item, i) => {
-        if(item.image && item.image instanceof File){
-          formData.append('variantImages', item.image);
+        if(item.files && item.files.file instanceof File){
+          formData.append('variantImages', item.files.file);
           formData.append('variantImageIds[]', `@variant_${slug}_${item.sku}`)
+          formData.append('variantImages', item.files.thumb);
+          formData.append('variantImageIds[]', `@variant_${slug}_${item.sku}_thumb`)
         }
       })
     }

@@ -20,7 +20,8 @@ function VariantsTable(
     attributes,
     variants,
     setVariants,
-    outPutDimen
+    outPutDimen,
+    thumbDimen
   }
 ) {
 
@@ -92,7 +93,7 @@ function VariantsTable(
           sku: '',
           price: '',
           stock: '',
-          image: null,
+          files: null,
           preview: null
         };
 
@@ -102,18 +103,22 @@ function VariantsTable(
 
   const getColCount = (variant) => {
     const topLevelCount = Object.keys(variant).filter(
-      key => !['id','_id', 'image', 'preview', 'attributes'].includes(key)
+      key => !['id','_id', 'files', 'image', 'preview', 'attributes'].includes(key)
     ).length;
 
     const attributeCount = Object.keys(variant.attributes).length;
     setColCount(topLevelCount + attributeCount)
   }
 
-  const handleModalResult = async(file) => {
-    if(file && !hasBlankObjectValue(variants[activeIndex], ['image','preview'])){
-      handleChange({rowIndex:activeIndex, field:'image', value:file});
-      const preview = await imageFileToSrc(file)
-      handleChange({rowIndex:activeIndex, field:'preview', value:preview});
+  const handleModalResult = async(files) => {
+    if(!hasBlankObjectValue(variants[activeIndex], ['files','image','preview'])){
+
+      if(files){
+        handleChange({rowIndex:activeIndex, field:'files', value:files});
+        const preview = await imageFileToSrc(files.thumb)
+        handleChange({rowIndex:activeIndex, field:'preview', value:preview});
+      }
+
     }else{
       toast.error('Fill all previous fields to add image')
     }
@@ -259,7 +264,8 @@ function VariantsTable(
         cropper={{
           outputFormat: 'webp',
           validFormats: ['jpg','jpeg','png','bmp'],
-          outPutDimen: outPutDimen
+          outPutDimen: outPutDimen,
+          thumbDimen,
         }}
         onResult={handleModalResult}
         onClose={()=> {

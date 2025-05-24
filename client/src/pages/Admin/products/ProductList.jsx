@@ -577,7 +577,7 @@ const ProductList = () => {
                                 <IoIosArrowDown />
                               </div>
 
-                              <PreviewImage src={product?.images[0]?.url} alt={product?.name} size="40" zoom="120%"
+                              <PreviewImage src={product?.images[0]?.thumb} alt={product?.name} size="40" zoom="120%"
                                 thumbClass="rounded-xl border border-gray-300 w-12 h-12"
                               />
                               
@@ -716,8 +716,8 @@ const ProductList = () => {
 
                                   <div><input type="checkbox" /></div>
                                   <div className="flex gap-2 items-center relative ms-2">
-                                    {variant.image?.url ? 
-                                      (<PreviewImage src={variant.image?.url} alt={product?.name} zoom="80%"
+                                    {variant.image?.thumb ? 
+                                      (<PreviewImage src={variant.image?.thumb} alt={product?.name} zoom="80%"
                                       thumbClass="rounded-xl border border-gray-300 w-10 h-10"
                                       />)
                                       :

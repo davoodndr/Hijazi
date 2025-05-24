@@ -23,7 +23,8 @@ const productSchema = new mongoose.Schema({
   },
   images: [{
     url: String,
-    public_id: String
+    thumb: String,
+    public_id: String,
   }],
   averageRating: { type: Number, default: 0 },
   numReviews: { type: Number, default: 0 },
@@ -44,6 +45,7 @@ const productSchema = new mongoose.Schema({
       stock: Number,
       image: {
         url: String,
+        thumb: String,
         public_id: String
       }
     }

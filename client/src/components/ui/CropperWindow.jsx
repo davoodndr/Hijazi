@@ -3,7 +3,7 @@ import { IoCrop, IoImageOutline } from 'react-icons/io5';
 import { LuEye } from 'react-icons/lu';
 import { RiImageEditLine } from "react-icons/ri";
 import { BiReset } from "react-icons/bi";
-import { blobToFile, getImageDimensions, isValidFileType } from '../../utils/Utils';
+import { blobToFile, getImageDimensions, isValidFileType, resizeImageFile } from '../../utils/Utils';
 import { MdImageSearch } from 'react-icons/md';
 import ImageCropper from './ImageCropper';
 import toast from 'react-hot-toast';
@@ -87,7 +87,8 @@ function CropperWindowComponent({
       const dimen = await getImageDimensions(file);
       if(outPutDimen && dimen){
         if(outPutDimen.width === dimen.width && outPutDimen.height === dimen.height){
-          onImageCrop(file);
+          const thumb = await resizeImageFile(file,thumbDimen.width, thumbDimen.height, 0.7)
+          onImageCrop({file, thumb});
         }
       }
 

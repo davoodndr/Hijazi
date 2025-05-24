@@ -20,7 +20,8 @@ function CropperModal(
       disableMessage: "",
       outputFormat: "",
       validFormats: [],
-      outPutDimen: 0
+      outPutDimen: 0,
+      thumbDimen: 0
     }
   }
 ) {
@@ -62,7 +63,7 @@ function CropperModal(
 
           <CropperWindow
             src={cropper?.src}
-            onImageCrop={(file) => setImage(file)}
+            onImageCrop={(files) => setImage(files)}
             outPutDimen={cropper?.outPutDimen}
             disableMessage={cropper?.disableMessage}
             outputFormat={cropper?.outputFormat}

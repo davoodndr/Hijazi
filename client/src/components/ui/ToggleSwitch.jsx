@@ -6,7 +6,7 @@ function ToggleSwitch({size = 5, value, onChange}) {
   const [enabled, setEnabled] = useState(false)
 
   const handleChange = (value) =>{
-    setEnabled(!enabled);
+    setEnabled(!Boolean(value));
     onChange(value);
   }
 

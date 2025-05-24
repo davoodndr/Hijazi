@@ -77,6 +77,9 @@ export const uploadProductImages = async(req, res) => {
 
     let product = await Product.findById(product_id);
 
+    //console.log('product', productImages, productImageIds)
+    //console.log('variant', variantImages, variantImageIds)
+
     if(remove_ids?.length){
 
       const productRemoves =  remove_ids?.filter(el => !el.match('@variant'))
@@ -107,31 +110,32 @@ export const uploadProductImages = async(req, res) => {
         
         const updatedImages =  updateProductImages(product.images, upload);
         product.images = updatedImages;
-
       }
+     
     }
-
 
     if(variantImages.length){
       const upload = await uploadImagesToCloudinary(folder, variantImages, variantImageIds);
+      
       const uploadResults = upload?.map(item => ({url: item.secure_url, public_id: item.public_id}));
 
       if(uploadResults.length){
 
+        const existingImgs = product.variants.map(variant => variant.image)
+        const updatedImages = updateProductImages(existingImgs, upload)
+        
+
         // as the variant images are deeply nested this method is important
 
         product.variants = product.variants.map(variant => {
-          const matching = uploadResults.find(img => {
+          const matching = updatedImages.find(img => {
             const uploadedSku = img?.public_id.split('_').filter(Boolean).pop() 
             return uploadedSku === variant.sku
           });
           if(matching){
             return {
               ...variant.toObject(),
-              image: {
-                ...matching,
-                public_id: matching.public_id.split('/').filter(Boolean).pop()
-              }
+              image: matching
             }
           }
           return variant;
@@ -158,14 +162,21 @@ function updateProductImages(currentImages, uploadedImages) {
     imagesMap.set(img.public_id, img);
   });
 
-  // Add or overwrite with uploaded images
   uploadedImages.forEach(newImg => {
-    const public_id = newImg.public_id.split('/').filter(Boolean).pop();
-    const img = {
-      url: newImg.secure_url,
-      public_id
+    const fullId = newImg.public_id.split('/').filter(Boolean).pop();
+    const isThumb = fullId.endsWith('_thumb');
+    const baseId = isThumb ? fullId.replace('_thumb', '') : fullId;
+
+    // Get existing or create new entry
+    const existing = imagesMap.get(baseId) || { public_id: baseId };
+
+    if (isThumb) {
+      existing.thumb = newImg.secure_url;
+    } else {
+      existing.url = newImg.secure_url;
     }
-    imagesMap.set(public_id, img); 
+
+    imagesMap.set(baseId, existing);
   });
 
   return Array.from(imagesMap.values()).filter(

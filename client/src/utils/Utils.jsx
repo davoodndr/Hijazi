@@ -194,3 +194,51 @@ export const sortProductsByPrice = (products, order = 'asc') => {
 export const generateRandomColor = () => {
   return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')
 }
+
+export const resizeImageFile = async(file, maxWidth = 800, maxHeight = 800, quality = 0.8) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      img.src = e.target.result;
+    };
+
+    img.onload = () => {
+      let { width, height } = img;
+
+      // Resize keeping aspect ratio
+      if (width > maxWidth || height > maxHeight) {
+        const scale = Math.min(maxWidth / width, maxHeight / height);
+        width *= scale;
+        height *= scale;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const resizedFile = new File([blob], file.name, {
+              type: file.type,
+              lastModified: Date.now(),
+            });
+            resolve(resizedFile);
+          } else {
+            reject(new Error("Canvas toBlob failed"));
+          }
+        },
+        file.type,
+        quality // e.g., 0.8 for 80% quality
+      );
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}

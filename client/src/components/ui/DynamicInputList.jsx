@@ -27,6 +27,7 @@ const DynamicInputList = (
     const input = value?.map(item => {
       return {
         id: item?._id || item?.id,
+        _id: item?._id || null,
         data: {
           name: item?.name,
           value: item?.values?.join(',')
