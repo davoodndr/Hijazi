@@ -150,8 +150,14 @@ const ApiBucket = {
   // ----------- user side -------------//
 
     /* category */
-  getCategories: {
+  getCategortList: {
     url: '/api/user/get-categories',
+    method: 'get'
+  },
+
+  /* brand */
+  getBrandList: {
+    url: '/api/user/get-brands',
     method: 'get'
   },
 

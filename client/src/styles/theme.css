@@ -109,6 +109,10 @@
       before:absolute before:content-[''] before:bg-primary-400 before:h-full before:rounded-sm
   }
 
+  .placeholder-img::before {
+    @apply content-[""] absolute inset-0 animate-pulse bg-gray-200 opacity-0 rounded-3xl
+  }
+
   /* image preview */
   /* Skeleton loader */
   .easyPulseSkeleton {

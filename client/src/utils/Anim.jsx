@@ -44,7 +44,7 @@ export const rowVariants = {
   },
 };
 
-/* export const containerVariants = {
+export const transformContainerVariants = {
     hidden: {
       transition: {
         staggerChildren: 0.05,
@@ -58,7 +58,7 @@ export const rowVariants = {
     },
   };
 
-export const rowVariants = {
+export const transformRowVariants = {
   hidden: { opacity: 0, y:-20 },
   visible: {
     opacity: 1,
@@ -76,4 +76,4 @@ export const rowVariants = {
       ease: 'easeIn',
     },
   },
-}; */
+};

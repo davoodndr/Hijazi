@@ -306,11 +306,13 @@ function BrandList() {
               
             </li>
             :
-            <li className={`w-full ${ paginatedBrands.length > 0 ? 'grid grid-cols-5 gap-6 h-50' 
-              : ''}`}>
+            <li className={`w-full ${ paginatedBrands.length > 0 ? 
+            'grid grid-cols-5 gap-6 h-50' : ''}`}>
               <AnimatePresence exitBeforeEnter>
                 {paginatedBrands.length > 0 ?
                   (paginatedBrands.map((brand, index) => 
+
+                    /* brand item */
                     <motion.div 
                       layout="position"
                       key={brand._id}
@@ -321,6 +323,7 @@ function BrandList() {
                       variants={rowVariants}
                       className='w-full border border-gray-300 bg-gray-50 space-y-1 rounded-4xl overflow-hidden shadow-lg'>
 
+                      {/* brand logo and menu */}
                       <div className="flex h-30 w-full">
                         <div className="flex relative w-full overflow-hidden bg-white border-b border-gray-300">
                           <Menu as="div" className="absolute right-3 top-3 overflow-hidden w-2 inline-flex justify-center">
@@ -356,6 +359,8 @@ function BrandList() {
                           <img src={brand?.logo} className="w-full object-contain" alt="brand-logo" />
                         </div>
                       </div>
+
+                      {/* detail */}
                       <div className="px-3 mb-2 flex space-y-0.5 flex-col justify-end">
                         <div className="flex items-center justify-between">
                           <span className='text-sm font-semibold capitalize'>{brand.name}</span>
@@ -374,7 +379,8 @@ function BrandList() {
                         </div>
                         
                       </div>
-                    </motion.div>))
+                    </motion.div>
+                  ))
                   :
                   (<div className="flex items-center justify-center h-30 text-primary-400
                     text-xl bg-primary-50 border border-primary-300/50 rounded-3xl">

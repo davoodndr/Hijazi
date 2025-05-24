@@ -25,10 +25,26 @@ export const getCategories = async() => {
   try {
     
     const response = await Axios({
-      ...ApiBucket.getCategories
+      ...ApiBucket.getCategortList
     })
 
     return response.data.categories;
+
+  } catch (error) {
+    console.log(error.response.data)
+    return error.response.data
+  }
+}
+
+/* brand */
+export const getBrands = async() => {
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getBrandList
+    })
+
+    return response.data.brands;
 
   } catch (error) {
     console.log(error.response.data)

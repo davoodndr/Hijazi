@@ -2,7 +2,7 @@ import React from 'react'
 import { CircleLoader } from 'react-spinners';
 import { hexToRgba } from '../../utils/Utils';
 
-const LoadingFallOff = ({loading, height = 100, bg = '#ffffff', iconColor= 'var(--color-primary-400)'}) => {
+const LoadingFallOff = ({loading, height = 100, bg = '#ffffff', iconColor= 'var(--color-primary-400)', Loader = null}) => {
 
   return (
     <section 
@@ -11,7 +11,9 @@ const LoadingFallOff = ({loading, height = 100, bg = '#ffffff', iconColor= 'var(
       style={{height: `${height}vh`, backgroundColor: hexToRgba(bg, 50)}}
     >
       <div>
-        <CircleLoader color={iconColor} />
+        {Loader ? 
+          Loader : <CircleLoader color={iconColor} />
+        }
         <div>Loading...</div>
       </div>
     </section>
