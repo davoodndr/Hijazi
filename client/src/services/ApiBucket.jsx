@@ -49,6 +49,8 @@ const ApiBucket = {
     method: 'patch'
   },
 
+  // -------------- admin side -------------- //
+
   /* users */
   getUsers: {
     url: '/api/admin/get-users',
@@ -143,6 +145,20 @@ const ApiBucket = {
   changeProductStatus: {
     url: '/api/admin/change-product-status',
     method: 'patch'
+  },
+
+  // ----------- user side -------------//
+
+    /* category */
+  getCategories: {
+    url: '/api/user/get-categories',
+    method: 'get'
+  },
+
+  /* product */
+  getProductList: {
+    url: '/api/user/get-product-list',
+    method: 'get'
   },
 }
 

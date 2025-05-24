@@ -3,7 +3,6 @@ import Navbar from '../../components/user/Navbar'
 import { Outlet } from 'react-router'
 import Footer from '../../components/user/Footer'
 import { Toaster } from 'react-hot-toast'
-import AnimateAppear from '../../components/user/AnimateAppear'
 
 const UserLayout = () => {
   return (

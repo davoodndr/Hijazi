@@ -1,6 +1,6 @@
-import Category from "../models/Category.js";
-import { deleteImageFromCloudinary, uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
-import { responseMessage } from "../utils/messages.js"
+import Category from "../../models/Category.js";
+import { deleteImageFromCloudinary, uploadImagesToCloudinary } from "../../utils/coudinaryActions.js";
+import { responseMessage } from "../../utils/messages.js"
 
 // get all categories
 export const getCategories = async(req, res) => {

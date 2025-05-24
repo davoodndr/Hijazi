@@ -1,6 +1,6 @@
-import Brand from "../models/Brand.js";
-import { deleteImageFromCloudinary, uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
-import { responseMessage } from "../utils/messages.js";
+import Brand from "../../models/Brand.js";
+import { deleteImageFromCloudinary, uploadImagesToCloudinary } from "../../utils/coudinaryActions.js";
+import { responseMessage } from "../../utils/messages.js";
 
 // get all brands
 export const getBrands = async(req, res) => {

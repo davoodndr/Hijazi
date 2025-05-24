@@ -115,8 +115,6 @@ const CategoryList = () => {
   /* update action handleing */
   const handleUpdate =  (doc) => {
 
-    console.log(doc)
-
     const parent = categories?.find(item => item._id === doc.parentId);
     const docWithParent = {
       ...doc,
@@ -356,7 +354,7 @@ const CategoryList = () => {
 
                           {/* Category Info */}
                           <div className="flex gap-2 items-center">
-                            {category?.image?.url ? 
+                            {category?.thumb?.url ? 
                               (<PreviewImage src={category?.thumb?.url} alt={category?.name} size="40" zoom="120%" 
                                 thumbClass="rounded-xl border border-gray-300 w-12 h-12"
                               />)

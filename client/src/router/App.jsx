@@ -2,6 +2,7 @@ import { BrowserRouter, Route, Routes} from "react-router"
 import { useDispatch, useSelector } from "react-redux"
 import { useEffect } from "react"
 import { fetchUser } from "../store/slices/UsersSlice"
+import { fetchCategories } from "../store/slices/CategorySlices"
 import AdminRouter from "./admin/AdminRouter"
 import UserRouter from "./user/UserRouter"
 
@@ -12,6 +13,7 @@ function App() {
 
   useEffect(() => {
     dispatch(fetchUser())
+    dispatch(fetchCategories())
   },[dispatch])
 
   return (

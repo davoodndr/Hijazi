@@ -1,6 +1,6 @@
-import Product from "../models/Product.js";
-import { deleteImageFromCloudinary, getPublicId, uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
-import { responseMessage } from "../utils/messages.js";
+import Product from "../../models/Product.js";
+import { deleteImageFromCloudinary, getPublicId, uploadImagesToCloudinary } from "../../utils/coudinaryActions.js";
+import { responseMessage } from "../../utils/messages.js";
 
 
 // get products

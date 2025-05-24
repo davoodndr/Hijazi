@@ -36,17 +36,20 @@ import ProducCardSmall from '../../components/user/ProducCardSmall.jsx'
 import ProducCard from '../../components/user/ProductCard.jsx'
 import { Link } from 'react-router'
 import { MdOutlineKeyboardDoubleArrowRight } from "react-icons/md";
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from 'react'
 import { setLoading } from '../../store/slices/CommonSlices.jsx'
 import StarRating from '../../components/user/StarRating.jsx'
+import { fetchProducts } from '../../store/slices/ProductSlices.jsx'
 
 function HomeComponent(){
 
   const dispatch = useDispatch();
+  //const { items, productsLoading, error } = useSelector(state => state.products);
   
   useEffect(() => {
     dispatch(setLoading(false))
+    //dispatch(fetchProducts())
   },[])
 
   return (
@@ -90,16 +93,11 @@ function HomeComponent(){
                 <span className="text-primary-400">Popular</span> Categories
               </h3>
             } 
-            cards={useMemo(() => [
-              <CategoryCard image={category_1} categoryName='T-Shirt' />,
-              <CategoryCard image={category_2} categoryName='Bags' />,
-              <CategoryCard image={category_3} categoryName='Sandan' />,
-              <CategoryCard image={category_4} categoryName='Scarf Cap' />,
-              <CategoryCard image={category_5} categoryName='Shoes' />,
-              <CategoryCard image={category_6} categoryName='Pillowcase' />,
-              <CategoryCard image={category_7} categoryName='Jumpsuits' />,
-              <CategoryCard image={category_8} categoryName='Hats' />,
-            ],[])}
+            cards={
+              Array(8).fill(null).map((product, i) => 
+                <CategoryCard image={`categories/category-thumb-${++i}.jpg`} categoryName='T-Shirt' />,
+              )
+            }
           />
         </AnimateAppear>
 

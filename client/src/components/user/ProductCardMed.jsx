@@ -5,7 +5,19 @@ import { FaRegEye } from 'react-icons/fa';
 import ProductCardBadge from './ProductCardBadge';
 import { IoIosHeartEmpty } from 'react-icons/io';
 
-function ProducCardMedComponent({image}) {
+function ProducCardMedComponent({product}) {
+
+  let price = 0;
+
+  if(product?.price){
+    price = product.price;
+  }else{
+    if(product?.variants?.length){
+      const prices = product.variants.map(item => item.price);
+      if(prices.length) price = Math.min(...prices);
+    }
+  }
+
   return (
     <div className="w-[220px] rounded-4xl overflow-hidden bg-white px-2 pt-2 h-fit group/item
       border border-gray-300 smooth hover:shadow-lg/20 hover:border-primary-300 cursor-pointer">
@@ -13,30 +25,14 @@ function ProducCardMedComponent({image}) {
       <div className="relative overflow-hidden max-h-[320px] rounded-3xl 
         border border-primary-400/30 m-1">
         
-        {/* action buttons */}
-        {/* <div className="peer absolute left-1/2 top-1/2 flex rounded-2xl -translate-x-1/2 
-          overflow-hidden smooth opacity-0 group-hover/item:opacity-100 scale-80 group-hover/item:scale-100
-          cursor-pointer shadow-lg/20 z-50 border-2 border-transparent hover:border-white"
-          >
-
-          <a className="ps-3 pe-1.5 py-1.5 inline-flex items-center text-xs smooth
-            font-bold bg-white whitespace-nowrap hover:bg-primary-400 hover:text-white">
-            By now
-          </a>
-          <a className="ps-1 pe-2 py-1.5 inline-flex bg-white border-l-1 border-gray-300
-           hover:bg-primary-400 hover:text-white">
-            <FaRegEye className='text-xl' />
-          </a>
-
-        </div> */}
-
         {/* image */}
         <div className="relative overflow-hidden rounded-3xl cursor-pointer smooth 
           peer-hover:blur-[2px]">
 
           <a className=''>
-            <img className="group-hover/item:scale-110 smooth !duration-1000" src={image} alt=""/>
-            <img className="hover-img" src="assets/imgs/shop/product-2-2.jpg" alt=""/>
+            <img className="group-hover/item:scale-110 smooth !duration-1000" 
+              src={product?.images[0]?.thumb} alt=""/>
+            {/* <img className="hover-img" src="assets/imgs/shop/product-2-2.jpg" alt=""/> */}
           </a>
         </div>
 
@@ -49,8 +45,8 @@ function ProducCardMedComponent({image}) {
 
       {/* detail */}
       <div className="flex flex-col px-2 pt-3 pb-5 relative">
-        <span className='text-xs mb-0.25'>Cateogry</span>
-        <p className='text-lg !font-bold '>Lorem ipsum dolor</p>
+        <span className='text-xs mb-0.25 capitalize'>{product?.category?.name}</span>
+        <p className='text-base !font-bold capitalize'>{product?.name}</p>
         <div className="py-0.25 mb-2">
           <span className='text-xl'>
             <StarRating starClass='text-base' />
@@ -58,8 +54,8 @@ function ProducCardMedComponent({image}) {
         </div>
         <div className='flex gap-1 items-center'>
           <span className='text-lg font-semibold text-primary-400 price-before
-            price-before:!text-[13px] !items-start leading-4.5'>238.85</span>
-          <span className="old-price price-before line-through text-gray-400">245.8</span>
+            price-before:!text-[13px] !items-start leading-4.5'>{price}</span>
+          {<span className="old-price price-before line-through text-gray-400">245.8</span>}
         </div>
 
         <div className='absolute right-0 bottom-3 inline-flex flex-col gap-1 z-10'>

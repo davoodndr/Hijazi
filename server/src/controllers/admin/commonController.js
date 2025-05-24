@@ -1,5 +1,5 @@
-import { uploadImagesToCloudinary } from "../utils/coudinaryActions.js";
-import { responseMessage } from "../utils/messages.js";
+import { uploadImagesToCloudinary } from "../../utils/coudinaryActions.js";
+import { responseMessage } from "../../utils/messages.js";
 
 export const uploadSingleImage = async(req, res, next) => {
 

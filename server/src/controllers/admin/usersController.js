@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
-import Address from "../models/Address.js";
-import User from "../models/User.js";
-import { responseMessage } from "../utils/messages.js";
-import { deleteImageFromCloudinary, uploadImagesToCloudinary } from '../utils/coudinaryActions.js'
+import Address from "../../models/Address.js";
+import User from "../../models/User.js";
+import { responseMessage } from "../../utils/messages.js";
+import { deleteImageFromCloudinary, uploadImagesToCloudinary } from '../../utils/coudinaryActions.js'
 
 // fetch users
 export const getUsers = async(req, res) => {

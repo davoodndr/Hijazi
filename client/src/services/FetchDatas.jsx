@@ -18,6 +18,40 @@ export const getUserDetail = async() => {
 
 }
 
+/* ------ user side -------- */
+
+/* category */
+export const getCategories = async() => {
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getCategories
+    })
+
+    return response.data.categories;
+
+  } catch (error) {
+    console.log(error.response.data)
+    return error.response.data
+  }
+}
+
+/* product */
+export const getProductList = async() => {
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getProductList
+    })
+
+    return response.data.products;
+
+  } catch (error) {
+    console.log(error.response.data)
+    return error.response.data
+  }
+}
+
 export const menus = [
     {label: 'home', href: '/'},
     {label: 'about', href: ''},

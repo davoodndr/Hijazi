@@ -8,8 +8,22 @@ import DropdownButton from '../../components/ui/DropdownButton';
 import { RxCaretSort } from "react-icons/rx";
 import { useMemo } from 'react';
 import AdminPagination from '../../components/user/Pagination';
+import { useDispatch, useSelector } from 'react-redux'
+import { useEffect } from 'react';
+import { fetchProducts } from '../../store/slices/ProductSlices';
 
 function ProductListingComponent() {
+
+  const dispatch = useDispatch()
+  const { items } = useSelector(state => state.products)
+  const { categoryList } = useSelector(state => state.categories)
+
+  console.log(categoryList)
+
+  useEffect(() => {
+    dispatch(fetchProducts())
+  }, [])
+
   return (
     <div className='flex w-9/10 py-10 gap-6'>
 
@@ -38,13 +52,16 @@ function ProductListingComponent() {
             </div> */}
           </div>
 
-          {Array(5).fill(null).map((el, i) => 
-            <li key={i} className='flex items-center w-fit py-2'>
-              <input type="checkbox" name="" id="cat-1" />
-              <label htmlFor="cat-1" className='!text-sm !text-gray-600 !ps-2 cursor-pointer'>Shoes & Bags</label>
+          {categoryList.slice(0,5).map((category, i) => 
+            <li key={category._id} className='flex items-center w-fit py-1.5'>
+              <input type="checkbox" name="" id={category._id}/>
+              <label htmlFor={category._id} 
+                className='!text-sm !text-gray-600 !ps-2 cursor-pointer capitalize'
+                >{category.name}
+              </label>
             </li>
           )}
-          <li className='ps-4 text-primary-400 cursor-pointer'>+2 more</li>
+          <li className='ps-4 text-primary-400 cursor-pointer'>+{categoryList.slice(5).length} more</li>
           
         </ul>
 
@@ -147,11 +164,9 @@ function ProductListingComponent() {
         
         {/* products */}
         <div className='flex-grow grid grid-cols-4 gap-6 h-fit'>
-          {Array(8).fill(null).map((product, i) => {
-            return (
-              <ProductCardMed image={`categories/category-thumb-${++i}.jpg`} />
-            )
-          })}
+          {items.map((product, i) => 
+            <ProductCardMed key={product?._id} product={product} />
+          )}
         </div>
         
         {/* pagination */}

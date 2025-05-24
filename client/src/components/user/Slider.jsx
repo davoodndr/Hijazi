@@ -70,12 +70,12 @@ function SliderComponent({slides, className = ''}) {
 
       {/* nav buttons */}
       <div className={`custom-swiper-button-next nav-btn absolute -right-7 opacity-0 peer-hover:opacity-100 
-        peer-hover:-right-10 !top-[38%] !p-2 !bg-primary-25 hover:!bg-primary-300`}>
+        peer-hover:-right-10 !top-[38%] !p-2 !bg-primary-25 hover:!bg-primary-300 hover:opacity-100`}>
           <IoIosArrowForward className="text-2xl" />
         </div>
 
       <div className={`custom-swiper-button-prev nav-btn absolute -left-7 opacity-0 peer-hover:opacity-100 
-        peer-hover:-left-10 !top-[38%] !p-2 !bg-primary-25 hover:!bg-primary-300`}>
+        peer-hover:-left-10 !top-[38%] !p-2 !bg-primary-25 hover:!bg-primary-300 hover:opacity-100`}>
           <IoIosArrowBack className="text-2xl" />
         </div>
       

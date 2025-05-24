@@ -184,6 +184,7 @@ export const deleteBrandAction = async(folder, brand_id) => {
   }
 }
 
+// products
 export const uploadProductImages = async(product, product_id, remove_ids = []) => {
 
   try {

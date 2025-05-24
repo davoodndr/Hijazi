@@ -1,7 +1,7 @@
 import express from "express";
 import { allowRoles, authenticate } from "../middleware/authMiddleware.js";
 import { productUpload, upload } from "../middleware/multer.js";
-import { uploadSingleImage } from "../controllers/commonController.js";
+import { uploadSingleImage } from "../controllers/admin/commonController.js";
 import { 
   addUser, 
   blockUser, 
@@ -10,10 +10,10 @@ import {
   unblockUser, 
   updateUser, 
   uploadAvatar
-} from "../controllers/usersController.js";
-import { addCategory, deleteCategory, getCategories, updateCategory, uploadCategoryImage } from "../controllers/categoryController.js";
-import { addBrand, deleteBrand, getBrands, updateBrand, uploadBrandLogo } from "../controllers/brandController.js";
-import { addProduct, changeProductStatus, getProducts, updateProduct, uploadProductImages } from "../controllers/productController.js";
+} from "../controllers/admin/usersController.js";
+import { addCategory, deleteCategory, getCategories, updateCategory, uploadCategoryImage } from "../controllers/admin/categoryController.js";
+import { addBrand, deleteBrand, getBrands, updateBrand, uploadBrandLogo } from "../controllers/admin/brandController.js";
+import { addProduct, changeProductStatus, getProducts, updateProduct, uploadProductImages } from "../controllers/admin/productController.js";
 
 
 const adminRouter = express.Router();

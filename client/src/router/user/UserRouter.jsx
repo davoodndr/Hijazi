@@ -5,6 +5,7 @@ import PublicRoutes from "./UserPublicRoutes"
 import { Suspense } from 'react'
 import LoadingFallOff from '../../components/ui/LoadingFallOff'
 import { useSelector } from 'react-redux'
+import { useEffect } from 'react'
 
 const Register = React.lazy(() => import("../../pages/User/Auth/Register"))
 const Login = React.lazy(() => import("../../pages/User/Auth/Login"))

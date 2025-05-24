@@ -5,7 +5,7 @@ import { FaRegEye } from 'react-icons/fa';
 import ProductCardBadge from './ProductCardBadge';
 import { IoIosHeartEmpty } from 'react-icons/io';
 
-function ProducCard({image}) {
+function ProducCard({product}) {
   return (
     <div className="w-[260px] rounded-4xl overflow-hidden bg-white px-3 pt-3 group/item
       border border-gray-300 smooth hover:shadow-lg/20 hover:border-primary-300 cursor-pointer">
@@ -34,7 +34,7 @@ function ProducCard({image}) {
           peer-hover:blur-[2px]">
 
           <a className=''>
-            <img className="group-hover/item:scale-110 smooth !duration-1000" src={image} loading='lazy' alt=""/>
+            <img className="group-hover/item:scale-110 smooth !duration-1000" src={product?.images[0]?.thumb} loading='lazy' alt=""/>
             {/* <img className="hover-img" src="assets/imgs/shop/product-2-2.jpg" alt=""/> */}
           </a>
         </div>
