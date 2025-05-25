@@ -24,7 +24,7 @@ const brandSlice = createSlice({
       })
       .addCase(fetchBrands.rejected, (state, action) => {
         state.brandLoading = false;
-        state.erro = action.error;
+        state.error = action.error;
       })
   }
 })

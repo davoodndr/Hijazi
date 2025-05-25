@@ -9,13 +9,13 @@ const userRouter = express.Router();
 //userRouter.post('/upload-avatar',)
 
 /* category management */
-userRouter.get('/get-categories', authenticate, allowRoles(['admin','user']), getCategories)
+userRouter.get('/get-categories', getCategories)
 
 /* brand management */
-userRouter.get('/get-brands', authenticate, allowRoles(['admin']), getBrands)
+userRouter.get('/get-brands', getBrands)
 
 /* product management */
-userRouter.get('/get-product-list', authenticate, allowRoles(['admin','user']), getProductList)
+userRouter.get('/get-product-list', getProductList)
 
 
 

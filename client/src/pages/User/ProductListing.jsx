@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import ProductCardMed from '../../components/user/ProductCardMed';
 import BadgeButton from '../../components/ui/BadgeButton';
 import DropdownButton from '../../components/ui/DropdownButton';
@@ -9,11 +9,14 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from 'react';
 import { fetchProducts } from '../../store/slices/ProductSlices';
 import { fetchBrands } from '../../store/slices/BrandSlice';
-import { useState } from 'react';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { AnimatePresence, motion } from 'motion/react';
 import { transformContainerVariants } from '../../utils/Anim';
+import { LuSearch } from 'react-icons/lu';
+import MoreSearchPopup from '../../components/user/MoreSearchPopup';
+import { sortProductsByPrice } from '../../utils/Utils';
+import { IoMdCheckmarkCircleOutline } from "react-icons/io";
 
 function ProductListingComponent() {
 
@@ -21,6 +24,9 @@ function ProductListingComponent() {
   const { items } = useSelector(state => state.products)
   const { categoryList } = useSelector(state => state.categories)
   const { brandList } = useSelector(state => state.brands)
+  const [sortedProducts, setSortedProducts] = useState([])
+  const [sortOption, setSortOption] = useState(null);
+  const [sortOrder, setSortOrder] = useState('asc');
 
   //console.log(brandList)
 
@@ -43,6 +49,7 @@ function ProductListingComponent() {
     range: [minPrice, minPrice],
     selectedCategories: [],
     selectedBrands: [],
+    selectedList: [],
   })
 
   useEffect(() => {
@@ -62,33 +69,20 @@ function ProductListingComponent() {
     }))
   };
 
-  const handleCategorySelect = (e, id) => {
+  const handleSelect = (e, id) => {
     
     if(e.target.checked){
-      setFilters(prev => ({...prev, selectedCategories: [...prev.selectedCategories, id]}))
+      setFilters(prev => ({...prev, selectedList: [...prev.selectedList, id]}))
     }else{
       setFilters(prev => ({
         ...prev, 
-        selectedCategories: prev.selectedCategories.filter(cat => cat !== id)
-      }))
-    }
-  }
-
-  const handleBrandSelect = (e, id) => {
-    
-    if(e.target.checked){
-      setFilters(prev => ({...prev, selectedBrands: [...prev.selectedBrands, id]}))
-    }else{
-      setFilters(prev => ({
-        ...prev, 
-        selectedBrands: prev.selectedBrands.filter(cat => cat !== id)
+        selectedList: prev.selectedList.filter(cat => cat !== id)
       }))
     }
   }
 
   const filteredProducts = useMemo(() => {
     return items.filter((p) => {
-
       // price filter
       const matchesProductPrice = p.price >= filters.range[0] && p.price <= filters.range[1];
       const matchesVariantPrice = p.variants?.some(
@@ -97,17 +91,87 @@ function ProductListingComponent() {
 
       const priceMatch = matchesProductPrice || matchesVariantPrice;
 
-      //category filter
-      const categoryMatch = !filters.selectedCategories.length 
-        || filters.selectedCategories.includes(p.category._id);
+      // other select
+      const selectMatch = !filters.selectedList.length ||
+        filters.selectedList.includes(p.brand._id) ||
+        filters.selectedList.includes(p.category._id);
 
-      // brand filter
-      const brandMatch = !filters.selectedBrands.length 
-        || filters.selectedBrands.includes(p.brand._id);
-
-      return priceMatch && categoryMatch && brandMatch;
+      return priceMatch && selectMatch
     });
   }, [items, filters]);
+
+  useEffect(() => {
+    if (sortOption) {
+      sortData(filteredProducts, sortOption.option, sortOrder);
+    } else {
+      setSortedProducts(filteredProducts);
+    }
+  }, [filteredProducts, sortOption, sortOrder]);
+
+  const [slicedCategoryList, setSlicedCategoryList] = useState([])
+  const [slicedBrandList, setSlicedBrandList] = useState([])
+
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
+
+
+  useEffect(() => {
+
+    setSlicedCategoryList(categoryList.slice(0,5))
+    setSlicedBrandList(brandList.slice(0,5))
+
+  },[categoryList, brandList])
+
+  /* sort data */
+  const sortData = (products, need, order) => {
+    let sorted; 
+    
+    if(products){
+
+      switch (need) {
+        case 'price':
+          sorted = sortProductsByPrice(products, order);
+          break;
+
+        default:
+          sorted = [...products].sort((a, b) => {
+            const aVal = a[need];
+            const bVal = b[need];
+
+            if (typeof aVal === 'string' && typeof bVal === 'string') {
+              return order === 'desc'
+                ? bVal.localeCompare(aVal)
+                : aVal.localeCompare(bVal);
+            }
+
+            return order === 'desc'
+              ? (aVal < bVal ? 1 : aVal > bVal ? -1 : 0)
+              : (aVal > bVal ? 1 : aVal < bVal ? -1 : 0);
+          });
+      }
+
+      if(sorted?.length){
+        setSortedProducts(sorted);
+      }
+    }
+  }
+
+  const applySort = (option, order = 'asc',index) => {
+    setSortOption({index, option});
+    setSortOrder(order);
+  };
+
+  const sortOptionsRaw = [
+    { text: 'price: low to high', field: 'price', order: 'asc' },
+    { text: 'price: high to low', field: 'price', order: 'desc' },
+    { text: 'newest first', field: 'createdAt', order: 'desc' },
+    { text: 'oldest first', field: 'createdAt', order: 'asc' }
+  ];
+
+  const setSortLabel = () => {
+    const currentSort = sortOptionsRaw[sortOption?.index]?.text;
+    return currentSort
+  }
 
   return (
     <div className='flex w-9/10 py-10 gap-6'>
@@ -123,7 +187,7 @@ function ProductListingComponent() {
         </div>
 
         {/* category filters */}
-        <ul className='border border-gray-300 p-6'>
+        <ul className='border border-gray-300 p-6 relative smooth'>
 
           <div className='flex items-center justify-between relative'>
             <h4 className='lined-header-small w-full z-1'>Categories</h4>
@@ -137,35 +201,70 @@ function ProductListingComponent() {
             </div> */}
           </div>
 
-          {categoryList.slice(0,5).map((category, i) => 
+          {slicedCategoryList.map((category, i) => 
             <li key={category._id} className='flex items-center w-fit py-1.5'>
-              <input type="checkbox" onChange={(e) => handleCategorySelect(e,category._id)} id={category._id}/>
+              <input type="checkbox" onChange={(e) => handleSelect(e,category._id)} id={category._id}/>
               <label htmlFor={category._id} 
                 className='!text-sm !text-gray-600 !ps-2 cursor-pointer capitalize'
                 >{category.name}
               </label>
             </li>
           )}
-          {categoryList.slice(5).length > 0 &&
-            <li className='ps-4 text-primary-400 cursor-pointer mt-2'>+{categoryList.slice(5).length} more</li>}
+          {categoryList.slice(5).length > 0 && slicedCategoryList.length !== categoryList.length &&
+            <li onClick={() => {
+                if(categoryList.slice(5).length > 10){
+                  setIsCategoryModalOpen(true)
+                }else{
+                  setSlicedCategoryList(categoryList)
+                }
+              }}
+              className='ps-4 text-primary-400 cursor-pointer mt-2'>+{categoryList.slice(5).length} more</li>
+          }
+
+          <MoreSearchPopup
+            type='categories'
+            isOpen={isCategoryModalOpen}
+            onChange={(e, id) => handleSelect(e, id)}
+            list={categoryList}
+            selectedList={filters.selectedList}
+            onClose={() => setIsCategoryModalOpen(false)}
+          />
           
         </ul>
 
         {/* brand filters */}
-        <ul className='border border-gray-300 p-6'>
+        <ul className='border border-gray-300 p-6 relative'>
           <h4 className='lined-header-small'>Brands</h4>
           
-          {brandList?.slice(0,5).map((brand, i) => 
+          {slicedBrandList.map((brand, i) => 
             <li key={brand._id} className='flex items-center w-fit py-2'>
-              <input type="checkbox" onChange={(e) => handleBrandSelect(e, brand._id)} id={brand._id} />
+              <input type="checkbox" onChange={(e) => handleSelect(e, brand._id)} id={brand._id} />
               <label htmlFor={brand._id} 
               className='!text-sm !text-gray-600 !ps-2 cursor-pointer capitalize'
               >{brand.name}</label>
             </li>
           )}
-          {brandList.slice(5).length > 0 &&
-            <li className='ps-4 text-primary-400 cursor-pointer mt-2'>+{brandList.slice(5).length} more</li>}
+          {brandList.slice(5).length > 0 && slicedBrandList.length !== brandList.length &&
+            <li onClick={() => {
+              {
+                if(categoryList.slice(5).length > 10){
+                  setIsBrandModalOpen(true)
+                }else{
+                  setSlicedBrandList(brandList)
+                }
+              }
+            }}
+              className='ps-4 text-primary-400 cursor-pointer mt-2'>+{brandList.slice(5).length} more</li>
+          }
           
+          <MoreSearchPopup
+            type='brands'
+            isOpen={isBrandModalOpen}
+            onChange={(e, id) => handleSelect(e, id)}
+            list={brandList}
+            selectedList={filters.selectedList}
+            onClose={() => setIsBrandModalOpen(false)}
+          />
         </ul>
 
         {/* price filter */}
@@ -180,11 +279,19 @@ function ProductListingComponent() {
               value={filters.range}
               onChange={handleChangeRange}
               allowCross={false}
+              trackStyle={{
+                backgroundColor: 'var(--color-primary-400)'
+              }}
+              handleStyle={{
+                backgroundColor: 'var(--color-primary-400)',
+                borderColor: 'var(--color-primary-400)',
+                opacity: 1
+              }}
             />
             <p htmlFor="cat-1" className=''>
-              <span className='price-before'>{filters.range[0]}</span>
+              <span className='price-before font-semibold'>{filters.range[0]}</span>
               <span className='px-2'>-</span>
-              <span className='price-before'>{filters.range[1]}</span>
+              <span className='price-before font-semibold'>{filters.range[1]}</span>
             </p>
           </li>
           
@@ -217,47 +324,26 @@ function ProductListingComponent() {
           {/* sort button */}
           <div className=''>
             <DropdownButton
-              label='Sort by'
+              label={setSortLabel() || 'Sort by'}
               icon={<RxCaretSort className='text-xl' />}
               className='border border-gray-200 rounded-2xl !px-4 !py-2'
-              items={useMemo(() => [
-                { id: 'pricel2h',
-                  text: <span className='capitalize'>price: low to high</span>,
-                  onClick: () => {}
-                },
-                { id: 'priceh2l',
-                  text: <span className='capitalize'>price: high to low</span>,
-                  onClick: () => {}
-                },
-                { id: 'newfirst',
-                  text: <span className='capitalize'>New first</span>,
-                  onClick: () => {}
-                },
-                { id: 'oldfirst',
-                  text: <span className='capitalize'>Old first</span>,
-                  onClick: () => {}
-                },
-                /* { id: 'custom1',
+              items={useMemo(() => sortOptionsRaw.map((opt, i) => (
+              
+                { id: `${opt.field}-${opt.order}`,
                   custom: (
                     <div className='menu-bg px-4'>
-                      <input type="checkbox" name="" id="pricel2h" />
-                      <label htmlFor='pricel2h' 
+
+                      <IoMdCheckmarkCircleOutline 
+                        className={`text-xl ${sortOption?.index === i ? 'text-primary-400' : 'text-gray-300'}`} />
+
+                      <label 
+                        onClick={() => applySort(opt.field, opt.order, i)}
+                        htmlFor='pricel2h' 
                         className={`capitalize py-2.5 px-2 !text-sm !text-gray-600 cursor-pointer`}
-                      > price: low to high </label>
+                      > {opt.text} </label>
                     </div>
                   )
-                },
-                { id: 'custom2',
-                  custom: (
-                    <div className='menu-bg px-4'>
-                      <input type="checkbox" name="" id="pricel2h" />
-                      <label htmlFor='pricel2h' 
-                        className={`capitalize py-2.5 px-2 !text-sm !text-gray-600 cursor-pointer`}
-                      > price: low to high </label>
-                    </div>
-                  )
-                }, */
-              ],[])}
+                })),[sortedProducts])}
             />
           </div>
         </div>
@@ -272,7 +358,7 @@ function ProductListingComponent() {
         >
           <li className='flex-grow grid grid-cols-4 gap-6 h-fit'>
             <AnimatePresence exitBeforeEnter>
-              {filteredProducts.map((product, i) => 
+              {sortedProducts?.map((product, i) => 
                 <ProductCardMed key={product?._id} index={i} product={product} />
               )}
             </AnimatePresence>

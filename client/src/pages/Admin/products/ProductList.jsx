@@ -390,7 +390,7 @@ const ProductList = () => {
         </div>
       </div>
 
-      {/* search */}
+      {/* search sort filter*/}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center relative w-3/10">
           <LuSearch size={20} className='absolute left-3'/>
@@ -472,7 +472,7 @@ const ProductList = () => {
         
       </div>
 
-      {/* content - first div fot smooth animaion */}
+      {/* content - first div for smooth animaion */}
       <div className="relative flex flex-col w-full bg-white rounded-3xl shadow-lg border border-gray-200">
         {/* Header */}
         <div className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
