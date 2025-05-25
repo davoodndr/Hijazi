@@ -5,7 +5,7 @@ import { TbHeart, TbShoppingBagPlus } from "react-icons/tb";
 import { useState } from 'react';
 import MyFadeLoader from '../ui/MyFadeLoader';
 import { motion } from 'motion/react'
-import { transformRowVariants } from '../../utils/Anim';
+import { yRowVariants } from '../../utils/Anim';
 
 function ProducCardMedComponent({product}) {
 
@@ -28,7 +28,7 @@ function ProducCardMedComponent({product}) {
       initial="hidden"
       animate="visible"
       exit="exit"
-      variants={transformRowVariants}
+      variants={yRowVariants}
       >
         
       <div className="w-[220px] rounded-4xl overflow-hidden bg-white px-2 pt-2 h-fit group/item

@@ -83,8 +83,8 @@ function MoreSearchPopup({
 									<input
 										type="checkbox"
 										id={item._id}
-										onChange={(e) => onChange(e, item._id)}
-										checked={selectedList?.includes(item._id)}
+										onChange={(e) => onChange(e, item._id, item.name)}
+										checked={selectedList?.some(el => el.id === item._id)}
 									/>
 									<label
 										htmlFor={item._id}

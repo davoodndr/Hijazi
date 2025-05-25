@@ -1,3 +1,7 @@
 add more fields to variants like, name, status etc..
 variant actions like change status
-create filer for unarchive product
+create filter for unarchive product
+
+
+---- user side
+product listing: impliment individual search for each filters

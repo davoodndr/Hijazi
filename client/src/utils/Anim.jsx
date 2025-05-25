@@ -44,21 +44,41 @@ export const rowVariants = {
   },
 };
 
-export const transformContainerVariants = {
-    hidden: {
-      transition: {
-        staggerChildren: 0.05,
-        staggerDirection: -1,
-      },
+export const slowContainerVariants = {
+  hidden: {
+    transition: {
+      staggerChildren: 0.05,
+      staggerDirection: -1,
     },
-    visible: {
-      transition: {
-        staggerChildren: 0.05,
-      },
+  },
+  visible: {
+    transition: {
+      staggerChildren: 0.05,
     },
-  };
+  },
+};
 
-export const transformRowVariants = {
+export const xRowVariants = {
+  hidden: { opacity: 0, x:-20 },
+  visible: {
+    opacity: 1,
+    x:0,
+    transition: {
+      duration: 0.5,
+      ease: 'easeOut',
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: -20,
+    transition: {
+      duration: 0.3,
+      ease: 'easeIn',
+    },
+  },
+};
+
+export const yRowVariants = {
   hidden: { opacity: 0, y:-20 },
   visible: {
     opacity: 1,

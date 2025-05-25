@@ -12,7 +12,7 @@ import { fetchBrands } from '../../store/slices/BrandSlice';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { AnimatePresence, motion } from 'motion/react';
-import { transformContainerVariants } from '../../utils/Anim';
+import { containerVariants } from '../../utils/Anim';
 import { LuSearch } from 'react-icons/lu';
 import MoreSearchPopup from '../../components/user/MoreSearchPopup';
 import { sortProductsByPrice } from '../../utils/Utils';
@@ -21,14 +21,12 @@ import { IoMdCheckmarkCircleOutline } from "react-icons/io";
 function ProductListingComponent() {
 
   const dispatch = useDispatch()
-  const { items } = useSelector(state => state.products)
+  const { items, productsLoading } = useSelector(state => state.products)
   const { categoryList } = useSelector(state => state.categories)
   const { brandList } = useSelector(state => state.brands)
   const [sortedProducts, setSortedProducts] = useState([])
   const [sortOption, setSortOption] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
-
-  //console.log(brandList)
 
   useEffect(() => {
     dispatch(fetchBrands())
@@ -37,7 +35,6 @@ function ProductListingComponent() {
 
 
   /* filter section */
-
   const validPrices = items.flatMap((p) =>
     [p?.price, ...p.variants.map((v) => v.price)]
   ).filter(p => typeof p === 'number' && !isNaN(p));
@@ -46,10 +43,8 @@ function ProductListingComponent() {
   const maxPrice = validPrices.length ? Math.max(...validPrices) : 0;
 
   const [filters, setFilters] = useState({
-    range: [minPrice, minPrice],
-    selectedCategories: [],
-    selectedBrands: [],
-    selectedList: [],
+    range: [minPrice, maxPrice],
+    selectedList: []
   })
 
   useEffect(() => {
@@ -69,14 +64,17 @@ function ProductListingComponent() {
     }))
   };
 
-  const handleSelect = (e, id) => {
+  const handleSelect = (e, id, name) => {
     
     if(e.target.checked){
-      setFilters(prev => ({...prev, selectedList: [...prev.selectedList, id]}))
+      setFilters(prev => ({
+        ...prev, 
+        selectedList: [...prev.selectedList, {id, name}]
+      }))
     }else{
       setFilters(prev => ({
         ...prev, 
-        selectedList: prev.selectedList.filter(cat => cat !== id)
+        selectedList: prev.selectedList.filter(item => item.id !== id)
       }))
     }
   }
@@ -93,20 +91,12 @@ function ProductListingComponent() {
 
       // other select
       const selectMatch = !filters.selectedList.length ||
-        filters.selectedList.includes(p.brand._id) ||
-        filters.selectedList.includes(p.category._id);
+        filters.selectedList.some(item => item.id === p.brand._id) ||
+        filters.selectedList.some(item => item.id === p.category._id);
 
       return priceMatch && selectMatch
     });
   }, [items, filters]);
-
-  useEffect(() => {
-    if (sortOption) {
-      sortData(filteredProducts, sortOption.option, sortOrder);
-    } else {
-      setSortedProducts(filteredProducts);
-    }
-  }, [filteredProducts, sortOption, sortOrder]);
 
   const [slicedCategoryList, setSlicedCategoryList] = useState([])
   const [slicedBrandList, setSlicedBrandList] = useState([])
@@ -121,6 +111,13 @@ function ProductListingComponent() {
     setSlicedBrandList(brandList.slice(0,5))
 
   },[categoryList, brandList])
+
+  const handleClearAllFilters = () => {
+    setFilters({
+      range: [minPrice, maxPrice],
+      selectedList: [],
+    })
+  }
 
   /* sort data */
   const sortData = (products, need, order) => {
@@ -156,6 +153,14 @@ function ProductListingComponent() {
     }
   }
 
+  useEffect(() => {
+    if (sortOption) {
+      sortData(filteredProducts, sortOption.option, sortOrder);
+    } else {
+      setSortedProducts(filteredProducts);
+    }
+  }, [filteredProducts, sortOption, sortOrder]);
+
   const applySort = (option, order = 'asc',index) => {
     setSortOption({index, option});
     setSortOrder(order);
@@ -173,17 +178,30 @@ function ProductListingComponent() {
     return currentSort
   }
 
+  /* paingation logic */
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
+
+  const paginatedProducts = sortedProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
     <div className='flex w-9/10 py-10 gap-6'>
 
       {/* left section */}
-      <section className='w-[22%] flex flex-col gap-4'>
+      <section className='w-[22%] shrink-0 flex flex-col gap-4'>
 
         {/* filter header & clear button */}
         <div className='ps-6 pt-3 flex justify-between items-center'>
           <h3 className='text-[16px]'>Filters</h3>
           
-          <BadgeButton text='Clear All' />
+          <BadgeButton 
+            onClick={handleClearAllFilters} 
+            text='Clear All' 
+            />
         </div>
 
         {/* category filters */}
@@ -203,7 +221,12 @@ function ProductListingComponent() {
 
           {slicedCategoryList.map((category, i) => 
             <li key={category._id} className='flex items-center w-fit py-1.5'>
-              <input type="checkbox" onChange={(e) => handleSelect(e,category._id)} id={category._id}/>
+              <input 
+                type="checkbox" 
+                checked={filters.selectedList.some(item => item.id === category._id)}
+                onChange={(e) => handleSelect(e,category._id, category.name)} 
+                id={category._id}
+              />
               <label htmlFor={category._id} 
                 className='!text-sm !text-gray-600 !ps-2 cursor-pointer capitalize'
                 >{category.name}
@@ -224,7 +247,7 @@ function ProductListingComponent() {
           <MoreSearchPopup
             type='categories'
             isOpen={isCategoryModalOpen}
-            onChange={(e, id) => handleSelect(e, id)}
+            onChange={(e, id, name) => handleSelect(e, id, name)}
             list={categoryList}
             selectedList={filters.selectedList}
             onClose={() => setIsCategoryModalOpen(false)}
@@ -238,7 +261,12 @@ function ProductListingComponent() {
           
           {slicedBrandList.map((brand, i) => 
             <li key={brand._id} className='flex items-center w-fit py-2'>
-              <input type="checkbox" onChange={(e) => handleSelect(e, brand._id)} id={brand._id} />
+              <input 
+                type="checkbox"
+                checked={filters.selectedList.some(item => item.id === brand._id)}
+                onChange={(e) => handleSelect(e, brand._id, brand.name)} 
+                id={brand._id} 
+              />
               <label htmlFor={brand._id} 
               className='!text-sm !text-gray-600 !ps-2 cursor-pointer capitalize'
               >{brand.name}</label>
@@ -314,19 +342,52 @@ function ProductListingComponent() {
       </section>
 
       {/* right section - products */}
-      <section className='flex flex-col justify-start h-fit space-y-5 py-3'>
+      <section className='flex-grow flex flex-col justify-start h-fit space-y-5 py-3'>
 
-        <div className='flex justify-between'>
-          <div>
-            <BadgeButton text='filter' />
+        {/* filters and sort */}
+        <div className='flex justify-between space-x-3 min-h-[74px]'>
+
+          <div className='flex flex-col space-y-3'>
+            <div>
+              <p className='font-light text-base'>
+                Found 
+                <span className='font-bold text-primary-400 mx-1'>{sortedProducts.length}</span> 
+                <span>product{sortedProducts.length > 1 ? 's' : ''}!</span> 
+              </p>
+            </div>
+            {/* filter badges */}
+            <motion.ul
+              layout="position"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className='w-full'
+            >
+              <li className='space-x-2 space-y-2'>
+                <AnimatePresence exitBeforeEnter>
+                  {filters?.selectedList?.map(item => 
+                    <BadgeButton 
+                      showClear 
+                      key={item.id} 
+                      text={item.name} 
+                      onClear={() => setFilters(prev => ({
+                        ...prev,
+                        selectedList: prev.selectedList.filter(el => el.id !== item.id)
+                      }))}
+                    />
+                  )}
+                </AnimatePresence>
+              </li>
+            </motion.ul>
           </div>
 
           {/* sort button */}
-          <div className=''>
+          <div className='h-fit inline-flex'>
             <DropdownButton
               label={setSortLabel() || 'Sort by'}
+              labelClass='whitespace-nowrap'
               icon={<RxCaretSort className='text-xl' />}
-              className='border border-gray-200 rounded-2xl !px-4 !py-2'
+              className='bg-white border border-gray-200 rounded-2xl !px-4 !py-2'
               items={useMemo(() => sortOptionsRaw.map((opt, i) => (
               
                 { id: `${opt.field}-${opt.order}`,
@@ -349,26 +410,45 @@ function ProductListingComponent() {
         </div>
         
         {/* products */}
-
         <motion.ul
           layout="position"
-          variants={transformContainerVariants}
+          variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          <li className='flex-grow grid grid-cols-4 gap-6 h-fit'>
-            <AnimatePresence exitBeforeEnter>
-              {sortedProducts?.map((product, i) => 
+          <AnimatePresence exitBeforeEnter>
+          {productsLoading ?
+
+            (<li className='grid grid-cols-4 gap-6 h-fit'>
+              {Array(4).fill(null).map((_, i) => 
+                <ProductCardMed key={i} index={i} product={{
+                  category: {name:'Loading..'},
+                  name: 'Loading..',
+                  images: []
+                }} />
+              )}
+            </li>)
+            :
+            (<li className='grid grid-cols-4 gap-6 h-fit'>
+              
+              {paginatedProducts?.map((product, i) => 
                 <ProductCardMed key={product?._id} index={i} product={product} />
               )}
-            </AnimatePresence>
-          </li>
+              
+            </li>)
+            
+          }
+          </AnimatePresence>
         </motion.ul>
         
         {/* pagination */}
-        <div className='border-t border-gray-300 py-5 mt-5 flex justify-center'>
-          <AdminPagination />
-        </div>
+        {totalPages > 1 && <div className='border-t border-gray-300 py-5 mt-5 flex justify-center'>
+          <AdminPagination
+            currentPage={currentPage} 
+            totalPages={totalPages}
+            setCurrentPage={setCurrentPage}
+          />
+        </div>}
 
       </section>
 
