@@ -1,5 +1,5 @@
-import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { CiImageOff } from "react-icons/ci";
+import React, { useRef, useState, useCallback, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom'
 
 // useMouse Hook
 function useMouse(options = { resetOnExit: false }) {
@@ -118,16 +118,17 @@ function createStore(initialState) {
 const THRESHOLD = 50;
 function makeImageLoader() {
   const createZoomImage = (img, src, store) => {
+    
+    console.log('src', src)
 
     if (!src) {
-      store.setState({ zoomedImgStatus: 'error' });
+      store.setState({ zoomedImgStatus: 'loading' });
       return;
     }
 
-    if (img.src === src && store.getState().zoomedImgStatus === 'loaded') return;
+    if (img.src === src) return;
     img.src = src;
     let complete = false;
-
     img.onload = () => {
       complete = true;
       store.setState({ zoomedImgStatus: 'loaded' });
@@ -450,6 +451,12 @@ function ImageZoomOnHover(
 
   return (
     <>
+      {console.log(mainImage.src, zoomImage.src)}
+      {!isImageLoaded && (
+        loadingIndicator || (
+          <EasySkeleton/>
+        )
+      )}
       <div
         ref={imageHoverContainerRef}
         className={`EasyZoomImageHoverMainContainer ${className}`}
@@ -468,35 +475,50 @@ function ImageZoomOnHover(
           alt={mainImage.alt || 'Small Pic'}
           src={mainImage.src}
         />
-        
-        <div
+        {/* <div
           ref={zoomTargetRef}
-          className={`EasyZoomImageZoomHoverContainer bg-white/70 backdrop-blur-sm ${zoomClass}`}
+          className={`EasyZoomImageZoomHoverContainer ${zoomClass}`}
           id="zoomTargeted"
           style={{
             position: 'absolute',
-            width: `${zoomContainerWidth || imageDimension.width || 450}px`,
-            height: `${zoomContainerHeight || imageDimension.height || 470}px`,
-            left: `calc(100% + ${distance}px)`,
+            width: zoomContainerWidth || `${imageDimension.width}px`,
+            height: zoomContainerHeight || `${imageDimension.height}px`,
+            left: `calc(100% + ${distance}px)`, 
             top: 0,
             zIndex: 10,
           }}
+        /> */}
+        <div
+          ref={zoomTargetRef}
+          className={`EasyZoomImageZoomHoverContainer ${zoomClass}`}
+          id="zoomTargeted"
+          style={{
+            position: 'absolute',
+            width: zoomContainerWidth || `${imageDimension.width}px`,
+            height: zoomContainerHeight || `${imageDimension.height}px`,
+            left: `calc(100% + ${distance}px)`,
+            top: 0,
+            zIndex: 10,
+            backgroundColor:
+              zoomImageState.zoomedImgStatus === 'loading' ? '#eee' :
+              zoomImageState.zoomedImgStatus === 'error' ? '#fdd' :
+              'transparent',
+            display:
+              zoomImageState.zoomedImgStatus === 'loading' ||
+              zoomImageState.zoomedImgStatus === 'error'
+                ? 'flex'
+                : undefined,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          {(zoomImageState.zoomedImgStatus === 'idle' || zoomImageState.zoomedImgStatus === 'loading') &&
-           (loadingIndicator)
-          }
-          {zoomImageState.zoomedImgStatus === 'error' && 
-            (<div className="absolute inset-0 z-[9999] flex items-center justify-center bg-white/60">
-              <div className="flex flex-col items-center space-y-1 w-40 border p-4 border-gray-300
-                rounded-3xl">
-                <span className='p-4 border-3 rounded-full border-red-200'>
-                  <CiImageOff className='text-4xl' />
-                </span>
-                <span className='text-xl text-center font-bold text-red-500'>Error loading image</span>
-              </div>
-            </div>)
-          }
-          
+          {zoomImageState.zoomedImgStatus === 'loading' && (
+            /* loadingIndicator || <EasySkeleton /> */
+            <div className="zoom-loader">Loading zoom image...</div>
+          )}
+          {zoomImageState.zoomedImgStatus === 'error' && (
+            <div style={{ color: 'red', padding: '1rem' }}>Failed to load zoom image</div>
+          )}
         </div>
       </div>
     </>

@@ -7,7 +7,7 @@ import MyFadeLoader from '../ui/MyFadeLoader';
 import { motion } from 'motion/react'
 import { yRowVariants } from '../../utils/Anim';
 
-function ProducCardMedComponent({product}) {
+function ProducCardMedComponent({product, onClick}) {
 
   const [completed, setCompleted] = useState(false);
 
@@ -29,6 +29,7 @@ function ProducCardMedComponent({product}) {
       animate="visible"
       exit="exit"
       variants={yRowVariants}
+      onClick={onClick}
       >
         
       <div className="w-[220px] rounded-4xl overflow-hidden bg-white px-2 pt-2 h-fit group/item

@@ -34,9 +34,10 @@ const UserRouter = ({user, isLoading}) => {
           <Route path="collections" element={<ProductListing />} />
 
           {/* product view */}
-          <Route path="product" element={<ProductPage />} />
-
+          <Route path="collections/:category/:subcategory/:product" element={<ProductPage />} />
+          
         </Route>
+        
       </Routes>
     </Suspense>
     

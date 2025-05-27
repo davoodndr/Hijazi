@@ -17,10 +17,13 @@ import { LuSearch } from 'react-icons/lu';
 import MoreSearchPopup from '../../components/user/MoreSearchPopup';
 import { sortProductsByPrice } from '../../utils/Utils';
 import { IoMdCheckmarkCircleOutline } from "react-icons/io";
+import { useNavigate } from 'react-router'
+import { setLoading } from '../../store/slices/CommonSlices';
 
 function ProductListingComponent() {
 
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const { items, productsLoading } = useSelector(state => state.products)
   const { categoryList } = useSelector(state => state.categories)
   const { brandList } = useSelector(state => state.brands)
@@ -31,6 +34,7 @@ function ProductListingComponent() {
   useEffect(() => {
     dispatch(fetchBrands())
     dispatch(fetchProducts())
+    dispatch(setLoading(false))
   }, [])
 
 
@@ -187,6 +191,22 @@ function ProductListingComponent() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  /* handle click on single product */
+  const handleSingleProductClick = (product) => {
+    const parent = product.category.parentId;
+    const relatedItems = sortedProducts.filter(p => {
+      return product.category._id === p.category._id
+    })
+
+    navigate(
+      `${parent.slug}/${product.category.slug}/${product.slug}`,
+        {state : {
+          product,
+          relatedItems
+        }}
+    )
+  }
 
   return (
     <div className='flex w-9/10 py-10 gap-6'>
@@ -432,7 +452,14 @@ function ProductListingComponent() {
             (<li className='grid grid-cols-4 gap-6 h-fit'>
               
               {paginatedProducts?.map((product, i) => 
-                <ProductCardMed key={product?._id} index={i} product={product} />
+                
+                <ProductCardMed 
+                  key={product?._id} 
+                  index={i} 
+                  product={product}
+                  onClick={() => handleSingleProductClick(product)}
+                />
+              
               )}
               
             </li>)

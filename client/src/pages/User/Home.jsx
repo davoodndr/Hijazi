@@ -34,7 +34,7 @@ import AnimateAppear from '../../components/user/AnimateAppear'
 import BrandCard from '../../components/user/BrandCard'
 import ProducCardSmall from '../../components/user/ProducCardSmall.jsx'
 import ProducCard from '../../components/user/ProductCard.jsx'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { MdOutlineKeyboardDoubleArrowRight } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from 'react'
@@ -45,6 +45,7 @@ import { fetchProducts } from '../../store/slices/ProductSlices.jsx'
 function HomeComponent(){
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   //const { items, productsLoading, error } = useSelector(state => state.products);
   
   useEffect(() => {
@@ -122,13 +123,17 @@ function HomeComponent(){
               <span className="text-primary-400">Featured</span> Products
             </h3>
 
-            <Link to='/collections'
+            <div
+              onClick={() => {
+                dispatch(setLoading(true))
+                navigate('/collections')
+              }}
               className='inline-flex gap-1 items-center text-gray-400 smooth
-              hover:text-primary-400 point-before point-before:!p-0.75 underline'
+              hover:text-primary-400 point-before point-before:!p-0.75 underline cursor-pointer'
             >
               <span className='font-semibold'>View All</span>
               <MdOutlineKeyboardDoubleArrowRight className='text-xl' />
-            </Link>
+            </div>
           </div>
         
           <div className="flex flex-col items-center w-full bg-primary-25 py-10">

@@ -307,6 +307,13 @@ const EditProduct = () => {
       
       validateProduct(product);
       validateVariants(product);
+
+      product?.variants = product?.variants.map(variant => {
+        return {
+          ...variant,
+          preview: null
+        }
+      })
   
       const response = await Axios({
         ...ApiBucket.addProduct,

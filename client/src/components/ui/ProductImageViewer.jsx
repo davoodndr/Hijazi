@@ -1,66 +1,46 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ImageZoomOnHover from '../../lib/image-magnify'
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation } from 'swiper/modules';
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
+import MyFadeLoader from '../ui/MyFadeLoader'
 
-const ProductImageViewerComponent = ({className = ''}) => {
-  const images = [
-    {
-      small: 'categories/category-thumb-1.jpg',
-      large: 'categories/category-thumb-1.jpg',
-    },
-    {
-      small: 'categories/category-thumb-2.jpg',
-      large: 'categories/category-thumb-2.jpg',
-    },
-    {
-      small: 'categories/category-thumb-3.jpg',
-      large: 'categories/category-thumb-3.jpg',
-    },
-    {
-      small: 'categories/category-thumb-4.jpg',
-      large: 'categories/category-thumb-4.jpg',
-    },
-    {
-      small: 'categories/category-thumb-5.jpg',
-      large: 'categories/category-thumb-5.jpg',
-    },
-    {
-      small: 'categories/category-thumb-6.jpg',
-      large: 'categories/category-thumb-6.jpg',
-    },
-    {
-      small: 'categories/category-thumb-7.jpg',
-      large: 'categories/category-thumb-7.jpg',
-    },
-  ];
+const ProductImageViewerComponent = ({className = '', images = []}) => {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeImage, setActiveImage] = useState(images[0]);
-
+  
   return (
     <div className={className}>
       {/* Main Zoom Image */}
-      <div className="mb-4">
-        <ImageZoomOnHover
-          className='group'
-          mainImage={{src: activeImage.small, alt: ''}}
-          zoomImage={{src: activeImage.large, alt: ''}}
-          distance={65}
-          zoomContainerWidth={630}
-          zoomContainerHeight={630}
-          zoomClass='!top-0 opacity-0 border border-gray-300 group-hover:opacity-100
-            rounded-xl shadow-lg/30'
-        >        
-        
-        </ImageZoomOnHover>
+      <div className="mb-4 flex-grow border border-primary-50">
+        {activeImage?.thumb ? 
+          (<ImageZoomOnHover
+            className='group'
+            mainImage={{src: activeImage?.thumb, alt: activeImage.public_id}}
+            zoomImage={{src: activeImage?.url, alt: activeImage.public_id}}
+            distance={30}
+            zoomContainerWidth={730}
+            zoomContainerHeight={555}
+            zoomClass='opacity-0 h-100 border border-gray-300 group-hover:opacity-100
+              rounded-xl shadow-lg/30'
+            loadingIndicator={
+              <div className='w-full h-full relative flex items-center justify-center opacity-50'>
+                <MyFadeLoader size={30} radius={5} width={15} height={15} color='var(--color-primary-300)' />
+              </div>
+            }
+          />) 
+          :
+          (<div className='w-full h-full relative flex items-center justify-center opacity-50'>
+            <MyFadeLoader size={30} radius={5} width={15} height={15} color='var(--color-primary-300)' />
+          </div>)
+        }       
       </div>
 
       {/* Thumbnails Swiper */}
-      <div className='relative px-5 py-2'>
+      <div className={`relative ${images.length > 5 ? 'px-5' : ''} h-[100px] shrink-0`}>
 
         {/* nav buttons */}
           <div className={`swiper-prev absolute -left-1 top-0
@@ -87,10 +67,17 @@ const ProductImageViewerComponent = ({className = ''}) => {
                 setActiveIndex(i);
                 setActiveImage(images[i])
               }} 
-              className='p-1 bg-white'>
-              <div className={`border border-gray-200 smooth hover:border-primary-300 cursor-pointer
+              className='!inline-flex p-1 bg-white !w-fit h-fit'
+            >
+              <div className={`inline-flex w-[100px] h-[100px] border border-gray-200 smooth hover:border-primary-300 cursor-pointer
                 opacity-60 ${i === activeIndex ? 'opacity-100 border-primary-300' : ''}`}>
-                <img src={img.small} alt="" className='bg-gray-200' />
+                {img?.thumb ?
+                  <img src={img?.thumb} alt={img?.public_id} className='bg-gray-200 object-cover w-full' />
+                  :
+                  (<div className='w-full h-full relative flex items-center justify-center opacity-50'>
+                    <MyFadeLoader size={30} radius={5} width={15} height={15} color='var(--color-primary-300)' />
+                  </div>)
+                }
               </div>
             </SwiperSlide>
           )}

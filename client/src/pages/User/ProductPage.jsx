@@ -1,32 +1,125 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import ProductImageViewer from '../../components/ui/ProductImageViewer'
 import StarRating from '../../components/user/StarRating'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io'
 import { FaRegHeart } from 'react-icons/fa'
 import user_placeholder from '../../assets/user_placeholder.jpg'
 import { IoArrowUndoOutline } from "react-icons/io5";
 import MulticardSlider from '../../components/user/MulticardSlider'
 import ProductCardMed from '../../components/user/ProductCardMed'
+import clsx from 'clsx'
 
 function ProductPageComponent() {
+
+  const location = useLocation();
+  const { product, relatedItems } = location.state;
+  const [selectedAttributes, setSelectedAttributes] = useState({});
+  const [attributes, setAttributes] = useState(null);
+  const [activeVariant, setActiveVariant] = useState(null);
+
+  /* function to re-arrange attributes */
+  const getAttributeMap = (variants) => {
+    const attrs = {}
+    variants.forEach(v => {
+      Object.entries(v.attributes).forEach(([key, value]) => {
+        if (!attrs[key]) attrs[key] = new Set();
+        attrs[key].add(value);
+      });
+    })
+
+    // convert set to array
+    Object.keys(attrs).forEach(key => {
+      attrs[key] = Array.from(attrs[key]);
+    });
+
+    return attrs
+  }
+
+  // initially setting the variant and select attributes
+  useEffect(()=> {
+
+    if(product.variants.length) {
+      setAttributes(getAttributeMap(product.variants))
+
+      const minPricedVariant = product.variants.reduce((minVariant, current) => {
+        
+        if(!minVariant || current?.price < minVariant?.price){
+          return current;
+        }else{
+          return minVariant;
+        }
+      },null)
+
+      setActiveVariant(minPricedVariant);
+      setSelectedAttributes(minPricedVariant?.attributes)
+    }
+
+  },[product])
+  
+  // hndling user select attributes
+  const handleAttributeSelect = (key, value) => {
+    const updated = { ...selectedAttributes, [key]: value };
+    
+
+    // Try to match variant
+    const matched = product.variants.find(variant => {
+      if (variant.attributes[key] !== value) return false;
+      return Object.entries(updated).every(
+        ([k, v]) => variant.attributes[k] === v || k === key
+      );
+    });
+
+    if(matched){
+      setActiveVariant(matched);
+      setSelectedAttributes(updated);
+    }else{
+      // make matched one select
+      const updateMatch = product.variants.find(v => {
+        return v.attributes[key] === value;
+      })
+      setSelectedAttributes(updateMatch.attributes);
+      setActiveVariant(updateMatch);
+    }
+  };
+
+  // checking the current attibutes value availble for other attrs
+  const isOptionAvailable = (attrName, value) => {
+    return product.variants.some(variant => {
+      
+      if (variant.attributes[attrName] !== value) return false;
+
+      for (const [key, selectedValue] of Object.entries(selectedAttributes)) {
+        if (key === attrName) continue; // skip current attribute
+        if (variant.attributes[key] !== selectedValue) return false;
+      }
+
+      return true;
+    });
+  };
+
   return (
     <section className='w-9/10 flex flex-col items-center mt-10'>
 
-      <div className="flex space-x-10">
+      {/* basic */}
+      <div className="flex space-x-10 min-h-[610px]">
         {/* image viewer with magnification */}
         <ProductImageViewer
-          className='w-[42%]'
+          images={
+            product?.images.concat(activeVariant?.image)
+            .filter(Boolean)
+          }
+          className='w-[42%] shrink-0 max-h-[610px] flex flex-col'
         />
 
         {/* detail info */}
-        <div className="flex-grow">
-          <h2 className="text-4xl">Colorful Pattern Shirts HD450</h2>
+        <div className="flex-grow h-full">
+          <h2 className="text-4xl capitalize">{product?.name}</h2>
 
           {/* brand rating */}
-          <div className="flex items-center justify-between py-3">
+          <div className="flex items-center justify-between py-3 capitalize">
             <div>
-              <span> Brand: <Link className='ms-3'>Bootstrap</Link></span>
+              <span> Brand: <Link className='ms-3'>{product?.brand.name}</Link></span>
             </div>
             <div className="inline-flex text-end">
               <StarRating starClass='text-xl' />
@@ -39,7 +132,7 @@ function ProductPageComponent() {
             <div>
               <ins><span className="price-before price-before:!text-xl price-before:font-normal 
                 price-before:!top-8 price-before:leading-8
-                text-3xl font-semibold !items-start text-primary-400">120.00</span></ins>
+                text-3xl font-semibold !items-start text-primary-400">{activeVariant?.price || product?.price}</span></ins>
               <span className="text-xl line-through ml-4 price-before price-before:!text-base">200.00</span>
               <span className=" ml-4">25% Off</span>
             </div>
@@ -52,7 +145,7 @@ function ProductPageComponent() {
 
           {/* waranty return delivery */}
           <div className="text-sm mb-5">
-            <ul className='space-y-3'>
+            <ul className='space-y-2'>
               <li className="space-x-1">
                 1 Year AL Jazeera Brand Warranty
               </li>
@@ -61,31 +154,38 @@ function ProductPageComponent() {
             </ul>
           </div>
 
-          {/* colors */}
-          <div className="flex mb-5">
-            <strong className="mr-10">Color</strong>
-            <ul className="list-filter color-filter">
-              <li><a href="#" data-color="Red"><span className="product-color-red"></span></a></li>
-              <li><a href="#" data-color="Yellow"><span className="product-color-yellow"></span></a></li>
-              <li className="active"><a href="#" data-color="White"><span className="product-color-white"></span></a></li>
-              <li><a href="#" data-color="Orange"><span className="product-color-orange"></span></a></li>
-              <li><a href="#" data-color="Cyan"><span className="product-color-cyan"></span></a></li>
-              <li><a href="#" data-color="Green"><span className="product-color-green"></span></a></li>
-              <li><a href="#" data-color="Purple"><span className="product-color-purple"></span></a></li>
-            </ul>
-          </div>
+          {/* variant attributes */}
+          <div className='flex flex-col space-y-3 mb-5 '>
+            {attributes && Object.entries(attributes).map(([attrName, values]) => {
+              return (
+                <div key={attrName} className="flex items-center">
+                  <strong className={`capitalize min-w-[50px] w-fit pe-2`}>{attrName}</strong>
+                  <ul className={`flex items-center gap-1 text-sm capitalize`}>
+                    {values.map(val => {
+                      
+                      const isSelected = selectedAttributes[attrName] === val;
+                      const isAvailbale = isOptionAvailable(attrName, val)
 
-          {/* sizes */}
-          <div className="flex items-center mb-5">
-            <strong className="mr-3">Size</strong>
-            <ul className="flex items-center gap-3 text-base capitalize">
-              <li className='bg-gray-200 px-2.5 py-0.5 rounded-md cursor-pointer'>S</li>
-              <li className='bg-gray-200 px-2.5 py-0.5 rounded-md cursor-pointer'>M</li>
-              <li className='bg-primary-400 text-white px-2.5 py-0.5 rounded-md cursor-pointer'>L</li>
-              <li className='bg-gray-200 px-2.5 py-0.5 rounded-md cursor-pointer'>XL</li>
-              <li className='bg-gray-200 px-2.5 py-0.5 rounded-md cursor-pointer'>XXL</li>
-            </ul>
+                      return (
+                        <li 
+                          onClick={() => 
+                            handleAttributeSelect(attrName, val)
+                          }
+                          key={val} 
+                          className={clsx('px-1.5 py-px rounded-md cursor-pointer border',
+                            isSelected ? 'bg-primary-400 text-white border-primary-400'
+                            : 'bg-white border-gray-400',
+                            !isAvailbale && 'text-gray-300 !border-gray-300'            
+                          )}
+                        >{val}</li>
+                      )
+                    })}
+                  </ul>
+                </div>
+              )
+            })}
           </div>
+          
 
           {/* add to cart buttons */}
           <div className="flex space-x-3">
@@ -112,7 +212,7 @@ function ProductPageComponent() {
 
           {/* sku tags availbility*/}
           <ul className="">
-            <li>SKU: FWM15VKT</li>
+            <li>SKU: {activeVariant?.sku || product?.sku}</li>
             <li>Availability:
               <span className="text-primary-400 ml-2">8 Items In Stock</span>
             </li>

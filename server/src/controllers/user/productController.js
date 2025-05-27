@@ -8,7 +8,15 @@ export const getProductList = async(req, res) => {
 
     const products = await Product
       .find({status:'active',visible:true, archived:false})
-      .populate('category brand');
+      .populate([
+        { path: 'category', 
+          populate: { 
+            path: 'parentId',
+            select: '_id slug'
+          } 
+        },
+        { path: 'brand' }
+      ]);
 
     return responseMessage(res, 200, true, "",{products});
     

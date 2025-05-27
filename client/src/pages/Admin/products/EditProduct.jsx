@@ -325,7 +325,7 @@ const EditProduct = () => {
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-      const product = {
+      let product = {
         ...data,
         variants
       }
@@ -436,6 +436,13 @@ const EditProduct = () => {
         
         validateProduct(product)
         validateVariants(product)
+
+        product?.variants = product?.variants.map(variant => {
+          return {
+            ...variant,
+            preview: null
+          }
+        })
 
         const response = await Axios({
           ...ApiBucket.updateProduct,
