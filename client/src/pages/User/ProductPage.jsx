@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import ProductImageViewer from '../../components/ui/ProductImageViewer'
 import StarRating from '../../components/user/StarRating'
-import { Link, useLocation } from 'react-router'
+import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io'
 import { FaRegHeart } from 'react-icons/fa'
 import user_placeholder from '../../assets/user_placeholder.jpg'
@@ -9,11 +9,19 @@ import { IoArrowUndoOutline } from "react-icons/io5";
 import MulticardSlider from '../../components/user/MulticardSlider'
 import ProductCardMed from '../../components/user/ProductCardMed'
 import clsx from 'clsx'
+import { useSelector } from 'react-redux'
+import AxiosToast from '../../utils/AxiosToast'
+import { Axios } from '../../utils/AxiosSetup'
+import ApiBucket from '../../services/ApiBucket'
 
 function ProductPageComponent() {
 
   const location = useLocation();
-  const { product, relatedItems } = location.state;
+  const navigate = useNavigate();
+  const { items } = useSelector(state => state.products)
+  const { productData } = location.state;
+  const [product, setProduct] = useState(null);
+  const [relatedItems, setRelatedItems] = useState(null);
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [attributes, setAttributes] = useState(null);
   const [activeVariant, setActiveVariant] = useState(null);
@@ -39,10 +47,10 @@ function ProductPageComponent() {
   // initially setting the variant and select attributes
   useEffect(()=> {
 
-    if(product.variants.length) {
-      setAttributes(getAttributeMap(product.variants))
+    if(productData.variants.length) {
+      setAttributes(getAttributeMap(productData.variants))
 
-      const minPricedVariant = product.variants.reduce((minVariant, current) => {
+      const minPricedVariant = productData.variants.reduce((minVariant, current) => {
         
         if(!minVariant || current?.price < minVariant?.price){
           return current;
@@ -55,7 +63,35 @@ function ProductPageComponent() {
       setSelectedAttributes(minPricedVariant?.attributes)
     }
 
-  },[product])
+    setProduct(productData);
+
+    const getRealtedItems = async(product) => {
+      try {
+
+        const response = await Axios({
+          ...ApiBucket.getRelatedProducts,
+          params:{
+            product_id: product._id,
+            category: product.category._id
+          }
+        })
+
+        if(response?.data?.success){
+          setRelatedItems(response?.data?.items);
+        }
+
+      } catch (error) {
+        console.log(error)
+        AxiosToast(error)
+      }
+
+    }
+
+    getRealtedItems(productData);
+
+    window.scrollTo(0, 0);
+
+  },[productData])
   
   // hndling user select attributes
   const handleAttributeSelect = (key, value) => {
@@ -98,6 +134,19 @@ function ProductPageComponent() {
     });
   };
 
+  /* handle click on related */
+  const handleSingleProductClick = (product) => {
+    
+    const parent = product.category.parentId;
+
+    navigate(
+      `/collections/${parent.slug}/${product.category.slug}/${product.slug}`,
+        {state : {
+          productData: product
+        }}
+    )
+  }
+
   return (
     <section className='w-9/10 flex flex-col items-center mt-10'>
 
@@ -105,10 +154,10 @@ function ProductPageComponent() {
       <div className="flex space-x-10 min-h-[610px]">
         {/* image viewer with magnification */}
         <ProductImageViewer
-          images={
-            product?.images.concat(activeVariant?.image)
+          images={useMemo(() => {
+            return product?.images?.concat(activeVariant?.image)
             .filter(Boolean)
-          }
+          },[product, activeVariant])}
           className='w-[42%] shrink-0 max-h-[610px] flex flex-col'
         />
 
@@ -214,7 +263,7 @@ function ProductPageComponent() {
           <ul className="">
             <li>SKU: {activeVariant?.sku || product?.sku}</li>
             <li>Availability:
-              <span className="text-primary-400 ml-2">8 Items In Stock</span>
+              <span className="text-primary-400 ml-2">{activeVariant?.stock || product?.stock} Items In Stock</span>
             </li>
           </ul>
         </div>
@@ -456,22 +505,27 @@ function ProductPageComponent() {
       </div>
 
       {/* related products */}
-      <div className='w-full mb-10'>
+      {relatedItems?.length > 0 && 
+        (<div className='w-full mb-10'>
 
-        <MulticardSlider 
-          cardCount={5}
-          space={30}
-          title={<h2 className='lined-header-small flex-grow text-2xl mb-5 me-5'>Related products</h2>}
-          cards={
-            Array(8).fill(null).map((product, i) => {
-              return (
-                <ProductCardMed image={`categories/category-thumb-${++i}.jpg`} />
+          <MulticardSlider 
+            cardCount={5}
+            space={30}
+            title={<h2 className='lined-header-small flex-grow text-2xl mb-5 me-5'>Related products</h2>}
+            cards={
+              relatedItems.map((item, i) => 
+                <ProductCardMed 
+                  key={item?._id} 
+                  index={i} 
+                  product={item}
+                  onClick={() => handleSingleProductClick(item)}
+                />
               )
-            })
-          }
-        />
+            }
+          />
 
-      </div>
+        </div>)
+      }
       
     </section>
   )

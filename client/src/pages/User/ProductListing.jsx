@@ -195,15 +195,14 @@ function ProductListingComponent() {
   /* handle click on single product */
   const handleSingleProductClick = (product) => {
     const parent = product.category.parentId;
-    const relatedItems = sortedProducts.filter(p => {
-      return product.category._id === p.category._id
-    })
+    /* const relatedItems = sortedProducts.filter(p => {
+      return product.category._id === p.category._id && p._id !== product._id
+    }) */
 
     navigate(
       `${parent.slug}/${product.category.slug}/${product.slug}`,
         {state : {
-          product,
-          relatedItems
+          productData: product
         }}
     )
   }

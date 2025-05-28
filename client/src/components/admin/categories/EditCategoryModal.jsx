@@ -71,7 +71,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
         return {
           id: item._id || null,
           name: item.data?.name,
-          values: item.data.value?.split(',').filter(Boolean)
+          values: item.data.value?.replaceAll(' ','').split(',').filter(Boolean)
         }
       })
 

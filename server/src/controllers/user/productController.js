@@ -25,3 +25,36 @@ export const getProductList = async(req, res) => {
     return responseMessage(res, 500, false, error.message || error)
   }
 }
+
+// get products
+export const getRelatedItems = async(req, res) => {
+
+  const { product_id, category } = req.query;
+
+  try {
+
+    const products = await Product
+      .find({
+        _id: {$ne: product_id},
+        category,
+        status:'active',
+        visible:true,
+        archived:false
+      })
+      .populate([
+        { path: 'category', 
+          populate: { 
+            path: 'parentId',
+            select: '_id slug'
+          } 
+        },
+        { path: 'brand' }
+      ]);
+
+    return responseMessage(res, 200, true, "",{items: products});
+    
+  } catch (error) {
+    console.log('getProducts',error)
+    return responseMessage(res, 500, false, error.message || error)
+  }
+}

@@ -30,6 +30,9 @@ function MulticardSliderComponent ({
   showButtons = true
 }){
 
+  /* const allowedModules = [Autoplay, Navigation];
+  if(cards.length >= cardCount) allowedModules.push(); */
+
   return (
     <div className={`relative group ${className}`}>
 
@@ -60,7 +63,7 @@ function MulticardSliderComponent ({
           delay: 3000,
           pauseOnMouseEnter: true
         }}
-        loop={true}
+        loop={cards.length >= cardCount}
         pagination={{
           el: '.custom-swiper-pagination',
           clickable: true,

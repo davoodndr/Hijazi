@@ -152,14 +152,18 @@ function clamp(value, min, max) {
 function disableScroll() {
   const controller = new AbortController();
   const { signal } = controller;
-  window.addEventListener('DOMMouseScroll', (e) => e.preventDefault(), { signal });
-  window.addEventListener('wheel', (e) => e.preventDefault(), { passive: false, signal });
-  window.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false, signal });
+
+  const prevent = (e) => e.preventDefault();
+
+  window.addEventListener('DOMMouseScroll', prevent, { signal });
+  window.addEventListener('wheel', prevent, { passive: false, signal });
+  window.addEventListener('touchmove', prevent, { passive: false, signal });
   window.addEventListener('keydown', (e) => {
     if (['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'].includes(e.key)) {
-      e.preventDefault();
+      prevent(e);
     }
   }, { signal });
+
   return controller;
 }
 
@@ -253,22 +257,30 @@ function createZoomImageHover(container, options) {
     }
   }
 
-  async function handlePointerEnter() {
+  async function handlePointerEnter(event) {
+    if (!zoomImageSource) return;
+
     imageLoader.createZoomImage(zoomedImg, zoomImageSource, store);
     zoomedImg.style.display = 'flex';
     zoomLens.style.display = 'flex';
+
     if (zoomTargetClass) {
       zoomTarget.classList.add(...zoomTargetClass.split(' '));
     }
-    if (!disableScrollLock) scrollController = disableScroll();
+
+    if (!disableScrollLock && !scrollController) {
+      scrollController = disableScroll(); // only lock once
+    }
   }
 
-  function handlePointerLeave() {
+  function handlePointerLeave(event) {
     zoomedImg.style.display = 'none';
     zoomLens.style.display = 'none';
+
     if (zoomTargetClass) {
       zoomTarget.classList.remove(...zoomTargetClass.split(' '));
     }
+
     if (!disableScrollLock && scrollController) {
       enableScroll(scrollController);
       scrollController = null;
@@ -324,6 +336,13 @@ function createZoomImageHover(container, options) {
   return {
     cleanup: () => {
       controller.abort();
+
+      // Always re-enable scroll just in case it's stuck
+      if (!disableScrollLock && scrollController) {
+        enableScroll(scrollController);
+        scrollController = null;
+      }
+
       if (container.contains(zoomLens)) container.removeChild(zoomLens);
       if (zoomTarget && zoomTarget.contains(zoomedImgWrapper)) {
         zoomTarget.removeChild(zoomedImgWrapper);
@@ -334,7 +353,7 @@ function createZoomImageHover(container, options) {
     subscribe: store.subscribe,
     getState: store.getState,
     setState: (newState) => store.setState(newState),
-  };
+  }
 }
 
 // useZoomImageHover Hook
@@ -345,7 +364,7 @@ function useZoomImageHover() {
     zoomedImgStatus: 'idle',
   });
   const createZoomImage = useCallback((...arg) => {
-    if (result.current) result.current.cleanup();
+    if (result?.current) result?.current?.cleanup();
     result.current = createZoomImageHover(...arg);
     updateZoomImageState(result.current.getState());
     result.current.subscribe(({ state }) => updateZoomImageState(state));

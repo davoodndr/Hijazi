@@ -10,37 +10,35 @@ import MyFadeLoader from '../ui/MyFadeLoader'
 const ProductImageViewerComponent = ({className = '', images = []}) => {
 
   const [activeIndex, setActiveIndex] = useState(0);
-  const [activeImage, setActiveImage] = useState(images[0]);
+  const [activeImage, setActiveImage] = useState(null);
+
+  useEffect(() => {
+    setActiveImage(images[0])
+  },[images])
   
   return (
     <div className={className}>
       {/* Main Zoom Image */}
       <div className="mb-4 flex-grow border border-primary-50">
-        {activeImage?.thumb ? 
-          (<ImageZoomOnHover
-            className='group'
-            mainImage={{src: activeImage?.thumb, alt: activeImage.public_id}}
-            zoomImage={{src: activeImage?.url, alt: activeImage.public_id}}
-            distance={30}
-            zoomContainerWidth={730}
-            zoomContainerHeight={555}
-            zoomClass='opacity-0 h-100 border border-gray-300 group-hover:opacity-100
-              rounded-xl shadow-lg/30'
-            loadingIndicator={
-              <div className='w-full h-full relative flex items-center justify-center opacity-50'>
-                <MyFadeLoader size={30} radius={5} width={15} height={15} color='var(--color-primary-300)' />
-              </div>
-            }
-          />) 
-          :
-          (<div className='w-full h-full relative flex items-center justify-center opacity-50'>
-            <MyFadeLoader size={30} radius={5} width={15} height={15} color='var(--color-primary-300)' />
-          </div>)
-        }       
+        <ImageZoomOnHover
+          className='group'
+          mainImage={{src: activeImage?.thumb, alt: activeImage?.public_id}}
+          zoomImage={{src: activeImage?.url, alt: activeImage?.public_id}}
+          distance={30}
+          zoomContainerWidth={730}
+          zoomContainerHeight={555}
+          zoomClass='opacity-0 h-100 border border-gray-300 group-hover:opacity-100
+            rounded-xl shadow-lg/30'
+          loadingIndicator={
+            <div className='w-full h-full relative flex items-center justify-center opacity-50'>
+              <MyFadeLoader size={30} radius={5} width={15} height={15} color='var(--color-primary-300)' />
+            </div>
+          }
+        />    
       </div>
 
       {/* Thumbnails Swiper */}
-      <div className={`relative ${images.length > 5 ? 'px-5' : ''} h-[100px] shrink-0`}>
+      <div className={`relative ${images?.length > 5 ? 'px-5' : ''} h-[100px] shrink-0`}>
 
         {/* nav buttons */}
           <div className={`swiper-prev absolute -left-1 top-0
@@ -61,7 +59,7 @@ const ProductImageViewerComponent = ({className = '', images = []}) => {
             prevEl: '.swiper-prev'
           }}
         >
-          {images.map((img, i) => 
+          {images.length > 0 && images?.map((img, i) => 
             <SwiperSlide key={i}
               onClick={() => {
                 setActiveIndex(i);

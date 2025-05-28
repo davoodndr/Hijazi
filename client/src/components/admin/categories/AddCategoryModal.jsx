@@ -15,6 +15,7 @@ import { uploadCategoryImage } from '../../../services/ApiActions';
 import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
 import DynamicInputList from '../../ui/DynamicInputList';
+import { useEffect } from 'react';
 
 function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
 
@@ -23,6 +24,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
   const [status, setStatus] = useState(null);
   const [parent, setParent] = useState(null);
   const [attributes, setAttributes] = useState([]);
+  const [parentAttributes, setParentAttributes] = useState([]);
   const categoryImagedimen = {width:440, height: 440}
   const categoryThumbdimen = {width:300, height: 300}
     
@@ -50,19 +52,29 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
     
     if(inputs?.length){
 
-      const attrs = inputs.filter(item => !item.parent).map(item => {
+      let attrs = inputs.filter(item => !item.parent).map(item => {
         return {
+          id: item._id || null,
           name: item.data?.name,
-          values: item.data.value?.split(',').filter(Boolean)
+          values: item.data.value?.replaceAll(' ',"").split(',').filter(Boolean)
         }
       })
 
-      if(findDuplicateAttribute([...attributes, ...attrs])){
+      const newAttributes = attributes.map(item => {
+        const updatedItem = attrs.find(el => el.id && el.id === item._id);
+        if(updatedItem){
+          return
+        }
+        return item;
+      }).filter(Boolean)
+
+      if(findDuplicateAttribute([...newAttributes,...parentAttributes, ...attrs])){
         toast.error("This attribute alredy exists", {position:'top-center'});
-      }
+      } 
       
       setData(prev => ({...prev, attributes:attrs}))
     }
+
   }
 
   const handleStatusChange = (val) => {
@@ -73,11 +85,11 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
   const handleParentChange = (val) => {
     setParent(val);
     setData(prev => ({...prev,parentId:val?.id}));
-    const cat = categories?.find(item => item._id === val.id)
+    const newParent = categories?.find(item => item._id === val.id)
     
-    if(cat?.attributes){
-      const attrs = cat.attributes.map(item => ({...item, parent: true}))
-      setAttributes(attrs)
+    if(newParent?.attributes){
+      const attrs = newParent.attributes.map(item => ({...item, parent: true}))
+      setParentAttributes(attrs)
     }
   }
 
@@ -170,6 +182,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
     })
     setStatus(null);
     setParent(null);
+    setAttributes([])
     onClose();
   }
   
@@ -261,6 +274,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
                 title='Attributes'
                 value={attributes}
                 onChange={handleAttributes}
+                disabledValues={parentAttributes}
                 containerClass='flex flex-col max-h-[50vh] overflow-y-auto scroll-basic'
                 inputContainerClass='grid grid-cols-[0.5fr_1fr_0.1fr_auto] gap-x-2 mb-2 items-center'
                 removeBtnClass='!p-2 w-fit h-fit !bg-red-400 hover:!bg-red-500'

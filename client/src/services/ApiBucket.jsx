@@ -166,6 +166,10 @@ const ApiBucket = {
     url: '/api/user/get-product-list',
     method: 'get'
   },
+  getRelatedProducts: {
+    url: '/api/user/get-related-items',
+    method: 'get'
+  },
 }
 
 

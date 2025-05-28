@@ -184,7 +184,7 @@ const EditProduct = () => {
       return {
         id: item.id,
         name: item.data.name,
-        values: item.data.value.split(',')
+        values: item.data.value.replaceAll(' ','').split(',').filter(boolean)
       }
     })
     setData({...data, customAttributes: newAttributes})
@@ -437,7 +437,7 @@ const EditProduct = () => {
         validateProduct(product)
         validateVariants(product)
 
-        product?.variants = product?.variants.map(variant => {
+        product.variants = product?.variants.map(variant => {
           return {
             ...variant,
             preview: null

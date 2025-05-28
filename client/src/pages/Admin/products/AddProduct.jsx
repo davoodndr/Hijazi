@@ -133,7 +133,7 @@ const EditProduct = () => {
       return {
         id: item.id,
         name: item.data.name,
-        values: item.data.value.split(',')
+        values: item.data.value.replaceAll(' ','').split(',').filter(boolean)
       }
     })
     setData({...data, customAttributes: newAttributes})
