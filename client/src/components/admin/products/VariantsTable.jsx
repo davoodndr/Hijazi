@@ -6,6 +6,8 @@ import { hasBlankObjectValue, imageFileToSrc } from '../../../utils/Utils';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { MdOutlineImageSearch } from 'react-icons/md';
+import CustomSelect from '../../ui/CustomSelect';
+import clsx from 'clsx';
 
 /**
  * 
@@ -111,6 +113,8 @@ function VariantsTable(
   }
 
   const handleModalResult = async(files) => {
+
+    console.log(variants[activeIndex])
     if(!hasBlankObjectValue(variants[activeIndex], ['files','image','preview'])){
 
       if(files){
@@ -180,7 +184,7 @@ function VariantsTable(
 
         {/* dynamic rows */}
         {variants.map((variant, index) => {
-
+          console.log()
           return(<li
             style={{
               gridTemplateColumns: gridTemplate
@@ -196,25 +200,51 @@ function VariantsTable(
                 }
               }} />
             </div>
-            {attributes.map(attribute =>
-              <select key={attribute.name} 
-                value={variant.attributes[attribute.name] ?? ""}
-                onChange={e => handleChange({
+            
+            {attributes.map(attribute => {
+
+              const colorLabel = <span
+                      style={{
+                        "--dynamic" : variant.attributes[attribute.name],
+                      }}
+                      className='point-before !text-sm !text-(--dynamic) point-before:!bg-(--dynamic)
+                        point-before:!p-1.5 point-before:none'
+                      >{variant.attributes[attribute.name]}
+                    </span>
+              
+              const attr = variant.attributes[attribute.name] ? {
+                id: attribute.id || attribute._id || index, 
+                value: variant.attributes[attribute.name],
+                label: (attribute.name === 'color' || attribute.name === 'colour') ?
+                    colorLabel
+                    :
+                    variant.attributes[attribute.name]
+              } : null
+              
+              return <CustomSelect
+                key={attribute.name}
+                value={attr}
+                onChange={(val) => handleChange({
                   rowIndex:index, 
                   field: attribute.name, 
-                  value:e.target.value, 
+                  value: val.value, 
                   isAttr: true
                 })}
-                className={`capitalize
-                  ${!variant.attributes[attribute.name] ? "!text-gray-400" : "!text-gray-800"}`}
-              >
-                <option value="" disabled>Select...</option>
-                {attribute?.values.map(item =>
-                  <option key={item} value={item} 
-                    className={`${item === 'size' ? 'uppercase' : 'capitalize'} text-gray-800`}
-                  >{item}</option>
-                )}
-              </select>
+                options={
+                  attribute?.values?.map((el,index)=> ({id: el+index, value:el, label: 
+                    (attribute.name === 'color' || attribute.name === 'colour') ?
+                    <span
+                      style={{
+                        "--dynamic" : el,
+                      }}
+                      className='point-before !text-sm !text-(--dynamic) point-before:!bg-(--dynamic)
+                        point-before:!p-1.5 point-before:none'
+                      >{el}</span>
+                    :
+                    el
+                  }))
+                }
+              />}
             )}
             <input
               type="text"

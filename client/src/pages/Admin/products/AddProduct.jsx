@@ -14,10 +14,11 @@ import { HiHome } from "react-icons/hi2";
 import { uploadProductImages } from '../../../services/ApiActions'
 import ToggleSwitch from "../../../components/ui/ToggleSwitch";
 import ImageThumb from "../../../components/ui/ImageThumb";
-import { finalizeValues, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
+import { finalizeValues, findDuplicateAttribute, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
 import VariantsTable from "../../../components/admin/products/VariantsTable";
 import DynamicInputList from "../../../components/ui/DynamicInputList";
 import CropperModal from "../../../components/ui/CropperModal";
+import clsx from "clsx";
 
 const EditProduct = () => {
 
@@ -126,16 +127,20 @@ const EditProduct = () => {
     }
   }
   
-
   /* handle custom attributes */
   const handleCustomAttributes = useCallback((result) => {
     const newAttributes = result?.map(item => {
       return {
         id: item.id,
         name: item.data.name,
-        values: item.data.value.replaceAll(' ','').split(',').filter(boolean)
+        values: item.data.value.replaceAll(' ','').split(',').filter(Boolean)
       }
     })
+
+    if(findDuplicateAttribute([...attributes, ...newAttributes])){
+      toast.error("This attribute alredy exists", {position:'top-center'});
+    } 
+
     setData({...data, customAttributes: newAttributes})
   },[customAttributes, data]);
 
@@ -210,6 +215,13 @@ const EditProduct = () => {
   const handleApplyAttributes = () => {
                   
     const allAttrs = [...attributes, ...data?.customAttributes];
+
+    if(allAttrs && 
+      findDuplicateAttribute(allAttrs)){
+      toast.error("Duplicate attributes not allowed", {position:'top-center'});
+      return
+    }
+
     setCustomAttributes(data?.customAttributes)
     setFinalAttributes(allAttrs)
 
@@ -300,7 +312,6 @@ const EditProduct = () => {
       return false;
     }
 
-
     dispatch(setLoading(true));
       
     try {
@@ -308,7 +319,7 @@ const EditProduct = () => {
       validateProduct(product);
       validateVariants(product);
 
-      product?.variants = product?.variants.map(variant => {
+      product.variants = product?.variants.map(variant => {
         return {
           ...variant,
           preview: null
@@ -484,7 +495,9 @@ const EditProduct = () => {
                   value={category}
                   onChange={handleChangeCategory}
                   options={
-                    categories?.filter(cat => cat.parentId !== null).map(item => ({id: item._id, label: item.name})) || []
+                    categories?.filter(cat => cat.parentId !== null).map(item => 
+                      ({id: item._id, value:item.name, label: item.name})
+                    ) || []
                   } />
               </div>
               <div>
@@ -496,7 +509,7 @@ const EditProduct = () => {
                     setData(prev => ({...prev, brand: val.id}))
                   }}
                   options={
-                    brands?.map(item => ({id: item._id, label: item.name})) || []
+                    brands?.map(item => ({id: item._id, value:item.name, label: item.name})) || []
                   } />
               </div>
               <div>
@@ -601,8 +614,14 @@ const EditProduct = () => {
                                   <div className="border-t border-gray-300 flex gap-2 items-center 
                                     justify-center h-7 w-full absolute bottom-0 rounded-b-xl">
                                     {Object.keys(variant?.attributes).slice(0,2).map((key,index) => 
-                                      <span key={index} className={`capitalize text-xs relative`}>
-                                        {variant?.attributes[key]}
+                                      <span key={index}
+                                        style={{ "--dynamic": variant?.attributes['color'] }}
+                                        className={clsx(
+                                          'capitalize text-xs relative',
+                                          key === 'color' && 'point-before point-before:!bg-(--dynamic)'
+                                        )}
+                                      >
+                                        {key !== 'color' && variant?.attributes[key]}
                                       </span>
                                     )}
                                   </div>

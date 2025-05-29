@@ -14,11 +14,12 @@ import { HiHome } from "react-icons/hi2";
 import { uploadProductImages } from '../../../services/ApiActions'
 import ToggleSwitch from "../../../components/ui/ToggleSwitch";
 import ImageThumb from "../../../components/ui/ImageThumb";
-import { capitalize, fetchImageAsFile, finalizeValues, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
+import { capitalize, fetchImageAsFile, finalizeValues, findDuplicateAttribute, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
 import CropperModal from "../../../components/ui/CropperModal";
 import DynamicInputList from "../../../components/ui/DynamicInputList";
 import VariantsTable from "../../../components/admin/products/VariantsTable";
 import { useCallback } from "react";
+import clsx from "clsx";
 
 const EditProduct = () => {
 
@@ -53,6 +54,7 @@ const EditProduct = () => {
   useEffect(() => {
     
     if(currentProduct){
+
       /* setting general datas */
       setData(prev => ({
         ...prev,
@@ -68,6 +70,7 @@ const EditProduct = () => {
         featured: currentProduct?.featured,
         visible: currentProduct?.visible
       }));
+
       /* setting dropdown items */
       handleChangeCategory({
         id:currentProduct.category._id,
@@ -79,10 +82,12 @@ const EditProduct = () => {
           return {id:img.public_id, value: img.thumb}
         })
       )
+
       if(currentProduct?.customAttributes.length){
         setCustomAttributes(currentProduct.customAttributes)
         setFinalAttributes(prev => [...prev, ...currentProduct.customAttributes])
       }
+      
       if(currentProduct.variants.length){
         setVariants(currentProduct.variants.map(variant => {
           return {
@@ -127,7 +132,7 @@ const EditProduct = () => {
     setVariantImages([])
     setData(prev => ({...prev, category: val.id}))
     const cat = categories.find(item => item._id === val.id);
-    setAttributes([...cat?.parentId?.attributes,...cat?.attributes].filter(Boolean));
+    setAttributes([...cat?.parentId?.attributes, ...cat?.attributes].filter(Boolean));
     setFinalAttributes([...cat?.parentId?.attributes,...cat?.attributes,...customAttributes].filter(Boolean));
 
   }
@@ -184,9 +189,16 @@ const EditProduct = () => {
       return {
         id: item.id,
         name: item.data.name,
-        values: item.data.value.replaceAll(' ','').split(',').filter(boolean)
+        values: item.data.value.replaceAll(' ','').split(',').filter(Boolean)
       }
     })
+
+    console.log('custom',attributes)
+
+    if(findDuplicateAttribute([...attributes, ...newAttributes])){
+      toast.error("This attribute alredy exists", {position:'top-center'});
+    } 
+
     setData({...data, customAttributes: newAttributes})
   },[customAttributes, data]);
 
@@ -219,6 +231,13 @@ const EditProduct = () => {
   const handleApplyAttributes = () => {
                   
     const allAttrs = [...attributes, ...data?.customAttributes];
+
+    if(allAttrs && 
+      findDuplicateAttribute(allAttrs)){
+      toast.error("Duplicate attributes not allowed", {position:'top-center'});
+      return
+    }
+
     setCustomAttributes(data?.customAttributes)
     setFinalAttributes(allAttrs)
 
@@ -614,7 +633,9 @@ const EditProduct = () => {
                   value={category}
                   onChange={handleChangeCategory}
                   options={
-                    categories?.filter(cat => cat.parentId !== null).map(item => ({id: item._id, label: item.name})) || []
+                    categories?.filter(cat => cat.parentId !== null).map(item => 
+                      ({id: item._id, value:item.name, label: item.name})
+                    ) || []
                   } />
               </div>
               <div>
@@ -626,7 +647,9 @@ const EditProduct = () => {
                     setData(prev => ({...prev, brand: val.id}))
                   }}
                   options={
-                    brands?.map(item => ({id: item._id, label: item.name})) || []
+                    brands?.map(item => 
+                      ({id: item._id, value:item.name, label: item.name})
+                    ) || []
                   } />
               </div>
               <div>
@@ -730,8 +753,14 @@ const EditProduct = () => {
                                   <div className="border-t border-gray-300 flex gap-2 items-center 
                                     justify-center h-7 w-full absolute bottom-0 rounded-b-xl">
                                     {Object.keys(variant?.attributes).slice(0,2).map((key,index) => 
-                                      <span key={index} className={`capitalize text-xs relative`}>
-                                        {variant?.attributes[key]}
+                                      <span key={index}
+                                        style={{ "--dynamic": variant?.attributes['color'] }}
+                                        className={clsx(
+                                          'capitalize text-xs relative',
+                                          key === 'color' && 'point-before point-before:!bg-(--dynamic)'
+                                        )}
+                                      >
+                                        {key !== 'color' && variant?.attributes[key]}
                                       </span>
                                     )}
                                   </div>

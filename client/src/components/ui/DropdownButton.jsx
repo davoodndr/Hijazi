@@ -18,8 +18,10 @@ function DropdownButtonComponent({
           >
             {icon}
             <span className={`capitalize ${labelClass}`}>{label}</span>
-            <span className='h-[60%] w-px mx-2 bg-gray-500/30'></span>
-            <IoIosArrowDown />
+            <div className='inline-flex items-center h-full'>
+              <span className='h-[60%] w-px mx-2 bg-gray-500/30'></span>
+              <IoIosArrowDown />
+            </div>
 
           </MenuButton>
           <ContextMenu 

@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import ProductImageViewer from '../../components/ui/ProductImageViewer'
 import StarRating from '../../components/user/StarRating'
-import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io'
 import { FaRegHeart } from 'react-icons/fa'
 import user_placeholder from '../../assets/user_placeholder.jpg'
@@ -9,7 +9,6 @@ import { IoArrowUndoOutline } from "react-icons/io5";
 import MulticardSlider from '../../components/user/MulticardSlider'
 import ProductCardMed from '../../components/user/ProductCardMed'
 import clsx from 'clsx'
-import { useSelector } from 'react-redux'
 import AxiosToast from '../../utils/AxiosToast'
 import { Axios } from '../../utils/AxiosSetup'
 import ApiBucket from '../../services/ApiBucket'
@@ -18,7 +17,6 @@ function ProductPageComponent() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const { items } = useSelector(state => state.products)
   const { productData } = location.state;
   const [product, setProduct] = useState(null);
   const [relatedItems, setRelatedItems] = useState(null);
@@ -136,7 +134,7 @@ function ProductPageComponent() {
 
   /* handle click on related */
   const handleSingleProductClick = (product) => {
-    
+
     const parent = product.category.parentId;
 
     navigate(

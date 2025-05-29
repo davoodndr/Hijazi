@@ -1,4 +1,6 @@
+import clsx from 'clsx';
 import React, { useEffect, useState } from 'react';
+import { useRef } from 'react';
 import { IoAdd, IoTrashOutline } from 'react-icons/io5';
 
 const DynamicInputList = (
@@ -48,9 +50,25 @@ const DynamicInputList = (
   }, [inputs])
 
   const handleInputs = (rowIndex, field, value) => {
+        
     setInputs(prev => {
       const updated = [...prev];
-      updated[rowIndex].data[field] = value;
+
+      if(field === 'colorVal'){
+
+        let colors = updated[rowIndex].data.value;
+
+        if(colors?.includes(',')){
+          colors = colors.replace(/,(?!.*,).*/, `,${value}`)
+          updated[rowIndex].data.value = colors;
+        }else{
+          updated[rowIndex].data.value = value;
+        }
+        
+      }else{
+        updated[rowIndex].data[field] = value;
+      }
+
       return updated;
     })
   }
@@ -103,7 +121,19 @@ const DynamicInputList = (
 
             <div className="flex col-span-full mt-1">
               <span className='capitalize'>{input.name && input.name + ':'}</span>
-              <span className='ms-1 capitalize'>{input.values.join(',')}</span>
+              {(input?.name === 'color' || input?.name === 'colour') ?
+                
+                input?.values?.map(el => 
+                  
+                  <span key={el} 
+                    style={{"--dynamic": el}}
+                    className={`ms-1 uppercase !text-(--dynamic) point-before point-before:!bg-(--dynamic)
+                      point-before:!p-1.5 point-before:!me-0.5`}
+                  >{el}</span>
+                )
+                :
+                <span className='ms-1 !capitalize'>{input?.data?.value}</span>
+              }
             </div>
 
           </div>
@@ -120,14 +150,40 @@ const DynamicInputList = (
               className='disabled:text-gray-400 disabled:bg-gray-100'
               />
             
-            <input
-              type="text"
-              value={input?.data?.value}
-              onChange={e => handleInputs(index, 'value', e.target.value)}
-              placeholder={`Values ${index + 1}`}
-              disabled={input.parent}
-              className='disabled:text-gray-400 disabled:bg-gray-100'
-            />
+            {(input?.data?.name === 'color' || input?.data?.name === 'colour') ?
+              (<div className='flex gap-2'>
+                <input
+                  type="text"
+                  value={input?.data?.value}
+                  onChange={e => handleInputs(index, 'value', e.target.value)}
+                  placeholder={`Values ${index + 1}`}
+                  disabled={input.parent}
+                  className='disabled:text-gray-400 disabled:bg-gray-100'
+                />
+                
+                <div className='inline-flex border rounded-input-border border-neutral-300 p-0.5'>
+                  <div className='border rounded-lg border-neutral-300 overflow-hidden w-12'>
+                    <input
+                      type='color'
+                      value={input?.data?.colorVal}
+                      onChange={e => handleInputs(index, 'colorVal', e.target.value)}
+                      placeholder={`Values ${index + 1}`}
+                      disabled={input.parent}
+                      className='h-full w-full'
+                    />
+                  </div>
+                </div>
+              </div>)
+              :
+              (<input
+                  type="text"
+                  value={input?.data?.value}
+                  onChange={e => handleInputs(index, 'value', e.target.value)}
+                  placeholder={`Values ${index + 1}`}
+                  disabled={input.parent}
+                  className='disabled:text-gray-400 disabled:bg-gray-100'
+                />)
+            }
             
             <button 
               type='button' 
@@ -140,7 +196,18 @@ const DynamicInputList = (
 
             <div className="flex col-span-full mt-1">
               <span className='capitalize'>{input?.data?.name && input?.data?.name + ':'}</span>
-              <span className='ms-1 capitalize'>{input?.data?.value}</span>
+              {(input?.data?.name === 'color' || input?.data?.name === 'colour') ?
+
+                input?.data?.value.split(',').filter(Boolean).map(el => 
+                  <span key={el} 
+                    style={{"--dynamic": el}}
+                    className={`ms-1 uppercase !text-(--dynamic) point-before point-before:!bg-(--dynamic)
+                      point-before:!p-1.5 point-before:!me-0.5`}
+                  >{el}</span>
+                )
+                :
+                <span className='ms-1 !capitalize'>{input?.data?.value}</span>
+              }
             </div>
 
           </div>

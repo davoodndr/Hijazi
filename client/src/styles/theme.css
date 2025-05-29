@@ -149,7 +149,7 @@
 @utility point-before{
   @apply relative text-xs text-featured-500 inline-flex items-center w-fit;
   &::before{
-    @apply p-1 me-1 inline-flex items-center content-[''] bg-featured-300 rounded-full;
+    @apply p-1 me-1 content-[''] bg-featured-300 rounded-full;
   }
 }
 

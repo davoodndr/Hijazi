@@ -6,7 +6,9 @@ const components = {
 };
 
 const MultiSelectInput = (
-  {focusColor = '#4cc4bb',}
+  {focusColor = '#4cc4bb',
+    
+  }
 ) => {
 
   const [inputValue, setInputValue] = React.useState('');
