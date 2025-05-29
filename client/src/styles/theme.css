@@ -4,6 +4,7 @@
 
   --color-primary-25: oklch(0.99 0.0379 140.41);
   --color-primary-50: oklch(0.94 0.0379 157.41);
+  --color-primary-100: oklch(0.9436 0.0274 188.22);
   --color-primary-200: oklch(90% 0.1065 188.73);
   --color-primary-300: oklch(75% 0.1065 188.73);
   --color-primary-400: oklch(60% 0.1065 188.73);

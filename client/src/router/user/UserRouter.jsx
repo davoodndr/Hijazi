@@ -5,7 +5,6 @@ import PublicRoutes from "./UserPublicRoutes"
 import { Suspense } from 'react'
 import LoadingFallOff from '../../components/ui/LoadingFallOff'
 import { useSelector } from 'react-redux'
-import { useEffect } from 'react'
 
 const Register = React.lazy(() => import("../../pages/User/Auth/Register"))
 const Login = React.lazy(() => import("../../pages/User/Auth/Login"))
@@ -13,6 +12,7 @@ const Home = React.lazy(() => import("../../pages/User/Home"))
 const ProductListing = React.lazy(() => import("../../pages/User/ProductListing"))
 const SearchPage = React.lazy(() => import("../../pages/User/SearchPage"))
 const ProductPage = React.lazy(() => import("../../pages/User/ProductPage"))
+const UserCart = React.lazy(() => import("../../pages/User/UserCart"))
 
 const UserRouter = ({user, isLoading}) => {
 
@@ -35,6 +35,9 @@ const UserRouter = ({user, isLoading}) => {
 
           {/* product view */}
           <Route path="collections/:category/:subcategory/:product" element={<ProductPage />} />
+
+          {/* product view */}
+          <Route path="cart" element={<UserCart />} />
           
         </Route>
         
