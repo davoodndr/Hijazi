@@ -12,6 +12,7 @@ import clsx from 'clsx'
 import AxiosToast from '../../utils/AxiosToast'
 import { Axios } from '../../utils/AxiosSetup'
 import ApiBucket from '../../services/ApiBucket'
+import { FaCircleCheck } from "react-icons/fa6";
 
 function ProductPageComponent() {
 
@@ -207,25 +208,47 @@ function ProductPageComponent() {
               return (
                 <div key={attrName} className="flex items-center">
                   <strong className={`capitalize min-w-[50px] w-fit pe-2`}>{attrName}</strong>
+                  
                   <ul className={`flex items-center gap-1 text-sm capitalize`}>
                     {values.map(val => {
                       
                       const isSelected = selectedAttributes[attrName] === val;
                       const isAvailbale = isOptionAvailable(attrName, val)
 
-                      return (
-                        <li 
-                          onClick={() => 
-                            handleAttributeSelect(attrName, val)
-                          }
-                          key={val} 
-                          className={clsx('px-1.5 py-px rounded-md cursor-pointer border',
-                            isSelected ? 'bg-primary-400 text-white border-primary-400'
-                            : 'bg-white border-gray-400',
-                            !isAvailbale && 'text-gray-300 !border-gray-300'            
-                          )}
-                        >{val}</li>
-                      )
+                      if(attrName === 'color' || attrName === 'colour')
+                        return (
+                          <li 
+                            onClick={() => 
+                              handleAttributeSelect(attrName, val)
+                            }
+                            key={val}
+                            style={{"--dynamic":val}}
+                            className={
+                              clsx(
+                                'cursor-pointer bg-(--dynamic) rounded-full',
+                                isSelected ? 'p-1 text-white/70' : 'p-3.5 text-transparent'
+                              )
+                            }
+                          >
+                            {isSelected && <FaCircleCheck className='text-xl' />}
+                          
+                          </li>
+                        )
+                      else
+                        return (
+                          <li 
+                            onClick={() => 
+                              handleAttributeSelect(attrName, val)
+                            }
+                            key={val} 
+                            className={clsx('px-1.5 py-px rounded-md cursor-pointer border',
+                              isSelected ? 'bg-primary-400 text-white border-primary-400'
+                              : 'bg-white border-gray-400',
+                              !isAvailbale && 'text-gray-300 !border-gray-300'            
+                            )}
+                          >{val}</li>
+                        )
+
                     })}
                   </ul>
                 </div>
