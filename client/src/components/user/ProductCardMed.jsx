@@ -6,21 +6,34 @@ import { useState } from 'react';
 import MyFadeLoader from '../ui/MyFadeLoader';
 import { motion } from 'motion/react'
 import { yRowVariants } from '../../utils/Anim';
+import { useDispatch } from 'react-redux';
+import { addToCart } from '../../store/slices/CartSlice';
+import { useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 function ProducCardMedComponent({product, onClick}) {
 
+  const dispatch = useDispatch();
   const [completed, setCompleted] = useState(false);
+  const [activeVariant, setActiveVariant] = useState(null);
 
-  let price = 0;
+  useEffect(()=> {
+      
+    if(product?.variants?.length) {
 
-  if(product?.price){
-    price = product.price;
-  }else{
-    if(product?.variants?.length){
-      const prices = product.variants.map(item => item.price);
-      if(prices.length) price = Math.min(...prices);
+      const minPricedVariant = product?.variants.reduce((minVariant, current) => {
+        
+        if(!minVariant || current?.price < minVariant?.price){
+          return current;
+        }else{
+          return minVariant;
+        }
+      },null)
+
+      setActiveVariant(minPricedVariant);
     }
-  }
+
+  },[product])
 
   return (
     <motion.div
@@ -43,7 +56,7 @@ function ProducCardMedComponent({product, onClick}) {
             peer-hover:blur-[2px] size-[192px]">
 
             <img className={`group-hover/item:scale-110 smooth !duration-1000 rounded-3xl`}
-                  src={product?.images[0]?.thumb} onLoad={() => setCompleted(true)} loading='lazy' alt=""/>
+                  src={activeVariant?.image?.thumb || product?.images[0]?.thumb} onLoad={() => setCompleted(true)} loading='lazy' alt=""/>
               
             {!completed &&
               <div className='w-full h-full relative flex items-center justify-center opacity-50'>
@@ -71,15 +84,33 @@ function ProducCardMedComponent({product, onClick}) {
           </div>
           <div className='flex gap-1 items-center'>
             <span className='text-lg font-semibold text-primary-400 price-before
-              price-before:!text-[13px] !items-start leading-4.5'>{price}</span>
+              price-before:!text-[13px] !items-start leading-4.5'>{activeVariant?.price || product?.price}</span>
             {<span className="old-price price-before line-through text-gray-400">245.8</span>}
           </div>
-
+          
+          {/* buttons - add to cart, add to wishlist */}
           <div className='absolute right-0 bottom-3 inline-flex flex-col gap-1 z-10'>
             <div className='sale-icon opacity-0 scale-0 group-hover/item:opacity-100 group-hover/item:scale-100'>
               <TbHeart className='text-2xl' />
             </div>
-            <div className='sale-icon'>
+
+            <div 
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(addToCart({
+                  id: product._id,
+                  name:product.name,
+                  category:product.category.name,
+                  sku:activeVariant?.sku || product?.sku,
+                  price:activeVariant?.price || product?.price,
+                  quantity: 1,
+                  image:activeVariant?.image || product?.images[0],
+                  attributes:activeVariant?.attributes,
+                  variant_id: activeVariant?._id
+                }))
+                toast.success("Item added to cart",{position: 'top-center'})
+              }}
+              className='sale-icon'>
               <TbShoppingBagPlus className='text-2xl' />
             </div>
           </div>

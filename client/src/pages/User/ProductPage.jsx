@@ -13,8 +13,10 @@ import AxiosToast from '../../utils/AxiosToast'
 import { Axios } from '../../utils/AxiosSetup'
 import ApiBucket from '../../services/ApiBucket'
 import { FaCircleCheck } from "react-icons/fa6";
-import { useDispatch } from 'react-redux'
-import { addToCart } from '../../store/slices/CartSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { addToCart, getCartItem, updateQuantity } from '../../store/slices/CartSlice'
+import { setLoading } from '../../store/slices/CommonSlices'
+import toast from 'react-hot-toast'
 
 function ProductPageComponent() {
 
@@ -27,6 +29,7 @@ function ProductPageComponent() {
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [attributes, setAttributes] = useState(null);
   const [activeVariant, setActiveVariant] = useState(null);
+  const cartItem = useSelector(state => getCartItem(state, productData?._id))
 
   /* function to re-arrange attributes */
   const getAttributeMap = (variants) => {
@@ -48,6 +51,8 @@ function ProductPageComponent() {
 
   // initially setting the variant and select attributes
   useEffect(()=> {
+    
+    dispatch(setLoading(false))
 
     if(productData.variants.length) {
       setAttributes(getAttributeMap(productData.variants))
@@ -160,7 +165,7 @@ function ProductPageComponent() {
             return product?.images?.concat(activeVariant?.image)
             .filter(Boolean)
           },[product, activeVariant])}
-          className='w-[42%] shrink-0 max-h-[610px] flex flex-col'
+          className='w-[42%] shrink-0 flex flex-col'
         />
 
         {/* detail info */}
@@ -264,27 +269,40 @@ function ProductPageComponent() {
           <div className="flex space-x-3">
             <div className="bg-white max-w-[80px] py-2.5 px-5 inline-flex items-start
               w-full border border-gray-300 rounded-lg relative">
-              <span className='absolute right-2 top-1 cursor-pointer'>
+              <span 
+                onClick={() =>{ 
+                  dispatch(updateQuantity({id: cartItem.id, quantity: cartItem.quantity + 1}))
+                  toast.success("Increased item quantity",{position: 'top-center'})
+                }}
+                className='absolute right-2 top-1 cursor-pointer'>
                 <IoIosArrowUp />
               </span>
-              <span>1</span>
-              <span  className='absolute right-2 bottom-1 cursor-pointer'>
+              <span>{cartItem?.quantity}</span>
+              <span 
+                onClick={() => {
+                  cartItem.quantity > 1 && dispatch(updateQuantity({id: cartItem.id, quantity: cartItem.quantity - 1}))
+                  toast.error("Decreased item quantity",{position: 'top-center'})
+                }}
+                className='absolute right-2 bottom-1 cursor-pointer'>
                 <IoIosArrowDown />
               </span>
             </div>
             <div className="flex space-x-3">
               <button
-                onClick={() => 
+                onClick={() => {
                   dispatch(addToCart({
                     id: product._id,
                     name:product.name,
+                    category:product.category.name,
                     sku:activeVariant?.sku || product?.sku,
                     price:activeVariant?.price || product?.price,
                     quantity: 1,
                     image:activeVariant?.image || product?.images[0],
+                    attributes:activeVariant?.attributes,
                     variant_id: activeVariant?._id
                   }))
-                }
+                  toast.success("Item added to cart",{position: 'top-center'})
+                }}
                 className="h-full !px-10">Add to cart</button>
 
               {/* wishlist button */}

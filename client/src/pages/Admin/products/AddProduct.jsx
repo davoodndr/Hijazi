@@ -45,7 +45,7 @@ const EditProduct = () => {
   const handleChange = (e) => {
     let { name, value} = e.target;
     if(name === 'name') setData(prev => ({...prev, slug:value.replace(/\s+/g, '-')}))
-    if(name === 'slug') value = value.replace(/\s+/g, '-');
+    if(name === 'slug') value = value.replace(/\s+/g, '-').toLowerCase();
 
     setData(prev => {
       return {

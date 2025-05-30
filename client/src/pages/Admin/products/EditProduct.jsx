@@ -105,17 +105,17 @@ const EditProduct = () => {
 
   /* limits image on maximum */
   useEffect(() => {
-    if(data.files.length >= maxLimit || viewImages.length >= maxLimit){
+    if(data?.files?.length >= maxLimit || viewImages.length >= maxLimit){
       setDisableMessage('Maximum image limit reached')
     }else{
       setDisableMessage(null)
     }
-  },[data.files, viewImages])
+  },[data?.files, viewImages])
 
   const handleChange = (e) => {
     let { name, value} = e.target;
     if(name === 'name') setData(prev => ({...prev, slug:value.replace(/\s+/g, '-')}))
-    if(name === 'slug') value = value.replace(/\s+/g, '-');
+    if(name === 'slug') value = value.replace(/\s+/g, '-').toLowerCase();
 
     setData(prev => {
       return {
@@ -192,8 +192,6 @@ const EditProduct = () => {
         values: item.data.value.replaceAll(' ','').split(',').filter(Boolean)
       }
     })
-
-    console.log('custom',attributes)
 
     if(findDuplicateAttribute([...attributes, ...newAttributes])){
       toast.error("This attribute alredy exists", {position:'top-center'});

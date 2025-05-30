@@ -20,7 +20,7 @@ function CartDropdownComponent({className}) {
         {/* cart items */}
         <ul>
           {items.map(item => 
-            <li className='flex items-center mb-5 space-x-4'>
+            <li key={item.id} className='flex items-center mb-5 space-x-4'>
               <div className="flex-[80px] shrink-0 grow-0 rounded-xl border border-gray-200 overflow-hidden">
                 <img alt={item.name} src={item?.image?.thumb} className='max-w-full'/>
               </div>

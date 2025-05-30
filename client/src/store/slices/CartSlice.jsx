@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
+import toast from 'react-hot-toast';
 
 const cartSlice = createSlice({
   name: 'cart',
@@ -22,13 +23,18 @@ const cartSlice = createSlice({
     },
     updateQuantity: (state, action) => {
       const { id, quantity } = action.payload;
-      const item = state.items.map(item =>  item.id === id);
+      const item = state.items.find(item =>  item.id === id);
+
       if(item) item.quantity = quantity;
     },
     clearCart: (state) => state.items = []
   }
 
 })
+
+export const getCartItem = (state, id) => {
+  return state?.cart?.items?.find(item => item.id === id);
+}
 
 export const getCartTotal = (state) => {
   return state?.cart?.items?.reduce((total, item) => {
