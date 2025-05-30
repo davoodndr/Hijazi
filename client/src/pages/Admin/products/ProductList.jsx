@@ -536,7 +536,10 @@ const ProductList = () => {
                       const min = Math.min(...prices);
                       const max = Math.max(...prices);
                       price = `${min === max ? min : `${min} - ${max}`}`
-                    } 
+                    } else {
+                      price = product.price;
+                      stock = product.stock;
+                    }
 
                     return(
                       <React.Fragment key={product._id}>

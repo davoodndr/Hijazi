@@ -74,12 +74,12 @@ const EditProduct = () => {
   const maxLimit =  5;
 
   useEffect(() => {
-    if(data.files.length >= maxLimit){
+    if(data?.files?.length >= maxLimit){
       setDisableMessage('Maximum image limit reached')
     }else{
       setDisableMessage(null)
     }
-  },[data.files])
+  },[data?.files])
 
   /* handle crop image */
   const handleCropImage = async(files) => {

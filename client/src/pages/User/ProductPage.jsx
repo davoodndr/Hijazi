@@ -13,11 +13,14 @@ import AxiosToast from '../../utils/AxiosToast'
 import { Axios } from '../../utils/AxiosSetup'
 import ApiBucket from '../../services/ApiBucket'
 import { FaCircleCheck } from "react-icons/fa6";
+import { useDispatch } from 'react-redux'
+import { addToCart } from '../../store/slices/CartSlice'
 
 function ProductPageComponent() {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { productData } = location.state;
   const [product, setProduct] = useState(null);
   const [relatedItems, setRelatedItems] = useState(null);
@@ -257,7 +260,7 @@ function ProductPageComponent() {
           </div>
           
 
-          {/* add to cart buttons */}
+          {/* add to cart/wishlist buttons */}
           <div className="flex space-x-3">
             <div className="bg-white max-w-[80px] py-2.5 px-5 inline-flex items-start
               w-full border border-gray-300 rounded-lg relative">
@@ -270,7 +273,20 @@ function ProductPageComponent() {
               </span>
             </div>
             <div className="flex space-x-3">
-              <button className="h-full !px-10">Add to cart</button>
+              <button
+                onClick={() => 
+                  dispatch(addToCart({
+                    id: product._id,
+                    name:product.name,
+                    sku:activeVariant?.sku || product?.sku,
+                    price:activeVariant?.price || product?.price,
+                    quantity: 1,
+                    image:activeVariant?.image || product?.images[0],
+                    variant_id: activeVariant?._id
+                  }))
+                }
+                className="h-full !px-10">Add to cart</button>
+
               {/* wishlist button */}
               <span className="sale-icon h-full inline-flex items-center px-3" >
                 <FaRegHeart className='text-xl' />

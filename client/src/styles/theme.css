@@ -127,8 +127,6 @@
     @apply relative;
   }
 
-  .EasyZoomHoverSmallImage {}
-
   /* Magnified image container */
   .EasyZoomImageZoomHoverContainer {
     @apply overflow-hidden smooth;
@@ -163,7 +161,7 @@
 @utility price-before{
   @apply relative inline-flex items-center w-fit;
   &::before{
-    @apply inline-flex items-center content-["₹"] text-xs text-gray-500/50;
+    @apply inline-flex items-center content-["₹"] text-xs text-gray-500/70;
   }
 }
 
