@@ -1,9 +1,9 @@
 
 import { useSelector } from 'react-redux'
-import { Navigate } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 import Loader from '../../components/ui/LoadingFallOff';
 
-const AdminPublicRoutes = ({children}) => {
+const AdminPublicRoutes = () => {
 
   const { user, isLoading } = useSelector(state => state.user);
   
@@ -13,7 +13,7 @@ const AdminPublicRoutes = ({children}) => {
     return <Navigate to={'/admin/dashboard'} replace />
   }
   
-  return children;
+  return <Outlet />;
 }
 
 export default AdminPublicRoutes

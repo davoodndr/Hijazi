@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { addToCart, getCartItem, updateQuantity } from '../../store/slices/CartSlice'
 import { setLoading } from '../../store/slices/CommonSlices'
 import toast from 'react-hot-toast'
+import { addToList } from '../../store/slices/WishlistSlice'
 
 function ProductPageComponent() {
 
@@ -267,8 +268,10 @@ function ProductPageComponent() {
 
           {/* add to cart/wishlist buttons */}
           <div className="flex space-x-3">
+
             <div className="bg-white max-w-[80px] py-2.5 px-5 inline-flex items-start
               w-full border border-gray-300 rounded-lg relative">
+
               <span 
                 onClick={() =>{ 
                   dispatch(updateQuantity({id: cartItem.id, quantity: cartItem.quantity + 1}))
@@ -286,7 +289,9 @@ function ProductPageComponent() {
                 className='absolute right-2 bottom-1 cursor-pointer'>
                 <IoIosArrowDown />
               </span>
+
             </div>
+
             <div className="flex space-x-3">
               <button
                 onClick={() => {
@@ -303,19 +308,35 @@ function ProductPageComponent() {
                   }))
                   toast.success("Item added to cart",{position: 'top-center'})
                 }}
-                className="h-full !px-10">Add to cart</button>
+                className="h-full !px-10">Add to cart
+              </button>
 
               {/* wishlist button */}
-              <span className="sale-icon h-full inline-flex items-center px-3" >
+              <span 
+                onClick={() => {
+                  dispatch(addToList({
+                    id: product._id,
+                    name:product.name,
+                    category:product.category.name,
+                    price:activeVariant?.price || product?.price,
+                    quantity: 1,
+                    stock: activeVariant?.stock || product?.stock,
+                    image:activeVariant?.image || product?.images[0],
+                    attributes:activeVariant?.attributes,
+                    variant_id: activeVariant?._id
+                  }))
+                }}
+                className="sale-icon h-full inline-flex items-center px-3" >
                 <FaRegHeart className='text-xl' />
               </span>
+
             </div>
           </div>
 
           <hr className='mt-6 mb-3 border-gray-300' />
 
           {/* sku tags availbility*/}
-          <ul className="">
+          <ul>
             <li>SKU: {activeVariant?.sku || product?.sku}</li>
             <li>Availability:
               <span className="text-primary-400 ml-2">{activeVariant?.stock || product?.stock} Items In Stock</span>

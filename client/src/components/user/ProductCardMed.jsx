@@ -10,6 +10,7 @@ import { useDispatch } from 'react-redux';
 import { addToCart } from '../../store/slices/CartSlice';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { addToList } from '../../store/slices/WishlistSlice';
 
 function ProducCardMedComponent({product, onClick}) {
 
@@ -90,7 +91,22 @@ function ProducCardMedComponent({product, onClick}) {
           
           {/* buttons - add to cart, add to wishlist */}
           <div className='absolute right-0 bottom-3 inline-flex flex-col gap-1 z-10'>
-            <div className='sale-icon opacity-0 scale-0 group-hover/item:opacity-100 group-hover/item:scale-100'>
+            <div 
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(addToList({
+                  id: product._id,
+                  name:product.name,
+                  category:product.category.name,
+                  price:activeVariant?.price || product?.price,
+                  quantity: 1,
+                  stock: activeVariant?.stock || product?.stock,
+                  image:activeVariant?.image || product?.images[0],
+                  attributes:activeVariant?.attributes,
+                  variant_id: activeVariant?._id
+                }))
+              }}
+              className='sale-icon opacity-0 scale-0 group-hover/item:opacity-100 group-hover/item:scale-100'>
               <TbHeart className='text-2xl' />
             </div>
 

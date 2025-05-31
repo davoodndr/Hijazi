@@ -16,7 +16,13 @@ function UserCart() {
         {/* products */}
         <div className='flex-grow'>
           <h3 className='text-xl'>Shopping Bag</h3>
-          <p><span className='font-bold'>2 items</span> in your bag</p>
+          {items?.length ? 
+            (<p><span className='font-bold'>{items?.length}
+              {items?.length > 1 ? ' items' : ' item'} </span> in your bag
+            </p>)
+            :
+            (<span>Bag is empty</span>)
+          }
 
           {/* products */}
           <ul className='flex flex-col p-5 pb-0 mt-8 rounded-2xl bg-white shadow-lg 
@@ -31,61 +37,68 @@ function UserCart() {
             </li>
 
             {/* item */}
-            {items.length > 0 && items.map(item => {
+            {items.length > 0 ? 
+            
+              items.map(item => {
 
-              const attributes = item?.attributes ? Object.entries(item.attributes) : [];
-              const itemTotal = item.quantity * item.price;
+                const attributes = item?.attributes ? Object.entries(item.attributes) : [];
+                const itemTotal = item.quantity * item.price;
 
-              return (
-                <li key={item.id} className='grid grid-cols-[3fr_1fr_1fr_1fr] pb-5 justify-items-center'>
-                  <div className='flex w-full items-center space-x-4'>
-                    {/* image */}
-                    <div className='w-30 rounded-2xl overflow-hidden'>
-                      <img src={item.image?.thumb} alt="" />
-                    </div>
-                    {/* info */}
-                    <div className='flex flex-col leading-normal'>
-                      <div className='mb-2'>
-                        <p className='uppercase text-[10px] text-gray-400'>{item?.category}</p>
-                        <p className='capitalize font-bold'>{item.name}</p>
+                return (
+                  <li key={item.id} className='grid grid-cols-[3fr_1fr_1fr_1fr] pb-5 justify-items-center'>
+                    <div className='flex w-full items-center space-x-4'>
+                      {/* image */}
+                      <div className='w-30 rounded-2xl overflow-hidden'>
+                        <img src={item.image?.thumb} alt="" />
                       </div>
-                      <div>
-                        {attributes.length > 0 && attributes.map(([name, value]) => 
-                          <div key={name} className='grid grid-cols-3 capitalize'>
-                            <span className='text-gray-400 text-xs'>{name}</span>
-                            {name === 'color' || name === 'colour' ?
-                              <div className='point-before point-before:!me-3 point-before:!p-0.5'>
-                                <span
-                                  style={{"--dynamic": value}}
-                                  className='w-3 h-3 bg-(--dynamic) rounded-sm'
-                                ></span>
-                              </div>
-                              :
-                              <span className='text-sm text-gray-600 point-before point-before:!me-3 point-before:!p-0.5'>{value}</span>
-                            }
-                          </div>
-                        )}
+                      {/* info */}
+                      <div className='flex flex-col leading-normal'>
+                        <div className='mb-2'>
+                          <p className='uppercase text-[10px] text-gray-400'>{item?.category}</p>
+                          <p className='capitalize font-bold'>{item.name}</p>
+                        </div>
+                        <div>
+                          {attributes.length > 0 && attributes.map(([name, value]) => 
+                            <div key={name} className='grid grid-cols-3 capitalize'>
+                              <span className='text-gray-400 text-xs'>{name}</span>
+                              {name === 'color' || name === 'colour' ?
+                                <div className='point-before point-before:!me-3 point-before:!p-0.5'>
+                                  <span
+                                    style={{"--dynamic": value}}
+                                    className='w-3 h-3 bg-(--dynamic) rounded-sm'
+                                  ></span>
+                                </div>
+                                :
+                                <span className='text-sm text-gray-600 point-before point-before:!me-3 point-before:!p-0.5'>{value}</span>
+                              }
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <span className='price-before !text-base font-bold'>{item.price}</span>
-                  <div className='flex items-center'>
-                    <span 
-                      onClick={() => item.quantity > 1 && dispatch(updateQuantity({id: item.id, quantity: item.quantity - 1}))}
-                      className='cursor-pointer'>
-                      <CiSquareMinus className='text-3xl' />
-                    </span>
-                    <span className='px-2'>{item.quantity}</span>
-                    <span 
-                      onClick={() => dispatch(updateQuantity({id: item.id, quantity: item.quantity + 1}))}
-                      className='cursor-pointer'>
-                      <CiSquarePlus className='text-3xl' />
-                    </span>
-                  </div>
-                  <p className='price-before !text-base font-bold'>{itemTotal}</p>
-                </li>
-              )
-            })}
+                    <span className='price-before !text-base font-bold'>{item.price}</span>
+                    <div className='flex items-center'>
+                      <span 
+                        onClick={() => item.quantity > 1 && dispatch(updateQuantity({id: item.id, quantity: item.quantity - 1}))}
+                        className='cursor-pointer'>
+                        <CiSquareMinus className='text-3xl' />
+                      </span>
+                      <span className='px-2'>{item.quantity}</span>
+                      <span 
+                        onClick={() => dispatch(updateQuantity({id: item.id, quantity: item.quantity + 1}))}
+                        className='cursor-pointer'>
+                        <CiSquarePlus className='text-3xl' />
+                      </span>
+                    </div>
+                    <p className='price-before !text-base font-bold'>{itemTotal}</p>
+                  </li>
+                )
+              })
+              :
+              (<div className='mb-5 text-center py-3 text-lg bg-primary-25 rounded-xl'>
+                Bag is emply
+              </div>)
+            }
             
           </ul>
         </div>

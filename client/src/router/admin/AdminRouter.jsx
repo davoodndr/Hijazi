@@ -20,7 +20,7 @@ const ProductList = React.lazy(() => import('../../pages/Admin/products/ProductL
 const AddProduct = React.lazy(() => import('../../pages/Admin/products/AddProduct'))
 const EditProduct = React.lazy(() => import('../../pages/Admin/products/EditProduct'))
 
-const AdminRouter = ({user, isLoading}) => {
+const AdminRouter = () => {
 
   const { loading } = useSelector(state => state.common);
 
@@ -28,39 +28,44 @@ const AdminRouter = ({user, isLoading}) => {
     <>
       <Suspense fallback={<LoadingFallOff loading={true} />}>
         <Routes>
-          <Route path="register" element={<PublicRoutes><Register /></PublicRoutes>} />
-          <Route path="login" element={<PublicRoutes><Login /></PublicRoutes>} />
-            
-            <Route element={<ProtectedRoutes user={user} isLoading={isLoading} />}>
-              <Route element={<AdminLayout />}>
-                <Route index element={<Navigate to="dashboard" />} />
-                <Route path="dashboard" element={<AdminDashboard />} />
 
-                {/* users tab */}
-                <Route path="users">
-                  <Route index element={<UsersList />} />
-                  <Route path="add-user" element={<AddUser />} />
-                  <Route path="edit-user" element={<EditUser />} />
-                  <Route path="view-user" element={<ViewUser />} />
-                </Route>
+          {/* public routes */}
+          <Route element={<PublicRoutes />}>
+            <Route path="register" element={<Register />} />
+            <Route path="login" element={<Login />} />
+          </Route>
+          
+          {/* protected routes */}
+          <Route element={<ProtectedRoutes />}>
+            <Route element={<AdminLayout />}>
+              <Route index element={<Navigate to="dashboard" />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
 
-                {/* categories tab */}
-                <Route path='categories'>
-                  <Route index element={<CategoryList />} />
-                </Route>
-                {/* brands tab */}
-                <Route path='brands'>
-                  <Route index element={<BrandList />} />
-                </Route>
-                {/* products tab */}
-                <Route path='products'>
-                  <Route index element={<ProductList />} />
-                  <Route path="add-product" element={<AddProduct />} />
-                  <Route path=":slug/edit" element={<EditProduct />} />
-                </Route>
-                
+              {/* users tab */}
+              <Route path="users">
+                <Route index element={<UsersList />} />
+                <Route path="add-user" element={<AddUser />} />
+                <Route path="edit-user" element={<EditUser />} />
+                <Route path="view-user" element={<ViewUser />} />
               </Route>
+
+              {/* categories tab */}
+              <Route path='categories'>
+                <Route index element={<CategoryList />} />
+              </Route>
+              {/* brands tab */}
+              <Route path='brands'>
+                <Route index element={<BrandList />} />
+              </Route>
+              {/* products tab */}
+              <Route path='products'>
+                <Route index element={<ProductList />} />
+                <Route path="add-product" element={<AddProduct />} />
+                <Route path=":slug/edit" element={<EditProduct />} />
+              </Route>
+              
             </Route>
+          </Route>
 
         </Routes>
       </Suspense>

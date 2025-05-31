@@ -23,7 +23,7 @@ function StarRatingComponent(
               onMouseEnter={() => setHover(i + 1)}
               onMouseLeave={() => setHover(null)}
               onClick={() => setRating(i + 1)}
-              className={`text-gray-300 hover:text-yellow-400 
+              className={`text-gray-300
                 focus:outline-none cursor-pointer ${starClass}`}
             >
               <FaStar className={`${isFilled ? 'text-yellow-400' : ''}`}/>

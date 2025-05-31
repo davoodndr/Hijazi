@@ -14,11 +14,14 @@ import { setLoading } from '../../store/slices/CommonSlices'
 import { getCartCount } from '../../store/slices/CartSlice';
 import CartDropdown from './CartDropdown';
 import clsx from 'clsx';
+import { getWishlistCount } from '../../store/slices/WishlistSlice';
+import toast from 'react-hot-toast';
 
 function NavbarComponent(){
 
   let { user } = useSelector(state => state.user);
   let cartCount = useSelector(getCartCount);
+  let wishlistCount = useSelector(getWishlistCount);
   const [currentUser, setCurrentUser] = useState(null);
   const [isExpaned, setIsExpanded] = useState(false);
   const navigate = useNavigate();
@@ -65,19 +68,47 @@ function NavbarComponent(){
 
             {/* wishlist & cart */}
             <ul className="flex flex-row items-center justify-end w-full md:w-4/10 md:max-w-[160px]">
-              <li className='inline-flex h-full flex-col items-center justify-center md:items-center w-11 md:w-3/9'>
+
+              <li
+                onClick={() => {
+                  if(wishlistCount > 0) {
+                    navigate('/wishlist')
+                  }else{
+                    toast.error("Wishlist is empty")
+                  }
+                }}
+                className='inline-flex h-full flex-col items-center justify-center w-11 md:w-3/9
+                relative cursor-pointer'>
+
+                {wishlistCount > 0 && 
+                  <div className='w-fit px-1.5 h-4.5 bg-red-500 absolute left-[calc(100%-22px)] top-0.5 rounded-full
+                    inline-flex items-center justify-center text-white text-xs font-extrabold'
+                  >
+                    <p>{wishlistCount}</p>
+                  </div>
+                }
                 <BsHeart className='md:mb-1 text-2xl' />
                 <span className='hidden md:inline-flex text-xs font-semibold'>Wishlist</span>
               </li>
 
-              <li className='inline-flex h-full flex-col items-center justify-center w-11 md:w-3/9 
+              <li 
+                onClick={() => {
+                  if(cartCount > 0) {
+                    navigate('/cart')
+                  }else{
+                    toast.error("Bag is empty")
+                  }
+                }}
+                className='inline-flex h-full flex-col items-center justify-center w-11 md:w-3/9 
                 relative cursor-pointer group'>
 
-                {cartCount > 0 && <div className='w-fit px-1.5 h-4.5 bg-red-500 absolute left-[calc(100%-22px)] top-0.5 rounded-full
-                  inline-flex items-center justify-center text-white text-xs font-extrabold'
-                >
-                  <p>{cartCount}</p>
-                </div>}
+                {cartCount > 0 && 
+                  <div className='w-fit px-1.5 h-4.5 bg-red-500 absolute left-[calc(100%-22px)] top-0.5 rounded-full
+                    inline-flex items-center justify-center text-white text-xs font-extrabold'
+                  >
+                    <p>{cartCount}</p>
+                  </div>
+                }
                 <BsBag className='md:mb-1 text-2xl'/>
                 
                 <div className='hidden md:inline-flex flex-col items-center text-xs font-semibold'>

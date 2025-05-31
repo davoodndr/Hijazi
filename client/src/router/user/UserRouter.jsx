@@ -2,6 +2,7 @@ import React from 'react'
 import { Route, Routes } from 'react-router'
 import UserLayout from "../../pages/User/UserLayout"
 import PublicRoutes from "./UserPublicRoutes"
+import ProtectedRoutes from "./UserProtectedRoutes"
 import { Suspense } from 'react'
 import LoadingFallOff from '../../components/ui/LoadingFallOff'
 import { useSelector } from 'react-redux'
@@ -13,8 +14,9 @@ const ProductListing = React.lazy(() => import("../../pages/User/ProductListing"
 const SearchPage = React.lazy(() => import("../../pages/User/SearchPage"))
 const ProductPage = React.lazy(() => import("../../pages/User/ProductPage"))
 const UserCart = React.lazy(() => import("../../pages/User/UserCart"))
+const Wishlist = React.lazy(() => import("../../pages/User/Wishlist"))
 
-const UserRouter = ({user, isLoading}) => {
+const UserRouter = () => {
 
   const { loading } = useSelector(state => state.common);
 
@@ -23,21 +25,29 @@ const UserRouter = ({user, isLoading}) => {
     <Suspense fallback={<LoadingFallOff loading={true} />}>
       <Routes>
         <Route path='/' element={<UserLayout />}>
-          <Route index element={<Home />} />
-          <Route path="register" element={<PublicRoutes><Register /></PublicRoutes>} />
-          <Route path="login" element={<PublicRoutes><Login /></PublicRoutes>} />
 
-          {/* search page */}
-          <Route path="search" element={<SearchPage />} />
+          {/* public routes */}
+          <Route element={<PublicRoutes />}>
 
-          {/* product listing */}
-          <Route path="collections" element={<ProductListing />} />
+            <Route index element={<Home />} />
+            <Route path="register" element={<Register />} />
+            <Route path="login" element={<Login />} />
 
-          {/* product view */}
-          <Route path="collections/:category/:subcategory/:product" element={<ProductPage />} />
+            <Route path="search" element={<SearchPage />} />
+            <Route path="collections" element={<ProductListing />} />
 
-          {/* product view */}
-          <Route path="cart" element={<UserCart />} />
+            {/* product view */}
+            <Route path="collections/:category/:subcategory/:product" element={<ProductPage />} />
+            <Route path="cart" element={<UserCart />} />
+
+          </Route>
+          
+          {/* protected routes */}
+          {/* <Route element={<ProtectedRoutes />}> */}
+
+            <Route path="wishlist" element={<Wishlist />} />
+
+          {/* </Route> */}
           
         </Route>
         

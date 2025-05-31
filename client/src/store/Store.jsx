@@ -5,6 +5,7 @@ import productReducer from './slices/ProductSlices'
 import categoryReducer from './slices/CategorySlices'
 import brandReducer from './slices/BrandSlice'
 import cartReducer from './slices/CartSlice'
+import wishlistReducer from './slices/WishlistSlice'
 
 let preloadedCart;
 try {
@@ -30,6 +31,7 @@ const store = configureStore({
     categories: categoryReducer,
     brands: brandReducer,
     cart: cartReducer,
+    wishlist: wishlistReducer,
   },
   preloadedState
 })

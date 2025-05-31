@@ -1,19 +1,19 @@
 
 import { useSelector } from 'react-redux'
-import { Navigate } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 import Loader from '../../components/ui/LoadingFallOff'
 
-const UserPublicRoutes = ({children}) => {
+const UserPublicRoutes = () => {
 
   const { user, isLoading } = useSelector(state => state.user);
-  
-  if(isLoading) return <Loader height={70} />;
 
-  if(user?.roles.includes('user')){
+  if(isLoading) return <Loader />;
+
+  if(user?.roles?.includes('user')){
     return <Navigate to={'/'} replace />
   }
   
-  return children;
+  return <Outlet />;
 }
 
 
