@@ -162,6 +162,10 @@ const ApiBucket = {
   },
 
   /* product */
+  getProduct: {
+    url: '/api/user/get-single-product',
+    method: 'get'
+  },
   getProductList: {
     url: '/api/user/get-product-list',
     method: 'get'
@@ -169,6 +173,20 @@ const ApiBucket = {
   getRelatedProducts: {
     url: '/api/user/get-related-items',
     method: 'get'
+  },
+
+  /* cart */
+  getCart: {
+    url: '/api/user/get-cart',
+    method: 'get'
+  },
+  addToCart: {
+    url: '/api/user/add-to-cart',
+    method: 'post'
+  },
+  removeFromCart: {
+    url: '/api/user/remove-from-cart',
+    method: 'patch'
   },
 }
 

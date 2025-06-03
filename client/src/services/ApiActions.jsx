@@ -241,3 +241,53 @@ export const uploadProductImages = async(product, product_id, remove_ids = []) =
 
 }
 
+//cart
+export const addToCartAction = async(user_id, item, type) => {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.addToCart,
+      data: {
+        user_id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        variant_id: item.id === item.product_id ? null : item.id,
+        attributes: item.attributes,
+        type
+      }
+    })
+
+    return response.data
+
+  } catch (error) {
+
+    console.log(error)
+    throw new Error(error?.response?.data?.message);
+  }
+
+}
+
+export const removeFromCartAction = async(user_id, item) => {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.removeFromCart,
+      data: {
+        user_id,
+        product_id: item.product_id,
+        variant_id: item.id === item.product_id ? null : item.id,
+      }
+    })
+
+    return response.data
+
+  } catch (error) {
+
+    console.log(error)
+    throw new Error(error?.response?.data?.message);
+  }
+
+}
+

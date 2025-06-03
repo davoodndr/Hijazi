@@ -53,6 +53,24 @@ export const getBrands = async() => {
 }
 
 /* product */
+export const getSingleProduct = async(slug) => {
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getProduct,
+      params: {
+        slug
+      }
+    })
+
+    return response.data.product;
+
+  } catch (error) {
+    console.log(error.response.data)
+    return error.response.data
+  }
+}
+
 export const getProductList = async() => {
   try {
     
@@ -65,6 +83,23 @@ export const getProductList = async() => {
   } catch (error) {
     console.log(error.response.data)
     return error.response.data
+  }
+}
+
+/* cart */
+export const getCart = async(user_id) => {
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getCart,
+      params: { user_id }
+    })
+
+    return response.data.cart.items;
+
+  } catch (error) {
+    console.log(error.response.data)
+    //return error.response.data
   }
 }
 

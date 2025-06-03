@@ -5,13 +5,21 @@ import { fetchUser } from "../store/slices/UsersSlice"
 import { fetchCategories } from "../store/slices/CategorySlices"
 import AdminRouter from "./admin/AdminRouter"
 import UserRouter from "./user/UserRouter"
+import { fetchCart } from "../store/slices/CartSlice"
 
 function App() {
 
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(fetchUser())
+    const fetchAuthData = async() => {
+      const { payload: user } = await dispatch(fetchUser());
+      
+      if(user?.roles?.includes('user')){
+        dispatch(fetchCart(user._id))
+      }
+    }
+    fetchAuthData()
     dispatch(fetchCategories())
   },[dispatch])
 

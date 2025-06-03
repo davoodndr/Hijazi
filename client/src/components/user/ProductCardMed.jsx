@@ -6,8 +6,8 @@ import { useState } from 'react';
 import MyFadeLoader from '../ui/MyFadeLoader';
 import { motion } from 'motion/react'
 import { yRowVariants } from '../../utils/Anim';
-import { useDispatch } from 'react-redux';
-import { addToCart } from '../../store/slices/CartSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { addToCart, syncCartitem } from '../../store/slices/CartSlice';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { addToList } from '../../store/slices/WishlistSlice';
@@ -15,6 +15,7 @@ import { addToList } from '../../store/slices/WishlistSlice';
 function ProducCardMedComponent({product, onClick}) {
 
   const dispatch = useDispatch();
+  const { user } = useSelector(state => state.user);
   const [completed, setCompleted] = useState(false);
   const [activeVariant, setActiveVariant] = useState(null);
 
@@ -35,6 +36,32 @@ function ProducCardMedComponent({product, onClick}) {
     }
 
   },[product])
+
+  const handleAddToCart = async(e) => {
+    e.stopPropagation();
+    const newitem = {
+      id: activeVariant?._id || product._id,
+      name:product.name,
+      category:product.category.name,
+      sku:activeVariant?.sku || product?.sku,
+      price:activeVariant?.price || product?.price,
+      stock: activeVariant?.stock || product?.stock,
+      quantity: 1,
+      image:activeVariant?.image || product?.images[0],
+      attributes:activeVariant?.attributes,
+      product_id: product._id
+    }
+
+    if(user?.roles?.includes('user')){
+      const {payload: data} = await dispatch(syncCartitem({user_id: user._id, item: newitem}))
+      if(data?.success){
+        toast.success(data.message,{position: 'top-center'})
+      }
+    }else{
+      dispatch(addToCart({item: newitem, type:'update'}))
+      toast.success("Item added to cart",{position: 'top-center'})
+    }
+  }
 
   return (
     <motion.div
@@ -95,7 +122,7 @@ function ProducCardMedComponent({product, onClick}) {
               onClick={(e) => {
                 e.stopPropagation();
                 dispatch(addToList({
-                  id: product._id,
+                  id: activeVariant?._id || product._id,
                   name:product.name,
                   category:product.category.name,
                   price:activeVariant?.price || product?.price,
@@ -103,7 +130,7 @@ function ProducCardMedComponent({product, onClick}) {
                   stock: activeVariant?.stock || product?.stock,
                   image:activeVariant?.image || product?.images[0],
                   attributes:activeVariant?.attributes,
-                  variant_id: activeVariant?._id
+                  product_id: product._id
                 }))
               }}
               className='sale-icon opacity-0 scale-0 group-hover/item:opacity-100 group-hover/item:scale-100'>
@@ -111,21 +138,7 @@ function ProducCardMedComponent({product, onClick}) {
             </div>
 
             <div 
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(addToCart({
-                  id: product._id,
-                  name:product.name,
-                  category:product.category.name,
-                  sku:activeVariant?.sku || product?.sku,
-                  price:activeVariant?.price || product?.price,
-                  quantity: 1,
-                  image:activeVariant?.image || product?.images[0],
-                  attributes:activeVariant?.attributes,
-                  variant_id: activeVariant?._id
-                }))
-                toast.success("Item added to cart",{position: 'top-center'})
-              }}
+              onClick={handleAddToCart}
               className='sale-icon'>
               <TbShoppingBagPlus className='text-2xl' />
             </div>

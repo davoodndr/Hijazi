@@ -1,26 +1,41 @@
 import React from 'react'
 import { IoTrash } from 'react-icons/io5';
 import { useDispatch, useSelector } from 'react-redux';
-import { getCartTotal, removeFromCart } from '../../store/slices/CartSlice';
+import { deleteCartItem, getCartTotal, removeFromCart } from '../../store/slices/CartSlice';
 import { Link } from 'react-router';
+import toast from 'react-hot-toast';
 
 function CartDropdownComponent({className}) {
 
-  const { items } = useSelector(state => state.cart)
+  const { items } = useSelector(state => state.cart);
+  const { user } = useSelector(state => state.user);
   const cartTotal = useSelector(getCartTotal);
   const dispatch = useDispatch();
 
+  const handleRemoveCartItem = async(item) => {
+
+    if(user?.roles.includes('user')){
+      const { payload: data } = await dispatch(deleteCartItem({user_id: user._id, item}))
+      if(data?.success){
+        toast.success(data.message,{position: 'top-center'})
+      }
+    }else{
+      dispatch(removeFromCart(item.id));
+      toast.success("Item removed from cart",{position: 'top-center'})
+    }
+  }
+
   return (
     <div className={`border border-gray-200 nav-account-dropdown bg-white absolute top-full -right-25
-                  shadow-lg max-h-60vh overflow-y-auto scroll-basic md:invisible opacity-0
+                  shadow-lg md:invisible opacity-0
                   ${className}`}
                   >
-      <div className="w-[320px] p-5">
+      <div className="w-[330px]">
 
         {/* cart items */}
-        <ul>
+        <ul className='flex flex-col max-h-[60vh] overflow-y-auto scroll-basic space-y-5 p-5'>
           {items.map(item => 
-            <li key={item.id} className='flex items-center mb-5 space-x-4'>
+            <li key={item.id} className='flex items-center space-x-4'>
               <div className="flex-[80px] shrink-0 grow-0 rounded-xl border border-gray-200 overflow-hidden">
                 <img alt={item.name} src={item?.image?.thumb} className='max-w-full'/>
               </div>
@@ -34,7 +49,10 @@ function CartDropdownComponent({className}) {
 
               {/* remove bn */}
               <div
-                onClick={() => dispatch(removeFromCart(item.id))}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleRemoveCartItem(item)
+                }}
                 className='smooth hover:text-red-400 inline-flex justify-end flex-grow'>
                 <IoTrash className='text-lg' />
               </div>
@@ -42,8 +60,10 @@ function CartDropdownComponent({className}) {
           )}
         </ul>
 
+        <hr className='border-t border-gray-200 mx-5'/>
+
         {/* total and nav buttons */}
-        <div className="flex flex-col border-t border-gray-300 pt-5">
+        <div className="flex flex-col p-5">
           <h4 className='text-lg inline-flex items-center justify-between mb-5'>
             <span className='text-gray-500/70'>Total</span>
             <span className='price-before items-start price-before:!leading-6 price-before:font-normal ms-5

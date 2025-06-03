@@ -1,13 +1,33 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { CiSquareMinus, CiSquarePlus } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
-import { getCartTotal, updateQuantity } from '../../store/slices/CartSlice';
+import { addToCart, getCartCount, getCartTotal, syncCartitem, updateQuantity } from '../../store/slices/CartSlice';
+import toast from 'react-hot-toast';
 
 function UserCart() {
 
   const { items } = useSelector(state => state.cart);
+  const { user } = useSelector(state => state.user);
   const cartSubTotal = useSelector(getCartTotal);
+  const cartCount = useSelector(getCartCount);
   const dispatch = useDispatch();
+
+  const handleQuantityUpdate = async(item, qty) => {
+    const newitem = {
+      ...item,
+      quantity: item.quantity + qty
+    }
+
+    if(user?.roles?.includes('user')){
+      const {payload: data} = await dispatch(syncCartitem({user_id: user._id, item: newitem, type: 'update'}))
+      if(data?.success){
+        toast.success(data.message,{position: 'top-center'})
+      }
+    }else{
+      dispatch(addToCart({item: newitem, type:'update'}))
+      toast.success("Item removed from cart",{position: 'top-center'})
+    }
+  }
 
   return (
     <section className='w-full flex justify-center bg-gray-100 border-b border-gray-300'>
@@ -16,9 +36,9 @@ function UserCart() {
         {/* products */}
         <div className='flex-grow'>
           <h3 className='text-xl'>Shopping Bag</h3>
-          {items?.length ? 
-            (<p><span className='font-bold'>{items?.length}
-              {items?.length > 1 ? ' items' : ' item'} </span> in your bag
+          {cartCount ? 
+            (<p><span className='font-bold'>{cartCount}
+              {cartCount > 1 ? ' items' : ' item'} </span> in your bag
             </p>)
             :
             (<span>Bag is empty</span>)
@@ -69,7 +89,7 @@ function UserCart() {
                                   ></span>
                                 </div>
                                 :
-                                <span className='text-sm text-gray-600 point-before point-before:!me-3 point-before:!p-0.5'>{value}</span>
+                                <span className='text-xs text-gray-600 point-before point-before:!me-3 point-before:!p-0.5'>{value}</span>
                               }
                             </div>
                           )}
@@ -79,13 +99,16 @@ function UserCart() {
                     <span className='price-before !text-base font-bold'>{item.price}</span>
                     <div className='flex items-center'>
                       <span 
-                        onClick={() => item.quantity > 1 && dispatch(updateQuantity({id: item.id, quantity: item.quantity - 1}))}
+                        onClick={() => 
+                          item.quantity > 1 && 
+                          handleQuantityUpdate(item, - 1)
+                        }
                         className='cursor-pointer'>
                         <CiSquareMinus className='text-3xl' />
                       </span>
                       <span className='px-2'>{item.quantity}</span>
                       <span 
-                        onClick={() => dispatch(updateQuantity({id: item.id, quantity: item.quantity + 1}))}
+                        onClick={() => handleQuantityUpdate(item, 1)}
                         className='cursor-pointer'>
                         <CiSquarePlus className='text-3xl' />
                       </span>

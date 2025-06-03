@@ -3,7 +3,7 @@ import welcome from '../../../assets/welcome_to_shop_green.jpg'
 import googleLogo from '../../../assets/google-logo.svg'
 import { LuEyeClosed } from "react-icons/lu";
 import { LuEye } from "react-icons/lu";
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import toast from 'react-hot-toast';
 import AxiosToast from '../../../utils/AxiosToast';
 import { Axios } from '../../../utils/AxiosSetup';
@@ -19,12 +19,16 @@ import { AnimatePresence } from 'motion/react';
 import Modal from '../../../components/ui/Modal';
 import Lottie from 'lottie-react'
 import success_icon from '../../../assets/animated_success_icon.json'
+import { fetchCart } from '../../../store/slices/CartSlice';
+import { addToCartAction } from '../../../services/ApiActions';
 
 
 const Login = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
+  const redirect = new URLSearchParams(location.search).get('redirect' || '/')
   const { user } = useSelector(state => state.user);
 
   const [passwordShowing, setPasswordShowing] = useState(false);
@@ -64,6 +68,7 @@ const Login = () => {
             ...data,
             role: 'user'
           }
+
         })
 
         if(response.data.success){
@@ -74,10 +79,20 @@ const Login = () => {
 
           const userData = await getUserDetail();
 
+          const savedCart = JSON.parse(localStorage.getItem('cart'));
+          if(savedCart?.items?.length){
+            // don't use promise.all here as it will break the cart items
+            for(const item of savedCart.items){
+              await addToCartAction(userData._id, item)
+            }
+          }
+
+          await dispatch(fetchCart(userData._id))
           dispatch(setUser({user: userData}));
 
           setData({email: '', password: ''});
-          navigate('/');
+          console.log(redirect)
+          navigate(redirect);
         }
         
       } catch (error) {
@@ -115,12 +130,12 @@ const Login = () => {
 
 
   /* for prevent access of user already logged in */
-  useEffect(() => {
-    if(user && user.role === 'user'){
-      navigate('/');
+  /* useEffect(() => {
+    if(user?.roles?.includes'user'){
+      navigate(redirect);
     }
 
-  },[user])
+  },[user]) */
 
   return (
     <main className='flex flex-col w-full h-full bg-green-screen items-center justify-center'>

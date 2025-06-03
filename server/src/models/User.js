@@ -57,7 +57,6 @@ const userSchema = new mongoose.Schema(
 			default: "",
 		},
 		roles: { type: [String], default: ["user"] },
-		wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
 		wallet_balance: { type: Number, default: 0 },
 	},
 	{ timestamps: true }

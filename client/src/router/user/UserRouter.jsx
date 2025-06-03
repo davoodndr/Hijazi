@@ -28,19 +28,17 @@ const UserRouter = () => {
 
           {/* public routes */}
           <Route element={<PublicRoutes />}>
-
-            <Route index element={<Home />} />
             <Route path="register" element={<Register />} />
             <Route path="login" element={<Login />} />
-
-            <Route path="search" element={<SearchPage />} />
-            <Route path="collections" element={<ProductListing />} />
-
-            {/* product view */}
-            <Route path="collections/:category/:subcategory/:product" element={<ProductPage />} />
-            <Route path="cart" element={<UserCart />} />
-
           </Route>
+
+          <Route index element={<Home />} />
+          <Route path="search" element={<SearchPage />} />
+          <Route path="collections" element={<ProductListing />} />
+
+          {/* product view */}
+          <Route path="collections/:category/:subcategory/:product" element={<ProductPage />} />
+          <Route path="cart" element={<UserCart />} />
           
           {/* protected routes */}
           {/* <Route element={<ProtectedRoutes />}> */}

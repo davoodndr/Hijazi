@@ -91,32 +91,35 @@ function NavbarComponent(){
                 <span className='hidden md:inline-flex text-xs font-semibold'>Wishlist</span>
               </li>
 
-              <li 
-                onClick={() => {
-                  if(cartCount > 0) {
-                    navigate('/cart')
-                  }else{
-                    toast.error("Bag is empty")
-                  }
-                }}
-                className='inline-flex h-full flex-col items-center justify-center w-11 md:w-3/9 
+              <li className='inline-flex h-full flex-col items-center justify-center w-11 md:w-3/9 
                 relative cursor-pointer group'>
 
                 {cartCount > 0 && 
                   <div className='w-fit px-1.5 h-4.5 bg-red-500 absolute left-[calc(100%-22px)] top-0.5 rounded-full
-                    inline-flex items-center justify-center text-white text-xs font-extrabold'
+                    inline-flex items-center justify-center text-white text-xs font-extrabold z-5'
                   >
                     <p>{cartCount}</p>
                   </div>
                 }
-                <BsBag className='md:mb-1 text-2xl'/>
                 
-                <div className='hidden md:inline-flex flex-col items-center text-xs font-semibold'>
-                  <span>Bag</span>
-                  <div className={clsx(
-                    'menu-indicator h-[3px] w-full bg-primary-300 z-10',
-                    cartCount > 0 && 'group-hover:!visible group-hover:!opacity-100 group-hover:!transform translate-y-0'
-                  )}></div>
+                <div 
+                  onClick={() => {
+                    if(cartCount > 0) {
+                      navigate('/cart')
+                    }else{
+                      toast.error("Bag is empty")
+                    }
+                  }}
+                  className='relative inline-flex h-full w-full flex-col items-center justify-center'>
+                  <BsBag className='md:mb-1 text-2xl'/>
+                
+                  <div className='hidden md:inline-flex flex-col items-center text-xs font-semibold'>
+                    <span>Bag</span>
+                    <div className={clsx(
+                      'menu-indicator h-[3px] w-full bg-primary-300 z-10',
+                      cartCount > 0 && 'group-hover:!visible group-hover:!opacity-100 group-hover:!transform translate-y-0'
+                    )}></div>
+                  </div>
                 </div>
                 
                 {/* cart dropdown */}

@@ -14,23 +14,26 @@ import { Axios } from '../../utils/AxiosSetup'
 import ApiBucket from '../../services/ApiBucket'
 import { FaCircleCheck } from "react-icons/fa6";
 import { useDispatch, useSelector } from 'react-redux'
-import { addToCart, getCartItem, updateQuantity } from '../../store/slices/CartSlice'
+import { addToCart, getCartItem, syncCartitem, updateQuantity } from '../../store/slices/CartSlice'
 import { setLoading } from '../../store/slices/CommonSlices'
 import toast from 'react-hot-toast'
 import { addToList } from '../../store/slices/WishlistSlice'
+import { getSingleProduct } from '../../services/FetchDatas'
 
 function ProductPageComponent() {
 
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { productData } = location.state;
+  const { user } = useSelector(state => state.user);
+  const path = location.pathname;
   const [product, setProduct] = useState(null);
   const [relatedItems, setRelatedItems] = useState(null);
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [attributes, setAttributes] = useState(null);
   const [activeVariant, setActiveVariant] = useState(null);
-  const cartItem = useSelector(state => getCartItem(state, productData?._id))
+  const [productQty, setProductQty] = useState(1);
+  const cartItem = useSelector(state => getCartItem(state, activeVariant?._id || product?._id))
 
   /* function to re-arrange attributes */
   const getAttributeMap = (variants) => {
@@ -50,56 +53,73 @@ function ProductPageComponent() {
     return attrs
   }
 
+  // inital product fetch
+  useEffect(() => {
+    const product_slug = path.split('/').pop();
+    const fetchProduct = async() => {
+      const p = await getSingleProduct(product_slug);
+      setProduct(p);
+    }
+    fetchProduct();
+  },[])
+
+
+  useEffect(() => {
+    if(cartItem) setProductQty(cartItem?.quantity)
+  },[cartItem])
+
   // initially setting the variant and select attributes
   useEffect(()=> {
     
     dispatch(setLoading(false))
 
-    if(productData.variants.length) {
-      setAttributes(getAttributeMap(productData.variants))
+    if(product){
+      if(product?.variants?.length) {
+        setAttributes(getAttributeMap(product.variants))
 
-      const minPricedVariant = productData.variants.reduce((minVariant, current) => {
-        
-        if(!minVariant || current?.price < minVariant?.price){
-          return current;
-        }else{
-          return minVariant;
-        }
-      },null)
-
-      setActiveVariant(minPricedVariant);
-      setSelectedAttributes(minPricedVariant?.attributes)
-    }
-
-    setProduct(productData);
-
-    const getRealtedItems = async(product) => {
-      try {
-
-        const response = await Axios({
-          ...ApiBucket.getRelatedProducts,
-          params:{
-            product_id: product._id,
-            category: product.category._id
+        const minPricedVariant = product.variants.reduce((minVariant, current) => {
+          
+          if(!minVariant || current?.price < minVariant?.price){
+            return current;
+          }else{
+            return minVariant;
           }
-        })
+        },null)
 
-        if(response?.data?.success){
-          setRelatedItems(response?.data?.items);
-        }
-
-      } catch (error) {
-        console.log(error)
-        AxiosToast(error)
+        setActiveVariant(minPricedVariant);
+        setSelectedAttributes(minPricedVariant?.attributes)
       }
 
+      setProduct(product);
+
+      const getRealtedItems = async(product) => {
+        try {
+
+          const response = await Axios({
+            ...ApiBucket.getRelatedProducts,
+            params:{
+              product_id: product._id,
+              category: product.category._id
+            }
+          })
+
+          if(response?.data?.success){
+            setRelatedItems(response?.data?.items);
+          }
+
+        } catch (error) {
+          console.log(error)
+          AxiosToast(error)
+        }
+
+      }
+
+      getRealtedItems(product);
+
+      window.scrollTo(0, 0);
     }
 
-    getRealtedItems(productData);
-
-    window.scrollTo(0, 0);
-
-  },[productData])
+  },[product])
   
   // hndling user select attributes
   const handleAttributeSelect = (key, value) => {
@@ -153,6 +173,31 @@ function ProductPageComponent() {
           productData: product
         }}
     )
+  }
+
+  const handleAddToCart = async() => {
+    const newitem = {
+      id: activeVariant?._id || product._id,
+      name:product.name,
+      category:product.category.name,
+      sku:activeVariant?.sku || product?.sku,
+      price:activeVariant?.price || product?.price,
+      stock: activeVariant?.stock || product?.stock,
+      quantity: productQty || 1,
+      image:activeVariant?.image || product?.images[0],
+      attributes:activeVariant?.attributes,
+      product_id: product._id
+    }
+
+    if(user?.roles?.includes('user')){
+      const {payload: data} = await dispatch(syncCartitem({user_id: user._id, item: newitem, type: 'update'}))
+      if(data?.success){
+        toast.success(data.message,{position: 'top-center'})
+      }
+    }else{
+      dispatch(addToCart({item: newitem, type:'update'}))
+      toast.success("Item added to cart",{position: 'top-center'})
+    }
   }
 
   return (
@@ -273,18 +318,16 @@ function ProductPageComponent() {
               w-full border border-gray-300 rounded-lg relative">
 
               <span 
-                onClick={() =>{ 
-                  dispatch(updateQuantity({id: cartItem.id, quantity: cartItem.quantity + 1}))
-                  toast.success("Increased item quantity",{position: 'top-center'})
+                onClick={() =>{
+                  setProductQty(prev => prev += 1)
                 }}
                 className='absolute right-2 top-1 cursor-pointer'>
                 <IoIosArrowUp />
               </span>
-              <span>{cartItem?.quantity}</span>
+              <span>{productQty}</span>
               <span 
                 onClick={() => {
-                  cartItem.quantity > 1 && dispatch(updateQuantity({id: cartItem.id, quantity: cartItem.quantity - 1}))
-                  toast.error("Decreased item quantity",{position: 'top-center'})
+                  setProductQty(prev => prev > 1 ? prev -= 1 : prev)
                 }}
                 className='absolute right-2 bottom-1 cursor-pointer'>
                 <IoIosArrowDown />
@@ -294,28 +337,15 @@ function ProductPageComponent() {
 
             <div className="flex space-x-3">
               <button
-                onClick={() => {
-                  dispatch(addToCart({
-                    id: product._id,
-                    name:product.name,
-                    category:product.category.name,
-                    sku:activeVariant?.sku || product?.sku,
-                    price:activeVariant?.price || product?.price,
-                    quantity: 1,
-                    image:activeVariant?.image || product?.images[0],
-                    attributes:activeVariant?.attributes,
-                    variant_id: activeVariant?._id
-                  }))
-                  toast.success("Item added to cart",{position: 'top-center'})
-                }}
-                className="h-full !px-10">Add to cart
+                onClick={handleAddToCart}
+                className="h-full !px-10">Add to Bag
               </button>
 
               {/* wishlist button */}
               <span 
                 onClick={() => {
                   dispatch(addToList({
-                    id: product._id,
+                    id: activeVariant?._id || product._id,
                     name:product.name,
                     category:product.category.name,
                     price:activeVariant?.price || product?.price,
@@ -323,7 +353,7 @@ function ProductPageComponent() {
                     stock: activeVariant?.stock || product?.stock,
                     image:activeVariant?.image || product?.images[0],
                     attributes:activeVariant?.attributes,
-                    variant_id: activeVariant?._id
+                    product_id: product._id
                   }))
                 }}
                 className="sale-icon h-full inline-flex items-center px-3" >
