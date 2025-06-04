@@ -21,6 +21,7 @@ import Lottie from 'lottie-react'
 import success_icon from '../../../assets/animated_success_icon.json'
 import { fetchCart } from '../../../store/slices/CartSlice';
 import { addToCartAction } from '../../../services/ApiActions';
+import { fetchWishlist } from '../../../store/slices/WishlistSlice';
 
 
 const Login = () => {
@@ -83,15 +84,15 @@ const Login = () => {
           if(savedCart?.items?.length){
             // don't use promise.all here as it will break the cart items
             for(const item of savedCart.items){
-              await addToCartAction(userData._id, item)
+              await addToCartAction(item)
             }
           }
 
-          await dispatch(fetchCart(userData._id))
+          dispatch(fetchCart(userData._id))
+          dispatch(fetchWishlist(userData._id))
           dispatch(setUser({user: userData}));
 
           setData({email: '', password: ''});
-          console.log(redirect)
           navigate(redirect);
         }
         

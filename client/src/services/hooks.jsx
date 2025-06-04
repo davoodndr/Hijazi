@@ -7,6 +7,7 @@ import { logoutUser, setUser } from "../store/slices/UsersSlice";
 import { useGoogleLogin } from "@react-oauth/google";
 import { getUserDetail } from "./FetchDatas";
 import { clearCart } from "../store/slices/CartSlice";
+import { clearWishlist } from "../store/slices/WishlistSlice";
 
 export const useLogout = () => {
 
@@ -25,7 +26,8 @@ export const useLogout = () => {
       if(response.data.success){
         dispatch(logoutUser());
         localStorage.clear();
-        dispatch(clearCart())
+        dispatch(clearCart());
+        dispatch(clearWishlist())
         AxiosToast(response, false);
         navigate(redirect)
       }

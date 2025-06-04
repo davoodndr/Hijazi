@@ -4,6 +4,7 @@ import { getCategories } from '../controllers/user/categoryController.js';
 import { getBrands } from '../controllers/user/brandController.js';
 import { getProduct, getProductList, getRelatedItems } from '../controllers/user/productController.js';
 import { addToCart, getCart, removeFromCart } from '../controllers/user/cartController.js';
+import { addToWishlist, getWishlist, removeFromWishlist } from '../controllers/user/wishlistController.js';
 
 const userRouter = express.Router();
 
@@ -24,6 +25,11 @@ userRouter.get('/get-related-items', getRelatedItems)
 userRouter.get('/get-cart', authenticate, allowRoles(['admin','user']), getCart);
 userRouter.post('/add-to-cart', authenticate, allowRoles(['admin','user']), addToCart);
 userRouter.patch('/remove-from-cart', authenticate, allowRoles(['admin','user']), removeFromCart);
+
+/* wishlist management */
+userRouter.get('/get-wishlist', authenticate, allowRoles(['admin','user']), getWishlist);
+userRouter.post('/add-to-wishlist', authenticate, allowRoles(['admin','user']), addToWishlist);
+userRouter.patch('/remove-from-wishlist', authenticate, allowRoles(['admin','user']), removeFromWishlist);
 
 
 

@@ -6,6 +6,7 @@ import { fetchCategories } from "../store/slices/CategorySlices"
 import AdminRouter from "./admin/AdminRouter"
 import UserRouter from "./user/UserRouter"
 import { fetchCart } from "../store/slices/CartSlice"
+import { fetchWishlist } from "../store/slices/WishlistSlice"
 
 function App() {
 
@@ -14,9 +15,9 @@ function App() {
   useEffect(() => {
     const fetchAuthData = async() => {
       const { payload: user } = await dispatch(fetchUser());
-      
       if(user?.roles?.includes('user')){
         dispatch(fetchCart(user._id))
+        dispatch(fetchWishlist(user._id))
       }
     }
     fetchAuthData()

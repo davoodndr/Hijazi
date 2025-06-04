@@ -188,6 +188,20 @@ const ApiBucket = {
     url: '/api/user/remove-from-cart',
     method: 'patch'
   },
+
+  /* wishlist */
+  getWishlist: {
+    url: '/api/user/get-wishlist',
+    method: 'get'
+  },
+  addToWishlist: {
+    url: '/api/user/add-to-wishlist',
+    method: 'post'
+  },
+  removeFromWishlist: {
+    url: '/api/user/remove-from-wishlist',
+    method: 'patch'
+  },
 }
 
 

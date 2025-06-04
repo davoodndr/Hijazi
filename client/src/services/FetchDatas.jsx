@@ -87,12 +87,11 @@ export const getProductList = async() => {
 }
 
 /* cart */
-export const getCart = async(user_id) => {
+export const getCart = async() => {
   try {
     
     const response = await Axios({
       ...ApiBucket.getCart,
-      params: { user_id }
     })
 
     return response.data.cart.items;
@@ -100,6 +99,22 @@ export const getCart = async(user_id) => {
   } catch (error) {
     console.log(error.response.data)
     //return error.response.data
+  }
+}
+
+/* wishlist */
+export const getWishlist = async() => {
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getWishlist,
+    })
+
+    return response.data.wishlist.list;
+
+  } catch (error) {
+    console.log(error.response.data)
+    throw new Error(error?.response?.data?.message)
   }
 }
 

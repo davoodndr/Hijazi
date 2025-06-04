@@ -14,10 +14,10 @@ import { Axios } from '../../utils/AxiosSetup'
 import ApiBucket from '../../services/ApiBucket'
 import { FaCircleCheck } from "react-icons/fa6";
 import { useDispatch, useSelector } from 'react-redux'
-import { addToCart, getCartItem, syncCartitem, updateQuantity } from '../../store/slices/CartSlice'
+import { addToCart, getCartItem, syncCartitem } from '../../store/slices/CartSlice'
 import { setLoading } from '../../store/slices/CommonSlices'
 import toast from 'react-hot-toast'
-import { addToList } from '../../store/slices/WishlistSlice'
+import { addToList, syncWishlistItem } from '../../store/slices/WishlistSlice'
 import { getSingleProduct } from '../../services/FetchDatas'
 
 function ProductPageComponent() {
@@ -27,6 +27,7 @@ function ProductPageComponent() {
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.user);
   const path = location.pathname;
+
   const [product, setProduct] = useState(null);
   const [relatedItems, setRelatedItems] = useState(null);
   const [selectedAttributes, setSelectedAttributes] = useState({});
@@ -190,13 +191,37 @@ function ProductPageComponent() {
     }
 
     if(user?.roles?.includes('user')){
-      const {payload: data} = await dispatch(syncCartitem({user_id: user._id, item: newitem, type: 'update'}))
+      const {payload: data} = await dispatch(syncCartitem({item: newitem, type: 'update'}))
       if(data?.success){
         toast.success(data.message,{position: 'top-center'})
       }
     }else{
       dispatch(addToCart({item: newitem, type:'update'}))
       toast.success("Item added to cart",{position: 'top-center'})
+    }
+  }
+
+  const handleAddToWishlist = async() => {
+    const newitem = {
+      id: activeVariant?._id || product._id,
+      name:product.name,
+      category:product.category.name,
+      sku:activeVariant?.sku || product?.sku,
+      price:activeVariant?.price || product?.price,
+      stock: activeVariant?.stock || product?.stock,
+      quantity: 1,
+      image:activeVariant?.image || product?.images[0],
+      attributes:activeVariant?.attributes,
+      product_id: product._id
+    }
+
+    if(user?.roles?.includes('user')){
+      const {payload: data} = await dispatch(syncWishlistItem({item: newitem}))
+      if(data?.success){
+        toast.success(data.message,{position: 'top-center'})
+      }
+    }else{
+      navigate(`/login?redirect=${encodeURIComponent(path)}`)
     }
   }
 
@@ -343,21 +368,9 @@ function ProductPageComponent() {
 
               {/* wishlist button */}
               <span 
-                onClick={() => {
-                  dispatch(addToList({
-                    id: activeVariant?._id || product._id,
-                    name:product.name,
-                    category:product.category.name,
-                    price:activeVariant?.price || product?.price,
-                    quantity: 1,
-                    stock: activeVariant?.stock || product?.stock,
-                    image:activeVariant?.image || product?.images[0],
-                    attributes:activeVariant?.attributes,
-                    product_id: product._id
-                  }))
-                }}
-                className="sale-icon h-full inline-flex items-center px-3" >
-                <FaRegHeart className='text-xl' />
+                onClick={handleAddToWishlist}
+                className="group sale-icon hover:!scale-none h-full inline-flex items-center px-3" >
+                <FaRegHeart className='text-xl smooth group-hover:scale-130' />
               </span>
 
             </div>

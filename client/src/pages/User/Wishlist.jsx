@@ -1,14 +1,63 @@
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { IoTrashOutline } from 'react-icons/io5';
-import { addToCart } from '../../store/slices/CartSlice';
-import { removeFromList } from '../../store/slices/WishlistSlice';
+import { addToCart, syncCartitem } from '../../store/slices/CartSlice';
+import { deleteWishlistItem, removeFromList } from '../../store/slices/WishlistSlice';
 import toast from 'react-hot-toast';
 
 function Wishlist() {
 
   const { list } = useSelector(state => state.wishlist);
+  const { user } = useSelector(state => state.user);
   const dispatch = useDispatch();
+
+  const handleAddToCart = async(item) => {
+    /* {
+                        dispatch(addToCart({
+                          id: item.id,
+                          name:item.name,
+                          category:item.category,
+                          sku:item.sku,
+                          price:item.price,
+                          quantity: item.quantity,
+                          image:item.image,
+                          attributes:item.attributes,
+                          variant_id: item.variant_id
+                        }))
+                        
+                      } */
+    const newitem = {
+      id: item.id,
+      name:item.name,
+      category:item.category,
+      sku:item.sku,
+      price:item.price,
+      quantity: 1,
+      image:item.image,
+      attributes:item.attributes,
+      product_id: item.product_id
+    }
+
+    if(user?.roles?.includes('user')){
+      const {payload: data} = await dispatch(syncCartitem({item: newitem}))
+      console.log(data)
+      if(data?.success){
+        await dispatch(deleteWishlistItem({item: newitem}))
+        toast.success(data.message,{position: 'top-center'})
+      }
+    }else{
+      dispatch(addToCart({item: newitem}))
+      dispatch(removeFromList(item.id))
+      toast.success("Item added to cart",{position: 'top-center'})
+    }
+  }
+
+  const handleRemoveItem = (item) => {
+    if(user?.roles?.includes('user')){
+      dispatch(deleteWishlistItem({item}))
+      toast.success("Item removed from Wishlist",{position: 'top-center'})
+    }
+  }
 
   return (
     <section className='w-full flex-grow flex justify-center bg-gray-100 border-b border-gray-300'>
@@ -38,11 +87,10 @@ function Wishlist() {
             </li>
 
             {/* item */}
-            {list.length > 0 ?
-              list.map(item => {
+            {list?.length > 0 ?
+              list?.map(item => {
 
               const attributes = item?.attributes ? Object.entries(item.attributes) : [];
-              const itemTotal = item.quantity * item.price;
 
               return (
                 <li key={item.id} className='grid grid-cols-[3fr_1fr_1fr_1fr] pb-5 justify-items-center'>
@@ -88,27 +136,11 @@ function Wishlist() {
                   {/* actions */}
                   <div className='flex items-center space-x-3'>
                     <button 
-                      onClick={() => {
-                        dispatch(addToCart({
-                          id: item.id,
-                          name:item.name,
-                          category:item.category,
-                          sku:item.sku,
-                          price:item.price,
-                          quantity: item.quantity,
-                          image:item.image,
-                          attributes:item.attributes,
-                          variant_id: item.variant_id
-                        }))
-                        dispatch(removeFromList(item.id))
-                      }}
+                      onClick={() => handleAddToCart(item)}
                       className='!py-1.5 !px-4'>Add to Bag</button>
 
                     <div 
-                      onClick={() => {
-                        dispatch(removeFromList(item.id))
-                        toast.success("Item removed from Wishlist",{position: 'top-center'})
-                      }}
+                      onClick={() => handleRemoveItem(item)}
                       className='p-2 border rounded-input-border border-gray-300 cursor-pointer
                       smooth hover:bg-red-400 hover:border-red-400 hover:text-white'>
                       <IoTrashOutline className='text-xl' />

@@ -5,32 +5,39 @@ import { responseMessage } from "../../utils/messages.js";
 // get cart
 export const getCart = async(req, res) => {
 
-  const { user_id } = req.query
+  const { user_id } = req
 
   try {
 
     const cart = await Cart.findOne({user_id}).lean();
-    if(cart?.items?.length){
-      cart.items = await Promise.all(cart?.items?.map(async item => {
-        const product = await Product.findById(item?.product_id)
-          .populate({path: 'category', select: 'name'});
-        
-        const variant = product.variants?.find(v => v._id.toString() === item?.variant_id);
-        
-        return{
-          id: item?.variant_id || product._id,
-          name:product.name,
-          category: product?.category?.name,
-          sku: variant?.sku || product.sku,
-          price: variant?.price || product.price,
-          stock: variant?.stock || product.stock,
-          quantity: item.quantity,
-          image: variant?.image || product?.images[0],
-          attributes: item.attributes,
-          product_id: item.product_id
-        }
-      }))
+
+    if(!cart){
+      return responseMessage(res, 400, false, "Bag does not exists")
     }
+
+    if(!cart?.items?.length){
+      return responseMessage(res, 400, false, "Bag is empty")
+    }
+
+    cart.items = await Promise.all(cart?.items?.map(async item => {
+      const product = await Product.findById(item?.product_id)
+        .populate({path: 'category', select: 'name'});
+      
+      const variant = product.variants?.find(v => v._id.toString() === item?.variant_id);
+      
+      return{
+        id: item?.variant_id || product._id,
+        name:product.name,
+        category: product?.category?.name,
+        sku: variant?.sku || product.sku,
+        price: variant?.price || product.price,
+        stock: variant?.stock || product.stock,
+        quantity: item.quantity,
+        image: variant?.image || product?.images[0],
+        attributes: item.attributes,
+        product_id: item.product_id
+      }
+    }))
     
     return responseMessage(res, 200, true, "",{cart});
     
@@ -43,7 +50,9 @@ export const getCart = async(req, res) => {
 // add to cart
 export const addToCart = async(req, res) => {
 
-  const { user_id, product_id, quantity, variant_id, attributes, type } = req.body
+  const { user_id } = req;
+
+  const { product_id, quantity, variant_id, attributes, type } = req.body
   
   try {
 
@@ -51,6 +60,7 @@ export const addToCart = async(req, res) => {
 
     const product = await Product.findById(product_id)
       .populate({path: 'category', select: 'name'});
+
     if (!product) {
       return responseMessage(res, 404, false, "Product not found");
     }
@@ -109,7 +119,7 @@ export const addToCart = async(req, res) => {
       cart = await cart.save();
     }
 
-    const itemIndex = cart.items.findIndex(item => 
+    /* const itemIndex = cart.items.findIndex(item => 
         item.product_id.toString() === product_id && 
         ((item?.variant_id?.toString() === variant_id) || (!item?.variant_id && !variant_id)) 
       )
@@ -126,9 +136,29 @@ export const addToCart = async(req, res) => {
       image: variant?.image || product?.images[0],
       attributes: item.attributes,
       product_id: item.product_id
-    }
+    } */
+
+    const items = await Promise.all(cart?.items?.map(async item => {
+      const product = await Product.findById(item?.product_id)
+        .populate({path: 'category', select: 'name'});
+      
+      const variant = product.variants?.find(v => v._id.toString() === item?.variant_id);
+      
+      return{
+        id: item?.variant_id || product._id,
+        name:product.name,
+        category: product?.category?.name,
+        sku: variant?.sku || product.sku,
+        price: variant?.price || product.price,
+        stock: variant?.stock || product.stock,
+        quantity: item.quantity,
+        image: variant?.image || product?.images[0],
+        attributes: item.attributes,
+        product_id: item.product_id
+      }
+    }))
     
-    return responseMessage(res, 201, true, "Item added to Bag", {newItem : itemData});
+    return responseMessage(res, 201, true, "Item added to Bag", {items});
     
   } catch (error) {
     console.log('addToCart',error)
@@ -139,7 +169,8 @@ export const addToCart = async(req, res) => {
 // remove from cart
 export const removeFromCart = async(req, res) => {
 
-  const { user_id, product_id, variant_id } = req.body
+  const { user_id } = req;
+  const { product_id, variant_id } = req.body
 
   try {
 

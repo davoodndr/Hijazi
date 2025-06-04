@@ -5,22 +5,23 @@ import { addToCartAction, removeFromCartAction } from '../../services/ApiActions
 
 export const fetchCart = createAsyncThunk(
   'cart/fetch-cart', 
-  async(user_id) => 
-    await getCart(user_id).then(res => res)
+  async() => 
+    await getCart()
+    .then(res => res)
 )
 
 export const syncCartitem = createAsyncThunk(
   'cart/syncCartItem',
-  async({user_id, item, type},{rejectWithValue}) => 
-    await addToCartAction(user_id, item, type)
+  async({item, type},{rejectWithValue}) => 
+    await addToCartAction(item, type)
     .then(res => res)
     .catch(err => rejectWithValue(err.message || 'Failed to sync cart item'))
 )
 
 export const deleteCartItem = createAsyncThunk(
   'cart/deleteCartItem',
-  async({user_id, item},{rejectWithValue}) => 
-    await removeFromCartAction(user_id, item)
+  async({item},{rejectWithValue}) => 
+    await removeFromCartAction(item)
     .then(res => res)
     .catch(err => rejectWithValue(err.message || 'Failed to remove cart item'))
 )
@@ -81,15 +82,8 @@ const cartSlice = createSlice({
         state.error = null
       })
       .addCase(syncCartitem.fulfilled, (state, action) => {
-        const { newItem } = action.payload
-        const index = state.items.findIndex(
-          (item) => item.id === newItem.id
-        );
-        if (index > -1) {
-          state.items[index].quantity = newItem.quantity;
-        } else {
-          state.items.push(newItem);
-        }
+        const { items } = action.payload
+        state.items = items;
         state.error = null;
       })
       .addCase(syncCartitem.rejected, (state, action) => {
@@ -120,7 +114,6 @@ export const getCartTotal = (state) => {
 }
 
 export const getCartCount = (state) => {
-  //console.log(state.cart)
   return state?.cart?.items?.reduce((total, item) => total + item?.quantity,0)
 }
 

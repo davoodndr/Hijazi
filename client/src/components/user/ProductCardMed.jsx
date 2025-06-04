@@ -10,11 +10,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addToCart, syncCartitem } from '../../store/slices/CartSlice';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { addToList } from '../../store/slices/WishlistSlice';
+import { addToList, syncWishlistItem } from '../../store/slices/WishlistSlice';
+import { useLocation, useNavigate } from 'react-router';
 
 function ProducCardMedComponent({product, onClick}) {
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useSelector(state => state.user);
   const [completed, setCompleted] = useState(false);
   const [activeVariant, setActiveVariant] = useState(null);
@@ -53,13 +56,38 @@ function ProducCardMedComponent({product, onClick}) {
     }
 
     if(user?.roles?.includes('user')){
-      const {payload: data} = await dispatch(syncCartitem({user_id: user._id, item: newitem}))
+      const {payload: data} = await dispatch(syncCartitem({item: newitem}))
       if(data?.success){
         toast.success(data.message,{position: 'top-center'})
       }
     }else{
       dispatch(addToCart({item: newitem, type:'update'}))
       toast.success("Item added to cart",{position: 'top-center'})
+    }
+  }
+
+  const handleAddToWishlist = async(e) => {
+    e.stopPropagation();
+    const newitem = {
+      id: activeVariant?._id || product._id,
+      name:product.name,
+      category:product.category.name,
+      sku:activeVariant?.sku || product?.sku,
+      price:activeVariant?.price || product?.price,
+      stock: activeVariant?.stock || product?.stock,
+      quantity: 1,
+      image:activeVariant?.image || product?.images[0],
+      attributes:activeVariant?.attributes,
+      product_id: product._id
+    }
+
+    if(user?.roles?.includes('user')){
+      const {payload: data} = await dispatch(syncWishlistItem({item: newitem}))
+      if(data?.success){
+        toast.success(data.message,{position: 'top-center'})
+      }
+    }else{
+      navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
     }
   }
 
@@ -119,20 +147,7 @@ function ProducCardMedComponent({product, onClick}) {
           {/* buttons - add to cart, add to wishlist */}
           <div className='absolute right-0 bottom-3 inline-flex flex-col gap-1 z-10'>
             <div 
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(addToList({
-                  id: activeVariant?._id || product._id,
-                  name:product.name,
-                  category:product.category.name,
-                  price:activeVariant?.price || product?.price,
-                  quantity: 1,
-                  stock: activeVariant?.stock || product?.stock,
-                  image:activeVariant?.image || product?.images[0],
-                  attributes:activeVariant?.attributes,
-                  product_id: product._id
-                }))
-              }}
+              onClick={handleAddToWishlist}
               className='sale-icon opacity-0 scale-0 group-hover/item:opacity-100 group-hover/item:scale-100'>
               <TbHeart className='text-2xl' />
             </div>

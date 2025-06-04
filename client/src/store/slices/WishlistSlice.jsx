@@ -1,10 +1,37 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
+import { getWishlist } from "../../services/FetchDatas";
+import { addToWishlistAction, removeFromWishlistAction } from "../../services/ApiActions";
+
+export const fetchWishlist = createAsyncThunk(
+  'whislist/fetchList',
+  async({rejectWithValue}) => 
+    await getWishlist()
+    .then(res => res)
+    .catch(err => rejectWithValue(err.message || 'Failed to fetch wishlist'))
+)
+
+export const syncWishlistItem = createAsyncThunk(
+  'wishlist/add-to-list',
+  async({item},{rejectWithValue}) => 
+    await addToWishlistAction(item)
+    .then(res => res)
+    .catch(err => rejectWithValue(err.message || 'Failed to sync wishlist'))
+)
+
+export const deleteWishlistItem = createAsyncThunk(
+  'wishlist/deleteItem',
+  async({item},{rejectWithValue}) => 
+    await removeFromWishlistAction(item)
+    .then(res => res)
+    .catch(err => rejectWithValue(err.message || 'Failed to remove from wishlist'))
+)
 
 const wishlistSlice = createSlice({
   name: 'wishlist',
   initialState: {
-    list: []
+    list: [],
+    error: null
   },
   reducers: {
     addToList: (state, action) => {
@@ -20,7 +47,34 @@ const wishlistSlice = createSlice({
     removeFromList: (state, action) => {
       state.list = state.list.filter(item => item.id !== action.payload);
     },
-    clear: (state) => state.list = []
+    clearWishlist: (state) => {
+      state.list = []
+    }
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchWishlist.fulfilled, (state, action) => {
+        state.list = action.payload;
+        state.error = null;
+      })
+      .addCase(syncWishlistItem.fulfilled, (state, action) => {
+        const { list } = action.payload;
+        state.list = list;
+        state.error = null;
+      })
+      .addCase(syncWishlistItem.rejected, (state, action) => {
+        state.error = action.payload;
+        toast.error(state.error,{position: 'top-center'})
+      })
+      .addCase(deleteWishlistItem.fulfilled, (state, action) => {
+        const { list } = action.payload;
+        state.list = list;
+        state.error = null;
+      })
+      .addCase(deleteWishlistItem.rejected, (state, action) => {
+        state.error = action.payload;
+        toast.error(state.error,{position: 'top-center'})
+      })
   }
 })
 
@@ -28,5 +82,5 @@ export const getWishlistCount = (state) => {
   return state?.wishlist?.list?.length;
 }
 
-export const { addToList, removeFromList, clear } = wishlistSlice.actions;
+export const { addToList, removeFromList, clearWishlist } = wishlistSlice.actions;
 export default wishlistSlice.reducer;
