@@ -15,6 +15,7 @@ const SearchPage = React.lazy(() => import("../../pages/User/SearchPage"))
 const ProductPage = React.lazy(() => import("../../pages/User/ProductPage"))
 const UserCart = React.lazy(() => import("../../pages/User/UserCart"))
 const Wishlist = React.lazy(() => import("../../pages/User/Wishlist"))
+const Checkout = React.lazy(() => import("../../pages/User/Checkout"))
 
 const UserRouter = () => {
 
@@ -41,11 +42,12 @@ const UserRouter = () => {
           <Route path="cart" element={<UserCart />} />
           
           {/* protected routes */}
-          {/* <Route element={<ProtectedRoutes />}> */}
+          <Route element={<ProtectedRoutes />}>
 
             <Route path="wishlist" element={<Wishlist />} />
+            <Route path="checkout" element={<Checkout />} />
 
-          {/* </Route> */}
+          </Route>
           
         </Route>
         

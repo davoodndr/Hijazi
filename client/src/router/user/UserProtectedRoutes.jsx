@@ -1,12 +1,14 @@
 import React from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router';
 import LoadingFallOff from '../../components/ui/LoadingFallOff';
+import { useSelector } from 'react-redux';
 
-const UserProtectedRoutes = ({user, isLoading}) => {
+const UserProtectedRoutes = () => {
 
   const location = useLocation();
+  const { user, isLoading } = useSelector(state => state.user);
   
-  if(isLoading) return <LoadingFallOff height={100} />
+  if(isLoading) return <LoadingFallOff />
 
   if(!user?.roles.includes('user') || user?.status === 'blocked'){
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />
