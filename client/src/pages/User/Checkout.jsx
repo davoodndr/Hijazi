@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux';
 import { getCartCount, getCartTotal } from '../../store/slices/CartSlice';
 import { IoWallet } from "react-icons/io5";
 import ToggleSwitch  from '../../components/ui/ToggleSwitch'
@@ -9,13 +9,117 @@ import { MdEdit } from "react-icons/md";
 import { LuHousePlus } from "react-icons/lu";
 import razorpay from '../../assets/razorpay-icon.svg'
 import { RiCoupon3Fill } from "react-icons/ri";
+import { useLocation, useNavigate } from 'react-router';
+import { Axios } from '../../utils/AxiosSetup';
+import ApiBucket from '../../services/ApiBucket';
+import AxiosToast from '../../utils/AxiosToast';
+import { setLoading } from '../../store/slices/CommonSlices';
+import Alert from '../../components/ui/Alert'
+import { capitalize, isValidDatas } from '../../utils/Utils';
+import toast from 'react-hot-toast';
+import AddressModal from '../../components/user/AddressModal';
 
 function Checkout() {
 
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
   const { items } = useSelector(state => state.cart);
   const cartCount = useSelector(getCartCount);
   const cartTotal = useSelector(getCartTotal);
+  const [data, setData] = useState({
+    payment_method: null, bill_address: null, ship_address: null
+  });
   const [grandTotal, setGrandTotal] = useState(0);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+
+  // clean the url after success payment
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const paymentId = params.get('razorpay_payment_id');
+
+    if (paymentId) {
+      // put the order save fucntions here
+      Alert({
+        title:'Order Placed successfully',
+        text: 'Thank you for puchasing the product from us. You can view it on the order detail page.',
+        icon: 'success',
+        customClass: {
+          title: '!text-2xl !text-primary-300',
+          htmlContainer: '!text-gray-400',
+          popup: '!max-w-[430px]',
+          icon: '!size-[5em]',
+          confirmButton: 'border border-primary-400',
+          cancelButton: '!bg-white border border-primary-400 !text-primary-400',
+          actions: '!justify-center'
+        },
+        showCancelButton: true,
+        cancelButtonText: 'Continue shoping',
+        confirmButtonText: 'View my Order',
+      })
+      navigate('/checkout', { replace: true });
+    }
+  }, [location.search, navigate]);
+
+  // handle select payment method
+  const handleMethodChange = (e) => {
+    if(e?.target?.type === 'radio'){
+      setData(prev => ({...prev, payment_method:e.target.id}));
+    }
+  }
+
+  const validateData = () => {
+    const empty = Object.keys(data).find(key => !data[key]);
+    const output = empty?.split?.('_').map(el => capitalize(el)).join(' ');
+    let type;
+    switch(empty){
+
+      case 'payment_method': 
+        type = 'choose';
+        break;
+      case 'bill_address' || 'ship_address' : 
+        type = 'add';
+        break;
+
+      default:   type = 'fill';
+    }
+
+    return {field: output, type}
+  }
+
+  const handlePayment = async() => {
+
+    const { field:emptyField, type } = validateData();
+
+    if(emptyField) {
+      toast.error(`Please ${type} ${emptyField}!`,{position: 'top-center'});
+    }else{
+      dispatch(setLoading(true))
+
+      try {
+        
+        /* const response = await Axios({
+          ...ApiBucket.generateRazorpayLink,
+          data: {
+            amount: 50,
+            name:'test user',
+            email: 'testuser@gmail.com',
+            contact: '7012860026',
+            url: location.pathname
+          }
+        })
+
+        if(response.data.success){
+          window.location.href = response.data.link
+        } */
+
+      } catch (error) {
+        AxiosToast(error)
+      }finally{
+        dispatch(setLoading(false))
+      }
+    }
+  }
 
   return (
     <section className='flex-grow w-full bg-gray-50 flex flex-col items-center py-15'>
@@ -113,10 +217,10 @@ function Checkout() {
           <div className='flex flex-col p-5 space-y-4 border-b border-gray-200'>
             <div className='flex items-center justify-between'>
               <h3>Choose How to pay</h3>
-              <span className='text-primary-400 inline-flex leading-normal cursor-pointer
-                  rounded-xl smooth hover:bg-primary-100 hover:px-2'>+ New</span>
+              {/* <span className='text-primary-400 inline-flex leading-normal cursor-pointer
+                  rounded-xl smooth hover:bg-primary-100 hover:px-2'>+ New</span> */}
             </div>
-            <ul className='space-y-2'>
+            <ul className='space-y-2' onClick={handleMethodChange}>
               <li className='flex items-center justify-between px-4 border border-gray-200 rounded-2xl
                 smooth hover:bg-primary-50 hover:border-primary-300'>
                 <label 
@@ -125,17 +229,17 @@ function Checkout() {
                 >
                   <img src={razorpay} alt="razorpay-logo" className='w-25' />
                 </label>
-                <input type="radio" name="" id="razor-pay" />
+                <input type="radio" name="payment-method" id="razor-pay" />
               </li>
               <li className='flex items-center justify-between px-4 border border-gray-200 rounded-2xl
                 smooth hover:bg-primary-50 hover:border-primary-300'>
                 <label 
-                  htmlFor="razor-pay"
+                  htmlFor="cod"
                   className='!text-base flex w-full cursor-pointer py-5 !text-gray-500 !font-bold'
                 >
                   Cash on delivery
                 </label>
-                <input type="radio" name="" id="razor-pay" />
+                <input type="radio" name="payment-method" id="cod" />
               </li>
             </ul>
           </div>
@@ -149,12 +253,19 @@ function Checkout() {
                   <GoLocation className='me-2 text-xl'/>
                   Billing Address
                 </h3>
-                {/* <span className='p-0.5 rounded-lg text-gray-400 cursor-pointer 
-                  smooth hover:bg-primary-50 hover:shadow hover:text-black'>
-                  <MdEdit className='text-xl' />
-                </span> */}
-                <span className='text-primary-400 inline-flex leading-normal cursor-pointer
-                  rounded-xl smooth hover:bg-primary-100 hover:px-2'>+ Add</span>
+                {data?.bill_address ? 
+                  (<span 
+                    onClick={() => setIsAddOpen(true)}
+                    className='p-0.5 rounded-lg text-gray-400 cursor-pointer 
+                    smooth hover:bg-primary-50 hover:shadow hover:text-black'>
+                    <MdEdit className='text-xl' />
+                  </span>)
+                  :
+                  (<span 
+                    onClick={() => setIsAddOpen(true)}
+                    className='text-primary-400 inline-flex leading-normal cursor-pointer
+                    rounded-xl smooth hover:bg-primary-100 hover:px-2'>+ Add</span>)
+                }
               </div>
               <p className='text-sm text-gray-300 ms-7'>Not addded</p>
               {/* <p className='capitalize text-sm text-gray-500 ms-7'>davood hakkim pm, erolakkandi, near ch bridge, naduvannur, calicut - dis, 673614</p> */}
@@ -167,16 +278,25 @@ function Checkout() {
                   <GoLocation className='me-2 text-xl'/>
                   Shipping Address
                 </h3>
-                {/* <span className='p-0.5 rounded-lg text-gray-400 cursor-pointer 
-                  smooth hover:bg-primary-50 hover:shadow hover:text-black'>
-                  <MdEdit className='text-xl' />
-                </span> */}
-                <span className='text-primary-400 inline-flex leading-normal cursor-pointer
-                  rounded-xl smooth hover:bg-primary-100 hover:px-2'>+ Add</span>
+                {data?.ship_address ? 
+                  (<span className='p-0.5 rounded-lg text-gray-400 cursor-pointer 
+                    smooth hover:bg-primary-50 hover:shadow hover:text-black'>
+                    <MdEdit className='text-xl' />
+                  </span>)
+                  :
+                  (<span className='text-primary-400 inline-flex leading-normal cursor-pointer
+                    rounded-xl smooth hover:bg-primary-100 hover:px-2'>+ Add</span>)
+                }
               </div>
               <p className='text-sm text-gray-300 ms-7'>Not addded</p>
               {/* <p className='capitalize text-sm text-gray-500 ms-7'>davood hakkim pm, erolakkandi, near ch bridge, naduvannur, calicut - dis, 673614</p> */}
             </div>
+
+            <AddressModal
+              isOpen={isAddOpen}
+              onClose={() => setIsAddOpen(false)}
+            />
+
           </div>
 
           {/* applied coupon */}
@@ -186,7 +306,7 @@ function Checkout() {
               <div className='border border-gray-200 rounded-lg p-3 flex items-center justify-between'>
                 <div className='inline-flex items-center space-x-2 text-primary-300'>
                   <RiCoupon3Fill className='text-lg' />
-                  <h3 className='!text-primary-400 uppercase'>XXXX</h3>
+                  <h3 className='!text-primary-400 uppercase !leading-normal'>XXXX</h3>
                 </div>
                 <span className='leading-normal text-red-300 cursor-pointer
                 smooth hover:text-red-500'>Remove</span>
@@ -214,12 +334,14 @@ function Checkout() {
           </div>
 
           <div className='flex p-5'>
-            <button className='w-full font-bold'>Pay Now</button>
+            <button
+              onClick={handlePayment} 
+              className='w-full font-bold'>Pay Now</button>
           </div>
-
         </div>
 
       </div>
+      
     </section>
   )
 }

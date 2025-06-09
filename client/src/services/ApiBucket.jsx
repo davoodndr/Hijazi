@@ -202,6 +202,12 @@ const ApiBucket = {
     url: '/api/user/remove-from-wishlist',
     method: 'patch'
   },
+
+  /* payment */
+  generateRazorpayLink: {
+    url: '/api/user/generate-razorpay-link',
+    method: 'post'
+  },
 }
 
 

@@ -1,8 +1,5 @@
 import React from 'react'
 import Slider from '../../components/user/Slider'
-import slider_1 from "../../assets/slides/slider-1.png"
-import slider_2 from "../../assets/slides/slider-2.png"
-import slider_3 from "../../assets/slides/slider-3.png"
 import category_1 from "../../assets/categories/category-thumb-1.jpg"
 import category_2 from "../../assets/categories/category-thumb-2.jpg"
 import category_3 from "../../assets/categories/category-thumb-3.jpg"
@@ -60,21 +57,21 @@ function HomeComponent(){
         <AnimateAppear>
           <Slider 
             slides={useMemo(() => [
-              { image: slider_1, 
+              { image: '/slides/slider-1.png', 
                 title_1: 'Trade-in offer',
                 title_2: 'Supper value deals',
                 title_3: 'On all products',
                 title_4: 'Save more with coupons & up to 70% off',
                 button_text: 'Shop Now'
               },
-              { image: slider_2, 
+              { image: '/slides/slider-2.png', 
                 title_1: 'Hot promotions',
                 title_2: 'Fashion Trending',
                 title_3: 'Great Collection',
                 title_4: 'Save more with coupons & up to 20% off',
                 button_text: 'Discover Now'
               },
-              { image: slider_3, 
+              { image: '/slides/slider-3.png', 
                 title_1: 'Upcoming Offer',
                 title_2: 'Big Deals From',
                 title_3: 'Manufacturer',
@@ -139,14 +136,9 @@ function HomeComponent(){
           <div className="flex flex-col items-center w-full bg-primary-25 py-10">
             
             <div className='grid grid-cols-4 gap-8 w-[92%]'>
-              <ProducCard image={category_1} />
-              <ProducCard image={category_2} />
-              <ProducCard image={category_3} />
-              <ProducCard image={category_4} />
-              <ProducCard image={category_1} />
-              <ProducCard image={category_2} />
-              <ProducCard image={category_3} />
-              <ProducCard image={category_4} />
+              {Array(8).fill(null).map((_,i) => 
+                <ProducCard key={i} image={`/categories/category-thumb-${++i}.jpg`} />
+              )}
             </div>
           </div>
         </div>

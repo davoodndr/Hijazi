@@ -3,8 +3,8 @@ import React from 'react'
 import { Component } from 'react';
 import Select from 'react-select'
 
-const CustomSelect = React.memo((
-  {options, isMulti = false, onChange, value, labelClass = ''}
+const CustomSelectComponent = (
+  {options, searchable = false, isMulti = false, onChange, value, labelClass = ''}
 ) => {
   
   return (
@@ -16,6 +16,7 @@ const CustomSelect = React.memo((
       options={options}
       onChange={onChange}
       value={value}
+      isSearchable={searchable}
       formatOptionLabel={({ label }) => 
         label instanceof Component ? (label) :
         (<span className={`inline-flex capitalize ${labelClass}`}>{label}</span>)
@@ -35,6 +36,8 @@ const CustomSelect = React.memo((
       }}
     />
   )
-})
+}
+
+const CustomSelect = React.memo(CustomSelectComponent);
 
 export default CustomSelect

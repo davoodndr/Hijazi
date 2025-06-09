@@ -5,7 +5,15 @@ const addressSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
+  full_name: {
+    type: String,
+    default: ""
+  },
   address_line: {
+    type: String,
+    default: ""
+  },
+  landmark: {
     type: String,
     default: ""
   },

@@ -16,6 +16,7 @@ const ProductPage = React.lazy(() => import("../../pages/User/ProductPage"))
 const UserCart = React.lazy(() => import("../../pages/User/UserCart"))
 const Wishlist = React.lazy(() => import("../../pages/User/Wishlist"))
 const Checkout = React.lazy(() => import("../../pages/User/Checkout"))
+const Payment = React.lazy(() => import("../../pages/User/Payment"))
 
 const UserRouter = () => {
 
@@ -46,6 +47,7 @@ const UserRouter = () => {
 
             <Route path="wishlist" element={<Wishlist />} />
             <Route path="checkout" element={<Checkout />} />
+            <Route path="payment" element={<Payment />} />
 
           </Route>
           
