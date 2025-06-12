@@ -118,6 +118,22 @@ export const getWishlist = async() => {
   }
 }
 
+/* address */
+export const getAddressList = async() => {
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getAddressList,
+    })
+
+    return response.data.addressList;
+
+  } catch (error) {
+    console.log(error.response.data)
+    throw new Error(error?.response?.data?.message)
+  }
+}
+
 export const menus = [
     {label: 'home', href: '/'},
     {label: 'about', href: ''},

@@ -18,6 +18,8 @@ import Alert from '../../components/ui/Alert'
 import { capitalize, isValidDatas } from '../../utils/Utils';
 import toast from 'react-hot-toast';
 import AddressModal from '../../components/user/AddressModal';
+import { fetchAddresses } from '../../store/slices/AddressSlice';
+import { IoMdCall } from "react-icons/io";
 
 function Checkout() {
 
@@ -25,6 +27,7 @@ function Checkout() {
   const location = useLocation();
   const dispatch = useDispatch();
   const { items } = useSelector(state => state.cart);
+  const { addressList } = useSelector(state => state.address);
   const cartCount = useSelector(getCartCount);
   const cartTotal = useSelector(getCartTotal);
   const [data, setData] = useState({
@@ -32,6 +35,11 @@ function Checkout() {
   });
   const [grandTotal, setGrandTotal] = useState(0);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [addressType, setAddresType] = useState(null);
+
+  useEffect(() => {
+    dispatch(fetchAddresses())
+  },[])
 
   // clean the url after success payment
   useEffect(() => {
@@ -119,6 +127,28 @@ function Checkout() {
         dispatch(setLoading(false))
       }
     }
+  }
+
+  const handleAddressSelect = (id) => {
+
+    const address = addressList.find(item => item._id === id);
+    if(addressType === 'bill'){
+      setData(prev => {
+        return {
+          ...prev,
+          bill_address: address
+        }
+      })
+    }else{
+      setData(prev => {
+        return {
+          ...prev,
+          ship_address: address
+        }
+      })
+    }
+    setIsAddOpen(false);
+    setAddresType(null);
   }
 
   return (
@@ -255,20 +285,39 @@ function Checkout() {
                 </h3>
                 {data?.bill_address ? 
                   (<span 
-                    onClick={() => setIsAddOpen(true)}
+                    onClick={() => {
+                      setIsAddOpen(true);
+                      setAddresType('bill')
+                    }}
                     className='p-0.5 rounded-lg text-gray-400 cursor-pointer 
                     smooth hover:bg-primary-50 hover:shadow hover:text-black'>
                     <MdEdit className='text-xl' />
                   </span>)
                   :
                   (<span 
-                    onClick={() => setIsAddOpen(true)}
+                    onClick={() => {
+                      setIsAddOpen(true);
+                      setAddresType('bill')
+                    }}
                     className='text-primary-400 inline-flex leading-normal cursor-pointer
                     rounded-xl smooth hover:bg-primary-100 hover:px-2'>+ Add</span>)
                 }
               </div>
-              <p className='text-sm text-gray-300 ms-7'>Not addded</p>
-              {/* <p className='capitalize text-sm text-gray-500 ms-7'>davood hakkim pm, erolakkandi, near ch bridge, naduvannur, calicut - dis, 673614</p> */}
+              {data?.bill_address ? 
+                (<p className='capitalize text-sm text-gray-500 ms-7 flex flex-col space-y-1'>
+                  <span>
+                    {Object.keys(data.bill_address)
+                    .filter(key => key !== '_id' && key !== 'is_default' && key !== 'mobile')
+                    .map(key => data.bill_address[key]).join(', ')}
+                  </span>
+                  <span className='inline-flex items-center'>
+                    <IoMdCall className='text-lg me-1' />
+                    {data.bill_address['mobile']}
+                  </span>
+                </p>)
+                :
+                (<p className='text-sm text-gray-300 ms-7'>Not addded</p>)
+              }
             </div>
 
             {/* shipping address */}
@@ -279,22 +328,49 @@ function Checkout() {
                   Shipping Address
                 </h3>
                 {data?.ship_address ? 
-                  (<span className='p-0.5 rounded-lg text-gray-400 cursor-pointer 
+                  (<span 
+                    onClick={() => {
+                      setIsAddOpen(true);
+                      setAddresType('ship')
+                    }}
+                    className='p-0.5 rounded-lg text-gray-400 cursor-pointer 
                     smooth hover:bg-primary-50 hover:shadow hover:text-black'>
                     <MdEdit className='text-xl' />
                   </span>)
                   :
-                  (<span className='text-primary-400 inline-flex leading-normal cursor-pointer
+                  (<span 
+                    onClick={() => {
+                      setIsAddOpen(true);
+                      setAddresType('ship')
+                    }}
+                    className='text-primary-400 inline-flex leading-normal cursor-pointer
                     rounded-xl smooth hover:bg-primary-100 hover:px-2'>+ Add</span>)
                 }
               </div>
-              <p className='text-sm text-gray-300 ms-7'>Not addded</p>
-              {/* <p className='capitalize text-sm text-gray-500 ms-7'>davood hakkim pm, erolakkandi, near ch bridge, naduvannur, calicut - dis, 673614</p> */}
+              {data?.ship_address ? 
+                (<p className='capitalize text-sm text-gray-500 ms-7 flex flex-col space-y-1'>
+                  <span>
+                    {Object.keys(data.ship_address)
+                    .filter(key => key !== '_id' && key !== 'is_default' && key !== 'mobile')
+                    .map(key => data.ship_address[key]).join(', ')}
+                  </span>
+                  <span className='inline-flex items-center'>
+                    <IoMdCall className='text-lg me-1' />
+                    {data.ship_address['mobile']}
+                  </span>
+                </p>)
+                :
+                (<p className='text-sm text-gray-300 ms-7'>Not addded</p>)
+              }
             </div>
 
             <AddressModal
               isOpen={isAddOpen}
-              onClose={() => setIsAddOpen(false)}
+              onClose={() => {
+                setIsAddOpen(false);
+                setAddresType(null);
+              }}
+              onChange={handleAddressSelect}
             />
 
           </div>

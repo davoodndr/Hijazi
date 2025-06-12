@@ -6,6 +6,7 @@ import { getProduct, getProductList, getRelatedItems } from '../controllers/user
 import { addToCart, getCart, removeFromCart } from '../controllers/user/cartController.js';
 import { addToWishlist, getWishlist, removeFromWishlist } from '../controllers/user/wishlistController.js';
 import { generatePaymentLink } from '../controllers/user/paymentController.js';
+import { addNewAddress, getAddressList } from '../controllers/user/addressController.js';
 
 const userRouter = express.Router();
 
@@ -23,20 +24,21 @@ userRouter.get('/get-product-list', getProductList)
 userRouter.get('/get-related-items', getRelatedItems)
 
 /* cart management */
-userRouter.get('/get-cart', authenticate, allowRoles(['admin','user']), getCart);
-userRouter.post('/add-to-cart', authenticate, allowRoles(['admin','user']), addToCart);
-userRouter.patch('/remove-from-cart', authenticate, allowRoles(['admin','user']), removeFromCart);
+userRouter.get('/get-cart', authenticate, allowRoles(['user']), getCart);
+userRouter.post('/add-to-cart', authenticate, allowRoles(['user']), addToCart);
+userRouter.patch('/remove-from-cart', authenticate, allowRoles(['user']), removeFromCart);
 
 /* wishlist management */
-userRouter.get('/get-wishlist', authenticate, allowRoles(['admin','user']), getWishlist);
-userRouter.post('/add-to-wishlist', authenticate, allowRoles(['admin','user']), addToWishlist);
-userRouter.patch('/remove-from-wishlist', authenticate, allowRoles(['admin','user']), removeFromWishlist);
+userRouter.get('/get-wishlist', authenticate, allowRoles(['user']), getWishlist);
+userRouter.post('/add-to-wishlist', authenticate, allowRoles(['user']), addToWishlist);
+userRouter.patch('/remove-from-wishlist', authenticate, allowRoles(['user']), removeFromWishlist);
 
 /* payment managment */
-userRouter.post('/generate-razorpay-link', authenticate, allowRoles(['admin','user']), generatePaymentLink)
-userRouter.get('/payment-success',(req,res) => res.status(200).json({success:true}))
+userRouter.post('/generate-razorpay-link', authenticate, allowRoles(['user']), generatePaymentLink)
 
-
+/* address management */
+userRouter.get('/get-address-list', authenticate, allowRoles(['user']), getAddressList)
+userRouter.post('/add-new-address', authenticate, allowRoles(['user']), addNewAddress)
 
 
 export default userRouter;
