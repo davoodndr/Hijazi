@@ -20,6 +20,10 @@ import toast from 'react-hot-toast';
 import AddressModal from '../../components/user/AddressModal';
 import { fetchAddresses } from '../../store/slices/AddressSlice';
 import { IoMdCall } from "react-icons/io";
+import { placeOrderSync } from '../../store/slices/OrderSlice';
+
+
+const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
 function Checkout() {
 
@@ -95,31 +99,109 @@ function Checkout() {
     return {field: output, type}
   }
 
-  const handlePayment = async() => {
+  /* setup for loading razorpay script */
+  const loadRazorpay = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handlePlaceOrder = async() => {
 
     const { field:emptyField, type } = validateData();
 
     if(emptyField) {
       toast.error(`Please ${type} ${emptyField}!`,{position: 'top-center'});
     }else{
+
+      const cartItems = items.map(item => {
+        return {
+          ...item,
+          variant_id: item.product_id === item.id ? null : item.id,
+          image: item?.image?.thumb || item?.image?.url,
+        }
+      })
+
+      const order = {
+        cartItems,
+        shippingAddress: data.ship_address,
+        billingAddress: data.bill_address,
+        paymentMethod: data.payment_method,
+        paymentResult: {},
+        itemsPrice: cartTotal,
+        taxPrice: 0,
+        shippingPrice: 0,
+        discount: 0,
+        totalPrice: grandTotal,
+        isPaid: false,
+        isDelivered: false
+      }
+
       dispatch(setLoading(true))
 
       try {
-        
-        /* const response = await Axios({
-          ...ApiBucket.generateRazorpayLink,
-          data: {
-            amount: 50,
-            name:'test user',
-            email: 'testuser@gmail.com',
-            contact: '7012860026',
-            url: location.pathname
-          }
-        })
 
-        if(response.data.success){
-          window.location.href = response.data.link
-        } */
+        if(data?.payment_method === 'cod'){
+          await dispatch(placeOrderSync({order}))
+        }else{
+
+          const res = await loadRazorpay();
+          if(!res){
+            throw new Error("Razorpay SDK failed to load");
+          }
+
+          const orderResponse = await Axios({
+            ...ApiBucket.createRazorpayOrder,
+            data: {
+              amount: order.itemsPrice,
+              receipt: `order_${Date.now()}`
+            }
+          })
+
+          const {id: order_id, currency, amount } = orderResponse.data.order;
+
+          const options = {
+            key: RAZORPAY_KEY_ID,
+            amount,
+            currency,
+            name: "Hijazi",
+            order_id,
+            /* image: "logo", */
+            handler: function(response) {
+              console.log(response)
+            },
+            prefill: {
+              name: order.billingAddress.name,
+              contact: order.billingAddress.mobile
+            },
+            theme: {
+              color: '#4cc4bb'
+            }
+          }
+
+          const paymentObj = new window.Razorpay(options);
+          paymentObj.open();
+
+          /* const response = await Axios({
+            ...ApiBucket.generateRazorpayLink,
+            data: {
+              amount: 50,
+              name:'test user',
+              email: 'testuser@gmail.com',
+              contact: '7012860026',
+              url: location.pathname
+            }
+          })
+
+          if(response.data.success){
+            window.location.href = response.data.link
+          } */
+
+        }  
 
       } catch (error) {
         AxiosToast(error)
@@ -411,8 +493,8 @@ function Checkout() {
 
           <div className='flex p-5'>
             <button
-              onClick={handlePayment} 
-              className='w-full font-bold'>Pay Now</button>
+              onClick={handlePlaceOrder} 
+              className='w-full font-bold'>Place Order</button>
           </div>
         </div>
 

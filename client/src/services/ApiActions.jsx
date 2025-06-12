@@ -338,13 +338,31 @@ export const removeFromWishlistAction = async(item) => {
 // address
 export const addNewAddressAction = async(data) => {
 
-  console.log(data)
-
   try {
     
     const response = await Axios({
       ...ApiBucket.addNewAddress,
       data
+    })
+
+    return response.data
+
+  } catch (error) {
+
+    console.log(error)
+    throw new Error(error?.response?.data?.message);
+  }
+
+}
+
+// orders
+export const placeOrderAction = async(order) => {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.placeOrder,
+      data: { ...order }
     })
 
     return response.data

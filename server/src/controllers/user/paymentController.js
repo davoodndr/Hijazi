@@ -51,3 +51,23 @@ export const generatePaymentLink = async(req, res) => {
   }
 
 }
+
+export const createRazorpayOrder = async(req, res) => {
+
+  const { amount, receipt } = req.body;
+
+  try {
+    
+    const razorpayOrder = await razorpay.orders.create({
+      amount: amount * 100,
+      currency: "INR",
+      receipt
+    })
+
+    return responseMessage(res, 200, true,"",{order: razorpayOrder})
+
+  } catch (error) {
+    console.log('createRazorpayOrder',error)
+    return responseMessage(res, 500, false, error.message || error)
+  }
+}

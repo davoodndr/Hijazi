@@ -208,6 +208,10 @@ const ApiBucket = {
     url: '/api/user/generate-razorpay-link',
     method: 'post'
   },
+  createRazorpayOrder: {
+    url: '/api/user/create-razorpay-order',
+    method: 'post'
+  },
 
   /* address */
   getAddressList: {
@@ -216,6 +220,12 @@ const ApiBucket = {
   },
   addNewAddress: {
     url: '/api/user/add-new-address',
+    method: 'post'
+  },
+
+  /* orders */
+  placeOrder: {
+    url: '/api/user/place-order',
     method: 'post'
   },
 }
