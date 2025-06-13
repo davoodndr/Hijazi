@@ -2,8 +2,10 @@ import React from 'react'
 import { IoTrash } from 'react-icons/io5';
 import { useDispatch, useSelector } from 'react-redux';
 import { deleteCartItem, getCartTotal, removeFromCart } from '../../store/slices/CartSlice';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
+import clsx from 'clsx';
+import { setLoading } from '../../store/slices/CommonSlices';
 
 function CartDropdownComponent({className}) {
 
@@ -11,6 +13,7 @@ function CartDropdownComponent({className}) {
   const { user } = useSelector(state => state.user);
   const cartTotal = useSelector(getCartTotal);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleRemoveCartItem = async(item) => {
 
@@ -53,7 +56,8 @@ function CartDropdownComponent({className}) {
                   e.preventDefault();
                   handleRemoveCartItem(item)
                 }}
-                className='smooth hover:text-red-400 inline-flex justify-end flex-grow'>
+                className='smooth hover:text-red-400 inline-flex 
+                  justify-end flex-grow cursor-pointer'>
                 <IoTrash className='text-lg' />
               </div>
             </li>
@@ -73,10 +77,21 @@ function CartDropdownComponent({className}) {
             <Link to='/cart' className='border px-4 py-1 rounded-xl smooth hover:shadow-md
               hover:text-primary-400 hover:border-primary-300'
               >View cart</Link>
-            <a className='border px-4 py-1 rounded-xl bg-primary-300 border-primary-300
+            <span 
+              onClick={() => {
+                if(user?.roles.includes('user')){
+                  navigate('/checkout')
+                  dispatch(setLoading(true))
+                }
+              }}
+              className={clsx(`border px-4 py-1 rounded-xl  
               text-white font-bold tracking-wider smooth hover:bg-primary-400
-              hover:shadow-lg hover:border-primary-400'
-              >Checkout</a>
+              hover:shadow-lg hover:border-primary-400`,
+                user?.roles?.includes('user') ? 
+                'bg-primary-300 border-primary-300  cursor-pointer'
+                : 'bg-gray-200 cursor-not-allowed pointer-events-none' 
+              )}
+              >Checkout</span>
           </div>
         </div>
       </div>

@@ -22,6 +22,7 @@ import { fetchAddresses } from '../../store/slices/AddressSlice';
 import { IoMdCall } from "react-icons/io";
 import { addToOrders } from '../../store/slices/OrderSlice';
 import { placeOrderAction, processRazorpayAction, verifyRazorpayAction } from '../../services/ApiActions';
+import clsx from 'clsx';
 
 
 function Checkout() {
@@ -42,6 +43,7 @@ function Checkout() {
 
   useEffect(() => {
     dispatch(fetchAddresses())
+    dispatch(setLoading(false))
   },[])
 
   // handle select payment method
@@ -232,8 +234,21 @@ function Checkout() {
                         </div>
                         <ul className='flex space-x-2'>
                           {attributes.length > 0 && attributes.map(([name, val]) => 
-                            <li key={name} className='not-first:point-before point-before:!bg-gray-500 point-before:!p-0.5 
-                              point-before:!me-2 !text-sm !text-gray-400'>{val}</li>
+                            (name === 'color' || name === 'colour') ?
+                            (<li
+                              key={name}
+                              style={{ "--dynamic": val }}
+                              className='point-before point-before:!p-1.5 point-before:!me-0.5 
+                              point-before:!bg-(--dynamic) point-before:!rounded-sm'
+                            ></li>)
+                            :
+                            (<li key={name}
+                              
+                              className={clsx(`not-first:point-before point-before:!bg-gray-500 
+                              point-before:!p-0.5 point-before:!me-2 !text-sm !text-gray-400`,
+                              name === 'size' ? 'uppercase' : 'capitalize'
+                            )}
+                            >{val}</li>)
                           )}
                         </ul>
                       </div>

@@ -1,16 +1,20 @@
 import React, { useState } from 'react'
 import { CiSquareMinus, CiSquarePlus } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart, getCartCount, getCartTotal, syncCartitem, updateQuantity } from '../../store/slices/CartSlice';
+import { addToCart, getCartCount, getCartTotal, syncCartitem} from '../../store/slices/CartSlice';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router'
+import clsx from 'clsx'
+import { setLoading } from '../../store/slices/CommonSlices'
 
-function UserCart() {
+function UserCart(){
 
   const { items } = useSelector(state => state.cart);
   const { user } = useSelector(state => state.user);
   const cartSubTotal = useSelector(getCartTotal);
   const cartCount = useSelector(getCartCount);
   const dispatch = useDispatch();
+  const navigate  = useNavigate();
 
   const handleQuantityUpdate = async(item, qty) => {
     const newitem = {
@@ -164,7 +168,17 @@ function UserCart() {
               </li>
             </ul>
             <div className='flex w-full'>
-              <button className='w-full'>Checkout</button>
+              <button 
+                onClick={() => {
+                  if(user?.roles?.includes('user')){
+                    navigate('/checkout')
+                    dispatch(setLoading(true))
+                  }
+                }}
+                className={clsx('w-full',
+                  !user?.roles?.includes('user') && '!bg-gray-300 pointer-events-none'
+                )}
+                >Checkout</button>
             </div>
           </div>
         </div>

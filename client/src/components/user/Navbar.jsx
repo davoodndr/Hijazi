@@ -92,7 +92,7 @@ function NavbarComponent(){
               </li>
 
               <li className='inline-flex h-full flex-col items-center justify-center w-11 md:w-3/9 
-                relative cursor-pointer group'>
+                relative group'>
 
                 {cartCount > 0 && 
                   <div className='w-fit px-1.5 h-4.5 bg-red-500 absolute left-[calc(100%-22px)] top-0.5 rounded-full
@@ -110,7 +110,8 @@ function NavbarComponent(){
                       toast.error("Bag is empty")
                     }
                   }}
-                  className='relative inline-flex h-full w-full flex-col items-center justify-center'>
+                  className='relative inline-flex h-full w-full flex-col 
+                    items-center justify-center cursor-pointer'>
                   <BsBag className='md:mb-1 text-2xl'/>
                 
                   <div className='hidden md:inline-flex flex-col items-center text-xs font-semibold'>

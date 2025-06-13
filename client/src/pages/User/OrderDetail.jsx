@@ -68,9 +68,9 @@ function OrderDetail() {
 
           {/* right */}
           <div className='inline-flex items-stretch space-x-2 justify-end w-[30%] shrink-0'>
-            <span className='inline-flex border border-gray-300 items-center px-1 rounded-input-border'>
+            {/* <span className='inline-flex border border-gray-300 items-center px-1 rounded-input-border'>
               <IoMdMore className='text-3xl'/>
-            </span>
+            </span> */}
             <button className='inline-flex items-center !px-5 !space-x-2'>
               <VscCloudDownload className='text-xl' />
               <span>Invoice</span>
@@ -103,8 +103,22 @@ function OrderDetail() {
                         </div>
                         <ul className='flex space-x-2'>
                           {attributes.length > 0 && attributes.map(([name, val]) => 
-                            <li key={name} className='not-first:point-before point-before:!bg-gray-500 point-before:!p-0.5 
-                              point-before:!me-2 !text-sm !text-gray-400'>{val}</li>
+                            (name === 'color' || name === 'colour') ?
+                              (<li
+                                key={name}
+                                style={{ "--dynamic": val }}
+                                className='point-before point-before:!p-1.5 point-before:!me-0.5 
+                                point-before:!bg-(--dynamic) point-before:!rounded-sm'
+                              ></li>)
+                              :
+                              (<li key={name}
+                                
+                                className={clsx(`not-first:point-before point-before:!bg-gray-500 point-before:!p-0.5 
+                                point-before:!me-2 !text-sm !text-gray-400`,
+                                name === 'size' ? 'uppercase' : 'capitalize'
+                              )}
+                              >{val}</li>)
+                            
                           )}
                         </ul>
                       </div>
@@ -123,6 +137,7 @@ function OrderDetail() {
                 )})}
             </ul>
 
+            {/* payment summery */}
             <div className='bg-white p-6 shadow-md rounded-3xl'>
               <h3 className='text-lg mb-3'>Payment Summery</h3>
               <div className="flex flex-col">
@@ -130,10 +145,10 @@ function OrderDetail() {
                   <span>Subtotal <span className='text-gray-400'>({order?.cartItems.length} items)</span></span>
                   <span className='font-bold price-before text-base'>{order?.itemsPrice}</span>
                 </p>
-                <p className='flex items-center justify-between'>
+                {/* <p className='flex items-center justify-between'>
                   <span>Delivery</span>
                   <span className='font-bold price-before text-base'>0</span>
-                </p>
+                </p> */}
                 <p className='flex items-center justify-between'>
                   <span>Tax <span className='text-gray-400'>5% GST included</span></span>
                   <span className='font-bold price-before text-base'>0</span>
