@@ -7,6 +7,7 @@ import AdminRouter from "./admin/AdminRouter"
 import UserRouter from "./user/UserRouter"
 import { fetchCart } from "../store/slices/CartSlice"
 import { fetchWishlist } from "../store/slices/WishlistSlice"
+import { fetchOrders } from "../store/slices/OrderSlice"
 
 function App() {
 
@@ -16,8 +17,9 @@ function App() {
     const fetchAuthData = async() => {
       const { payload: user } = await dispatch(fetchUser());
       if(user?.roles?.includes('user')){
-        dispatch(fetchCart(user._id))
-        dispatch(fetchWishlist(user._id))
+        dispatch(fetchCart())
+        dispatch(fetchWishlist())
+        dispatch(fetchOrders())
       }
     }
     fetchAuthData()

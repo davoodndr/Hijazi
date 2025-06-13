@@ -16,6 +16,7 @@
     "@tailwindcss/vite": "^4.1.4",
     "axios": "^1.8.4",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "lottie-react": "^2.4.1",
     "motion": "^12.8.0",
     "rc-slider": "^11.1.8",

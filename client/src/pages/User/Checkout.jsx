@@ -109,7 +109,7 @@ function Checkout() {
           const response = await placeOrderAction(order);
           if(response.success){
             dispatch(addToOrders(response.order));
-            showAlert(order)
+            showAlert(response.order)
           }
         }else{
 
@@ -138,6 +138,7 @@ function Checkout() {
   }
 
   const showAlert = (order) => {
+
     Alert({
       title:'Order Placed successfully',
       text: 'Thank you for puchasing the product from us. You can view it on the order detail page.',
@@ -160,10 +161,12 @@ function Checkout() {
     .then(res => {
       if(res.isConfirmed){
         console.log(order)
+        navigate(`/my-order/${order.order_no}`,{state: {order}})
       }else{
         navigate('/collections')
       }
     })
+    
   }
 
   const handleAddressSelect = (id) => {

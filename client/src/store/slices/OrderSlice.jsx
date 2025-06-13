@@ -14,18 +14,18 @@ export const fetchOrders = createAsyncThunk(
 const orderSlice = createSlice({
   name: 'orders',
   initialState: {
-    orders: [],
+    ordersList: [],
     error: null,
   },
   reducers: {
     addToOrders: (state, action) => {
-      state.orders.unshift(action.payload);
+      state.ordersList.unshift(action.payload);
     }
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchOrders.fulfilled, (state, action) => {
-        state.orders = action.payload;
+        state.ordersList = action.payload;
         state.error = null;
       })
       .addCase(fetchOrders.rejected, (state, action) => {
@@ -34,6 +34,10 @@ const orderSlice = createSlice({
       })
   }
 })
+
+export const getOrder = (state, order_no) => {
+  return state.orders.ordersList.find(order => order.order_no === order_no);
+}
 
 export const { addToOrders } = orderSlice.actions;
 

@@ -6,6 +6,7 @@ const orderSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  order_no: { type: String, unique: true },
   cartItems: [{
     product_id: { 
       type: mongoose.Schema.Types.ObjectId, 
@@ -29,7 +30,7 @@ const orderSchema = new mongoose.Schema({
     state: String,
     pincode: String,
     country: String,
-    phone: String,
+    mobile: String,
   },
   billingAddress: {
     name: String,
@@ -39,7 +40,7 @@ const orderSchema = new mongoose.Schema({
     state: String,
     pincode: String,
     country: String,
-    phone: String,
+    mobile: String,
   },
   paymentMethod: { type: String },
   paymentResult: mongoose.Schema.Types.Mixed,

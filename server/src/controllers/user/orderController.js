@@ -1,3 +1,4 @@
+import Counter from "../../models/Counter.js";
 import Order from "../../models/Order.js";
 import { responseMessage } from "../../utils/messages.js"
 
@@ -33,10 +34,11 @@ export const placeOrder = async(req, res) => {
       return responseMessage(res, 400, false, validate);
     }
 
-    console.log(user_id)
+    const order_no = await getNextOrderNumber();
 
     const order = await Order.create({
       user_id,
+      order_no,
       ...req.body
     });
 
@@ -46,6 +48,16 @@ export const placeOrder = async(req, res) => {
     console.log('placeOrder',error)
     return responseMessage(res, 500, false, error.message || error)
   }
+}
+
+// Increment function
+async function getNextOrderNumber() {
+  const counter = await Counter.findByIdAndUpdate(
+    { _id: 'order_number' },
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
+  return 'ORD-' + counter.seq.toString().padStart(6, '0'); // e.g., ORD-000123
 }
 
 const validateOrder = (data) => {

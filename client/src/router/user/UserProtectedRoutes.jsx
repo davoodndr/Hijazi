@@ -11,7 +11,7 @@ const UserProtectedRoutes = () => {
   if(isLoading) return <LoadingFallOff />
 
   if(!user?.roles.includes('user') || user?.status === 'blocked'){
-    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />
+    return <Navigate to={`/login`} replace />
   }
   
   return <Outlet />
