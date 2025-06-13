@@ -5,9 +5,9 @@ import { getBrands } from '../controllers/user/brandController.js';
 import { getProduct, getProductList, getRelatedItems } from '../controllers/user/productController.js';
 import { addToCart, getCart, removeFromCart } from '../controllers/user/cartController.js';
 import { addToWishlist, getWishlist, removeFromWishlist } from '../controllers/user/wishlistController.js';
-import { createRazorpayOrder, generatePaymentLink } from '../controllers/user/paymentController.js';
+import { createRazorpayOrder, generatePaymentLink, verifyRazorpay } from '../controllers/user/paymentController.js';
 import { addNewAddress, getAddressList } from '../controllers/user/addressController.js';
-import { placeOrder } from '../controllers/user/orderController.js';
+import { getOrders, placeOrder } from '../controllers/user/orderController.js';
 
 const userRouter = express.Router();
 
@@ -37,12 +37,14 @@ userRouter.patch('/remove-from-wishlist', authenticate, allowRoles(['user']), re
 /* payment managment */
 userRouter.post('/generate-razorpay-link', authenticate, allowRoles(['user']), generatePaymentLink)
 userRouter.post('/create-razorpay-order', authenticate, allowRoles(['user']), createRazorpayOrder)
+userRouter.post('/verify-razorpay-payment', authenticate, allowRoles(['user']), verifyRazorpay)
 
 /* address management */
 userRouter.get('/get-address-list', authenticate, allowRoles(['user']), getAddressList)
 userRouter.post('/add-new-address', authenticate, allowRoles(['user']), addNewAddress)
 
 /* order management */
+userRouter.get('/get-orders-list', authenticate, allowRoles(['user']), getOrders)
 userRouter.post('/place-order', authenticate, allowRoles(['user']), placeOrder)
 
 export default userRouter;

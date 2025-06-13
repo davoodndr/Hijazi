@@ -134,6 +134,22 @@ export const getAddressList = async() => {
   }
 }
 
+/* orders */
+export const getOrdersList = async() => {
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getOrders,
+    })
+
+    return response.data.orders;
+
+  } catch (error) {
+    console.log(error.response.data)
+    throw new Error(error?.response?.data?.message)
+  }
+}
+
 export const menus = [
     {label: 'home', href: '/'},
     {label: 'about', href: ''},

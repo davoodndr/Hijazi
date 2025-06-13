@@ -20,10 +20,9 @@ import toast from 'react-hot-toast';
 import AddressModal from '../../components/user/AddressModal';
 import { fetchAddresses } from '../../store/slices/AddressSlice';
 import { IoMdCall } from "react-icons/io";
-import { placeOrderSync } from '../../store/slices/OrderSlice';
+import { addToOrders } from '../../store/slices/OrderSlice';
+import { placeOrderAction, processRazorpayAction, verifyRazorpayAction } from '../../services/ApiActions';
 
-
-const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
 function Checkout() {
 
@@ -44,34 +43,6 @@ function Checkout() {
   useEffect(() => {
     dispatch(fetchAddresses())
   },[])
-
-  // clean the url after success payment
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const paymentId = params.get('razorpay_payment_id');
-
-    if (paymentId) {
-      // put the order save fucntions here
-      Alert({
-        title:'Order Placed successfully',
-        text: 'Thank you for puchasing the product from us. You can view it on the order detail page.',
-        icon: 'success',
-        customClass: {
-          title: '!text-2xl !text-primary-300',
-          htmlContainer: '!text-gray-400',
-          popup: '!max-w-[430px]',
-          icon: '!size-[5em]',
-          confirmButton: 'border border-primary-400',
-          cancelButton: '!bg-white border border-primary-400 !text-primary-400',
-          actions: '!justify-center'
-        },
-        showCancelButton: true,
-        cancelButtonText: 'Continue shoping',
-        confirmButtonText: 'View my Order',
-      })
-      navigate('/checkout', { replace: true });
-    }
-  }, [location.search, navigate]);
 
   // handle select payment method
   const handleMethodChange = (e) => {
@@ -99,17 +70,6 @@ function Checkout() {
     return {field: output, type}
   }
 
-  /* setup for loading razorpay script */
-  const loadRazorpay = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
   const handlePlaceOrder = async() => {
 
     const { field:emptyField, type } = validateData();
@@ -126,7 +86,7 @@ function Checkout() {
         }
       })
 
-      const order = {
+      let order = {
         cartItems,
         shippingAddress: data.ship_address,
         billingAddress: data.bill_address,
@@ -146,60 +106,26 @@ function Checkout() {
       try {
 
         if(data?.payment_method === 'cod'){
-          await dispatch(placeOrderSync({order}))
+          const response = await placeOrderAction(order);
+          if(response.success){
+            dispatch(addToOrders(response.order));
+            showAlert(order)
+          }
         }else{
 
-          const res = await loadRazorpay();
-          if(!res){
-            throw new Error("Razorpay SDK failed to load");
+          const paymentResponse = await processRazorpayAction(order);
+          const result = await verifyRazorpayAction(paymentResponse);
+          order = {
+            ...order,
+            paymentResult:result.paymentResult,
+            isPaid: true,
+            paidAt: result.paidAt
           }
-
-          const orderResponse = await Axios({
-            ...ApiBucket.createRazorpayOrder,
-            data: {
-              amount: order.itemsPrice,
-              receipt: `order_${Date.now()}`
-            }
-          })
-
-          const {id: order_id, currency, amount } = orderResponse.data.order;
-
-          const options = {
-            key: RAZORPAY_KEY_ID,
-            amount,
-            currency,
-            name: "Hijazi",
-            order_id,
-            /* image: "logo", */
-            handler: function(response) {
-              console.log(response)
-            },
-            prefill: {
-              name: order.billingAddress.name,
-              contact: order.billingAddress.mobile
-            },
-            theme: {
-              color: '#4cc4bb'
-            }
+          const response = await placeOrderAction(order);
+          if(response.success){
+            dispatch(addToOrders(response.order));
+            showAlert(response.order)
           }
-
-          const paymentObj = new window.Razorpay(options);
-          paymentObj.open();
-
-          /* const response = await Axios({
-            ...ApiBucket.generateRazorpayLink,
-            data: {
-              amount: 50,
-              name:'test user',
-              email: 'testuser@gmail.com',
-              contact: '7012860026',
-              url: location.pathname
-            }
-          })
-
-          if(response.data.success){
-            window.location.href = response.data.link
-          } */
 
         }  
 
@@ -209,6 +135,35 @@ function Checkout() {
         dispatch(setLoading(false))
       }
     }
+  }
+
+  const showAlert = (order) => {
+    Alert({
+      title:'Order Placed successfully',
+      text: 'Thank you for puchasing the product from us. You can view it on the order detail page.',
+      icon: 'success',
+      customClass: {
+        title: '!text-2xl !text-primary-300',
+        htmlContainer: '!text-gray-400',
+        popup: '!max-w-[430px]',
+        icon: '!size-[5em]',
+        confirmButton: 'border border-primary-400',
+        cancelButton: '!bg-white border border-primary-400 !text-primary-400',
+        actions: '!justify-center'
+      },
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showCancelButton: true,
+      cancelButtonText: 'Continue shoping',
+      confirmButtonText: 'View my Order',
+    })
+    .then(res => {
+      if(res.isConfirmed){
+        console.log(order)
+      }else{
+        navigate('/collections')
+      }
+    })
   }
 
   const handleAddressSelect = (id) => {

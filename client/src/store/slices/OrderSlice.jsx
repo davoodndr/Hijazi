@@ -1,14 +1,14 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { placeOrderAction } from "../../services/ApiActions";
 import toast from "react-hot-toast";
-import Alert from "../../components/ui/Alert";
+import { useNavigate } from "react-router";
+import { getOrdersList } from "../../services/FetchDatas";
 
-export const placeOrderSync = createAsyncThunk(
-  'orders/placeOrder',
-  async({order},{rejectWithValue}) =>
-    await placeOrderAction(order)
+export const fetchOrders = createAsyncThunk(
+  'orders/fetchOrders',
+  async(_,{rejectWithValue}) =>
+    await getOrdersList()
       .then(res => res)
-      .catch(err => rejectWithValue(err.message || 'Failed to place order'))
+      .catch(err => rejectWithValue(err.message || 'Failed to fetch orders'))
 )
 
 const orderSlice = createSlice({
@@ -17,45 +17,24 @@ const orderSlice = createSlice({
     orders: [],
     error: null,
   },
-  reducers: {},
+  reducers: {
+    addToOrders: (state, action) => {
+      state.orders.unshift(action.payload);
+    }
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(placeOrderSync.fulfilled, (state, action) => {
-        const { order, message } = action.payload;
-        state.orders.unshift(order);
+      .addCase(fetchOrders.fulfilled, (state, action) => {
+        state.orders = action.payload;
         state.error = null;
-        showAlert(order)
       })
-      .addCase(placeOrderSync.rejected, (state, action) => {
+      .addCase(fetchOrders.rejected, (state, action) => {
         state.error = action.payload;
         toast.error(state.error,{position: 'top-center'})
       })
   }
 })
 
-const showAlert = (order) => {
-  Alert({
-    title:'Order Placed successfully',
-    text: 'Thank you for puchasing the product from us. You can view it on the order detail page.',
-    icon: 'success',
-    customClass: {
-      title: '!text-2xl !text-primary-300',
-      htmlContainer: '!text-gray-400',
-      popup: '!max-w-[430px]',
-      icon: '!size-[5em]',
-      confirmButton: 'border border-primary-400',
-      cancelButton: '!bg-white border border-primary-400 !text-primary-400',
-      actions: '!justify-center'
-    },
-    showCancelButton: true,
-    cancelButtonText: 'Continue shoping',
-    confirmButtonText: 'View my Order',
-  })
-  .then(res => {
-    if(res.isConfirmed){
-      console.log(order)
-    }
-  })
-}
+export const { addToOrders } = orderSlice.actions;
 
 export default orderSlice.reducer;

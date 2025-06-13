@@ -2,9 +2,28 @@ import Order from "../../models/Order.js";
 import { responseMessage } from "../../utils/messages.js"
 
 
+// get orders list
+export const getOrders = async(req, res) => {
+
+  const { user_id } = req;
+  
+
+  try {
+
+    const orders = await Order.find({user_id});
+
+    return responseMessage(res, 201, true, "", {orders})
+    
+  } catch (error) {
+    console.log('placeOrder',error)
+    return responseMessage(res, 500, false, error.message || error)
+  }
+}
+
+// place new order
 export const placeOrder = async(req, res) => {
 
-  const user_id = '680fcd85ccab7af6a4332392';
+  const { user_id } = req;
   
 
   try {
@@ -13,6 +32,8 @@ export const placeOrder = async(req, res) => {
     if(validate){
       return responseMessage(res, 400, false, validate);
     }
+
+    console.log(user_id)
 
     const order = await Order.create({
       user_id,

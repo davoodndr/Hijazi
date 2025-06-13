@@ -42,12 +42,7 @@ const orderSchema = new mongoose.Schema({
     phone: String,
   },
   paymentMethod: { type: String },
-  paymentResult: {
-    id: String,
-    status: String,
-    update_time: String,
-    email_address: String
-  },
+  paymentResult: mongoose.Schema.Types.Mixed,
   itemsPrice: { type: Number },
   taxPrice: { type: Number },
   shippingPrice: { type: Number },

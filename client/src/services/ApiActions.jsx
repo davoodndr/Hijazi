@@ -355,6 +355,98 @@ export const addNewAddressAction = async(data) => {
 
 }
 
+// payment
+export const processRazorpayAction = async(order) => {
+
+  /* setup for loading razorpay script */
+  const loadRazorpay = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+  try {
+
+    const res = await loadRazorpay();
+    if(!res){
+      throw new Error("Razorpay SDK failed to load");
+    }
+    
+    const orderResponse = await Axios({
+      ...ApiBucket.createRazorpayOrder,
+      data: {
+        amount: order.itemsPrice,
+        receipt: `order_${Date.now()}`
+      }
+    })
+
+    const {id: order_id, currency, amount } = orderResponse.data.order;
+
+    const paymentResponse = await new Promise((resolve, reject) => {
+
+      const options = {
+        key: RAZORPAY_KEY_ID,
+        amount,
+        currency,
+        name: "Hijazi",
+        order_id,
+        /* image: "logo", */
+        handler: function(response) {
+          resolve(response);
+        },
+        prefill: {
+          name: order.billingAddress.name,
+          contact: order.billingAddress.mobile
+        },
+        theme: {
+          color: '#4cc4bb'
+        },
+        modal: {
+          ondismiss: function() {
+            reject(new Error("Payment popup closed by user"))
+          }
+        }
+      }
+
+      const paymentObj = new window.Razorpay(options);
+      paymentObj.open();
+
+    })
+
+    return paymentResponse
+
+  } catch (error) {
+
+    console.log(error)
+    throw new Error(error?.response?.data?.message);
+  }
+
+}
+
+export const verifyRazorpayAction = async(res) => {
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.varifyRazorpay,
+      data: {
+        ...res
+      }
+    })
+
+    return response.data.result
+    
+  } catch (error) {
+    console.log(error)
+    throw new Error(error?.response?.data?.message);
+  }
+}
+
 // orders
 export const placeOrderAction = async(order) => {
 
