@@ -44,7 +44,6 @@ const ProductList = () => {
   /* initial data loader */
   useEffect(() => {
     if(productList?.length){
-      console.log(productList)
       const sortedProducts = [...productList].sort((a,b) => b.createdAt.localeCompare(a.createdAt))
       setProducts(sortedProducts);
     }

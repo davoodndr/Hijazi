@@ -30,7 +30,7 @@ function ContextMenuComponent({items, open, itemHeight = 10}) {
                 :
                 (<div
                   htmlFor={item?.htmlFor ?? ''} 
-                  onClick={(e) => item.onClick()}
+                  onClick={() => item.onClick()}
                   className={`flex items-center gap-2 cursor-pointer smooth
                     border-gray-200 hover:bg-primary-25 justify-between text-sm ${item.itemClass}`}
                   style={{

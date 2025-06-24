@@ -12,9 +12,11 @@ import { format } from 'date-fns';
 import clsx from 'clsx';
 import { Menu, MenuButton } from '@headlessui/react';
 import ContextMenu from '../../../components/ui/ContextMenu';
+import { useNavigate } from 'react-router';
 
 function OrdersList() {
 
+  const navigate = useNavigate();
   const { ordersList } = useSelector(state => state.orders);
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -80,7 +82,7 @@ function OrdersList() {
   );
 
   return (
-    <section className='flex flex-col p-6 bg-gray-100'>
+    <section className='flex flex-col p-6'>
       {/* page title & add category button */}
       <div className="mb-5 flex justify-between items-start">
         <div className="flex flex-col">
@@ -109,7 +111,7 @@ function OrdersList() {
         <div className="flex items-center relative w-3/10">
           <LuSearch size={20} className='absolute left-3'/>
           <input type="text" value={query} onChange={e => setQuery(e.target.value)}
-            placeholder='Search users'
+            placeholder='Search orders'
             className='pl-10! rounded-xl! bg-white' />
         </div>
 
@@ -230,8 +232,6 @@ function OrdersList() {
                 {paginatedOrders.length > 0 ?
                     ( paginatedOrders.map((order, index) => {
 
-                      console.log(order)
-
                       const title = order?.cartItems?.length > 1 ? `${order?.cartItems?.length} items includes` 
                         : order?.cartItems[0].name;
                       const images = order?.cartItems?.slice(0,3).map(item => ({name: item.name, image: item.image}));
@@ -247,11 +247,11 @@ function OrdersList() {
                           animate="visible"
                           exit="exit"
                           variants={rowVariants}
-                          /* whileHover={{
-                            backgroundColor: product.archived ? '' : '#efffeb',
+                          whileHover={{
+                            backgroundColor: '#efffeb',
                             transition: { duration: 0.3 }
-                          }} */
-                          /* className={`${product.archived ? 'cursor-not-allowed pointer-events-none bg-gray-100 grayscale-100 !opacity-50' : 'bg-white'}`} */
+                          }}
+                          className={`bg-white`}
                         >
 
                           <div
@@ -335,17 +335,21 @@ function OrdersList() {
                                         { id: 'view', 
                                           icon: <LuEye className='text-xl'/>,
                                           text: <span className={`capitalize`}>view order</span>,
-                                          onclick: () => {}
+                                          onClick: () => { navigate(`view-order/${order?.order_no}`,
+                                            {
+                                              state: {order}
+                                            }
+                                          )}
                                         },
                                         { id: 'shipped', 
                                           icon: <LuEye className='text-xl'/>,
                                           text: <span className={`capitalize`}>shipped</span>,
-                                          onclick: () => {}
+                                          onClick: () => {}
                                         },
                                         { id: 'delivered', 
                                           icon: <LuEye className='text-xl'/>,
                                           text: <span className={`capitalize`}>delivered</span>,
-                                          onclick: () => {}
+                                          onClick: () => {}
                                         },
                                       ],[])}
 

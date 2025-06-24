@@ -20,6 +20,7 @@ const ProductList = React.lazy(() => import('../../pages/Admin/products/ProductL
 const AddProduct = React.lazy(() => import('../../pages/Admin/products/AddProduct'))
 const EditProduct = React.lazy(() => import('../../pages/Admin/products/EditProduct'))
 const OrdersList = React.lazy(() => import('../../pages/Admin/orders/OrdersList'))
+const ViewOrder = React.lazy(() => import('../../pages/Admin/orders/ViewOrder'))
 
 const AdminRouter = () => {
 
@@ -67,6 +68,7 @@ const AdminRouter = () => {
               {/* orders tab */}
               <Route path='orders'>
                 <Route index element={<OrdersList />} />
+                <Route path='view-order/:id' element={<ViewOrder />} />
               </Route>
               
             </Route>
