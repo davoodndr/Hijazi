@@ -8,6 +8,8 @@ import UserRouter from "./user/UserRouter"
 import { fetchCart } from "../store/slices/CartSlice"
 import { fetchWishlist } from "../store/slices/WishlistSlice"
 import { fetchOrders } from "../store/slices/OrderSlice"
+import { fetchProducts } from "../store/slices/ProductSlices"
+import { fetchBrands } from "../store/slices/BrandSlice"
 
 function App() {
 
@@ -16,7 +18,7 @@ function App() {
   useEffect(() => {
     const fetchAuthData = async() => {
       const { payload: user } = await dispatch(fetchUser());
-      if(user?.roles?.includes('user')){
+      if(user?.roles?.includes('user') || user?.roles?.includes('admin')){
         dispatch(fetchCart())
         dispatch(fetchWishlist())
         dispatch(fetchOrders())
@@ -24,6 +26,8 @@ function App() {
     }
     fetchAuthData()
     dispatch(fetchCategories())
+    dispatch(fetchBrands())
+    dispatch(fetchProducts())
   },[dispatch])
 
   return (

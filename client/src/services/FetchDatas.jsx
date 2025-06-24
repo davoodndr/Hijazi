@@ -153,7 +153,7 @@ export const getOrdersList = async() => {
 export const menus = [
     {label: 'home', href: '/'},
     {label: 'about', href: ''},
-    {label: 'categories', href: '',
+    {label: 'shop', href: '',
       submenu: [
         {label: 'clothing', href: '',
           items: [

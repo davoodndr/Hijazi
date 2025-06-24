@@ -16,7 +16,7 @@ import { CiFilter } from "react-icons/ci";
 import PreviewImage from '../../../components/ui/PreviewImage'
 import AxiosToast from '../../../utils/AxiosToast';
 import { setLoading } from '../../../store/slices/CommonSlices'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
 import { MdOutlineArchive, MdOutlineUnarchive } from 'react-icons/md';
@@ -26,13 +26,16 @@ import { BsSortDown, BsSortDownAlt } from "react-icons/bs";
 import DropdownButton from '../../../components/ui/DropdownButton';
 import { sortProductsByPrice } from '../../../utils/Utils';
 import { containerVariants, rowVariants } from '../../../utils/Anim';
-import { useCallback } from 'react';
 
 const ProductList = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const { items:productList } = useSelector(state => state.products);
+  const { categoryList } = useSelector(state => state.categories);
+  const { brandList } = useSelector(state => state.brands);
+  
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -40,44 +43,20 @@ const ProductList = () => {
 
   /* initial data loader */
   useEffect(() => {
-    fetchDatas()
-  },[])
-
-  const fetchDatas = async() => {
-    setIsLoading(true)
-    try {
-
-      const response = await Promise.all([
-        Axios({
-          ...ApiBucket.getProducts
-        }).then(res => ({products:res.data.products})), 
-        Axios({
-          ...ApiBucket.getCategories
-        }).then(res => ({categories:res.data.categories})), 
-        Axios({
-          ...ApiBucket.getBrands
-        }).then(res => ({brands:res.data.brands}))
-      ]);
-      
-      if(response){
-        
-        const [productData, categoryData, brandData] = response;
-        const sortedProducts = productData.products.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
-        const sortedCategories = categoryData.categories.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
-        const sortedBrands = brandData.brands.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
-    
-        setCategories(sortedCategories);
-        setBrands(sortedBrands);
-        setProducts(sortedProducts);
-      }
-
-    } catch (error) {
-      console.log(error.message || error);
-      toast.error(error.message || 'Unexpected error happened')
-    }finally{
-      setIsLoading(false)
+    if(productList?.length){
+      console.log(productList)
+      const sortedProducts = [...productList].sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+      setProducts(sortedProducts);
     }
-  };
+    if(categoryList?.length){
+      const sortedCategories = [...categoryList].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+      setCategories(sortedCategories);
+    }
+    if(brandList?.length){
+      const sortedBrands = [...brandList].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+      setBrands(sortedBrands);
+    }
+  },[productList, categoryList, brandList]);
   
   /* debouncer */
   const [query, setQuery] = useState('');
@@ -367,7 +346,7 @@ const ProductList = () => {
   return (
     <section className='flex flex-col p-6 bg-gray-100'>
     
-      {/* page title & add category button */}
+      {/* page title & add product button */}
       <div className="mb-5 flex justify-between items-start">
         <div className="flex flex-col">
           <h3 className='text-xl'>Product Management</h3>

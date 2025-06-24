@@ -38,7 +38,8 @@ const EditProduct = () => {
 
   /* input handling */
   const [data, setData] = useState({
-    name: "", slug:"", sku:'', description:"", price:"", stock:"", visible: true, status: "active",
+    name: "", slug:"", sku:'', description:"", price:"", stock:"", tax: "",
+    visible: true, status: "active",
     brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: [], customAttributes: []
   })
 
@@ -241,7 +242,7 @@ const EditProduct = () => {
   function validateProduct(product) {
 
     if (!product.name?.trim()) throw("Name is required");
-    if (!product.slug?.trim()) throw("Slug is required"); 
+    if (!product.slug?.trim()) throw("Slug is required");
     if (!product.category?.trim()) throw("Category is required"); 
     if (!product.brand?.trim()) throw("Brand is required");
     if (!product.description?.trim()) throw("Description is required");
@@ -253,6 +254,7 @@ const EditProduct = () => {
       if (!product.sku?.trim()) throw("SKU is required") 
       if (!product.price || product.price <= 0) throw("Valid price required") 
       if (!product.stock || product.stock == null || product.stock < 0) throw("Stock must be 0 or more") 
+      if (!product.tax || product.tax == null || product.tax < 0) throw("Tax must be 0 or more") 
     } else {
       product.variants.map((variant, index) => {
         if (!variant.sku?.trim()) throw("Variant SKU is required") 
@@ -339,7 +341,8 @@ const EditProduct = () => {
 
         AxiosToast(response, false);
         setData({
-          name: "", slug:"", sku:"", description:"", price:"", stock:"", visible: true, status: "active",
+          name: "", slug:"", sku:"", description:"", price:"", stock:"", tax: "",
+          visible: true, status: "active",
           brand:"", category:"", featured:false, width:0, height: 0, weight:0, thumbs:[]
         })
         setBrand(null);
@@ -466,6 +469,16 @@ const EditProduct = () => {
                   onChange={handleChange}
                   type="number"
                   placeholder="Enter product stock"
+                />
+              </div>
+              <div>
+                <label  className="mandatory">Tax rate (in percentage)</label>
+                <input
+                  name="stock"
+                  value={data.tax}
+                  onChange={handleChange}
+                  type="number"
+                  placeholder="Enter tax rate: @ex: 5%"
                 />
               </div>
               <div className="col-span-2">

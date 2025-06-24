@@ -19,11 +19,11 @@ export const getProducts = async(req, res) => {
 
 // add product
 export const addProduct = async(req, res) => {
-  const { name, sku, slug, price, stock, description, category, brand, variants } = req.body;
+  const { name, sku, slug, price, stock, tax, description, category, brand, variants } = req.body;
 
   try {
     
-    const msg = validateProduct(name, sku, slug, price, stock, description, category, brand, variants)
+    const msg = validateProduct(name, sku, slug, price, stock, tax, description, category, brand, variants)
 
     if(msg.length){
       return responseMessage(res, 400, false, msg);      
@@ -188,7 +188,7 @@ function updateProductImages(currentImages, uploadedImages) {
 export const updateProduct = async(req, res) => {
 
   
-  const { product_id, name, sku, slug, price, stock, description, category, brand, variants } = req.body;
+  const { product_id, name, sku, slug, price, stock, tax, description, category, brand, variants } = req.body;
   
 
   try {
@@ -197,7 +197,7 @@ export const updateProduct = async(req, res) => {
       return responseMessage(res, 400, false, "Product id not specified");
     }
 
-    const msg = validateProduct(name, sku, slug, price, stock, description, category, brand, variants)
+    const msg = validateProduct(name, sku, slug, price, stock, tax, description, category, brand, variants)
 
     if(msg.length){
       return responseMessage(res, 400, false, msg);      
@@ -281,6 +281,7 @@ const validateProduct = (
     if (!isExcepted('sku') && !sku?.trim()) msg = "SKU is required";
     if (!isExcepted('price') && (!price || price <= 0)) msg = "Valid price required";
     if (!isExcepted('stock') && (stock == null || stock < 0)) msg = "Stock must be 0 or more";
+    if (!isExcepted('tax') && (tax == null || tax < 0)) msg = "Tax must be 0 or more";
   }
 
   return msg;

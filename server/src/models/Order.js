@@ -53,7 +53,7 @@ const orderSchema = new mongoose.Schema({
   paidAt: { type: Date },
   isDelivered: { type: Boolean, default: false },
   deliveredAt: { type: Date },
-  status: { type: String, default: 'Pending' }, // Pending, Shipped, Delivered
+  status: { type: String, default: 'pending' }, // Pending, Shipped, Delivered
 }, { timestamps: true });
 
 export default mongoose.model('Order', orderSchema);

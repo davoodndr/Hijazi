@@ -91,7 +91,7 @@ const UserMenus = ({isMobile = false}) => {
                         </li>
                       )}
 
-                      {menu.label === 'categories' && <li className='w-75 m-1.5 rounded-sm overflow-hidden relative'>
+                      {menu.label === 'shop' && <li className='w-75 m-1.5 rounded-sm overflow-hidden relative'>
                         <img src={menuBanner} alt="menu-banner" />
                         <div className='absolute left-6 top-1/2 -translate-y-1/2 h-full flex flex-col'>
                           <span className='text-lg mt-6'>HOT DEALS</span>
