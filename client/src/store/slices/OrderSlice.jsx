@@ -1,6 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router";
 import { getOrdersList } from "../../services/FetchDatas";
 
 export const fetchOrders = createAsyncThunk(

@@ -18,6 +18,9 @@ const Wishlist = React.lazy(() => import("../../pages/User/Wishlist"))
 const Checkout = React.lazy(() => import("../../pages/User/Checkout"))
 const Payment = React.lazy(() => import("../../pages/User/Payment"))
 const OrderDetail = React.lazy(() => import("../../pages/User/OrderDetail"))
+const UserDashboard = React.lazy(() => import("../../pages/User/Dashboard/UserDashboard"))
+const UserProfile = React.lazy(() => import("../../pages/User/Dashboard/UserProfile"))
+const UserOrders = React.lazy(() => import("../../pages/User/Dashboard/UserOrders"))
 
 const UserRouter = () => {
 
@@ -50,6 +53,10 @@ const UserRouter = () => {
             <Route path="checkout" element={<Checkout />} />
             <Route path="payment" element={<Payment />} />
             <Route path="my-order/:order-no" element={<OrderDetail />} />
+            <Route path="dashboard" element={<UserDashboard />} >
+              <Route path='profile' element={<UserProfile />} />
+              <Route path='orders' element={<UserOrders />} />
+            </Route>
 
           </Route>
           

@@ -17,7 +17,7 @@ const AccountDropDown = ({user}) => {
           user ? (
             /* Logined user info */
             <div className="flex gap-2 items-center justify-start p-5 py-6">
-              <Link to={'/user/dashboard/profile'} 
+              <Link to={'/dashboard/profile'} 
                 className="absolute right-0 top-0 m-1.5 p-0.5 border border-neutral-300 rounded-lg 
                   transition-all duration-300 hover:shadow-lg hover:bg-primary-50 hover:border-primary-300 hover:scale-110">
                 <RiArrowRightUpLine size={20} />
