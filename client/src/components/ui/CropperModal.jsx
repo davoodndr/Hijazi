@@ -21,7 +21,11 @@ function CropperModal(
       outputFormat: "",
       validFormats: [],
       outPutDimen: 0,
-      thumbDimen: 0
+      thumbDimen: 0,
+      containerClass: '',
+      wrapperClass: '',
+      cropperClass: '',
+      buttonsClass: ''
     }
   }
 ) {
@@ -65,12 +69,14 @@ function CropperModal(
             src={cropper?.src}
             onImageCrop={(files) => setImage(files)}
             outPutDimen={cropper?.outPutDimen}
+            thumbDimen={cropper?.thumbDimen}
             disableMessage={cropper?.disableMessage}
             outputFormat={cropper?.outputFormat}
             validFormats={cropper?.validFormats}
-            containerClass='flex flex-col items-center w-full h-full'
-            cropperClass='flex h-full w-70 !h-70 border border-gray-300 rounded-3xl overflow-hidden'
-            buttonsClass='flex w-full items-center justify-center py-3 gap-2'
+            containerClass={cropper?.containerClass}
+            wrapperClass={cropper?.wrapperClass}
+            cropperClass={cropper?.cropperClass}
+            buttonsClass={cropper?.buttonsClass}
           /> 
         </div>
 

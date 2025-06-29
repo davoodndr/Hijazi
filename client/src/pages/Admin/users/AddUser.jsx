@@ -8,7 +8,7 @@ import { MdOutlineImageSearch } from "react-icons/md";
 import { PiPassword } from "react-icons/pi";
 import AxiosToast from "../../../utils/AxiosToast";
 import toast from "react-hot-toast";
-import { IoAccessibility } from "react-icons/io5";
+import { IoAccessibility, IoImage } from "react-icons/io5";
 import CustomSelect from "../../../components/ui/CustomSelect";
 import { Axios } from "../../../utils/AxiosSetup";
 import ApiBucket from "../../../services/ApiBucket";
@@ -17,6 +17,8 @@ import { setLoading } from '../../../store/slices/CommonSlices'
 import { TbArrowBackUp } from "react-icons/tb";
 import { HiHome } from "react-icons/hi2";
 import { uploadAvatar } from '../../../services/ApiActions'
+import CropperModal from "../../../components/ui/CropperModal";
+import { imageFileToSrc } from "../../../utils/Utils";
 
 const AddUser = () => {
 
@@ -28,6 +30,7 @@ const AddUser = () => {
   const [confirmShowing, setConfirmShowing] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [address, setAddress] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   /* input handling */
   const [data, setData] = useState({
@@ -47,20 +50,18 @@ const AddUser = () => {
   }
 
   // image change handling
-  const handleImageSelect = (e) => {
-    const file = e.target.files[0];
-
-    if(file){
-
-      setData(prev => ({...prev, file}));
+  const handleImageSelect = async(files) => {
+    try {
+      const src = await imageFileToSrc(files.thumb);
+      setImagePreview(src);
       
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result)
-      }
-
-      reader.readAsDataURL(file)
+      setData(prev => ({...prev, file: files.file}));
+      
+    } catch (err) {
+      console.error('Error reading file:', err);
     }
+
+    setIsModalOpen(false);
   }
 
   /* address active and deactive */
@@ -468,20 +469,54 @@ const AddUser = () => {
             <CgProfile className="w-5 h-5" />
             <span>Profile Image</span>
           </h2>
-          <div className="flex flex-col items-center gap-5">
-            <div className="relative">
-              <img src={imagePreview || place_holder} className="w-40 h-40 object-cover rounded-full" alt="prifle" />
-              <label htmlFor="avatar-input"
-                className="border border-gray-300 p-2 rounded-2xl cursor-pointer transition-all duration-300
-                  hover:bg-primary-50 hover:border-primary-300 text-[16px]! bg-white absolute bottom-0 right-3
-                  shadow-lg"
+
+          <div className='flex flex-col items-center space-y-2 mb-5'>
+
+            <div className='w-60 h-60 relative rounded-lg overflow-hidden'>
+              <img src={imagePreview || place_holder} className='pointer-events-none w-full' alt="avatar" />
+              <svg
+                className="absolute inset-0 w-60 h-60 pointer-events-none"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
               >
-                <MdOutlineImageSearch size={25} />
-              </label>
+                <defs>
+                  <mask id="hole">
+                    <rect width="100" height="100" fill="white" />
+                    <circle cx="50" cy="50" r="47" fill="black" />
+                  </mask>
+                </defs>
+                {imagePreview && 
+                  <>
+                    <rect width="100%" height="100%" fill="rgba(0,0,0,0.4)" mask="url(#hole)" />
+                    <circle cx="50" cy="50" r="47" fill="none" stroke="white" strokeWidth="1" />
+                  </>
+                }
+              </svg>
             </div>
-            <span className="border border-gray-300 w-full text-center text-sm 
-            py-1 rounded-full">{data?.file?.name || 'Filename'}</span>
-            <input type="file" id="avatar-input" onChange={handleImageSelect} hidden/>
+
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className='w-60'
+            >Change Image</button>
+
+            <CropperModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              dimen={{width: 450, height:320}}
+              title="Crop Image"
+              subTitle="Crop images as per the required dimention"
+              headerIcon={IoImage}
+              onResult={handleImageSelect}
+              cropper={{
+                outputFormat: 'webp',
+                validFormats: ['jpg','jpeg','png','bmp','webp'],
+                outPutDimen: 300,
+                thumbDimen: 200,
+                containerClass: 'flex flex-col items-center w-full h-full',
+                cropperClass: 'flex w-60 !h-60 border border-gray-300 rounded-3xl overflow-hidden',
+                buttonsClass: 'flex flex-col space-y-2 -right-12 top-1/2 -translate-y-1/2'
+              }}
+            />
           </div>
         </div>
         

@@ -24,7 +24,7 @@ const AccountDropDown = ({user}) => {
               </Link>
               {/* avatar */}
               <div className='w-15 rounded-[50%] overflow-hidden'>
-                <img src={user?.avatar ? user?.avatar : user_placeholder} alt="user" />
+                <img src={user?.avatar?.url ? user?.avatar?.url : user_placeholder} alt="user" />
               </div>
               <div className="inline-flex flex-col leading-5">
                 <span className='capitalize font-semibold tracking-wide'>{user.username}</span>

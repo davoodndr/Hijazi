@@ -212,7 +212,7 @@ function EditBrandModal({list, brand, isOpen, onUpdate, onClose}) {
 
             {/* Image */}
             <div className='flex flex-col items-center'>
-              <label className="flex text-sm font-medium w-60">
+              <label className="flex text-sm font-medium w-55">
                 <span>Image</span>
                 <span className="text-xl leading-none ms-1 text-red-500">*</span>
                 <span className='ms-2 text-gray-400'>(jpg, png, webp, bmp) 500 x 195</span>
@@ -223,9 +223,9 @@ function EditBrandModal({list, brand, isOpen, onUpdate, onClose}) {
                 onImageCrop={(file) => setData(prev => ({...prev,file}))}
                 outPutDimen={brandImageDimen}
                 outputFormat='webp'
-                cropperClass="flex items-center justify-center !h-60 !w-60 rounded-2xl 
+                cropperClass="flex items-center justify-center !h-55 !w-55 rounded-2xl 
                   overflow-hidden border border-gray-300 bg-gray-500"
-                buttonsClass="flex items-center justify-between w-60 gap-2 py-2"
+                buttonsClass="flex items-center justify-between w-55 gap-2 py-2"
               />
             </div>
 

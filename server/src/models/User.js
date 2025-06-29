@@ -4,11 +4,15 @@ const userSchema = new mongoose.Schema(
 	{
 		username: { type: String, unique: true },
 		fullname: { type: String, default: '' },
+		gender: { type: String, default: '' },
 		email: { type: String, unique: true },
 		mobile: { type: String, unique: true, sparse: true },
 		password: { type: String, default: '' },
 		googleId: { type: String, default: '' },
-		avatar: { type: String, default: '' },
+		avatar: { 
+			url: String, 
+    	public_id: String,
+		},
 		refresh_token: {
 			type: String,
 			default: "",
@@ -26,28 +30,10 @@ const userSchema = new mongoose.Schema(
 			enum: ["active", "inactive", "blocked"],
 			default: "active",
 		},
-		address_list: [
-			{
-				type: mongoose.Schema.ObjectId,
-				ref: "Address",
-			},
-		],
 		default_address: {
 			type: mongoose.Schema.ObjectId,
 			ref: "Address",
 		},
-		shopping_cart: [
-			{
-				type: mongoose.Schema.ObjectId,
-				ref: "Cart",
-			},
-		],
-		order_history: [
-			{
-				type: mongoose.Schema.ObjectId,
-				ref: "Order",
-			},
-		],
 		forgot_password_otp: {
 			type: String,
 			default: "",

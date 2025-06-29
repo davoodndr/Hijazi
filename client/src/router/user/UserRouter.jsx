@@ -21,6 +21,7 @@ const OrderDetail = React.lazy(() => import("../../pages/User/OrderDetail"))
 const UserDashboard = React.lazy(() => import("../../pages/User/Dashboard/UserDashboard"))
 const UserProfile = React.lazy(() => import("../../pages/User/Dashboard/UserProfile"))
 const UserOrders = React.lazy(() => import("../../pages/User/Dashboard/UserOrders"))
+const Addresses = React.lazy(() => import("../../pages/User/Dashboard/Addresses"))
 
 const UserRouter = () => {
 
@@ -56,6 +57,7 @@ const UserRouter = () => {
             <Route path="dashboard" element={<UserDashboard />} >
               <Route path='profile' element={<UserProfile />} />
               <Route path='orders' element={<UserOrders />} />
+              <Route path='address-list' element={<Addresses />} />
             </Route>
 
           </Route>

@@ -3,9 +3,11 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux';
 import { format } from 'date-fns'
 import AdminPagination from '../../../components/ui/AdminPagination';
+import { useNavigate } from 'react-router';
 
 function UserOrders() {
 
+  const navigate = useNavigate();
   const { ordersList } = useSelector(state => state.orders);
   const [orders, setOrders] = useState([]);
   const [selected, setSelected] = useState(1);
@@ -100,7 +102,7 @@ function UserOrders() {
       </div>
 
       {/* contentes */}
-      <div className="flex flex-col space-y-2 divide-y divide-gray-100">
+      <div className="flex flex-col space-y-2">
         {paginatedOrders?.length > 0 &&
           paginatedOrders?.map(order => {
 
@@ -113,7 +115,8 @@ function UserOrders() {
             return (
               <div
                 key={order?._id}
-                className='grid grid-cols-[100px_1.2fr_0.5fr_1fr_180px_1fr_0.5fr] items-center space-x-3 pb-2'>
+                className='grid grid-cols-[100px_1fr_0.5fr_0.75fr_180px_0.5fr]
+                 items-center space-x-3 p-2 border border-gray-300 rounded-3xl'>
                 
                 {/* thumb */}
                 <div className='w-20 rounded-2xl overflow-hidden'>
@@ -122,6 +125,7 @@ function UserOrders() {
 
                 {/* title */}
                 <div className='inline-flex flex-col'>
+                  <p className='text-xs'><span className='text-gray-400'>Order </span>#{order?.order_no}</p>
                   <p className='capitalize font-semibold'>{title}</p>
                   <p className='capitalize text-xs'>
                     <span className='text-gray-400'>Date: </span>
@@ -142,27 +146,29 @@ function UserOrders() {
                 </div>
 
                 {/* ship to */}
-                <div className='inline-flex flex-col'>
+                <div className='inline-flex flex-col px-2'>
                   <span className='text-xs text-gray-400'>Ship to</span>
                   <span className='truncate capitalize'>{Object.values(order?.shippingAddress).join(', ')}</span>
                 </div>
 
                 {/* order id */}
-                <div className='inline-flex flex-col items-center'>
-                  <p>
-                    <span className='text-xs text-gray-400'>Order #</span>
-                    <span className='text-xs'>{order?.order_no}</span>
-                  </p>
-                  <div className='text-xs inline-flex space-x-2'>
-                    <span className='underline text-primary-400 cursor-pointer'>View Order</span>
-                    <span className='underline text-primary-400 cursor-pointer'>Invoice</span>
-                  </div>
+                <div className='inline-flex flex-col justify-between text-xs space-y-1 capitalize'>
+                  <span 
+                    onClick={() => {
+                      navigate(`/my-order/${order?.order_no}`,{
+                        state: { order }
+                      })
+                    }}
+                    className='underline text-primary-400 cursor-pointer'
+                  >View Order</span>
+                  <span className='underline text-primary-400 cursor-pointer'>Invoice</span>
+                  <span className='underline text-primary-400 cursor-pointer'>rate product</span>
                 </div>
 
-                {/* more button */}
-                <div className='w-full'>
+                {/* action button */}
+                {/* <div className='w-full'>
                   <button className='w-full text-xs'>Buy Again</button>
-                </div>
+                </div> */}
               </div>
             )
           })

@@ -33,7 +33,7 @@ export const isValidName = (name) => name.length > 2;
 // remove all blank fileds
 export const finalizeValues = (data) => {
   const filtered = Object.entries(data).filter(([_,value]) => {
-    if (value === "" || value == null || value == undefined) return false;
+    if (value === "" || value === null || value === undefined) return false;
     if (Array.isArray(value) && value.length === 0) return false;
     if(typeof value === 'object' && Object.keys(value).length === 0) return false;
     return true;

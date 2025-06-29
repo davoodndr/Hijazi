@@ -8,10 +8,12 @@ import {
 	registerUser,
 	resendOtp,
 	resetUserPassword,
+	updateUserDetail,
 	userLogin,
 	verifyForgotPassOtp,
-} from "../controllers/authController.js";
-import { authenticate, allowRoles }from "../middleware/authMiddleware.js";
+} from "../controllers/user/userController.js";
+import { authenticate, allowRoles } from "../middleware/authMiddleware.js";
+import { upload } from '../middleware/multer.js'
 
 const authRouter = express.Router();
 
@@ -25,6 +27,7 @@ authRouter.post('/forgot-password-otp', forgotPasswordOtp);
 authRouter.post('/resend-forgot-pass-otp', resendOtp);
 authRouter.post('/verify-forgot-pass-otp', verifyForgotPassOtp);
 authRouter.patch('/reset-password', resetUserPassword);
+authRouter.patch('/update-user', authenticate, allowRoles(["user", "admin"]), upload, updateUserDetail);
 authRouter.get("/logout", authenticate, allowRoles(["user"]), logoutUser);
 
 

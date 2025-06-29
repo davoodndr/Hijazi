@@ -24,7 +24,7 @@ function UserDashboard() {
       <div className='flex border border-gray-100 shadow-md rounded-3xl overflow-hidden'>
 
         {/* menus */}
-        <div className='inline-flex flex-col w-[22%] shrink-0 bg-primary-50'>
+        <div className='inline-flex flex-col w-[22%] shrink-0 bg-primary-50 py-3'>
           {links.map(el =>
             <div
               key={el.url}
@@ -33,19 +33,15 @@ function UserDashboard() {
                   navigate(el.url)
                   setSelected(el.url)
                 }
-              }} 
-              className={clsx('cursor-pointer smooth hover:bg-primary-25 inline-flex',
-                selected === el.url ? 'text-primary-400 pe-0 justify-end' : 'ps-6 py-3'
+              }}
+              className={clsx('cursor-pointer smooth ps-6 py-3 hover:ps-8 relative',
+                selected === el.url ? 'text-primary-400 ps-8 bg-primary-300/20' : 'ps-6 hover:bg-primary-25'
               )}>
-              {selected === el.url ? 
-                (
-                  <div className='bg-white w-full px-6 py-3 rounded-3xl rounded-r-none'>
-                    <span className='capitalize'>{el.label}</span>
-                  </div>
-                )
-                :
-                (<span className='capitalize'>{el.label}</span>)
+              <span className='capitalize'>{el.label}</span>
+              {selected === el.url && 
+                <div className="bg-white w-5 h-5 absolute top-1/2 -translate-y-1/2 -right-2.5 rotate-45"></div>
               }
+              
             </div>
           )}
 

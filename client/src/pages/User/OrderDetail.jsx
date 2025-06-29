@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { CiCalendar } from "react-icons/ci";
 import { IoMdArrowRoundBack, IoMdMore } from "react-icons/io";
 import { LuArrowUpRight, LuUserRound } from "react-icons/lu";
@@ -6,15 +6,18 @@ import { VscCloudDownload } from "react-icons/vsc";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import { MdOutlineCall } from "react-icons/md";
 import { IoMdArrowRoundForward } from "react-icons/io";
-import { useLocation } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { format } from 'date-fns';
 import { useSelector } from 'react-redux';
 import clsx from 'clsx';
+import toast from 'react-hot-toast';
 
 function OrderDetail() {
 
   const location = useLocation();
-  const { order } = location.state;
+  const navigate = useNavigate();
+  const { order:currentOrder } = location.state;
+  const [order, setOrder] = useState(currentOrder);
   const { ordersList } = useSelector(state => state.orders);
   const formattedDate = format(new Date(order?.paidAt || order?.createdAt), "dd.MM.yyyy 'at' hh.mm a")
   const isPaid = order?.isPaid ? 'paid' : 'unpaid';
@@ -55,11 +58,37 @@ function OrderDetail() {
             </div>
 
             <div className='ml-auto inline-flex space-x-2'>
-              <span className='inline-flex bg-primary-100 p-1 rounded-full cursor-pointer
+              <span 
+                onClick={() => {
+                  const index = ordersList?.findIndex(el => el._id === order._id);
+                  if(index > 0) {
+                    const foundOrder = ordersList.find((_,i) => i === index - 1);
+                    setOrder(foundOrder)
+                    navigate(`/my-order/${foundOrder.order_no}`, {
+                      state: { order: foundOrder }
+                    })
+                  }else{
+                    toast.error("No more order found!", { position: 'top-center'})
+                  }
+                }}
+                className='inline-flex bg-primary-100 p-1 rounded-full cursor-pointer
                 smooth hover:shadow-md/30 hover:text-primary-400'>
                 <IoMdArrowRoundBack className='text-xl' />
               </span>
-              <span className='inline-flex bg-primary-100 p-1 rounded-full cursor-pointer
+              <span 
+                onClick={() => {
+                  const index = ordersList?.findIndex(el => el._id === order._id);
+                  if(index < ordersList.length - 1) {
+                    const foundOrder = ordersList.find((_,i) => i === index + 1);
+                    setOrder(foundOrder)
+                    navigate(`/my-order/${foundOrder.order_no}`, {
+                      state: { order: foundOrder }
+                    })
+                  }else{
+                    toast.error("No more order found!", { position: 'top-center'})
+                  }
+                }}
+                className='inline-flex bg-primary-100 p-1 rounded-full cursor-pointer
                 smooth hover:shadow-md/30 hover:text-primary-400'>
                 <IoMdArrowRoundForward className='text-xl' />
               </span>

@@ -7,7 +7,7 @@ const UserPublicRoutes = () => {
 
   const { user, isLoading } = useSelector(state => state.user);
   const location = useLocation();
-  const redirect = new URLSearchParams(location.search).get('redirect' || '/')
+  const redirect = new URLSearchParams(location.search).get('redirect') || '/';
 
   if(isLoading) return <Loader />;
 

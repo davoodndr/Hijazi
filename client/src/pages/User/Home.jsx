@@ -216,7 +216,7 @@ function HomeComponent(){
         {/* brands */}
         <AnimateAppear>
           <MulticardSlider className='mb-10'
-            space={60}
+            space={130}
             title={
               <h3 className="text-slider-header-title">
                 <span className="text-primary-400">Featured</span> Brands

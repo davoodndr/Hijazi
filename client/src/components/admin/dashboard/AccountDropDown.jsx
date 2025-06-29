@@ -11,7 +11,7 @@ const AccountDropDown = ({user}) => {
 
   return (
     <div className='nav-account-dropdown border md:invisible opacity-0 border-primary-200 absolute top-[calc(100%+5px)] 
-      right-0 w-auto min-w-70 bg-white shadow-md rounded-sm cursor-default'>
+      right-0 w-auto min-w-70 bg-white shadow-md rounded-sm cursor-default z-50'>
 
         {
           user ? (
@@ -24,7 +24,7 @@ const AccountDropDown = ({user}) => {
               </Link>
               {/* avatar */}
               <div className='w-15 rounded-[50%] overflow-hidden'>
-                <img src={user?.avatar ? user?.avatar : user_placeholder} alt="user" />
+                <img src={user?.avatar?.url ? user?.avatar?.url : user_placeholder} alt="user" />
               </div>
               <div className="inline-flex flex-col leading-5">
                 <span className='capitalize font-semibold tracking-wide'>{user.username}</span>

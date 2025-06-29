@@ -27,6 +27,7 @@ function CropperWindowComponent({
   buttonsClass = '', 
   cropperClass = '', 
   containerClass = '',
+  wrapperClass = '',
   outPutDimen, 
   thumbDimen, 
   outputFormat,
@@ -134,44 +135,35 @@ function CropperWindowComponent({
 
   return (
     <div className={containerClass}>
-      <div className={cropperClass}>
-      
-        {isPreview ? (
-          <img src={imgSrc} className='object-contain w-full border-12 border-white' alt="preview" 
-            onError={e => console.log(e.nativeEvent)} 
-          />
-        ):(
-          imgSrc ? (
-            <ImageCropper 
-              imageSrc={imgSrc}
-              onCrop={(cropFunction) => cropFunRef.current = cropFunction}
-              outPutDimen={outPutDimen}
-              format={outputFormat}
-              className='!w-full !h-full'
-            />
-          ): (
-            <div className='flex flex-col items-center justify-center w-full h-full bg-gray-100'>
-              <IoImageOutline size={50} className='text-gray-300'/>
-              <span className='text-gray-400'>no image</span>
-            </div>
-            )
-          )
-        }
-      </div>
-      <input 
-        type="file" 
-        /* multiple = {multiSelect} *///not implimented
-        id="category-image" 
-        accept='image/*' 
-        ref={fileInputRef} 
-        onChange={handleImageSelect} 
-        hidden 
-        />
-      
-      {/* crop image buttons */}
-      <div className={buttonsClass}>
 
-        <div className='flex gap-2'>
+      <div className={`relative ${wrapperClass}`}>
+        <div className={`${cropperClass}`}>
+        
+          {isPreview ? (
+            <img src={imgSrc} className='object-contain w-full border-12 border-white' alt="preview" 
+              onError={e => console.log(e.nativeEvent)} 
+            />
+          ):(
+            imgSrc ? (
+              <ImageCropper 
+                imageSrc={imgSrc}
+                onCrop={(cropFunction) => cropFunRef.current = cropFunction}
+                outPutDimen={outPutDimen}
+                format={outputFormat}
+                className='!w-full !h-full'
+              />
+            ): (
+              <div className='flex flex-col items-center justify-center w-full h-full bg-gray-100'>
+                <IoImageOutline size={50} className='text-gray-300'/>
+                <span className='text-gray-400'>no image</span>
+              </div>
+              )
+            )
+          }
+        </div>
+        {/* crop image buttons */}
+        <div className={`absolute ${buttonsClass}`}>
+
           {/* browse image */}
           <label 
             htmlFor='category-image'
@@ -193,9 +185,7 @@ function CropperWindowComponent({
             hover:scale-105'>
             <BiReset size={23}/>
           </span>
-        </div>
 
-        <div className="flex gap-2">
           {/* crop */}
           <span 
             onClick={handleCrop}
@@ -223,10 +213,18 @@ function CropperWindowComponent({
             hover:scale-105'>
             <RiImageEditLine size={23}/>
           </span>
-          
-        </div>
 
+        </div>
       </div>
+      <input 
+        type="file" 
+        /* multiple = {multiSelect} *///not implimented
+        id="category-image" 
+        accept='image/*' 
+        ref={fileInputRef} 
+        onChange={handleImageSelect} 
+        hidden 
+        />
       
     </div>
   )

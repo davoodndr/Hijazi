@@ -48,6 +48,10 @@ const ApiBucket = {
     url: '/api/auth/reset-password',
     method: 'patch'
   },
+  updateUserDetail: {
+    url: '/api/auth/update-user',
+    method: 'patch'
+  },
 
   // -------------- admin side -------------- //
 

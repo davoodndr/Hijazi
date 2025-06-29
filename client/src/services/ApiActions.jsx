@@ -1,6 +1,5 @@
 import { removeItem } from "motion/react";
 import { Axios } from "../utils/AxiosSetup";
-import AxiosToast from "../utils/AxiosToast";
 import ApiBucket from "./ApiBucket";
 
 
@@ -228,9 +227,6 @@ export const uploadProductImages = async(product, product_id, remove_ids = []) =
       ...ApiBucket.uploadProductImages,
       data: formData
     })
-
-
-    console.log(response.data)
 
     return response.data;
 

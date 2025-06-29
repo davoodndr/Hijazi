@@ -1,13 +1,14 @@
 
 import bcrypt from "bcryptjs"
 import jwt from 'jsonwebtoken'
-import User from "../models/User.js";
+import User from "../../models/User.js";
 import dotenv from "dotenv";
-import { responseMessage } from "../utils/messages.js";
-import { generateAccessToken, generateRefreshToken } from "../services/generateToken.js";
+import { responseMessage } from "../../utils/messages.js";
+import { generateAccessToken, generateRefreshToken } from "../../services/generateToken.js";
 import { OAuth2Client } from "google-auth-library";
-import { generateOtp } from '../services/misc.js'
-import { sendMail } from "../services/sendmail.js";
+import { generateOtp } from '../../services/misc.js'
+import { sendMail } from "../../services/sendmail.js";
+import { uploadImagesToCloudinary } from "../../utils/coudinaryActions.js";
 dotenv.config();
 
 // register user
@@ -232,6 +233,45 @@ export const getUserDetail = async(req, res) => {
     return responseMessage(res,500,false,error);
   }
 
+}
+
+// update user
+export const updateUserDetail = async(req, res) => {
+
+  const { username, email, public_id } = req.body;
+  const { files, user_id } = req;
+
+  try {
+
+    if(!username || !email){
+      return responseMessage(res, 400, false, "Please fill username and email!")
+    }
+
+    let avatar = {};
+
+    if(files && files.length){
+
+      const upload = await uploadImagesToCloudinary("users", files, public_id);
+      avatar = {
+        url: upload[0].secure_url,
+        public_id: upload[0]?.public_id.split('/').pop()
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(user_id,
+      { 
+        ...req.body,
+        avatar
+      },
+      {new: true}
+    )
+
+    return responseMessage(res, 200, true, "User updated successfully",{user});
+    
+  } catch (error) {
+    console.log('updateUserDetail:',error);
+    return responseMessage(res,500,false,error);
+  }
 }
 
 //logut user
