@@ -224,7 +224,12 @@ export const getUserDetail = async(req, res) => {
     
     const user_id = req.user_id;
 
-    const user = await User.findById(user_id).select("-password -refresh_token");
+    const user = await User.findById(user_id)
+      .select("-password -refresh_token")
+      .populate({
+        path: "default_address",
+        select: "-user_id -updatedAt -createdAt -__v"
+      });
 
     return responseMessage(res,200,true,"",{user})
 

@@ -351,6 +351,25 @@ export const addNewAddressAction = async(data) => {
 
 }
 
+export const makeDefaultAddressAction = async(data) => {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.makeAddressDefault,
+      data
+    })
+
+    return response.data
+
+  } catch (error) {
+
+    console.log(error)
+    throw new Error(error?.response?.data?.message);
+  }
+
+}
+
 // payment
 export const processRazorpayAction = async(order) => {
 

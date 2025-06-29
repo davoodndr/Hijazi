@@ -230,6 +230,10 @@ const ApiBucket = {
     url: '/api/user/add-new-address',
     method: 'post'
   },
+  makeAddressDefault: {
+    url: '/api/user/make-address-default',
+    method: 'patch'
+  },
 
   /* orders */
   getOrders: {

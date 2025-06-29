@@ -9,6 +9,8 @@ import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
 import { setUser } from '../../../store/slices/UsersSlice';
 import { setLoading } from '../../../store/slices/CommonSlices';
+import { FaCircleCheck } from 'react-icons/fa6';
+import { IoMdCall } from "react-icons/io";
 
 function UserProfile() {
 
@@ -105,7 +107,7 @@ function UserProfile() {
       <div className="inline-flex w-full space-x-5 rounded-xl">
 
         {/* avatar */}
-        <div className='flex flex-col space-y-2 border border-gray-200 p-6
+        <div className='w-[30%] flex flex-col space-y-2 border border-gray-200 p-6
           rounded-2xl'
         >
 
@@ -159,9 +161,23 @@ function UserProfile() {
           <hr className='my-3 border-gray-200' />
 
           {/* default address */}
-          <div>
-            <p className='font-semibold'>Default Address</p>
-            {/* {console.log(user)} */}
+          <div className='w-full flex flex-col space-y-2'>
+            <div className='font-semibold flex items-center justify-between
+              text-primary-400'>
+              <span>Default Address</span>
+              <FaCircleCheck className='text-md' />
+            </div>
+            <span className='capitalize'>
+              {Object.keys(user?.default_address)
+              .filter(key => key !== '_id' && key !== 'is_default' && key !== 'mobile')
+              .map(key => user?.default_address[key]).join(', ')}
+            </span>
+            {user?.default_address?.mobile && 
+              <p className='capitalize flex items-center space-x-2'>
+                <IoMdCall className='text-lg' />
+                <span>{user?.default_address?.mobile}</span>
+              </p>
+            }
           </div>
         </div>
 
@@ -250,7 +266,8 @@ function UserProfile() {
                 <input 
                   type="radio"
                   name='gender'
-                  value={data?.gender}
+                  value='male'
+                  checked={data?.gender === 'male'}
                   onChange={handleChange}
                   placeholder='Confirm Password'
                   id='male'
@@ -261,7 +278,8 @@ function UserProfile() {
                 <input 
                   type="radio"
                   name='gender'
-                  value={data?.gender}
+                  value='female'
+                  checked={data?.gender === 'female'}
                   onChange={handleChange}
                   placeholder='Confirm Password'
                   id='female'

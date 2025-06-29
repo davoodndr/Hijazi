@@ -10,6 +10,7 @@ import { fetchWishlist } from "../store/slices/WishlistSlice"
 import { fetchOrders } from "../store/slices/OrderSlice"
 import { fetchProducts } from "../store/slices/ProductSlices"
 import { fetchBrands } from "../store/slices/BrandSlice"
+import { fetchAddresses } from "../store/slices/AddressSlice"
 
 function App() {
 
@@ -22,6 +23,7 @@ function App() {
         dispatch(fetchCart())
         dispatch(fetchWishlist())
         dispatch(fetchOrders())
+        dispatch(fetchAddresses())
       }
     }
     fetchAuthData()

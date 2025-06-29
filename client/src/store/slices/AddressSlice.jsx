@@ -25,7 +25,20 @@ const addressSlice = createSlice({
     addressList: [],
     error: null
   },
-  reducers: {},
+  reducers: {
+    makeAddressDefault: (state, action) => {
+      const { updated, old } = action.payload;
+      state.addressList = state.addressList.map(el => {
+        if(el._id === updated._id)
+          return updated 
+        else if(el._id === old._id)
+          return old
+        else
+          return el
+      })
+      state.error = null;
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchAddresses.fulfilled, (state, action) => {
@@ -48,5 +61,7 @@ const addressSlice = createSlice({
       })
   }
 })
+
+export const { makeAddressDefault } = addressSlice.actions;
 
 export default addressSlice.reducer;

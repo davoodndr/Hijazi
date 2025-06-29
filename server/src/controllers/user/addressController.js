@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import Address from "../../models/Address.js";
+import User from "../../models/User.js";
 import { responseMessage } from "../../utils/messages.js";
 
 // add new address
@@ -58,4 +60,67 @@ export const addNewAddress = async(req, res) => {
     console.log('addNewAddress',error)
     return responseMessage(res, 500, false, error.message || error)
   }
+}
+
+// make address default
+export const makeAddressDefault = async(req, res) => {
+
+  const { old_default, address_id } = req.body
+  const { user_id } = req;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    
+    const address = await Address.findById(address_id);
+    if(!address){
+      return responseMessage(res, 400, false, "Address not found!")
+    }
+
+    let old;
+    if(old_default){
+      old = await Address.findByIdAndUpdate(
+        old_default,
+        { is_default: false },
+        { new: true }
+      )
+    }
+
+    let updated = await Address.findByIdAndUpdate(
+      address_id,
+      { is_default: true },
+      { new: true }
+    )
+
+    await User.findByIdAndUpdate(user_id,
+      { default_address: updated._id }
+    )
+
+    await session.commitTransaction();
+    session.endSession();
+
+    old = old.toObject();
+    delete old.user_id
+    delete old.updatedAt
+    delete old.createdAt
+    delete old.__v
+
+    updated = updated.toObject();
+    delete updated.user_id
+    delete updated.updatedAt
+    delete updated.createdAt
+    delete updated.__v
+
+    return responseMessage(res, 200, true, "Changed default address successfully",{updated, old})
+
+  } catch (error) {
+
+    await session.abortTransaction();
+    session.endSession();
+
+    console.log('makeAddressDefault',error)
+    return responseMessage(res, 500, false, error.message || error)
+  }
+
 }
