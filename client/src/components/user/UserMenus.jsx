@@ -1,15 +1,68 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { IoIosArrowDown } from "react-icons/io";
 import menuBanner from "../../assets/menu-banner.jpg";
-import { menus } from '../../services/FetchDatas';
+import { useSelector } from 'react-redux';
 
 const UserMenus = ({isMobile = false}) => {
 
-  
-
   const menuRefs = useRef({});
-
   const [expandedMenu, setExpandedMenu] = useState(null);
+  const { categoryList } = useSelector(state => state.categories);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    setCategories(getCategoriesMenu())
+  },[categoryList])
+
+  const getCategoriesMenu = () => {
+    
+    let cats = [];
+    categoryList?.forEach(el => {
+      if(!el?.parentId){
+        cats.push({
+          id: el?._id,
+          label: el?.name
+        })
+      }else{
+        cats = cats.map(p => {
+          const parent = p.id === el?.parentId?._id;
+          if(parent){
+            return {
+              ...p,
+              items: parent?.items ? [...parent?.items, el?.name] : [el?.name]
+            }
+          }else{
+            return p
+          }
+        })
+
+      }
+    })
+
+    return cats
+  }
+
+  const menus = [
+    {label: 'home', href: '/'},
+    {label: 'about', href: ''},
+    {label: 'shop', href: '',
+      submenu: categories /* [
+        {label: 'clothing', href: '',
+          items: [
+            'Men Formals', 'Men Casuals',
+            'Woman Formals', 'Woman Casuals'
+          ]
+        },
+        {label: 'foot wears', href: '',
+          items: [
+            'slips','shoes','lightweight','washable'
+          ]
+        },
+      ] */
+    },
+    {label: 'policies', href: ''},
+    {label: 'contact', href: ''},
+  ]
 
   /* for smooth animation on submenu expand - mobile */
   useEffect(() => {

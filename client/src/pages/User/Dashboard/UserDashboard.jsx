@@ -21,10 +21,10 @@ function UserDashboard() {
 
   return (
     <section className='w-9/10 py-15'>
-      <div className='flex border border-gray-100 shadow-md rounded-3xl overflow-hidden'>
+      <div className='min-h-[70vh] flex border border-gray-100 shadow-md rounded-3xl overflow-hidden'>
 
         {/* menus */}
-        <div className='inline-flex flex-col w-[22%] shrink-0 bg-primary-50 py-3'>
+        <div className='inline-flex flex-col w-[22%] shrink-0 bg-primary-50 py-3 pt-15'>
           {links.map(el =>
             <div
               key={el.url}

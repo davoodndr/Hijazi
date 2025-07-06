@@ -5,6 +5,7 @@ import { LuUsers } from "react-icons/lu";
 import { BiCategoryAlt } from "react-icons/bi";
 import { IoSettingsOutline } from "react-icons/io5";
 import { PiShoppingCartSimpleBold } from "react-icons/pi";
+import { RiCoupon3Line } from "react-icons/ri";
 import { LuPackage } from "react-icons/lu";
 import { SlBadge } from "react-icons/sl";
 import { Sidebar } from '../../components/admin/dashboard/SideBar'
@@ -20,6 +21,7 @@ const AdminLayout = () => {
       { icon: SlBadge, label: 'Brands', href: '/admin/brands' },
       { icon: LuPackage, label: 'Products', href: '/admin/products' },
       { icon: PiShoppingCartSimpleBold, label: 'Orders', href: '/admin/orders' },
+      { icon: RiCoupon3Line, label: 'Coupons', href: '/admin/coupons' },
       { icon: IoSettingsOutline, label: 'Settings', href: '/admin/settings' },
     ];
   

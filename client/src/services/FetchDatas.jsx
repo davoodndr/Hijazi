@@ -1,6 +1,7 @@
 import ApiBucket from "./ApiBucket"
 import { Axios } from "../utils/AxiosSetup"
 
+/* auth */
 export const getUserDetail = async() => {
 
   try {
@@ -18,26 +19,29 @@ export const getUserDetail = async() => {
 
 }
 
+
 /* ------ user side -------- */
 
 /* category */
 export const getCategories = async() => {
+  
   try {
     
     const response = await Axios({
-      ...ApiBucket.getCategortList
+      ...ApiBucket.getCategoryList
     })
 
     return response.data.categories;
 
   } catch (error) {
     console.log(error.response.data)
-    return error.response.data
+    throw new Error(error?.response?.data?.message)
   }
 }
 
 /* brand */
 export const getBrands = async() => {
+  
   try {
     
     const response = await Axios({
@@ -150,24 +154,19 @@ export const getOrdersList = async() => {
   }
 }
 
-export const menus = [
-    {label: 'home', href: '/'},
-    {label: 'about', href: ''},
-    {label: 'shop', href: '',
-      submenu: [
-        {label: 'clothing', href: '',
-          items: [
-            'Men Formals', 'Men Casuals',
-            'Woman Formals', 'Woman Casuals'
-          ]
-        },
-        {label: 'foot wears', href: '',
-          items: [
-            'slips','shoes','lightweight','washable'
-          ]
-        },
-      ]
-    },
-    {label: 'policies', href: ''},
-    {label: 'contact', href: ''},
-  ]
+/* coupons */
+export const getCoupons = async() => {
+  
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getCouponsList
+    })
+
+    return response.data.coupons;
+
+  } catch (error) {
+    console.log(error.response.data)
+    throw new Error(error?.response?.data?.message)
+  }
+}

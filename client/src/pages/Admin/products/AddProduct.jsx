@@ -545,6 +545,7 @@ const EditProduct = () => {
               <div className="inline-flex gap-2 items-center">
                 <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Featured</label>
                 <ToggleSwitch
+                  value={data.featured}
                   onChange={(value) => setData(prev => ({...prev,featured:value}))}
                   />
               </div>

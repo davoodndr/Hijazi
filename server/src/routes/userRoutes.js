@@ -8,6 +8,7 @@ import { addToWishlist, getWishlist, removeFromWishlist } from '../controllers/u
 import { createRazorpayOrder, generatePaymentLink, verifyRazorpay } from '../controllers/user/paymentController.js';
 import { addNewAddress, getAddressList, makeAddressDefault } from '../controllers/user/addressController.js';
 import { getOrders, placeOrder } from '../controllers/user/orderController.js';
+import { getCoupons } from '../controllers/user/couponController.js';
 
 const userRouter = express.Router();
 
@@ -47,5 +48,8 @@ userRouter.patch('/make-address-default', authenticate, allowRoles(['user']), ma
 /* order management */
 userRouter.get('/get-orders-list', authenticate, allowRoles(['user']), getOrders)
 userRouter.post('/place-order', authenticate, allowRoles(['user']), placeOrder)
+
+/* coupon management */
+userRouter.get('/get-coupon-list',getCoupons)
 
 export default userRouter;

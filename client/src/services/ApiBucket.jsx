@@ -151,10 +151,28 @@ const ApiBucket = {
     method: 'patch'
   },
 
+  /* product */
+  getCoupons: {
+    url: '/api/admin/get-coupons',
+    method: 'get'
+  },
+  addCoupon: {
+    url: '/api/admin/add-coupon',
+    method: 'post'
+  },
+  changeCouponStatus: {
+    url: '/api/admin/change-coupon-status',
+    method: 'patch'
+  },
+  updateCoupon: {
+    url: '/api/admin/update-coupon',
+    method: 'put'
+  },
+
   // ----------- user side -------------//
 
     /* category */
-  getCategortList: {
+  getCategoryList: {
     url: '/api/user/get-categories',
     method: 'get'
   },
@@ -243,6 +261,12 @@ const ApiBucket = {
   placeOrder: {
     url: '/api/user/place-order',
     method: 'post'
+  },
+
+  /* coupons */
+  getCouponsList: {
+    url: '/api/user/get-coupon-list',
+    method: 'get'
   },
 }
 

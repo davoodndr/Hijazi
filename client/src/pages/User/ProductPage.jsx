@@ -19,6 +19,7 @@ import { setLoading } from '../../store/slices/CommonSlices'
 import toast from 'react-hot-toast'
 import { addToList, syncWishlistItem } from '../../store/slices/WishlistSlice'
 import { getSingleProduct } from '../../services/FetchDatas'
+import { MdDiscount } from "react-icons/md";
 
 function ProductPageComponent() {
 
@@ -26,6 +27,7 @@ function ProductPageComponent() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.user);
+  const { couponList } = useSelector(state => state.coupons)
   const path = location.pathname;
 
   const [product, setProduct] = useState(null);
@@ -63,7 +65,6 @@ function ProductPageComponent() {
     }
     fetchProduct();
   },[])
-
 
   useEffect(() => {
     if(cartItem) setProductQty(cartItem?.quantity)
@@ -229,7 +230,7 @@ function ProductPageComponent() {
     <section className='w-9/10 flex flex-col items-center mt-10'>
 
       {/* basic */}
-      <div className="flex space-x-10 min-h-[610px]">
+      <div className="flex space-x-10 w-full min-h-[610px]">
         {/* image viewer with magnification */}
         <ProductImageViewer
           images={useMemo(() => {
@@ -266,8 +267,14 @@ function ProductPageComponent() {
           </div>
 
           {/* detail */}
-          <div className="text-base mb-5">
-            <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Aliquam rem officia, corrupti reiciendis minima nisi modi, quasi, odio minus dolore impedit fuga eum eligendi? Officia doloremque facere quia. Voluptatum, accusantium!</p>
+          <div className="flex flex-col space-y-1 mb-5">
+            {
+              couponList?.map(coupon => 
+                <div key={coupon._id}>
+                  <MdDiscount className='text-xl text-primary-400' />
+                </div>
+              )
+            }
           </div>
 
           {/* waranty return delivery */}

@@ -141,6 +141,10 @@
   .badge{
     @apply w-fit text-[11px] px-1.5 py-0.5 rounded-xl
   }
+
+  .custom-input{
+    @apply h-[40px] w-full py-0 px-[15px] border border-neutral-300 rounded-input-border outline-0 smooth
+  }
 }
 
 

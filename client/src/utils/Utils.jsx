@@ -69,11 +69,11 @@ export const isValidDatas = (fields, data) => {
     }
   
     if (typeof value === 'string') {
-      return value.trim() !== '';
+      return value && value.trim() !== '';
     }
-  
+
     if (typeof value === 'object' && value !== null) {
-      return Object.keys(value).length > 0;
+      return Object.keys(value).length > 0 || value instanceof Date;
     }
   
     return value !== null && value !== undefined;
@@ -241,4 +241,17 @@ export const resizeImageFile = async(file, maxWidth = 800, maxHeight = 800, qual
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+export const utcDate = (localDate) => {
+  if(localDate && localDate instanceof Date){
+    return new Date(Date.UTC(
+      localDate.getFullYear(),
+      localDate.getMonth(),
+      localDate.getDate(),
+      localDate.getHours(),
+      localDate.getMinutes(),
+      localDate.getSeconds()
+    ))
+  }
 }

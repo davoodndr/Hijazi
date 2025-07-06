@@ -45,7 +45,7 @@ function Addresses() {
   }
 
   return (
-    <div className='flex-grow p-5 space-y-5'>
+    <div className='h-full flex-grow p-5 space-y-5'>
       {/* header */}
       <div className='flex space-x-3'>
         <h3 className='text-xl'>Address List</h3>

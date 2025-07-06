@@ -14,6 +14,7 @@ import {
 import { addCategory, deleteCategory, getCategories, updateCategory, uploadCategoryImage } from "../controllers/admin/categoryController.js";
 import { addBrand, deleteBrand, getBrands, updateBrand, uploadBrandLogo } from "../controllers/admin/brandController.js";
 import { addProduct, changeProductStatus, getProducts, updateProduct, uploadProductImages } from "../controllers/admin/productController.js";
+import { addCoupon, changeCouponStatus, getCoupons, updateCoupon } from "../controllers/admin/couponController.js";
 
 
 const adminRouter = express.Router();
@@ -50,5 +51,11 @@ adminRouter.post('/add-product', authenticate, allowRoles(['admin']), addProduct
 adminRouter.post('/upload-product-images',authenticate, allowRoles(['admin']), productUpload, uploadProductImages);
 adminRouter.patch('/update-product', authenticate, allowRoles(['admin']), updateProduct)
 adminRouter.patch('/change-product-status', authenticate, allowRoles(['admin']), changeProductStatus)
+
+/* coupon management */
+adminRouter.get('/get-coupons', authenticate, allowRoles(['admin']), getCoupons)
+adminRouter.post('/add-coupon', authenticate, allowRoles(['admin']), addCoupon)
+adminRouter.put('/update-coupon', /* authenticate, allowRoles(['admin']),  */updateCoupon)
+adminRouter.patch('/change-coupon-status', authenticate, allowRoles(['admin']), changeCouponStatus)
 
 export default adminRouter;

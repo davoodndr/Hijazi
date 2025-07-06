@@ -32,8 +32,8 @@ function ProductListingComponent() {
   const [sortOrder, setSortOrder] = useState('asc');
 
   useEffect(() => {
-    dispatch(fetchBrands())
-    dispatch(fetchProducts())
+    /* dispatch(fetchBrands())
+    dispatch(fetchProducts()) */
     dispatch(setLoading(false))
   }, [])
 

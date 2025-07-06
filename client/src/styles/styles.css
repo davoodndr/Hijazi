@@ -62,3 +62,16 @@
   visibility: visible;
   opacity: 1;
 }
+
+.react-datepicker__navigation--next:hover, .react-datepicker__navigation--previous:hover{
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.react-datepicker__day--selected{
+  @apply !bg-primary-300
+}
+
+.react-datepicker__header{
+  @apply !bg-primary-25
+}
