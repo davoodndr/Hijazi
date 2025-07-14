@@ -13,22 +13,23 @@ const ReadOnlyInput = React.forwardRef(({ value, onClick }, ref) => (
   />
 ));
 
-function MyDatePicker({value, onChange}) {
-  const [startDate, setStartDate] = useState("");
+function MyDatePicker({minDate = new Date(), value, onChange}) {
+  const [startDate, setStartDate] = useState(null);
 
   useEffect(() => {
-    setStartDate(value)
+    setStartDate(value ?? null)
   },[value])
 
   useEffect(() => {
     onChange(startDate)
-  },[startDate, setStartDate])
+  },[startDate])
 
   return (
     <DatePicker 
       selected={startDate} 
       onChange={(date) => setStartDate(date)}
       dateFormat='dd-MM-yyyy'
+      minDate={minDate}
       customInput={<ReadOnlyInput />}
     />
   );

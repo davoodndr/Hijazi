@@ -145,6 +145,10 @@
   .custom-input{
     @apply h-[40px] w-full py-0 px-[15px] border border-neutral-300 rounded-input-border outline-0 smooth
   }
+
+  .button{
+    @apply border h-[40px] rounded-input-border flex items-center justify-center cursor-pointer smooth
+  }
 }
 
 
@@ -173,6 +177,32 @@
 }
 
 @custom-variant price-before {
+  &::before{
+    @slot;
+  }
+}
+
+@utility content-after{
+  @apply relative inline-flex items-center w-fit;
+  &::after{
+    @apply inline-flex items-center content-["₹"] text-gray-500/70;
+  }
+}
+
+@custom-variant content-after {
+  &::after{
+    @slot;
+  }
+}
+
+@utility content-before{
+  @apply relative w-fit;
+  &::before{
+    @apply content-["₹"] text-gray-500/70;
+  }
+}
+
+@custom-variant content-before {
   &::before{
     @slot;
   }

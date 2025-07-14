@@ -13,7 +13,7 @@ export const getUserDetail = async() => {
     return response.data.user;
 
   } catch (error) {
-    console.log(error.response.data)
+    //console.log(error.response.data)
     //return error.response.data // it will return the user data not null
   }
 

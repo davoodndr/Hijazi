@@ -63,7 +63,7 @@ function MulticardSliderComponent ({
           delay: 3000,
           pauseOnMouseEnter: true
         }}
-        loop={cards.length >= cardCount}
+        loop={cards?.length >= cardCount}
         pagination={{
           el: '.custom-swiper-pagination',
           clickable: true,
@@ -75,7 +75,7 @@ function MulticardSliderComponent ({
         }}
         modules={[Autoplay, Navigation]}
       >
-        {cards.map((el, i) =>{
+        {cards?.map((el, i) =>{
 
           return (
             <SwiperSlide key={i} className={slideClass}>

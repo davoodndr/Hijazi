@@ -7,8 +7,6 @@ import { useMemo } from 'react';
 import AdminPagination from '../../components/user/Pagination';
 import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from 'react';
-import { fetchProducts } from '../../store/slices/ProductSlices';
-import { fetchBrands } from '../../store/slices/BrandSlice';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 import { AnimatePresence, motion } from 'motion/react';
@@ -32,8 +30,6 @@ function ProductListingComponent() {
   const [sortOrder, setSortOrder] = useState('asc');
 
   useEffect(() => {
-    /* dispatch(fetchBrands())
-    dispatch(fetchProducts()) */
     dispatch(setLoading(false))
   }, [])
 

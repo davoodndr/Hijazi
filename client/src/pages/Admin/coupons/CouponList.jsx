@@ -35,6 +35,7 @@ const CouponList = () => {
 
   const [coupons, setCoupons] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentSort, setCurrentSort] = useState(null)
 
   /* initial data loader */
   useEffect(() => {
@@ -49,11 +50,9 @@ const CouponList = () => {
         ...ApiBucket.getCoupons
       })
 
-      if(response.data.success){
-        
-        //const sorted = [...response.data.coupons].sort((a,b) => b.createdAt.localeCompare(a.createdAt))
-    
+      if(response.data.success){    
         setCoupons(response?.data?.coupons);
+        setCurrentSort({field: "createdAt", ascending: false})
       }
 
     } catch (error) {
@@ -104,7 +103,7 @@ const CouponList = () => {
     {title: 'min. purchase',field: 'minPurchase', ascending: true},
     {title: 'limit',field: 'usageLimit', ascending: true},
   ])
-  const [currentSort, setCurrentSort] = useState(null)
+  
 
   useEffect(() => {
     let sorted;

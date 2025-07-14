@@ -37,6 +37,9 @@ const addressSlice = createSlice({
           return el
       })
       state.error = null;
+    },
+    clearAddressList: (state, action) => {
+      state.addressList = []
     }
   },
   extraReducers: (builder) => {
@@ -62,6 +65,6 @@ const addressSlice = createSlice({
   }
 })
 
-export const { makeAddressDefault } = addressSlice.actions;
+export const { makeAddressDefault, clearAddressList } = addressSlice.actions;
 
 export default addressSlice.reducer;

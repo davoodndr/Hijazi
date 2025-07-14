@@ -19,7 +19,7 @@ const ProductImageViewerComponent = ({className = '', images = []}) => {
   return (
     <div className={className}>
       {/* Main Zoom Image */}
-      <div className="mb-4 flex-grow border border-primary-50">
+      <div className="mb-4 flex-grow border border-primary-50 max-w-[517px] max-h-[517px]">
         <ImageZoomOnHover
           className='group'
           mainImage={{src: activeImage?.thumb, alt: activeImage?.public_id}}
@@ -41,19 +41,20 @@ const ProductImageViewerComponent = ({className = '', images = []}) => {
       <div className={`relative ${images?.length > 5 ? 'px-5' : ''} h-[100px] shrink-0`}>
 
         {/* nav buttons */}
-          <div className={`swiper-prev absolute -left-1 top-0
-            inline-flex h-full items-center cursor-pointer`}>
-            <IoIosArrowBack className="text-lg" />
-          </div>
-          <div className={`swiper-next absolute -right-1 top-0
-            inline-flex h-full items-center cursor-pointer`}>
-            <IoIosArrowForward className="text-lg" />
+        <div className={`swiper-prev absolute -left-1 top-0
+          inline-flex h-full items-center cursor-pointer`}>
+          <IoIosArrowBack className="text-lg" />
+        </div>
+        <div className={`swiper-next absolute -right-1 top-0
+          inline-flex h-full items-center cursor-pointer`}>
+          <IoIosArrowForward className="text-lg" />
         </div>
 
         <Swiper
-          slidesPerView={5}
+          slidesPerView="auto"
           modules={[Navigation]}
           spaceBetween={0}
+          freeMode={true}
           navigation={{
             nextEl: '.swiper-next',
             prevEl: '.swiper-prev'
@@ -68,7 +69,8 @@ const ProductImageViewerComponent = ({className = '', images = []}) => {
               className='!inline-flex p-1 bg-white !w-fit h-fit'
             >
               <div className={`inline-flex w-[100px] h-[100px] border border-gray-200 smooth hover:border-primary-300 cursor-pointer
-                opacity-60 ${i === activeIndex ? 'opacity-100 border-primary-300' : ''}`}>
+                opacity-60 ${i === activeIndex ? 'opacity-100 border-primary-300' : ''}`}
+              >
                 {img?.thumb ?
                   <img src={img?.thumb} alt={img?.public_id} className='bg-gray-200 object-cover w-full' />
                   :

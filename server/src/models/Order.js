@@ -48,6 +48,13 @@ const orderSchema = new mongoose.Schema({
   taxPrice: { type: Number },
   shippingPrice: { type: Number },
   discount: { type: Number, default: 0 },
+  coupon: {
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Coupon",
+    },
+    appliedAmount: Number
+  },
   totalPrice: { type: Number },
   isPaid: { type: Boolean, default: false },
   paidAt: { type: Date },

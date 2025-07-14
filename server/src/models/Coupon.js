@@ -24,7 +24,7 @@ const couponSchema = new mongoose.Schema(
 		},
 		maxDiscount: {
 			type: Number,
-			required: true,
+			default: 0
 		},
 		expiry: {
 			type: Date,
@@ -33,6 +33,10 @@ const couponSchema = new mongoose.Schema(
 		usageLimit: {
 			type: Number,
 			default: 1,
+		},
+		couponRule: {
+			type: String,
+			default: ''
 		},
 		status: {
 			type: String,

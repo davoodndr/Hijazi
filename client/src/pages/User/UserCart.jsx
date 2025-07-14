@@ -1,20 +1,42 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { CiSquareMinus, CiSquarePlus } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart, getCartCount, getCartTotal, syncCartitem} from '../../store/slices/CartSlice';
+import { addToCart, getCartCount, getCartTotal, setAppliedCoupon, setCartTotal, setTotalDiscount, syncCartitem} from '../../store/slices/CartSlice';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router'
 import clsx from 'clsx'
 import { setLoading } from '../../store/slices/CommonSlices'
+import { Swiper, SwiperSlide } from 'swiper/react';
+import "swiper/css";
+import "swiper/css/navigation";
+import { Navigation } from 'swiper/modules';
+import CouponCardSmall from '../../components/ui/CouponCardSmall';
+import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
+import { MdContentPaste } from 'react-icons/md';
+import { IoCloseCircleOutline } from 'react-icons/io5';
+import { AnimatePresence, motion } from 'motion/react';
 
 function UserCart(){
 
+  const dispatch = useDispatch();
+  const navigate  = useNavigate();
   const { items } = useSelector(state => state.cart);
   const { user } = useSelector(state => state.user);
   const cartSubTotal = useSelector(getCartTotal);
   const cartCount = useSelector(getCartCount);
-  const dispatch = useDispatch();
-  const navigate  = useNavigate();
+  const { couponList } = useSelector(state => state.coupons);
+  const [coupons, setCoupons] = useState([]);
+  const [activeCoupon, setActiveCoupon] = useState(null);
+  const [discount, setDiscount] = useState(0)
+  const [grandTotal, setGrandTotal] = useState(0);
+
+
+  // initial
+  useEffect(() => {
+    if(!user?.roles?.includes("user")){
+      navigate("/login")
+    }
+  },[user])
 
   const handleQuantityUpdate = async(item, qty) => {
     const newitem = {
@@ -33,7 +55,84 @@ function UserCart(){
     }
   }
 
+  /* coupon handling */
+
+  // initial filtering
+  useEffect(() => {
+    const availableCoupons = couponList?.filter(c => c?.minPurchase <= cartSubTotal);
+    setCoupons(availableCoupons)
+  },[couponList]);
+
+  useEffect(() => {
+    
+    handleApplyCoupon();
+
+  },[cartSubTotal])
+
+  // handling coupon input typing
+  const handleCouponChange = (e) => {
+    const value = e.target.value;
+    const suggestedCoupon = coupons?.find(c => c.code === value);
+    if(suggestedCoupon){
+      setActiveCoupon(suggestedCoupon);
+    }
+  }
+
+  // fun for checking clipboard is empty or not
+  const checkClipBoard = async() => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text.trim()) {
+        return text.trim();
+      }
+      return null;
+    } catch (err) {
+      console.error("Clipboard read failed:", err);
+      return null;
+    }
+  }
+
+  /* discount */
+  const handleApplyCoupon = () => {
+    
+    const discValue = calculateDiscount();
+
+    setDiscount(discValue)
+    setGrandTotal(cartSubTotal - discValue)
+  }
+
+  const handleRemoveCoupon = () => {
+    setActiveCoupon(null)
+    setDiscount(0);
+    setGrandTotal(cartSubTotal)
+  }
+
+  const calculateDiscount = () => {
+    let discountValue = 0;
+    if(activeCoupon?.discountType === "percentage"){
+      const reduction = (cartSubTotal * activeCoupon?.discountValue) / 100;
+      discountValue = reduction < activeCoupon?.maxDiscount ? reduction : activeCoupon?.maxDiscount
+    }else{
+      discountValue = activeCoupon?.discountValue
+    }
+    return discountValue || 0
+  }
+
+  /* handle press checkout */
+  const handleCheckout = () => {
+    if(user?.roles?.includes('user')){
+      dispatch(setTotalDiscount(discount));
+      dispatch(setCartTotal(grandTotal));
+      dispatch(setAppliedCoupon(activeCoupon))
+      dispatch(setLoading(true))
+      navigate('/checkout')
+    }else{
+      navigate("/login")
+    }
+  }
+  
   return (
+
     <section className='w-full flex justify-center bg-gray-100 border-b border-gray-300'>
       <div className="w-9/10 flex items-start my-10 space-x-8">
 
@@ -134,57 +233,146 @@ function UserCart(){
         <div className='w-[25%] shrink-0 p-2 rounded-2xl bg-white'>
 
           {/* coupon */}
-          <div className='flex flex-col p-3 pb-8 space-y-4'>
+          <motion.div layout className='flex flex-col p-3 pb-8 space-y-4'>
             <h3 className='text-lg'>Coupon Code</h3>
-            <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. laboriosam dolores ipsum alias minus officiis iste sequi animi facilis?</p>
-            <input 
-              type="text"
-              placeholder='Coupon code' 
-            />
-            <button className='w-full !bg-white !text-gray-600 border-2
-             border-gray-300 font-bold hover:border-primary-300'
-            >Apply</button>
-          </div>
+            <p
+              className='text-sm text-gray-400'>
+              {activeCoupon?.couponRule ? 
+                activeCoupon?.couponRule
+                : 'Have a coupon code? Select one from the available options below or enter your code manually to apply a discount to your order.'
+              }
+            </p>
+            
+            {/* available coupons */}
+            <motion.div layout>
+              <p className='font-bold mb-2'>Availbale Coupons</p>
+              <div className='relative px-4'>
+
+                {/* nav buttons */}
+                <div className={`swiper-prev absolute -left-1 top-0
+                  inline-flex h-full items-center cursor-pointer`}>
+                  <IoIosArrowBack className="text-lg" />
+                </div>
+                <div className={`swiper-next absolute -right-1 top-0
+                  inline-flex h-full items-center cursor-pointer`}>
+                  <IoIosArrowForward className="text-lg" />
+                </div>
+
+                <Swiper
+                  slidesPerView="auto"
+                  modules={[Navigation]}
+                  spaceBetween={0}
+                  freeMode={true}
+                  navigation={{
+                    nextEl: '.swiper-next',
+                    prevEl: '.swiper-prev'
+                  }}
+                >
+                  {coupons?.map((coupon, i) => 
+                    <SwiperSlide key={i}
+                      onClick={() => {
+                        setActiveCoupon(coupon)
+                      }} 
+                      className='!inline-flex px-0.5 bg-white !w-fit h-fit cursor-pointer'
+                    >
+                      <CouponCardSmall
+                        coupon={coupon}
+                        containerClass={clsx(
+                          activeCoupon?._id !== coupon?._id && "!bg-pink-400"
+                        )}
+                      />
+                    </SwiperSlide>
+                  )}
+                </Swiper>
+              </div>
+            </motion.div>
+
+            <motion.div layout className='relative'>
+              <input 
+                type="text"
+                placeholder='Coupon code'
+                onChange={handleCouponChange}
+                value={
+                  activeCoupon?.code ?
+                  `${activeCoupon?.code} | ${activeCoupon?.discountType === 'fixed' ? ' ₹' : ''}${activeCoupon?.discountValue}${activeCoupon?.discountType !== 'fixed' ? '%' : ''} OFF`
+                  : ""
+                }
+              />
+
+              {/* copy paste buttons */}
+              {activeCoupon?.code ?
+                <div 
+                  onClick={handleRemoveCoupon}
+                  className={`absolute right-1.5 top-1/2 -translate-y-1/2 
+                    smooth hover:text-pink-400 cursor-pointer`}>
+                  <IoCloseCircleOutline className='text-2xl' />
+                </div>
+                :
+                <div
+                  onClick={async() => {
+                    const clipboardText = await checkClipBoard();
+                    if(clipboardText?.length){
+                      const copiedCoupon = coupons?.find(c => c.code === clipboardText)
+                      if(copiedCoupon?.code){
+                        setActiveCoupon(copiedCoupon)
+                      }else{
+                        toast.error("Invalid coupon code!")
+                      }
+                    }else{
+                      toast.error("Clipboard is empty!")
+                    }
+                  }}
+                  className={`absolute right-1.5 top-1/2 -translate-y-1/2 
+                    smooth hover:text-pink-400 cursor-pointer`}
+                >
+                  <MdContentPaste className='text-xl' />
+                </div>
+              }
+
+            </motion.div>
+
+            <motion.div layout 
+              onClick={handleApplyCoupon}
+              className='button border-gray-300 hover:shadow-md hover:border-primary-300 hover:text-primary-400'
+            >Apply</motion.div>
+          </motion.div>
 
           {/* calculations */}
-          <div className='flex flex-col rounded-xl bg-primary-50 p-4'>
+          <motion.div layout className='flex flex-col rounded-xl bg-primary-50 p-4'>
             <h3 className='mb-4 text-xl'>Cart Amount</h3>
             <ul className='mb-6'>
               <li className='flex w-full items-center justify-between'>
                 <span>Cart Subtotal</span>
-                <span className='price-before price-before:!text-gray-400'>{cartSubTotal}</span>
+                <span className='price-before price-before:!text-gray-400 font-bold'>{cartSubTotal}</span>
               </li>
-              <li className='flex w-full items-center justify-between'>
+              <li className='flex w-full items-center justify-between text-red-400'>
                 <span>Discount</span>
                 <div className=''>
                   <span>-</span>
-                  <span className='price-before price-before:!text-gray-400 ps-0.5'>0</span>
+                  <span className='price-before price-before:!text-red-300 ps-0.5 font-bold'>{discount}</span>
                 </div>
               </li>
+              <li className='my-1 border-t border-primary-500/20'></li>
               <li className='flex w-full items-center justify-between py-1'>
                 <h3 className='text-base'>Cart Total</h3>
                 <h3 className='price-before text-lg font-bold !items-start
-                 price-before:!text-gray-400 !leading-5'>{cartSubTotal}</h3>
+                 price-before:!text-gray-400 !leading-5'>{grandTotal}</h3>
               </li>
             </ul>
             <div className='flex w-full'>
               <button 
-                onClick={() => {
-                  if(user?.roles?.includes('user')){
-                    navigate('/checkout')
-                    dispatch(setLoading(true))
-                  }
-                }}
+                onClick={handleCheckout}
                 className={clsx('w-full',
                   !user?.roles?.includes('user') && '!bg-gray-300 pointer-events-none'
                 )}
                 >Checkout</button>
             </div>
-          </div>
+          </motion.div>
         </div>
 
       </div>
     </section>
+    
   )
 }
 

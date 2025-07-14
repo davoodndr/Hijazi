@@ -30,7 +30,7 @@ export const addCoupon = async(req, res) => {
       return responseMessage(res, 400, false, "Please fill all mandatory fields!");
     }
 
-    if(discountValue < 1 || maxDiscount < 1){
+    if(discountValue < 1 || (discountType !== 'fixed' && maxDiscount < 1)){
       return responseMessage(res, 400, false, "Please enter a valid amount");
     }
     if(minPurchase &&  minPurchase < 1){
@@ -90,7 +90,7 @@ export const changeCouponStatus = async(req, res) => {
 export const updateCoupon = async(req, res) => {
 
   const { coupon_id, code, discountType, discountValue, 
-    expiry, minPurchase, maxDiscount, usageLimit } = req.body;
+    expiry, minPurchase, maxDiscount, usageLimit} = req.body;
 
   try {
 
@@ -98,7 +98,7 @@ export const updateCoupon = async(req, res) => {
       return responseMessage(res, 400, false, "Please fill all mandatory fields!");
     }
 
-    if(discountValue < 1 || maxDiscount < 1){
+    if(discountValue < 1 || (discountType !== 'fixed' && maxDiscount < 1)){
       return responseMessage(res, 400, false, "Please enter a valid amount");
     }
     if(minPurchase &&  minPurchase < 1){

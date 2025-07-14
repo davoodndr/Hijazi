@@ -8,8 +8,6 @@ export const getCategories = async(req, res) => {
     const categories = await Category.find({status:'active', visible:true})
       .populate('parentId');
 
-      console.log(categories)
-
     return responseMessage(res, 200, true, "",{categories});
     
   } catch (error) {

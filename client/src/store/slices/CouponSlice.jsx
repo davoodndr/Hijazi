@@ -20,6 +20,9 @@ const couponSlice = createSlice({
     addCoupon: (state, action) => {
       state.couponList = state.couponList.unshift(action.payload);
       state.error = null;
+    },
+    clearCoupons: (state, action) => {
+      state.couponList = []
     }
   },
   extraReducers: (builder) => {
@@ -35,6 +38,6 @@ const couponSlice = createSlice({
   }
 })
 
-export const { addCoupon } = couponSlice.actions;
+export const { addCoupon, clearCoupons } = couponSlice.actions;
 
 export default couponSlice.reducer;

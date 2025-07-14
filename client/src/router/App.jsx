@@ -4,14 +4,14 @@ import { useEffect } from "react"
 import { fetchUser } from "../store/slices/UsersSlice"
 import AdminRouter from "./admin/AdminRouter"
 import UserRouter from "./user/UserRouter"
-import { fetchCart } from "../store/slices/CartSlice"
-import { fetchWishlist } from "../store/slices/WishlistSlice"
-import { fetchOrders } from "../store/slices/OrderSlice"
+import { clearCart, fetchCart } from "../store/slices/CartSlice"
+import { clearWishlist, fetchWishlist } from "../store/slices/WishlistSlice"
+import { clearOrders, fetchOrders } from "../store/slices/OrderSlice"
 import { fetchProducts } from "../store/slices/ProductSlices"
 import { fetchBrands } from "../store/slices/BrandSlice"
 import { fetchCategories } from '../store/slices/CategorySlices'
-import { fetchAddresses } from "../store/slices/AddressSlice"
-import { fetchCoupons } from "../store/slices/CouponSlice"
+import { clearAddressList, fetchAddresses } from "../store/slices/AddressSlice"
+import { clearCoupons, fetchCoupons } from "../store/slices/CouponSlice"
 
 function App() {
 
@@ -25,6 +25,12 @@ function App() {
         dispatch(fetchWishlist())
         dispatch(fetchOrders())
         dispatch(fetchAddresses())
+      }else{
+        dispatch(clearCart())
+        dispatch(clearWishlist())
+        dispatch(clearOrders())
+        dispatch(clearAddressList())
+        dispatch(clearCoupons())
       }
     }
     fetchAuthData()

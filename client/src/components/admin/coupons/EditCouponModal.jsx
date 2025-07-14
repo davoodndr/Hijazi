@@ -13,16 +13,19 @@ import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
 import CustomSelect from '../../ui/CustomSelect';
 import MyDatePicker from '../../ui/MyDatePicker';
+import WordCountInput from '../../ui/WordCountInput';
 
 function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
 
+  const ruleLength = { min:5 };
   const [isLoading, setIsLoading] = useState(false);
-  const [discountType, setDicountType] = useState(null)
+  const [discountType, setDicountType] = useState(null);
+  const [couponRule, setCouponRule] = useState(null);
     
   /* data input handling */
   const [data, setData] = useState({
     code: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
-    expiry: "", usageLimit: "", active:true
+    expiry: "", usageLimit: "", active:true, rule: ""
   });
 
   /* initial data */
@@ -36,6 +39,7 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
       maxDiscount: coupon?.maxDiscount,
       expiry: coupon?.expiry,
       usageLimit: coupon?.usageLimit,
+      rule: coupon?.couponRule,
       active: coupon?.status === 'active'
     }))
     setDicountType({value: coupon?.discountType, label: coupon?.discountType})
@@ -69,7 +73,7 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
 
     if(isValidDatas(['code','discountType','discountValue', 'maxDiscount', 'expiry'], data)){
 
-      if(data.discountValue < 1 || data.maxDiscount < 1){
+      if(data.discountValue < 1 || (data?.discountType !== 'fixed' && data.maxDiscount < 1)){
         toast.error("Please enter a valid amount!");
         return
       }
@@ -79,6 +83,10 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
       }
       if(data.usageLimit &&  data.usageLimit < 1){
         toast.error("Please enter a valid amount!");
+        return
+      }
+      if(couponRule.wordCount < ruleLength.min){
+        toast.error(`Coupon rule shuold have minimum ${ruleLength.min} words!`);
         return
       }
       
@@ -92,7 +100,8 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
         discountValue: parseFloat(data?.discountValue),
         minPurchase: parseFloat(data?.minPurchase || 0),
         maxDiscount: parseFloat(data?.maxDiscount || 0),
-        usageLimit: parseInt(data?.usageLimit || 1)
+        usageLimit: parseInt(data?.usageLimit || 1),
+        couponRule: data?.rule
       }
 
       try {
@@ -109,7 +118,7 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
           AxiosToast(response, false);
           setData({
             code: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
-            expiry: "", usageLimit: "", active:true
+            expiry: "", usageLimit: "", active:true, rule: ""
           })
           setDicountType(null)
 
@@ -213,6 +222,19 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
               />
             </div>
 
+            {/* detail */}
+            <div className="flex flex-col w-full col-span-2">
+              <label className="flex text-sm font-medium">Detail</label>
+              <WordCountInput
+                value={data?.detail ?? ''}
+                minWords={ruleLength.min}
+                onChange={(values) => {
+                  setData(prev => ({...prev, detail: values.detail}));
+                  setCouponRule(values)
+                }}
+              />
+            </div>
+
             {/* usage limit */}
             <div className='flex flex-col w-full'>
               <label className="flex text-sm font-medium">Usage Limit</label>
@@ -222,13 +244,17 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
                 placeholder='Enter coupon count allowed per user'/>
             </div>
 
-            {/* visibility */}
-            <div className="inline-flex gap-2 items-center">
-              <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Active</label>
-              <ToggleSwitch
-                value={data.active}
-                onChange={(value) => setData(prev => ({...prev, active:value}))}
-              />
+            {/* status */}
+            <div className='flex flex-col w-full'>
+              <label className="flex text-sm font-medium">Status</label>
+              <div className="h-[40px] inline-flex gap-2 items-center 
+                border border-neutral-300 rounded-input-border px-3.5">
+                <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Active</label>
+                <ToggleSwitch
+                  value={data.active}
+                  onChange={(value) => setData(prev => ({...prev, active:value}))}
+                />
+              </div>
             </div>
 
           </form>

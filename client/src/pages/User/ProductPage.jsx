@@ -20,6 +20,11 @@ import toast from 'react-hot-toast'
 import { addToList, syncWishlistItem } from '../../store/slices/WishlistSlice'
 import { getSingleProduct } from '../../services/FetchDatas'
 import { MdDiscount } from "react-icons/md";
+import { RiCoupon3Line } from "react-icons/ri";
+import { MdOutlineCopyAll } from "react-icons/md";
+import { AnimatePresence, motion } from 'motion/react'
+import { containerVariants, rowVariants } from '../../utils/Anim'
+import CouponCardSmall from '../../components/ui/CouponCardSmall'
 
 function ProductPageComponent() {
 
@@ -27,7 +32,6 @@ function ProductPageComponent() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.user);
-  const { couponList } = useSelector(state => state.coupons)
   const path = location.pathname;
 
   const [product, setProduct] = useState(null);
@@ -226,6 +230,38 @@ function ProductPageComponent() {
     }
   }
 
+  /* coupons & offer */
+  const { couponList } = useSelector(state => state.coupons);
+  const [couponAvail, setCouponAvail] = useState(null);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [isListExpanded, setIsListExpanded] = useState(false);
+  
+  /* selecting max value coupon */
+  useEffect(() => {
+    const filteredCoupons = [...couponList].filter(el => el.minPurchase <= (activeVariant?.price || product?.price))
+    let coup;
+    
+    if(filteredCoupons?.length){
+      coup = filteredCoupons.reduce((pre, cur) => {
+        return cur?.maxDiscount > pre?.maxDiscount ? cur : pre
+      })
+    }
+    setAvailableCoupons(filteredCoupons);
+    setCouponAvail(coup)
+  },[couponList, activeVariant?.price, product?.price])
+
+  const handleCopyCoupon = (coupon) => {
+    
+    navigator.clipboard.writeText(coupon?.code)
+    .then(() => {
+      toast.success("Coupon code copied!")
+    })
+    .catch(err => {
+      toast.error("Failed to copy coupon code")
+    })
+    setIsListExpanded(false)
+  }
+
   return (
     <section className='w-9/10 flex flex-col items-center mt-10'>
 
@@ -266,17 +302,6 @@ function ProductPageComponent() {
             </div>
           </div>
 
-          {/* detail */}
-          <div className="flex flex-col space-y-1 mb-5">
-            {
-              couponList?.map(coupon => 
-                <div key={coupon._id}>
-                  <MdDiscount className='text-xl text-primary-400' />
-                </div>
-              )
-            }
-          </div>
-
           {/* waranty return delivery */}
           <div className="text-sm mb-5">
             <ul className='space-y-2'>
@@ -289,7 +314,7 @@ function ProductPageComponent() {
           </div>
 
           {/* variant attributes */}
-          <div className='flex flex-col space-y-3 mb-5 '>
+          <div className='flex flex-col space-y-3 mb-7'>
             {attributes && Object.entries(attributes).map(([attrName, values]) => {
               return (
                 <div key={attrName} className="flex items-center">
@@ -341,6 +366,117 @@ function ProductPageComponent() {
               )
             })}
           </div>
+
+          {/* coupons & offers */}
+          {couponAvail && 
+            <div className='mb-5 flex space-x-2 items-center'>
+              <div className='bg-amber-500 w-fit px-3 pe-5 text-black relative inline-flex items-center'>
+                <span className='font-bold'>Coupon:</span>
+                <div className='w-[17px] h-[17px] bg-white absolute -right-2 top-1/2 -translate-y-1/2 rotate-45'></div>
+              </div>
+              {/* message */}
+              <div className="inline-flex items-center space-x-1
+                  smooth hover:text-primary-400 hover:underline relative">
+                <p 
+                  onClick={() => {
+                    setIsListExpanded(!isListExpanded)
+                  }} 
+                  className='z-5 cursor-pointer'>
+                  Save up to
+                  <span
+                    className={clsx('mx-1 font-extrabold text-black',
+                      couponAvail.discountType === 'fixed' ? 'price-before price-before:text-black items-start leading-4.5' 
+                        : 'content-after content-after:content-["%"] content-after:text-black'
+                    )}
+                  >{couponAvail.maxDiscount}</span> 
+                  with coupon
+                </p>
+                <div>
+                  <IoIosArrowDown />
+                </div>
+
+                {/* coupon list */}
+                
+                {isListExpanded &&
+                    <motion.ul 
+                      layout
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit={{
+                        transition: {
+                          staggerChildren: 0.05,
+                          staggerDirection: -1,
+                          ease: "easeInOut",
+                          duration: 0.3,
+                        },
+                      }}
+                      className='border border-gray-300 absolute bottom-[calc(100%+5px)]
+                    bg-gray-100 shadow-md/20 rounded-lg overflow-hidden space-y-1 p-2'>
+                      <AnimatePresence>
+                      {
+                        availableCoupons?.map((item, index) => {
+
+                          return (
+                            <motion.li 
+                              layout
+                              key={item._id}
+                              custom={index}
+                              initial="hidden"
+                              animate="visible"
+                              exit="exit"
+                              variants={rowVariants}
+                            >
+                              <div className='flex items-center space-x-2 overflow-hidden'>
+                                <div className="min-w-30 inline-flex flex-col items-center bg-pink-500 
+                                  leading-2 py-1.5 space-y-2 relative
+                                  before:inline-flex before:border-x-8 before:border-gray-100 before:border-dotted
+                                  before:w-[calc(100%+8px)] before:h-full before:absolute top-0"
+                                >
+                                  <div className='text-sm text-white inline-flex items-center justify-center
+                                    leading-2 space-x-1'>
+                                    <span
+                                      className={clsx('font-extrabold content-before:text-white content-after:text-white',
+                                        item.discountType === 'fixed' ? 
+                                          'content-before content-before:text-[15px]' 
+                                          : 'content-after content-after:content-["%"]'
+                                      )}
+                                    >{item.discountValue}</span>
+                                    <span className='inline-flex'>OFF</span>
+                                  </div>
+                                  {item.discountType === 'percentage' ? 
+                                    <p className='text-gray-200 text-xs leading-1.5'>Up to
+                                      <span className='ms-1 content-before content-before:content-["₹"]
+                                      content-before:text-white content-before:text-[11px]'>
+                                        {item.maxDiscount}
+                                      </span>
+                                    </p>
+                                    :
+                                    <span className='text-gray-200 text-xs leading-1.5'>
+                                      On {item?.usageLimit > 1 ? 'purchase' : 'first purchase'}
+                                    </span>
+                                  }
+                                </div>
+                                <div className='flex-grow w-px h-8 bg-gray-300'></div>
+                                <div 
+                                  onClick={() => handleCopyCoupon(item)}
+                                  className='inline-flex border border-gray-300 bg-gray-200 
+                                    p-0.5 rounded-lg cursor-pointer smooth hover:bg-primary-50 hover:shadow-md'>
+                                  <MdOutlineCopyAll className='text-2xl' />
+                                </div>
+                              </div>
+
+                            </motion.li>
+                          )
+                        })
+                      }
+                      </AnimatePresence>
+                    </motion.ul>
+                }
+
+              </div>
+            </div>
+          }
           
 
           {/* add to cart/wishlist buttons */}

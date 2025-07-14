@@ -79,7 +79,7 @@ const refreshAccessToken = async(refreshToken) => {
     if(error?.response?.status === 401){
       localStorage.removeItem('cart');
     }
-    console.error(error.response)
+    //console.error(error.response)
     return error
   }
 

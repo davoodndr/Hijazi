@@ -30,10 +30,10 @@ function Checkout() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { items } = useSelector(state => state.cart);
+  const { items, totalDiscount, cartTotal, appliedCoupon } = useSelector(state => state.cart);
   const { addressList } = useSelector(state => state.address);
   const cartCount = useSelector(getCartCount);
-  const cartTotal = useSelector(getCartTotal);
+  const subTotal = useSelector(getCartTotal);
   const [data, setData] = useState({
     payment_method: null, bill_address: null, ship_address: null
   });
@@ -94,11 +94,11 @@ function Checkout() {
         billingAddress: data.bill_address,
         paymentMethod: data.payment_method,
         paymentResult: {},
-        itemsPrice: cartTotal,
+        itemsPrice: subTotal,
         taxPrice: 0,
         shippingPrice: 0,
         discount: 0,
-        totalPrice: grandTotal,
+        totalPrice: cartTotal,
         isPaid: false,
         isDelivered: false
       }
@@ -215,7 +215,7 @@ function Checkout() {
               }
             </div>
           
-            <ul className='bg-white p-6 space-y-5 shadow-md rounded-3xl'>
+            <ul className='bg-white p-6 space-y-5 shadow-lg rounded-3xl'>
               {/* item */}
               {items?.length ? items?.map((item, index) => {
                 const attributes = item?.attributes ? Object.entries(item.attributes) : [];
@@ -275,7 +275,7 @@ function Checkout() {
         </div>
 
         {/* right side */}
-        <div className='w-[30%] shrink-0 bg-white rounded-3xl flex flex-col shadow-md'>
+        <div className='w-[30%] shrink-0 bg-white rounded-3xl flex flex-col shadow-lg'>
           {/* wallet activation */}
           <div className='flex flex-col p-5 space-y-4 border-b border-gray-200'>
             <div className='flex items-center justify-between'>
@@ -450,11 +450,11 @@ function Checkout() {
           <div className='flex flex-col p-5 space-y-2'>
             <p className='flex items-center justify-between text-gray-400 text-base'>
               <span>Subtotal ({cartCount} {cartCount > 1 ? 'items' : 'item'})</span>
-              <span className='price-before price-before:!font-normal'>{cartTotal}</span>
+              <span className='price-before price-before:!font-normal font-bold'>{subTotal}</span>
             </p>
             <p className='flex items-center justify-between text-gray-400 text-base'>
               <span>Discount</span>
-              <span>-<span className='ms-1 price-before price-before:!font-normal'>{0}</span></span>
+              <p>-<span className='ms-1 price-before price-before:!font-normal font-bold text-red-400'>{totalDiscount}</span></p>
             </p>
 
             {/* total */}
