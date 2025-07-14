@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { CiSquareMinus, CiSquarePlus } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart, getCartCount, getCartTotal, setAppliedCoupon, setCartTotal, setTotalDiscount, syncCartitem} from '../../store/slices/CartSlice';
+import { addToCart, getCartCount, getCartTotal, setAppliedCoupon, setCartTotal, setCouponDiscount, syncCartitem} from '../../store/slices/CartSlice';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router'
 import clsx from 'clsx'
@@ -20,7 +20,7 @@ function UserCart(){
 
   const dispatch = useDispatch();
   const navigate  = useNavigate();
-  const { items } = useSelector(state => state.cart);
+  const { items, couponDiscount, cartTotal, appliedCoupon } = useSelector(state => state.cart);
   const { user } = useSelector(state => state.user);
   const cartSubTotal = useSelector(getCartTotal);
   const cartCount = useSelector(getCartCount);
@@ -93,6 +93,13 @@ function UserCart(){
   }
 
   /* discount */
+
+  useEffect(() => {
+    setActiveCoupon(appliedCoupon)
+    setDiscount(couponDiscount || 0)
+    setGrandTotal(cartTotal || 0)
+  },[appliedCoupon, couponDiscount, cartTotal])
+
   const handleApplyCoupon = () => {
     
     const discValue = calculateDiscount();
@@ -121,7 +128,7 @@ function UserCart(){
   /* handle press checkout */
   const handleCheckout = () => {
     if(user?.roles?.includes('user')){
-      dispatch(setTotalDiscount(discount));
+      dispatch(setCouponDiscount(discount));
       dispatch(setCartTotal(grandTotal));
       dispatch(setAppliedCoupon(activeCoupon))
       dispatch(setLoading(true))
@@ -348,7 +355,6 @@ function UserCart(){
               <li className='flex w-full items-center justify-between text-red-400'>
                 <span>Discount</span>
                 <div className=''>
-                  <span>-</span>
                   <span className='price-before price-before:!text-red-300 ps-0.5 font-bold'>{discount}</span>
                 </div>
               </li>
