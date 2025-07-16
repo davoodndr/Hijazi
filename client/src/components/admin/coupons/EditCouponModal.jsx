@@ -85,7 +85,7 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
         toast.error("Please enter a valid amount!");
         return
       }
-      if(couponRule.wordCount < ruleLength.min){
+      if(couponRule?.wordCount < ruleLength.min){
         toast.error(`Coupon rule shuold have minimum ${ruleLength.min} words!`);
         return
       }
@@ -226,10 +226,10 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
             <div className="flex flex-col w-full col-span-2">
               <label className="flex text-sm font-medium">Detail</label>
               <WordCountInput
-                value={data?.detail ?? ''}
+                value={data?.rule ?? ''}
                 minWords={ruleLength.min}
                 onChange={(values) => {
-                  setData(prev => ({...prev, detail: values.detail}));
+                  setData(prev => ({...prev, rule: values.detail}));
                   setCouponRule(values)
                 }}
               />

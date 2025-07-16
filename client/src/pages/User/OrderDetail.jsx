@@ -1,16 +1,18 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { CiCalendar } from "react-icons/ci";
 import { IoMdArrowRoundBack, IoMdMore } from "react-icons/io";
 import { LuArrowUpRight, LuUserRound } from "react-icons/lu";
 import { VscCloudDownload } from "react-icons/vsc";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import { MdOutlineCall } from "react-icons/md";
+import { TbCancel } from "react-icons/tb";
 import { IoMdArrowRoundForward } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router';
 import { format } from 'date-fns';
 import { useSelector } from 'react-redux';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
+import CouponCardMedium from '../../components/ui/CouponCardMedium';
 
 function OrderDetail() {
 
@@ -18,10 +20,17 @@ function OrderDetail() {
   const navigate = useNavigate();
   const { order:currentOrder } = location.state;
   const [order, setOrder] = useState(currentOrder);
+  const { couponList } = useSelector(state => state.coupons);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const { ordersList } = useSelector(state => state.orders);
   const formattedDate = format(new Date(order?.paidAt || order?.createdAt), "dd.MM.yyyy 'at' hh.mm a")
   const isPaid = order?.isPaid ? 'paid' : 'unpaid';
   const isDelivered = order?.isDelivered ? 'delivered' : 'not delivered';
+
+  useEffect(() => {
+    const coupon = couponList?.find(c => c?._id?.toString() === order?.couponApplied?._id.toString());
+    setAppliedCoupon(coupon)
+  },[couponList]);
 
   return (
     <section className='flex-grow w-full flex flex-col items-center py-15 bg-primary-25'>
@@ -72,7 +81,7 @@ function OrderDetail() {
                   }
                 }}
                 className='inline-flex bg-primary-100 p-1 rounded-full cursor-pointer
-                smooth hover:shadow-md/30 hover:text-primary-400'>
+                smooth hover:shadow-md shadow-green-600/50 hover:text-primary-400'>
                 <IoMdArrowRoundBack className='text-xl' />
               </span>
               <span 
@@ -89,7 +98,7 @@ function OrderDetail() {
                   }
                 }}
                 className='inline-flex bg-primary-100 p-1 rounded-full cursor-pointer
-                smooth hover:shadow-md/30 hover:text-primary-400'>
+                smooth hover:shadow-md shadow-green-600/50 hover:text-primary-400'>
                 <IoMdArrowRoundForward className='text-xl' />
               </span>
             </div>
@@ -100,6 +109,10 @@ function OrderDetail() {
             {/* <span className='inline-flex border border-gray-300 items-center px-1 rounded-input-border'>
               <IoMdMore className='text-3xl'/>
             </span> */}
+            <div className='button px-5 space-x-2 border-gray-300 text-gray-400 hover-shade hover:border-red-400 hover:text-red-400'>
+              <TbCancel className='text-xl' />
+              <span>Cancel</span>
+            </div>
             <button className='inline-flex items-center !px-5 !space-x-2'>
               <VscCloudDownload className='text-xl' />
               <span>Invoice</span>
@@ -114,7 +127,7 @@ function OrderDetail() {
           <div className="flex flex-col flex-grow space-y-5">
             
             {/* items */}
-            <ul className='bg-white p-6 space-y-5 shadow-md rounded-3xl'>
+            <ul className='bg-white p-6 space-y-5 shade rounded-3xl'>
               {order?.cartItems?.map((item, index) => {
                 const attributes = item?.attributes ? Object.entries(item.attributes) : [];
                 const itemTotal = item.quantity * item.price;
@@ -167,7 +180,7 @@ function OrderDetail() {
             </ul>
 
             {/* payment summery */}
-            <div className='bg-white p-6 shadow-md rounded-3xl'>
+            <div className='bg-white p-6 shade rounded-3xl'>
               <h3 className='text-lg mb-3'>Payment Summery</h3>
               <div className="flex flex-col">
                 <p className='flex items-center justify-between'>
@@ -177,11 +190,15 @@ function OrderDetail() {
                 {/* <p className='flex items-center justify-between'>
                   <span>Delivery</span>
                   <span className='font-bold price-before text-base'>0</span>
-                </p> */}
+                </p>
                 <p className='flex items-center justify-between'>
                   <span>Tax <span className='text-gray-400'>5% GST included</span></span>
                   <span className='font-bold price-before text-base'>0</span>
-                </p>
+                </p> */}
+                <div className='flex items-center justify-between'>
+                  <span>Discount</span>
+                  <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{order?.discount}</span></p>
+                </div>
                 <span className='w-full border-b border-gray-200 my-4'></span>
                 <p className='flex items-center justify-between font-bold'>
                   <span className='text-base'>Total Amount</span>
@@ -189,11 +206,24 @@ function OrderDetail() {
                 </p>
               </div>
             </div>
+
+            <div className='grid grid-cols-2 bg-white p-6 shade rounded-3xl'>
+              <div className='flex flex-col'>
+                <h3 className='mb-3'>Applied Offers</h3>
+                <div className="flex items-center border border-gray-300 rounded-2xl p-4">
+                  {appliedCoupon ? (
+                    <CouponCardMedium coupon={appliedCoupon} />
+                  ): (
+                    <span className="text-gray-400">No offers applied</span>
+                  )}
+                </div>
+              </div>
+            </div>
             
           </div>
 
           {/* right */}
-          <div className="flex flex-col w-[30%] shrink-0 rounded-3xl shadow-md overflow-hidden h-fit">
+          <div className="flex flex-col w-[30%] shrink-0 rounded-3xl shade overflow-hidden h-fit">
             {/* customer details */}
             <div className="flex flex-col bg-white p-6 divide-y divide-gray-200">
               <h3 className='text-lg mb-2 border-0'>Customer</h3>

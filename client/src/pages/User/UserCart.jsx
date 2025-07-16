@@ -63,6 +63,8 @@ function UserCart(){
     setCoupons(availableCoupons)
   },[couponList]);
 
+  console.log(couponList)
+
   useEffect(() => {
     
     handleApplyCoupon();

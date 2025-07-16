@@ -167,7 +167,6 @@ function Checkout() {
     })
     .then(res => {
       if(res.isConfirmed){
-        console.log(order)
         navigate(`/my-order/${order.order_no}`,{state: {order}})
       }else{
         navigate('/collections')

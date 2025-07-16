@@ -149,6 +149,14 @@
   .button{
     @apply border h-[40px] rounded-input-border flex items-center justify-center cursor-pointer smooth
   }
+
+  .shade{
+    @apply shadow-lg shadow-green-600/30 bg-white
+  }
+
+  .hover-shade{
+    @apply hover:shadow-lg shadow-green-600/30 hover:bg-white
+  }
 }
 
 
