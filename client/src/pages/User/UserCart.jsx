@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { CiSquareMinus, CiSquarePlus } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart, getCartCount, getCartTotal, setAppliedCoupon, setCartTotal, setCouponDiscount, syncCartitem} from '../../store/slices/CartSlice';
+import { addToCart, getCartCount, getCartTax, getItemsTotal, setAppliedCoupon, 
+  setCartTotal, setCouponDiscount, syncCartitem} from '../../store/slices/CartSlice';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router'
 import clsx from 'clsx'
@@ -14,16 +15,17 @@ import CouponCardSmall from '../../components/ui/CouponCardSmall';
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import { MdContentPaste } from 'react-icons/md';
 import { IoCloseCircleOutline } from 'react-icons/io5';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 
 function UserCart(){
 
   const dispatch = useDispatch();
   const navigate  = useNavigate();
-  const { items, couponDiscount, cartTotal, appliedCoupon } = useSelector(state => state.cart);
+  const { items } = useSelector(state => state.cart);
   const { user } = useSelector(state => state.user);
-  const cartSubTotal = useSelector(getCartTotal);
+  const cartSubTotal = useSelector(getItemsTotal);
   const cartCount = useSelector(getCartCount);
+  const cartTax = useSelector(getCartTax);
   const { couponList } = useSelector(state => state.coupons);
   const [coupons, setCoupons] = useState([]);
   const [activeCoupon, setActiveCoupon] = useState(null);
@@ -32,12 +34,6 @@ function UserCart(){
 
 
   // initial
-  useEffect(() => {
-    if(!user?.roles?.includes("user")){
-      navigate("/login")
-    }
-  },[user])
-
   const handleQuantityUpdate = async(item, qty) => {
     const newitem = {
       ...item,
@@ -47,7 +43,7 @@ function UserCart(){
     if(user?.roles?.includes('user')){
       const {payload: data} = await dispatch(syncCartitem({user_id: user._id, item: newitem, type: 'update'}))
       if(data?.success){
-        toast.success(data.message,{position: 'top-center'})
+        toast.success(qty < 0 ? "Item removed from cart" : "Item added to cart",{position: 'top-center'})
       }
     }else{
       dispatch(addToCart({item: newitem, type:'update'}))
@@ -62,14 +58,6 @@ function UserCart(){
     const availableCoupons = couponList?.filter(c => c?.minPurchase <= cartSubTotal);
     setCoupons(availableCoupons)
   },[couponList]);
-
-  console.log(couponList)
-
-  useEffect(() => {
-    
-    handleApplyCoupon();
-
-  },[cartSubTotal])
 
   // handling coupon input typing
   const handleCouponChange = (e) => {
@@ -94,29 +82,23 @@ function UserCart(){
     }
   }
 
-  /* discount */
-
-  useEffect(() => {
-    setActiveCoupon(appliedCoupon)
-    setDiscount(couponDiscount || 0)
-    setGrandTotal(cartTotal || 0)
-  },[appliedCoupon, couponDiscount, cartTotal])
-
   const handleApplyCoupon = () => {
     
     const discValue = calculateDiscount();
+    const totalAmount = Number(cartSubTotal) + Number(cartTax) - discValue;
 
     setDiscount(discValue)
-    setGrandTotal(cartSubTotal - discValue)
+    setGrandTotal(totalAmount)
   }
 
   const handleRemoveCoupon = () => {
     setActiveCoupon(null)
     setDiscount(0);
-    setGrandTotal(cartSubTotal)
+    setGrandTotal(Number(cartSubTotal) + Number(cartTax))
   }
 
   const calculateDiscount = () => {
+
     let discountValue = 0;
     if(activeCoupon?.discountType === "percentage"){
       const reduction = (cartSubTotal * activeCoupon?.discountValue) / 100;
@@ -124,8 +106,21 @@ function UserCart(){
     }else{
       discountValue = activeCoupon?.discountValue
     }
-    return discountValue || 0
+    return discountValue || 0;
+
   }
+
+  /* total */
+  useEffect(() => {
+    let totalAmount = Number(cartSubTotal) + Number(cartTax) - Number(discount);
+    setGrandTotal(totalAmount)
+  },[])
+  
+  useEffect(() => {
+    
+    handleApplyCoupon();
+
+  },[cartSubTotal])
 
   /* handle press checkout */
   const handleCheckout = () => {
@@ -239,7 +234,7 @@ function UserCart(){
         </div>
 
         {/* right side summery */}
-        <div className='w-[25%] shrink-0 p-2 rounded-2xl bg-white'>
+        <motion.div layout className='w-[25%] shrink-0 p-2 rounded-2xl bg-white shadow-lg'>
 
           {/* coupon */}
           <motion.div layout className='flex flex-col p-3 pb-8 space-y-4'>
@@ -340,10 +335,12 @@ function UserCart(){
 
             </motion.div>
 
+            {/* coupon aplly button */}
             <motion.div layout 
               onClick={handleApplyCoupon}
               className='button border-gray-300 hover:shadow-md hover:border-primary-300 hover:text-primary-400'
             >Apply</motion.div>
+
           </motion.div>
 
           {/* calculations */}
@@ -352,19 +349,29 @@ function UserCart(){
             <ul className='mb-6'>
               <li className='flex w-full items-center justify-between'>
                 <span>Cart Subtotal</span>
-                <span className='price-before price-before:!text-gray-400 font-bold'>{cartSubTotal}</span>
+                <span className='price-before price-before:!text-gray-400 font-bold'>
+                  {Number(cartSubTotal).toFixed(2)}
+                </span>
               </li>
-              <li className='flex w-full items-center justify-between text-red-400'>
+              <li className='flex w-full items-center justify-between'>
+                <span>Tax <span className='text-gray-400 text-xs'>5% GST included</span></span>
+                <span className='font-bold price-before'>{cartTax}</span>
+              </li>
+              <li className='flex w-full items-center justify-between'>
                 <span>Discount</span>
-                <div className=''>
-                  <span className='price-before price-before:!text-red-300 ps-0.5 font-bold'>{discount}</span>
-                </div>
+                <p className=''>-
+                  <span className='price-before price-before:!text-red-300 ps-0.5 font-bold text-red-400'>
+                    {Number(discount).toFixed(2)}
+                  </span>
+                </p>
               </li>
               <li className='my-1 border-t border-primary-500/20'></li>
               <li className='flex w-full items-center justify-between py-1'>
                 <h3 className='text-base'>Cart Total</h3>
                 <h3 className='price-before text-lg font-bold !items-start
-                 price-before:!text-gray-400 !leading-5'>{grandTotal}</h3>
+                 price-before:!text-gray-400 !leading-5'>
+                  {Number(grandTotal).toFixed(2)}
+                </h3>
               </li>
             </ul>
             <div className='flex w-full'>
@@ -376,7 +383,8 @@ function UserCart(){
                 >Checkout</button>
             </div>
           </motion.div>
-        </div>
+          
+        </motion.div>
 
       </div>
     </section>

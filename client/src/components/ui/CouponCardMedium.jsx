@@ -21,7 +21,7 @@ function CouponCardMedium({
         <div className='flex-grow bg-pink-400 text-white leading-4
           inline-flex flex-col items-center py-3 px-2 rounded-lg relative'
         >
-          <span className='absolute -left-0.75 top-1/2 -translate-y-1/2 
+          <span className='absolute -left-1 top-1/2 -translate-y-1/2 
             border-l-5 border-white h-[80%] border-dotted'></span>
           <p className='text-[8.5px]'>Valid up to - {format(new Date(coupon?.expiry), 'dd-MM-yyyy')}</p>
           <p className='text-2xl space-x-1 flex items-center'>

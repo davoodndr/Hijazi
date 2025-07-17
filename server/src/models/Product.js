@@ -14,7 +14,10 @@ const productSchema = new mongoose.Schema({
   brand: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', required: true },
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
   price: { type: Number },
-  tax: { type: Number },
+  tax: { 
+    type: Number,
+    default: 0.05
+  },
   stock: { type: Number, default: 0 },
   description: { type: String },
   status: {

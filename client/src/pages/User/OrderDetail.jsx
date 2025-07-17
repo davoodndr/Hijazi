@@ -190,11 +190,11 @@ function OrderDetail() {
                 {/* <p className='flex items-center justify-between'>
                   <span>Delivery</span>
                   <span className='font-bold price-before text-base'>0</span>
-                </p>
+                </p> */}
                 <p className='flex items-center justify-between'>
                   <span>Tax <span className='text-gray-400'>5% GST included</span></span>
                   <span className='font-bold price-before text-base'>0</span>
-                </p> */}
+                </p>
                 <div className='flex items-center justify-between'>
                   <span>Discount</span>
                   <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{order?.discount}</span></p>

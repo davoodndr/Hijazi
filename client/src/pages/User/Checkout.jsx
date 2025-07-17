@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { getCartCount, getCartTotal, setAppliedCoupon, setCartTotal, setCouponDiscount } from '../../store/slices/CartSlice';
+import { getCartCount, getCartTax, getItemsTotal, setAppliedCoupon, setCartTotal, setCouponDiscount } from '../../store/slices/CartSlice';
 import { IoWallet } from "react-icons/io5";
 import ToggleSwitch  from '../../components/ui/ToggleSwitch'
 import { CiDeliveryTruck } from 'react-icons/ci';
@@ -9,13 +9,10 @@ import { MdEdit } from "react-icons/md";
 import { LuHousePlus } from "react-icons/lu";
 import razorpay from '../../assets/razorpay-icon.svg'
 import { RiCoupon3Fill } from "react-icons/ri";
-import { useLocation, useNavigate } from 'react-router';
-import { Axios } from '../../utils/AxiosSetup';
-import ApiBucket from '../../services/ApiBucket';
-import AxiosToast from '../../utils/AxiosToast';
+import { useNavigate } from 'react-router';
 import { setLoading } from '../../store/slices/CommonSlices';
 import Alert from '../../components/ui/Alert'
-import { capitalize, isValidDatas } from '../../utils/Utils';
+import { capitalize } from '../../utils/Utils';
 import toast from 'react-hot-toast';
 import AddressModal from '../../components/user/AddressModal';
 import { fetchAddresses } from '../../store/slices/AddressSlice';
@@ -28,12 +25,12 @@ import clsx from 'clsx';
 function Checkout() {
 
   const navigate = useNavigate();
-  const location = useLocation();
   const dispatch = useDispatch();
   const { items, couponDiscount, cartTotal, appliedCoupon } = useSelector(state => state.cart);
   const { addressList } = useSelector(state => state.address);
   const cartCount = useSelector(getCartCount);
-  const subTotal = useSelector(getCartTotal);
+  const subTotal = useSelector(getItemsTotal);
+  const cartTax = useSelector(getCartTax);
   const [data, setData] = useState({
     payment_method: null, bill_address: null, ship_address: null
   });
@@ -469,20 +466,25 @@ function Checkout() {
           
           {/* totals */}
           <div className='flex flex-col p-5 space-y-2'>
-            <p className='text-sm text-orange-400'>Tax included on all single product</p>
             <p className='flex items-center justify-between text-base'>
               <span>Subtotal ({cartCount} {cartCount > 1 ? 'items' : 'item'})</span>
-              <span className='price-before price-before:!font-normal font-bold'>{subTotal}</span>
+              <span className='price-before price-before:!font-normal font-bold'>{Number(subTotal).toFixed(2)}</span>
             </p>
             <div className='flex items-center justify-between text-base'>
+              <span>Tax (GST)</span>
+              <span className='price-before price-before:!font-normal font-bold'>{Number(cartTax).toFixed(2)}</span>
+            </div>
+            <div className='flex items-center justify-between text-base'>
               <span>Discount</span>
-              <p>-<span className='ms-1 price-before price-before:!font-normal font-bold text-red-400'>{couponDiscount}</span></p>
+              <p>-<span className='ms-1 price-before price-before:text-red-300 price-before:!font-normal font-bold text-red-400'>
+                {Number(couponDiscount).toFixed(2)}</span>
+              </p>
             </div>
 
             {/* total */}
             <h3 className='mt-4 flex items-center justify-between text-gray-400 text-lg'>
               <span>Total</span>
-              <span className='price-before price-before:!font-normal'>{cartTotal}</span>
+              <span className='price-before price-before:!font-normal'>{Number(cartTotal).toFixed(2)}</span>
             </h3>
           </div>
 

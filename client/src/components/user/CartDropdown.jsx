@@ -1,7 +1,7 @@
 import React from 'react'
 import { IoTrash } from 'react-icons/io5';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteCartItem, getCartTotal, removeFromCart } from '../../store/slices/CartSlice';
+import { deleteCartItem, getItemsTotal, removeFromCart } from '../../store/slices/CartSlice';
 import { Link, useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
 import clsx from 'clsx';
@@ -11,7 +11,7 @@ function CartDropdownComponent({className}) {
 
   const { items } = useSelector(state => state.cart);
   const { user } = useSelector(state => state.user);
-  const cartTotal = useSelector(getCartTotal);
+  const cartTotal = useSelector(getItemsTotal);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 

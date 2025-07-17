@@ -30,8 +30,10 @@ const cartSlice = createSlice({
   name: 'cart',
   initialState: {
     items:[],
-    couponDiscount: 0,
+    cartCount:0,
     cartTotal: 0,
+    cartSubTotal: 0,
+    couponDiscount: 0,
     appliedCoupon: null,
     error: null
   },
@@ -80,11 +82,17 @@ const cartSlice = createSlice({
     setCouponDiscount: (state, action) => {
       state.couponDiscount = action.payload
     },
-    setCartTotal: (state, action) => {
-      state.cartTotal = action.payload
-    },
     setAppliedCoupon: (state, action) => {
       state.appliedCoupon = action.payload
+    },
+    setCartCount: (state, action) => {
+      state.cartCount = action.payload
+    },
+    setCartSubTotal: (state, action) => {
+      state.cartSubTotal = action.payload
+    },
+    setCartTotal: (state, action) => {
+      state.cartTotal = action.payload
     }
   },
   extraReducers: (builder) => {
@@ -119,10 +127,25 @@ export const getCartItem = (state, id) => {
   return state?.cart?.items?.find(item => item.id === id);
 }
 
-export const getCartTotal = (state) => {
-  return state?.cart?.items?.reduce((total, item) => {
-    return total + item?.price * item?.quantity;
+export const getCartTax = (state) => {
+  const tax = state?.cart?.items?.reduce((total, item) => {
+
+    const price = item?.price || 0;
+    const quantity = item?.quantity || 0;
+    const taxRate = item?.tax || 0.05;
+
+    return total + price * taxRate * quantity;
   },0)
+
+  return Number(tax).toFixed(2);
+}
+
+export const getItemsTotal = (state) => {
+  const total = state?.cart?.items?.reduce((total, item) => 
+    total + item?.price * item?.quantity
+  ,0)
+
+  return Number(total).toFixed(2);
 }
 
 export const getCartCount = (state) => {
