@@ -20,6 +20,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
 
   const ruleLength = { min:5 }
   const { categoryList } = useSelector(state => state.categories);
+  const { items:productList } = useSelector(state => state.products);
   const [isLoading, setIsLoading] = useState(false);
   const [offerType, setOfferType] = useState(null)
   const [discountType, setDicountType] = useState(null)
@@ -139,7 +140,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
       {/* should keep this pattern to maintain exit animation */}
       {isOpen && <Modal isOpen={isOpen} modalContentClass='overflow-visible'>
 
-        <div className='w-220 flex flex-col'>
+        <div className='w-170 flex flex-col'>
 
           <div className='flex gap-4 mb-5 border-b border-gray-300'>
             <div className='p-3 mb-3 border border-primary-300 rounded-2xl bg-primary-50'>
@@ -152,7 +153,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
           </div>
 
           {/* form inputs */}
-          <form onSubmit={handleSubmit} className='grid grid-cols-3 gap-y-2 gap-x-4' id='new-offer-form'>
+          <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='new-offer-form'>
             
             {/* code */}
             <div className='flex flex-col w-full'>
@@ -176,79 +177,89 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
             </div>
 
             {/* discount type */}
-            <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium mandatory">Discount type</label>
-              <CustomSelect
-                value={discountType}
-                onChange={handleChangeDiscountType}
-                options={[
-                  {value: 'fixed', label: 'fixed'},
-                  {value: 'percentage', label: 'percentage'},
-                  {value: 'bogo', label: 'by one get one'},
-                ]} />
-            </div>
+            <div className="flex space-x-4">
+              <div className='flex flex-col w-full'>
+                <label className="flex text-sm font-medium mandatory">Discount type</label>
+                <CustomSelect
+                  value={discountType}
+                  onChange={handleChangeDiscountType}
+                  options={[
+                    {value: 'fixed', label: 'fixed'},
+                    {value: 'percentage', label: 'percentage'},
+                    {value: 'bogo', label: 'by one get one'},
+                  ]} />
+              </div>
 
-            {/* discount value */}
-            <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium mandatory">Discount Value</label>
-              <input type="number" name='discountValue' value={data.discountValue} 
-                onChange={handleChange}
-                spellCheck={false}
-                placeholder='Enter discount value'/>
+              {/* discount value */}
+              <div className='flex flex-col w-full'>
+                <label className="flex text-sm font-medium mandatory">Discount Value</label>
+                <input type="number" name='discountValue' value={data.discountValue} 
+                  onChange={handleChange}
+                  spellCheck={false}
+                  placeholder='Enter discount value'/>
+              </div>
             </div>
 
             {/* minimum purchase value */}
-            <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium">Min. purchase Value</label>
-              <input type="number" name='minPurchase' value={data.minPurchase} 
-                onChange={handleChange}
-                spellCheck={false}
-                placeholder='Enter minimum purchase value'/>
-            </div>
+            <div className="flex space-x-4">
+              <div className='flex flex-col w-full'>
+                <label className="flex text-sm font-medium">Min. purchase Value</label>
+                <input type="number" name='minPurchase' value={data.minPurchase} 
+                  onChange={handleChange}
+                  spellCheck={false}
+                  placeholder='@ex: 0000'/>
+              </div>
 
-            {/* max disocunt */}
-            <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium">Max Discount</label>
-              <input type="number" name='maxDiscount' value={data.maxDiscount} 
-                onChange={handleChange}
-                spellCheck={false}
-                placeholder='Enter maxmimum discount allowed'/>
+              {/* max disocunt */}
+              <div className='flex flex-col w-full'>
+                <label className="flex text-sm font-medium">Max Discount</label>
+                <input type="number" name='maxDiscount' value={data.maxDiscount} 
+                  onChange={handleChange}
+                  spellCheck={false}
+                  placeholder='@ex: 0000'/>
+              </div>
             </div>
 
             {/* start date */}
-            <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium mandatory">Start date</label>
-              <MyDatePicker
-                value={data?.startDate ?? ''}
-                onChange={handleDateChange} 
-              />
-            </div>
+            <div className="flex space-x-4">
+              <div className='flex flex-col w-full'>
+                <label className="flex text-sm font-medium mandatory">Start date</label>
+                <MyDatePicker
+                  value={data?.startDate ?? ''}
+                  onChange={handleDateChange} 
+                  placeholder="Offer start date"
+                />
+              </div>
 
-            {/* end date */}
-            <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium">End date</label>
-              <MyDatePicker
-                value={data?.endDate ?? ''}
-                onChange={handleDateChange} 
-              />
+              {/* end date */}
+              <div className='flex flex-col w-full'>
+                <label className="flex text-sm font-medium">End date</label>
+                <MyDatePicker
+                  value={data?.endDate ?? ''}
+                  onChange={handleDateChange}
+                  placeholder="Offer end date"
+                />
+              </div>
             </div>
 
             {/* usage limit */}
-            <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium">Usage Limit</label>
-              <input type="number" name='usageLimit' value={data.usageLimit} 
-                onChange={handleChange}
-                spellCheck={false}
-                placeholder='Enter count for the offer'/>
-            </div>
+            <div className="flex space-x-4">
+              <div className='flex flex-col w-full'>
+                <label className="flex text-sm font-medium">Max. usage limit</label>
+                <input type="number" name='usageLimit' value={data.usageLimit} 
+                  onChange={handleChange}
+                  spellCheck={false}
+                  placeholder='Enter max offer count'/>
+              </div>
 
-            {/* usage per user */}
-            <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium">Usage per user</label>
-              <input type="number" name='usageLimit' value={data.usageLimit} 
-                onChange={handleChange}
-                spellCheck={false}
-                placeholder='Enter count allowed per user'/>
+              {/* usage per user */}
+              <div className='flex flex-col w-full'>
+                <label className="flex text-sm font-medium">Usage per user</label>
+                <input type="number" name='usageLimit' value={data.usageLimit} 
+                  onChange={handleChange}
+                  spellCheck={false}
+                  placeholder='Enter count per user'/>
+              </div>
             </div>
 
             {/* applicable categories */}
@@ -256,9 +267,35 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
               <label className="flex text-sm font-medium">Applicable Categories</label>
               <MultiSelectCheck 
                 className='border-neutral-300'
-                options={categoryList?.map(category => 
+                /* options={categoryList?.map(category => 
                   ({value: category?._id, label: category?.name})
-                )}
+                )} */
+               options={[
+                {value: "option1", label: "Option 1"},
+                {value: "option2", label: "Option 2"},
+                /* {value: "option3", label: "Option 3"},
+                {value: "option4", label: "Option 4"}, */
+               ]}
+              />
+            </div>
+
+            {/* applicable categories */}
+            <div className='flex flex-col w-full  overflow-visible'>
+              <label className="flex text-sm font-medium">Applicable Products</label>
+              <MultiSelectCheck
+                searchable={true} 
+                className='border-neutral-300'
+                options={productList?.flatMap(product =>{
+                  const list = []
+                  if(product?.variants?.length){
+                    product?.variants?.forEach(p => 
+                      list.push({value: p?.sku, label: `${p?.sku} | ${product?.name}`})
+                    )
+                  }else{
+                    list.push({value: product?.sku, label: `${product?.sku} | ${product?.name}`})
+                  }
+                  return list
+                })}
               />
             </div>
 

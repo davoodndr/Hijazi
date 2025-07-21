@@ -2,18 +2,18 @@ import React, { useEffect, useState } from 'react'
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-const ReadOnlyInput = React.forwardRef(({ value, onClick }, ref) => (
+const ReadOnlyInputComponent = (props, ref) => (
   <input
+    {...props}
     readOnly
     ref={ref}
-    value={value}
-    onClick={onClick}
-    placeholder='Enter coupon expiry date'
     className="custom-input"
   />
-));
+)
 
-function MyDatePicker({minDate = new Date(), value, onChange}) {
+const ReadOnlyInput = React.forwardRef(ReadOnlyInputComponent);
+
+function MyDatePicker({minDate = new Date(), value, onChange, placeholder}) {
   const [startDate, setStartDate] = useState(null);
 
   useEffect(() => {
@@ -31,6 +31,7 @@ function MyDatePicker({minDate = new Date(), value, onChange}) {
       dateFormat='dd-MM-yyyy'
       minDate={minDate}
       customInput={<ReadOnlyInput />}
+      placeholderText={placeholder}
     />
   );
 }
