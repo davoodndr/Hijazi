@@ -1,25 +1,25 @@
-import Coupon from "../../models/Coupon.js";
+import Offer from "../../models/Offer.js";
 import { responseMessage } from "../../utils/messages.js";
 import cron from 'node-cron'
 
 
-// get coupon
-export const getCoupons = async(req, res) => {
+// get offers
+export const getOffers = async(req, res) => {
 
   try {
 
-    const coupons = await Coupon.find();
+    const offers = await Offer.find();
 
-    return responseMessage(res, 200, true, "",{coupons});
+    return responseMessage(res, 200, true, "",{offers});
 
     
   } catch (error) {
-    console.log('getCoupons:',error);
+    console.log('getOffers:',error);
     return responseMessage(500,false, error.message || error);
   }
 }
 
-// add coupon
+// add offer
 export const addCoupon = async(req, res) => {
 
   const { code, discountType, discountValue, expiry, minPurchase, maxDiscount, usageLimit } = req.body;
@@ -40,14 +40,14 @@ export const addCoupon = async(req, res) => {
       return responseMessage(res, 400, false, "Please enter a valid count");
     }
 
-    const coupon = await Coupon.findOne({code});
-    if(coupon){
+    const offer = await Coupon.findOne({code});
+    if(offer){
       return responseMessage(res, 400, false, "Coupon already exists!");
     }
 
     const newCoupon = await Coupon.create(req.body);
 
-    return responseMessage(res, 201, true, "Coupon created successfully!", {coupon: newCoupon});
+    return responseMessage(res, 201, true, "Coupon created successfully!", {offer: newCoupon});
     
   } catch (error) {
     console.log('addCoupon:',error);
@@ -55,29 +55,29 @@ export const addCoupon = async(req, res) => {
   }
 }
 
-// change coupon status / visibility
+// change offer status / visibility
 export const changeCouponStatus = async(req, res) => {
 
-  const { coupon_id, status, visibility } = req.body;
+  const { offer_id, status, visibility } = req.body;
 
   try {
 
-    const coupon = await Coupon.findById(coupon_id);
+    const offer = await Coupon.findById(offer_id);
 
-    if(!coupon){
+    if(!offer){
       return responseMessage(res, 400, false, "Coupon not found");
     }
 
     if(status) {
-      coupon.status = status
+      offer.status = status
     }else{
-      coupon.visible = visibility
+      offer.visible = visibility
     }
-    await coupon.save();
+    await offer.save();
 
     return responseMessage(res, 200, true, 
       status ? "Coupon status changed successfully" : "Coupon visibility changed successfully",
-      {coupon}
+      {offer}
     );
     
   } catch (error) {
@@ -86,10 +86,10 @@ export const changeCouponStatus = async(req, res) => {
   }
 }
 
-// update coupon
+// update offer
 export const updateCoupon = async(req, res) => {
 
-  const { coupon_id, code, discountType, discountValue, 
+  const { offer_id, code, discountType, discountValue, 
     expiry, minPurchase, maxDiscount, usageLimit} = req.body;
 
   try {
@@ -108,10 +108,10 @@ export const updateCoupon = async(req, res) => {
       return responseMessage(res, 400, false, "Please enter a valid count");
     }
 
-    const updated = await Coupon.findByIdAndUpdate(coupon_id, req.body, {new: true});
+    const updated = await Coupon.findByIdAndUpdate(offer_id, req.body, {new: true});
 
 
-    return responseMessage(res, 201, true, "Coupon updated successfully!", {coupon: updated});
+    return responseMessage(res, 201, true, "Coupon updated successfully!", {offer: updated});
     
   } catch (error) {
     console.log('updateCoupon:',error);

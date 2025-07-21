@@ -44,9 +44,9 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: { type: String },
   paymentResult: mongoose.Schema.Types.Mixed,
-  itemsPrice: { type: Number },
-  taxPrice: { type: Number },
-  shippingPrice: { type: Number },
+  itemsPrice: { type: Number, default: 0 },
+  taxAmount: { type: Number, default: 0 },
+  shippingPrice: { type: Number, default: 0 },
   discount: { type: Number, default: 0 },
   couponApplied: {
     _id: {
@@ -55,7 +55,7 @@ const orderSchema = new mongoose.Schema({
     },
     appliedAmount: Number
   },
-  totalPrice: { type: Number },
+  totalPrice: { type: Number, default: 0 },
   isPaid: { type: Boolean, default: false },
   paidAt: { type: Date },
   isDelivered: { type: Boolean, default: false },

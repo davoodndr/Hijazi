@@ -35,6 +35,7 @@ function Checkout() {
     payment_method: null, bill_address: null, ship_address: null
   });
   const [grandTotal, setGrandTotal] = useState(0);
+  const [discounts, setDiscounts] = useState(couponDiscount);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [addressType, setAddresType] = useState(null);
 
@@ -93,9 +94,9 @@ function Checkout() {
         paymentMethod: data.payment_method,
         paymentResult: {},
         itemsPrice: subTotal,
-        taxPrice: 0,
+        taxAmount: cartTax,
         shippingPrice: 0,
-        discount: couponDiscount,
+        discount: discounts,
         couponApplied: {
           _id: appliedCoupon._id,
           appliedAmount: couponDiscount
@@ -301,7 +302,7 @@ function Checkout() {
             </div>
             <p className='text-gray-400/70'>
               Your wallet balance are not sufficient to pay the order, please select an additional payment method to cover the balance of 
-              <span className='ms-1 price-before text-red-400'>{grandTotal}</span>
+              <span className='ms-1 price-before price-before:text-red-300 text-red-400'>0</span>
             </p>
           </div>
 
@@ -477,7 +478,7 @@ function Checkout() {
             <div className='flex items-center justify-between text-base'>
               <span>Discount</span>
               <p>-<span className='ms-1 price-before price-before:text-red-300 price-before:!font-normal font-bold text-red-400'>
-                {Number(couponDiscount).toFixed(2)}</span>
+                {Number(discounts).toFixed(2)}</span>
               </p>
             </div>
 

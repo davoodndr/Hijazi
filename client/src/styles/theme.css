@@ -29,11 +29,6 @@
   --text-slider-header-title: 22px
 }
 
-
-.text-title{
-  @apply font-semibold
-}
-
 @utility scroll-none {
   &::-webkit-scrollbar {
     display: none;
@@ -62,26 +57,26 @@
   }
 }
 
+@layer base{
+  label{
+    @apply text-[13px] font-semibold
+  }
+}
 
 @layer components{
-  .mandatory{
-    font-size: small;
-    display: inline-flex;
-    align-items: center;
-    width: fit-content;
-    border-radius: 50%;
-    position: relative;
+
+  .text-title{
+    @apply font-semibold
   }
-  .mandatory::after{
-    content: '*';
-    color: var(--color-red-500);
-    font-size: large;
-    position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translate(150%, -35%);
-    
+
+  .modal-backdrop {
+    @apply fixed inset-0 bg-black/30 flex items-center justify-center z-990
   }
+
+  .modal-content {
+    @apply bg-white p-6 rounded-4xl max-h-full flex flex-col overflow-y-auto z-1000
+  }
+
   .nav-btn{
     @apply border bg-primary-50 border-primary-400/20 text-primary-400/60 p-1.5 rounded-full smooth
       hover:bg-primary-300 hover:text-white cursor-pointer z-150
@@ -150,6 +145,10 @@
     @apply border h-[40px] rounded-input-border flex items-center justify-center cursor-pointer smooth
   }
 
+  .select{
+    @apply border h-[40px] rounded-input-border flex items-center cursor-pointer pl-3.75 smooth
+  }
+
   .shade{
     @apply shadow-lg shadow-green-600/30 bg-white
   }
@@ -159,9 +158,15 @@
   }
 }
 
-
 @utility smooth {
   transition: all 0.3s;
+}
+
+@utility mandatory{
+  @apply w-fit relative;
+  &::after{
+    @apply leading-4 content-["*"] text-red-500 text-base absolute top-1 left-[calc(100%+3px)];
+  }
 }
 
 @utility point-before{

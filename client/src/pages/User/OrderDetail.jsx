@@ -26,11 +26,14 @@ function OrderDetail() {
   const formattedDate = format(new Date(order?.paidAt || order?.createdAt), "dd.MM.yyyy 'at' hh.mm a")
   const isPaid = order?.isPaid ? 'paid' : 'unpaid';
   const isDelivered = order?.isDelivered ? 'delivered' : 'not delivered';
+  const itemsCount = order?.cartItems?.reduce((total, item) => total + item?.quantity, 0)
 
   useEffect(() => {
     const coupon = couponList?.find(c => c?._id?.toString() === order?.couponApplied?._id.toString());
     setAppliedCoupon(coupon)
   },[couponList]);
+
+  console.log(order)
 
   return (
     <section className='flex-grow w-full flex flex-col items-center py-15 bg-primary-25'>
@@ -122,7 +125,7 @@ function OrderDetail() {
         </div>
 
         {/* content */}
-        <div className="flex space-x-6">
+        <div className="flex space-x-10">
           {/* left */}
           <div className="flex flex-col flex-grow space-y-5">
             
@@ -184,8 +187,8 @@ function OrderDetail() {
               <h3 className='text-lg mb-3'>Payment Summery</h3>
               <div className="flex flex-col">
                 <p className='flex items-center justify-between'>
-                  <span>Subtotal <span className='text-gray-400'>({order?.cartItems.length} items)</span></span>
-                  <span className='font-bold price-before text-base'>{order?.itemsPrice}</span>
+                  <span>Subtotal <span className='text-gray-400'>{itemsCount} {itemsCount > 1 ? 'items' : 'item'}</span></span>
+                  <span className='font-bold price-before text-base'>{Number(order?.itemsPrice).toFixed(2)}</span>
                 </p>
                 {/* <p className='flex items-center justify-between'>
                   <span>Delivery</span>
@@ -193,16 +196,16 @@ function OrderDetail() {
                 </p> */}
                 <p className='flex items-center justify-between'>
                   <span>Tax <span className='text-gray-400'>5% GST included</span></span>
-                  <span className='font-bold price-before text-base'>0</span>
+                  <span className='font-bold price-before text-base'>{Number(order?.taxAmount).toFixed(2)}</span>
                 </p>
                 <div className='flex items-center justify-between'>
                   <span>Discount</span>
-                  <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{order?.discount}</span></p>
+                  <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{Number(order?.discount).toFixed(2)}</span></p>
                 </div>
                 <span className='w-full border-b border-gray-200 my-4'></span>
                 <p className='flex items-center justify-between font-bold'>
                   <span className='text-base'>Total Amount</span>
-                  <span className='price-before text-lg'>{order?.totalPrice}</span>
+                  <span className='price-before text-lg'>{Number(order?.totalPrice).toFixed(2)}</span>
                 </p>
               </div>
             </div>
@@ -223,7 +226,7 @@ function OrderDetail() {
           </div>
 
           {/* right */}
-          <div className="flex flex-col w-[30%] shrink-0 rounded-3xl shade overflow-hidden h-fit">
+          <div className="flex flex-col w-[28%] shrink-0 rounded-3xl shade overflow-hidden h-fit">
             {/* customer details */}
             <div className="flex flex-col bg-white p-6 divide-y divide-gray-200">
               <h3 className='text-lg mb-2 border-0'>Customer</h3>

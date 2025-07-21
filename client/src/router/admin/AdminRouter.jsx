@@ -22,6 +22,7 @@ const EditProduct = React.lazy(() => import('../../pages/Admin/products/EditProd
 const OrdersList = React.lazy(() => import('../../pages/Admin/orders/OrdersList'))
 const ViewOrder = React.lazy(() => import('../../pages/Admin/orders/ViewOrder'))
 const CouponList = React.lazy(() => import('../../pages/Admin/coupons/CouponList'))
+const OffersList = React.lazy(() => import('../../pages/Admin/offers/OffersList'))
 
 const AdminRouter = () => {
 
@@ -74,6 +75,10 @@ const AdminRouter = () => {
               {/* coupons tab */}
               <Route path='coupons'>
                 <Route index element={<CouponList />} />
+              </Route>
+              {/* coupons tab */}
+              <Route path='offers'>
+                <Route index element={<OffersList />} />
               </Route>
               
             </Route>

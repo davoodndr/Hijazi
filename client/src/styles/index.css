@@ -77,12 +77,6 @@ input[type="color"]::-webkit-color-swatch {
 	border: none;
 }
 
-label{
-  color: var(--color-neutral-400);
-  font-size: 12px;
-  font-weight: 200;
-}
-
 button{
   background-color:  var(--color-teal-600);
   color: var(--color-button-text);
@@ -102,31 +96,6 @@ button:hover{
   color: white;
   background-color:  var(--color-teal-700);
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-}
-
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 990;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal-content {
-  background: white;
-  padding: 30px;
-  border-radius: 30px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-  max-height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
 }
 
 body.swal2-shown > [aria-hidden='true'] {

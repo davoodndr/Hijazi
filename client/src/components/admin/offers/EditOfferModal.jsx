@@ -1,6 +1,6 @@
 
 import { AnimatePresence } from 'motion/react';
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Modal from '../../ui/Modal'
 import { TbCategoryPlus } from 'react-icons/tb';
 import ToggleSwitch from '../../ui/ToggleSwitch';
@@ -11,15 +11,15 @@ import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
 import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
-import CustomSelect from '../../../components/ui/CustomSelect'
+import CustomSelect from '../../ui/CustomSelect';
 import MyDatePicker from '../../ui/MyDatePicker';
 import WordCountInput from '../../ui/WordCountInput';
 
-function AddCouponModal({isOpen, onCreate, onClose}) {
+function EditOfferModal({coupon, isOpen, onUpdate, onClose}) {
 
-  const ruleLength = { min:5 }
+  const ruleLength = { min:5 };
   const [isLoading, setIsLoading] = useState(false);
-  const [discountType, setDicountType] = useState(null)
+  const [discountType, setDicountType] = useState(null);
   const [couponRule, setCouponRule] = useState(null);
     
   /* data input handling */
@@ -27,6 +27,23 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
     code: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
     expiry: "", usageLimit: "", active:true, rule: ""
   });
+
+  /* initial data */
+  useEffect(() => {
+    setData(prev => ({
+      ...prev,
+      code: coupon?.code,
+      discountType: coupon?.discountType,
+      discountValue: coupon?.discountValue,
+      minPurchase: coupon?.minPurchase,
+      maxDiscount: coupon?.maxDiscount,
+      expiry: coupon?.expiry,
+      usageLimit: coupon?.usageLimit,
+      rule: coupon?.couponRule,
+      active: coupon?.status === 'active'
+    }))
+    setDicountType({value: coupon?.discountType, label: coupon?.discountType})
+  },[coupon])
 
   const handleChange = (e) => {
     
@@ -54,7 +71,7 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    if(isValidDatas(['code','discountType','discountValue', 'expiry'], data)){
+    if(isValidDatas(['code','discountType','discountValue', 'maxDiscount', 'expiry'], data)){
 
       if(data.discountValue < 1 || (data?.discountType !== 'fixed' && data.maxDiscount < 1)){
         toast.error("Please enter a valid amount!");
@@ -68,7 +85,7 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
         toast.error("Please enter a valid amount!");
         return
       }
-      if(couponRule.wordCount < ruleLength.min){
+      if(couponRule?.wordCount < ruleLength.min){
         toast.error(`Coupon rule shuold have minimum ${ruleLength.min} words!`);
         return
       }
@@ -77,7 +94,8 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
 
       const finalData = {
         ...data,
-        expiry: utcDate(data.expiry),
+        coupon_id: coupon._id,
+        expiry: utcDate(data.expiry instanceof Date ? data.expiry : new Date(data.expiry)),
         status: data?.active ? 'active' : 'inactive',
         discountValue: parseFloat(data?.discountValue),
         minPurchase: parseFloat(data?.minPurchase || 0),
@@ -89,7 +107,7 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
       try {
         
         const response = await Axios({
-          ...ApiBucket.addCoupon,
+          ...ApiBucket.updateCoupon,
           data: finalData
         })
 
@@ -104,7 +122,7 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
           })
           setDicountType(null)
 
-          onCreate(newCoupon);
+          onUpdate(newCoupon);
 
         }
 
@@ -139,18 +157,18 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
               <TbCategoryPlus size={20} />
             </div>
             <div className="flex-1 flex flex-col">
-              <h1 className='text-xl'>Create Coupon</h1>
-              <p>Give necessary details for new coupon</p>
+              <h1 className='text-xl'>Edit Coupon</h1>
+              <p>Change details for the coupon</p>
             </div>
           </div>
 
           {/* form inputs */}
-          <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='new-category-form'>
+          <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='edit-coupon-form'>
             
             {/* code */}
             <div className='flex flex-col w-full'>
               <label className="flex text-sm font-medium mandatory">Coupon code</label>
-              <input type="text" name='code' value={data?.code} 
+              <input type="text" name='code' value={data?.code ?? ''} 
                 onChange={handleChange}
                 spellCheck={false}
                 placeholder='Enter coupon code'/>
@@ -171,7 +189,7 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
             {/* discount value */}
             <div className='flex flex-col w-full'>
               <label className="flex text-sm font-medium mandatory">Discount Value</label>
-              <input type="number" name='discountValue' value={data.discountValue} 
+              <input type="number" name='discountValue' value={data?.discountValue ?? ''} 
                 onChange={handleChange}
                 spellCheck={false}
                 placeholder='Enter discount value'/>
@@ -180,7 +198,7 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
             {/* minimum purchase value */}
             <div className='flex flex-col w-full'>
               <label className="flex text-sm font-medium">Min. purchase Value</label>
-              <input type="number" name='minPurchase' value={data.minPurchase} 
+              <input type="number" name='minPurchase' value={data?.minPurchase ?? ''} 
                 onChange={handleChange}
                 spellCheck={false}
                 placeholder='Enter minimum purchase value'/>
@@ -189,7 +207,7 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
             {/* max disocunt */}
             <div className='flex flex-col w-full'>
               <label className="flex text-sm font-medium mandatory">Max Discount</label>
-              <input type="number" name='maxDiscount' value={data.maxDiscount} 
+              <input type="number" name='maxDiscount' value={data.maxDiscount ?? ''} 
                 onChange={handleChange}
                 spellCheck={false}
                 placeholder='Enter maxmimum discount allowed'/>
@@ -198,8 +216,8 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
             {/* expiery date */}
             <div className='flex flex-col w-full'>
               <label className="flex text-sm font-medium mandatory">Expiry date</label>
-              <MyDatePicker
-                value={data?.expiry ?? ''}
+              <MyDatePicker 
+                value={coupon?.expiry ?? ''}
                 onChange={handleDateChange} 
               />
             </div>
@@ -208,8 +226,10 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
             <div className="flex flex-col w-full col-span-2">
               <label className="flex text-sm font-medium">Detail</label>
               <WordCountInput
+                value={data?.rule ?? ''}
+                minWords={ruleLength.min}
                 onChange={(values) => {
-                  setData(prev => ({...prev, detail: values.detail}));
+                  setData(prev => ({...prev, rule: values.detail}));
                   setCouponRule(values)
                 }}
               />
@@ -218,7 +238,7 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
             {/* usage limit */}
             <div className='flex flex-col w-full'>
               <label className="flex text-sm font-medium">Usage Limit</label>
-              <input type="number" name='usageLimit' value={data.usageLimit} 
+              <input type="number" name='usageLimit' value={data.usageLimit ?? ''} 
                 onChange={handleChange}
                 spellCheck={false}
                 placeholder='Enter coupon count allowed per user'/>
@@ -252,10 +272,10 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
 
             <LoadingButton
               loading={isLoading}
-              text='Create Now'
-              loadingText='Creating . . . . .'
+              text='Update Now'
+              loadingText='Updating . . . . .'
               type='submit'
-              form='new-category-form'
+              form='edit-coupon-form'
               icon={<ClipLoader color="white" size={23} />}
               className={`px-4! rounded-3xl! inline-flex items-center
                 transition-all duration-300`}
@@ -271,4 +291,4 @@ function AddCouponModal({isOpen, onCreate, onClose}) {
   
 }
 
-export default AddCouponModal
+export default EditOfferModal

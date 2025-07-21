@@ -40,7 +40,7 @@ export const Sidebar = ({menuItems}) => {
           menuItems.map(item => (
             <div key={item.label} onClick={() => handleSelect(item)}>
               <Link to={item.href} className={`flex items-center px-3 py-2 text-gray-700 hover:bg-primary-50
-                transition-all duration-300 ${item === selected ? "bg-primary-300/10 text-primary-300" : ''}`}>
+                transition-all duration-300 ${item === selected ? "bg-primary-300/20 text-primary-400" : ''}`}>
 
                 <span>{<item.icon size={20} />}</span>
                 {!collapsed && <span className="ml-3">{item.label}</span>}

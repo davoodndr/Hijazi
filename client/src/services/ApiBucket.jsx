@@ -152,8 +152,8 @@ const ApiBucket = {
   },
 
   /* product */
-  getCoupons: {
-    url: '/api/admin/get-coupons',
+  getOffers: {
+    url: '/api/admin/get-offers',
     method: 'get'
   },
   addCoupon: {
@@ -263,9 +263,9 @@ const ApiBucket = {
     method: 'post'
   },
 
-  /* coupons */
-  getCouponsList: {
-    url: '/api/user/get-coupon-list',
+  /* offers */
+  getOffersList: {
+    url: '/api/user/get-offers-list',
     method: 'get'
   },
 }

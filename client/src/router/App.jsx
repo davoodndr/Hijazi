@@ -11,7 +11,7 @@ import { fetchProducts } from "../store/slices/ProductSlices"
 import { fetchBrands } from "../store/slices/BrandSlice"
 import { fetchCategories } from '../store/slices/CategorySlices'
 import { clearAddressList, fetchAddresses } from "../store/slices/AddressSlice"
-import { clearCoupons, fetchCoupons } from "../store/slices/CouponSlice"
+import { clearOffers, fetchOffers } from "../store/slices/OfferSlice"
 
 function App() {
 
@@ -30,12 +30,12 @@ function App() {
         dispatch(clearWishlist())
         dispatch(clearOrders())
         dispatch(clearAddressList())
-        dispatch(clearCoupons())
+        dispatch(clearOffers())
       }
     }
     fetchAuthData()
     dispatch(fetchCategories())
-    dispatch(fetchCoupons())
+    dispatch(fetchOffers())
     dispatch(fetchBrands())
     dispatch(fetchProducts())
   },[])

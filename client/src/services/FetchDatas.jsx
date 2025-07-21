@@ -155,15 +155,15 @@ export const getOrdersList = async() => {
 }
 
 /* coupons */
-export const getCoupons = async() => {
+export const getOffers = async() => {
   
   try {
     
     const response = await Axios({
-      ...ApiBucket.getCouponsList
+      ...ApiBucket.getOffersList
     })
 
-    return response.data.coupons;
+    return response.data.offers;
 
   } catch (error) {
     console.log(error.response.data)

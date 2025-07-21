@@ -1,6 +1,6 @@
 
 import { AnimatePresence } from 'motion/react';
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import Modal from '../../ui/Modal'
 import { TbCategoryPlus } from 'react-icons/tb';
 import ToggleSwitch from '../../ui/ToggleSwitch';
@@ -11,39 +11,24 @@ import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
 import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
-import CustomSelect from '../../ui/CustomSelect';
+import CustomSelect from '../../ui/CustomSelect'
 import MyDatePicker from '../../ui/MyDatePicker';
-import WordCountInput from '../../ui/WordCountInput';
+import MultiSelectCheck from '../../ui/MultiSelectCheck';
+import { useSelector } from 'react-redux';
 
-function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
+function AddOfferModal({isOpen, onCreate, onClose}) {
 
-  const ruleLength = { min:5 };
+  const ruleLength = { min:5 }
+  const { categoryList } = useSelector(state => state.categories);
   const [isLoading, setIsLoading] = useState(false);
-  const [discountType, setDicountType] = useState(null);
-  const [couponRule, setCouponRule] = useState(null);
+  const [offerType, setOfferType] = useState(null)
+  const [discountType, setDicountType] = useState(null)
     
   /* data input handling */
   const [data, setData] = useState({
-    code: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
-    expiry: "", usageLimit: "", active:true, rule: ""
+    title: "", type: "", code: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
+    startDate: "", endDate: "", usageLimit: "", usagePerUser: "", active:true 
   });
-
-  /* initial data */
-  useEffect(() => {
-    setData(prev => ({
-      ...prev,
-      code: coupon?.code,
-      discountType: coupon?.discountType,
-      discountValue: coupon?.discountValue,
-      minPurchase: coupon?.minPurchase,
-      maxDiscount: coupon?.maxDiscount,
-      expiry: coupon?.expiry,
-      usageLimit: coupon?.usageLimit,
-      rule: coupon?.couponRule,
-      active: coupon?.status === 'active'
-    }))
-    setDicountType({value: coupon?.discountType, label: coupon?.discountType})
-  },[coupon])
 
   const handleChange = (e) => {
     
@@ -59,6 +44,11 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
     })
   }
 
+  const handleChangeOfferType = (item) => {
+    setDicountType(item)
+    setData(prev => ({...prev, type: item.value}))
+  }
+
   const handleChangeDiscountType = (item) => {
     setDicountType(item)
     setData(prev => ({...prev, discountType: item.value}))
@@ -71,7 +61,7 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    if(isValidDatas(['code','discountType','discountValue', 'maxDiscount', 'expiry'], data)){
+    if(isValidDatas(['code','discountType','discountValue', 'expiry'], data)){
 
       if(data.discountValue < 1 || (data?.discountType !== 'fixed' && data.maxDiscount < 1)){
         toast.error("Please enter a valid amount!");
@@ -85,8 +75,8 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
         toast.error("Please enter a valid amount!");
         return
       }
-      if(couponRule?.wordCount < ruleLength.min){
-        toast.error(`Coupon rule shuold have minimum ${ruleLength.min} words!`);
+      if(offerRule.wordCount < ruleLength.min){
+        toast.error(`Offer rule shuold have minimum ${ruleLength.min} words!`);
         return
       }
       
@@ -94,26 +84,25 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
 
       const finalData = {
         ...data,
-        coupon_id: coupon._id,
-        expiry: utcDate(data.expiry instanceof Date ? data.expiry : new Date(data.expiry)),
+        expiry: utcDate(data.expiry),
         status: data?.active ? 'active' : 'inactive',
         discountValue: parseFloat(data?.discountValue),
         minPurchase: parseFloat(data?.minPurchase || 0),
         maxDiscount: parseFloat(data?.maxDiscount || 0),
         usageLimit: parseInt(data?.usageLimit || 1),
-        couponRule: data?.rule
+        offerRule: data?.rule
       }
 
       try {
         
         const response = await Axios({
-          ...ApiBucket.updateCoupon,
+          ...ApiBucket.addOffer,
           data: finalData
         })
 
         if(response.data.success){
 
-          const newCoupon = response.data.coupon;
+          const newOffer = response.data.offer;
 
           AxiosToast(response, false);
           setData({
@@ -122,7 +111,7 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
           })
           setDicountType(null)
 
-          onUpdate(newCoupon);
+          onCreate(newOffer);
 
         }
 
@@ -148,30 +137,42 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
 
     <AnimatePresence>
       {/* should keep this pattern to maintain exit animation */}
-      {isOpen && <Modal isOpen={isOpen}>
+      {isOpen && <Modal isOpen={isOpen} modalContentClass='overflow-visible'>
 
-        <div className='w-150 flex flex-col'>
+        <div className='w-220 flex flex-col'>
 
           <div className='flex gap-4 mb-5 border-b border-gray-300'>
             <div className='p-3 mb-3 border border-primary-300 rounded-2xl bg-primary-50'>
               <TbCategoryPlus size={20} />
             </div>
             <div className="flex-1 flex flex-col">
-              <h1 className='text-xl'>Edit Coupon</h1>
-              <p>Change details for the coupon</p>
+              <h1 className='text-xl'>Create New Offer</h1>
+              <p>Give necessary details for new offer</p>
             </div>
           </div>
 
           {/* form inputs */}
-          <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='edit-coupon-form'>
+          <form onSubmit={handleSubmit} className='grid grid-cols-3 gap-y-2 gap-x-4' id='new-offer-form'>
             
             {/* code */}
             <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium mandatory">Coupon code</label>
-              <input type="text" name='code' value={data?.code ?? ''} 
+              <label className="flex mandatory">Title</label>
+              <input type="text" name='title' value={data?.title} 
                 onChange={handleChange}
                 spellCheck={false}
-                placeholder='Enter coupon code'/>
+                placeholder='Enter offer title'/>
+            </div>
+
+            {/* offer type */}
+            <div className='flex flex-col w-full'>
+              <label className="flex text-sm font-medium mandatory">Offer type</label>
+              <CustomSelect
+                value={offerType}
+                onChange={handleChangeOfferType}
+                options={[
+                  {value: 'offer', label: 'offer'},
+                  {value: 'coupon', label: 'coupon'},
+                ]} />
             </div>
 
             {/* discount type */}
@@ -183,13 +184,14 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
                 options={[
                   {value: 'fixed', label: 'fixed'},
                   {value: 'percentage', label: 'percentage'},
+                  {value: 'bogo', label: 'by one get one'},
                 ]} />
             </div>
 
             {/* discount value */}
             <div className='flex flex-col w-full'>
               <label className="flex text-sm font-medium mandatory">Discount Value</label>
-              <input type="number" name='discountValue' value={data?.discountValue ?? ''} 
+              <input type="number" name='discountValue' value={data.discountValue} 
                 onChange={handleChange}
                 spellCheck={false}
                 placeholder='Enter discount value'/>
@@ -198,7 +200,7 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
             {/* minimum purchase value */}
             <div className='flex flex-col w-full'>
               <label className="flex text-sm font-medium">Min. purchase Value</label>
-              <input type="number" name='minPurchase' value={data?.minPurchase ?? ''} 
+              <input type="number" name='minPurchase' value={data.minPurchase} 
                 onChange={handleChange}
                 spellCheck={false}
                 placeholder='Enter minimum purchase value'/>
@@ -206,42 +208,58 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
 
             {/* max disocunt */}
             <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium mandatory">Max Discount</label>
-              <input type="number" name='maxDiscount' value={data.maxDiscount ?? ''} 
+              <label className="flex text-sm font-medium">Max Discount</label>
+              <input type="number" name='maxDiscount' value={data.maxDiscount} 
                 onChange={handleChange}
                 spellCheck={false}
                 placeholder='Enter maxmimum discount allowed'/>
             </div>
 
-            {/* expiery date */}
+            {/* start date */}
             <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium mandatory">Expiry date</label>
-              <MyDatePicker 
-                value={coupon?.expiry ?? ''}
+              <label className="flex text-sm font-medium mandatory">Start date</label>
+              <MyDatePicker
+                value={data?.startDate ?? ''}
                 onChange={handleDateChange} 
               />
             </div>
 
-            {/* detail */}
-            <div className="flex flex-col w-full col-span-2">
-              <label className="flex text-sm font-medium">Detail</label>
-              <WordCountInput
-                value={data?.rule ?? ''}
-                minWords={ruleLength.min}
-                onChange={(values) => {
-                  setData(prev => ({...prev, rule: values.detail}));
-                  setCouponRule(values)
-                }}
+            {/* end date */}
+            <div className='flex flex-col w-full'>
+              <label className="flex text-sm font-medium">End date</label>
+              <MyDatePicker
+                value={data?.endDate ?? ''}
+                onChange={handleDateChange} 
               />
             </div>
 
             {/* usage limit */}
             <div className='flex flex-col w-full'>
               <label className="flex text-sm font-medium">Usage Limit</label>
-              <input type="number" name='usageLimit' value={data.usageLimit ?? ''} 
+              <input type="number" name='usageLimit' value={data.usageLimit} 
                 onChange={handleChange}
                 spellCheck={false}
-                placeholder='Enter coupon count allowed per user'/>
+                placeholder='Enter count for the offer'/>
+            </div>
+
+            {/* usage per user */}
+            <div className='flex flex-col w-full'>
+              <label className="flex text-sm font-medium">Usage per user</label>
+              <input type="number" name='usageLimit' value={data.usageLimit} 
+                onChange={handleChange}
+                spellCheck={false}
+                placeholder='Enter count allowed per user'/>
+            </div>
+
+            {/* applicable categories */}
+            <div className='flex flex-col w-full  overflow-visible'>
+              <label className="flex text-sm font-medium">Applicable Categories</label>
+              <MultiSelectCheck 
+                className='border-neutral-300'
+                options={categoryList?.map(category => 
+                  ({value: category?._id, label: category?.name})
+                )}
+              />
             </div>
 
             {/* status */}
@@ -272,10 +290,10 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
 
             <LoadingButton
               loading={isLoading}
-              text='Update Now'
-              loadingText='Updating . . . . .'
+              text='Create Now'
+              loadingText='Creating . . . . .'
               type='submit'
-              form='edit-coupon-form'
+              form='new-offer-form'
               icon={<ClipLoader color="white" size={23} />}
               className={`px-4! rounded-3xl! inline-flex items-center
                 transition-all duration-300`}
@@ -291,4 +309,4 @@ function EditCouponModal({coupon, isOpen, onUpdate, onClose}) {
   
 }
 
-export default EditCouponModal
+export default AddOfferModal
