@@ -43,7 +43,9 @@ const OffersList = () => {
   },[])
 
   const fetchOffers = async() => {
-    setIsLoading(true)
+
+    setIsLoading(true);
+
     try {
         
       const response = await Axios({
@@ -60,6 +62,7 @@ const OffersList = () => {
     }finally{
       setIsLoading(false)
     }
+
   };
   
   /* debouncer */
@@ -80,7 +83,7 @@ const OffersList = () => {
     
     return offers?.filter(offer =>{
 
-      const fields = ['code']
+      const fields = ['createdAt']
 
       return fields.some(field => {
 
@@ -98,9 +101,10 @@ const OffersList = () => {
   /* sort */
   const [sortedOffers, setSortedOffers] = useState([]);
   const [sortOptions, setSortOptions] = useState([
-    {title: 'offer code',field: 'code', ascending: true},
+    {title: 'offer',field: 'title', ascending: true},
     {title: 'discount',field: 'discountValue', ascending: true},
-    {title: 'min. purchase',field: 'minPurchase', ascending: true},
+    {title: 'validity',field: 'startDate', ascending: true},
+    {title: 'on purchase',field: 'minPurchase', ascending: true},
     {title: 'limit',field: 'usageLimit', ascending: true},
   ])
   
@@ -131,14 +135,13 @@ const OffersList = () => {
 
 
   /* add offer action */
-  const [isAddOpen, setIsAddOpen] = useState(true);
+  const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
 
   /* create action handleing */
   const handleCreate =  (newOffer) => {
-    
-    setOffers(prev => [newOffer, ...prev])
+    setOffers(prev => ([newOffer, ...prev]))
     setIsAddOpen(false);
   }
 
@@ -366,7 +369,7 @@ const OffersList = () => {
         {/* Header */}
         <div className="text-gray-400 uppercase font-semibold tracking-wider
           border-b border-gray-300 px-4.5 py-3.5 bg-gray-50 rounded-t-3xl">
-          <div className="grid grid-cols-[40px_1.2fr_1fr_1fr_1fr_1fr_1fr] items-center w-full">
+          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1.2fr_1fr_1fr_1fr] items-center w-full">
             <span><input type="checkbox" /></span>
             {
               sortOptions.map((item, index) => 
@@ -447,7 +450,7 @@ const OffersList = () => {
                         }}
                       >
                     
-                        <div className="grid grid-cols-[40px_1.2fr_1fr_1fr_1fr_1fr_1fr] 
+                        <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1.2fr_1fr_1fr_1fr] 
                           items-center w-full px-4 py-2 bg-white"
                         >
                           {/* Checkbox */}
@@ -455,28 +458,66 @@ const OffersList = () => {
 
                           {/* Caoupon Info */}
                           <div>
-                            <p className="font-semibold">{offer?.code}</p>
-                            <p className='text-gray-500 tracking-tight text-xs space-x-1'>
-                              <span>{format(new Date(offer?.createdAt), "dd-MM-yy")}</span>
-                              <span className='!text-base'>-</span>
-                              <span>{format(new Date(offer?.expiry), 'dd-MM-yy')}</span>
-                            </p>
+                            <p className="text-sm font-semibold capitalize">{offer?.title}</p>
+                            <p className="text-xs text-gray-400 capitalize">{offer?.type}</p>
                           </div>
 
                           {/* discount */}
-                          <div>
-                            <span className={clsx(offer?.discountType === 'fixed' && 'price-before')}>{offer.discountValue}</span>
+                          <div className='flex flex-col text-sm'>
+                            <p className='tracking-tight space-x-1'>
+                              <span className='text-gray-400'>Value:</span>
+                              <span className={clsx(
+                                offer?.discountType === 'fixed' ? 'price-before' :
+                                 'content-after content-after:content-["%"]'
+                              )}>
+                                {offer.discountValue}
+                              </span>
+                            </p>
+                            <p className='tracking-tight space-x-1'>
+                              <span className='text-gray-400'>Max:</span>
+                              {offer?.maxDiscount > 0 ? 
+                                (<span className='price-before'>{offer?.maxDiscount}</span>)
+                                :
+                                <span>Maximum</span>
+                              }
+                            </p>
+                          </div>
+
+                          {/* validity */}
+                          <div className='flex flex-col text-sm'>
+                            <p className='tracking-tight space-x-1'>
+                              <span className='text-gray-400'>Start:</span>
+                              <span>{format(new Date(offer?.startDate), "dd-MM-yy")}</span>
+                            </p>
+                            <p className='tracking-tight space-x-1'>
+                              <span className='text-gray-400'>End:</span>
+                              {offer?.endDate ? 
+                                (<span>{format(new Date(offer?.endDate), 'dd-MM-yy')}</span>)
+                                :
+                                <span>Maximum</span>
+                              }
+                            </p>
                           </div>
 
                           {/* min puschase value */}
-                          <div>
-                            <span className='price-before'>{offer?.minPurchase}</span>
+                          <div className='text-sm'>
+                            {offer?.minPurchase ?
+                              (<span className='price-before'>{offer?.minPurchase}</span>)
+                              :
+                              (<span>All Purchase</span>)
+                            }
                           </div>
 
                           {/* usage limit */}
-                          <div>
-                            {offer?.usageLimit}
-                            <span className="text-gray-400"> /per user</span>
+                          <div className='flex flex-col'>
+                            <div className="inline-flex space-x-1">
+                              <span className="text-gray-400">Total:</span>
+                              <span>{offer?.usageLimit ?? 'Max.'}</span>
+                            </div>
+                            <div className="inline-flex">
+                              <span>{offer?.usagePerUser ?? 'Max.'}</span>
+                              <span className="text-gray-400"> /per user</span>
+                            </div>
                           </div>
 
                           {/* Status */}
@@ -487,8 +528,6 @@ const OffersList = () => {
                             </span>
                           </div>
                           
-                          
-
                           {/* Actions */}
                           <div className="flex items-center justify-center gap-3 z-50">
                             <div 

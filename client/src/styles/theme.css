@@ -59,7 +59,7 @@
 
 @layer base{
   label{
-    @apply text-[13px] font-semibold
+    @apply text-[12px] font-semibold leading-5
   }
 }
 

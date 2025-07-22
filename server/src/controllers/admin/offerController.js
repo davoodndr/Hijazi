@@ -19,38 +19,63 @@ export const getOffers = async(req, res) => {
   }
 }
 
-// add offer
-export const addCoupon = async(req, res) => {
+const validateAmounts = (data) => {
+  if(data?.discountValue && data?.discountValue < 1){
+    return "Please enter a valid amount!"
+  }
+  if(data?.minPurchase &&  data?.minPurchase < 1){
+    return "Please enter a valid amount!"
+  }
+  if(data?.maxDiscount &&  data?.maxDiscount < 1){
+    return "Please enter a valid amount!"
+  }
+  if(data?.usageLimit &&  data?.usageLimit < 1){
+    return "Please enter a valid count!"
+  }
+  if(data?.usagePerUser &&  data?.usagePerUser < 1){
+    return "Please enter a valid count!"
+  }
 
-  const { code, discountType, discountValue, expiry, minPurchase, maxDiscount, usageLimit } = req.body;
+  return true
+}
+
+// add offer
+export const addOffer = async(req, res) => {
+  
+
+  const { title, type, couponCode, discountType, discountValue, 
+    startDate, minPurchase, maxDiscount, usageLimit, usagePerUser } = req.body;
 
   try {
 
-    if(!code || !discountType || !discountValue || !expiry){
+    if(!title || !type || !discountType || !discountValue || !startDate){
       return responseMessage(res, 400, false, "Please fill all mandatory fields!");
     }
 
-    if(discountValue < 1 || (discountType !== 'fixed' && maxDiscount < 1)){
-      return responseMessage(res, 400, false, "Please enter a valid amount");
-    }
-    if(minPurchase &&  minPurchase < 1){
-      return responseMessage(res, 400, false, "Please enter a valid amount");
-    }
-    if(usageLimit &&  usageLimit < 1){
-      return responseMessage(res, 400, false, "Please enter a valid count");
+    const invalidMessage = validateAmounts({discountValue, minPurchase, maxDiscount, usageLimit, usagePerUser});
+
+    if(!invalidMessage){
+      return responseMessage(res, 400, false, invalidMessage);
     }
 
-    const offer = await Coupon.findOne({code});
-    if(offer){
-      return responseMessage(res, 400, false, "Coupon already exists!");
+    if(type === 'coupon'){
+      if(!couponCode){
+        return responseMessage(res, 400, false, "Please fill all mandatory fields!");
+      }else{
+        const offer = await Offer.findOne({couponCode});
+        if(offer){
+          return responseMessage(res, 400, false, "Coupon already exists!");
+        }
+      }
     }
+    
 
-    const newCoupon = await Coupon.create(req.body);
+    const newOffer = await Offer.create(req.body);
 
-    return responseMessage(res, 201, true, "Coupon created successfully!", {offer: newCoupon});
+    return responseMessage(res, 201, true, "Offer created successfully!", {offer: newOffer});
     
   } catch (error) {
-    console.log('addCoupon:',error);
+    console.log('addOffer:',error);
     return responseMessage(500,false, error.message || error);
   }
 }

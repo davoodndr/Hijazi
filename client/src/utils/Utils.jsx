@@ -35,7 +35,7 @@ export const finalizeValues = (data) => {
   const filtered = Object.entries(data).filter(([_,value]) => {
     if (value === "" || value === null || value === undefined) return false;
     if (Array.isArray(value) && value.length === 0) return false;
-    if(typeof value === 'object' && Object.keys(value).length === 0) return false;
+    if(typeof value === 'object' && !value instanceof Date && Object.keys(value).length === 0) return false;
     return true;
   });
 

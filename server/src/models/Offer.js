@@ -4,14 +4,15 @@ const offerSchema = new mongoose.Schema(
 	{
 		title: String,
 		type: { type: String, enum: ['offer', 'coupon'], required: true },
-		code: { 
+		couponCode: { 
       type: String, 
       unique: true, 
-      uppercase: true 
+      uppercase: true,
+			sparse: true
     },
 		discountType: {
 			type: String,
-			enum: ["percentage", "flat", "bogo"],
+			enum: ["percentage", "fixed", "bogo"],
 			required: true,
 		},
 		discountValue: {
@@ -28,8 +29,14 @@ const offerSchema = new mongoose.Schema(
 		},
 		startDate: Date,
   	endDate: Date,
-		usageLimit: Number,
-  	usagePerUser: Number,
+		usageLimit: {
+			type: Number,
+			default: 0
+		},
+  	usagePerUser: {
+			type: Number,
+			default: 1
+		},
 		applicableCategories: [mongoose.Schema.Types.ObjectId],
 		applicableProducts: [mongoose.Schema.Types.ObjectId],
 		status: {

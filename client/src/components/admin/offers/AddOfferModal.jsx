@@ -5,7 +5,7 @@ import Modal from '../../ui/Modal'
 import { TbCategoryPlus } from 'react-icons/tb';
 import ToggleSwitch from '../../ui/ToggleSwitch';
 import toast from 'react-hot-toast'
-import { isValidDatas, utcDate } from '../../../utils/Utils';
+import { finalizeValues, isValidDatas, utcDate } from '../../../utils/Utils';
 import AxiosToast from '../../../utils/AxiosToast';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
@@ -18,7 +18,6 @@ import { useSelector } from 'react-redux';
 
 function AddOfferModal({isOpen, onCreate, onClose}) {
 
-  const ruleLength = { min:5 }
   const { categoryList } = useSelector(state => state.categories);
   const { items:productList } = useSelector(state => state.products);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,7 +26,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
     
   /* data input handling */
   const [data, setData] = useState({
-    title: "", type: "", code: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
+    title: "", type: "", couponCode: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
     startDate: "", endDate: "", usageLimit: "", usagePerUser: "", active:true 
   });
 
@@ -35,7 +34,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
     
     let { name, value } = e.target;
     
-    if(name === 'code') value = value.trim().toUpperCase();
+    if(name === 'couponCode') value = value.trim().toUpperCase();
 
     setData(prev => {
       return {
@@ -46,7 +45,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
   }
 
   const handleChangeOfferType = (item) => {
-    setDicountType(item)
+    setOfferType(item)
     setData(prev => ({...prev, type: item.value}))
   }
 
@@ -55,60 +54,74 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
     setData(prev => ({...prev, discountType: item.value}))
   }
 
-  const handleDateChange = useCallback((date) =>{
-    setData(prev => ({...prev, expiry: date}))
+  const handleStartDateChange = useCallback((date) =>{
+    setData(prev => ({...prev, startDate: date}))
   },[])
+
+  const handleEndDateChange = useCallback((date) =>{
+    setData(prev => ({...prev, endDate: date}))
+  },[])
+
+  const validateAmounts = () => {
+    if(data?.discountValue && data?.discountValue < 1){
+      toast.error("Please enter a valid amount!");
+      return false
+    }
+    if(data?.minPurchase &&  data?.minPurchase < 1){
+      toast.error("Please enter a valid amount!");
+      return false
+    }
+    if(data?.maxDiscount &&  data?.maxDiscount < 1){
+      toast.error("Please enter a valid amount!");
+      return false
+    }
+    if(data?.usageLimit &&  data?.usageLimit < 1){
+      toast.error("Please enter a valid count!");
+      return false
+    }
+    if(data?.usagePerUser &&  data?.usagePerUser < 1){
+      toast.error("Please enter a valid count!");
+      return false
+    }
+
+    return true
+  }
 
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    if(isValidDatas(['code','discountType','discountValue', 'expiry'], data)){
+    const isValid = isValidDatas(['title','startDate','discountType','discountValue'], data)
+    const isValidAmounts = validateAmounts();
 
-      if(data.discountValue < 1 || (data?.discountType !== 'fixed' && data.maxDiscount < 1)){
-        toast.error("Please enter a valid amount!");
-        return
-      }
-      if(data.minPurchase &&  data.minPurchase < 1){
-        toast.error("Please enter a valid amount!");
-        return
-      }
-      if(data.usageLimit &&  data.usageLimit < 1){
-        toast.error("Please enter a valid amount!");
-        return
-      }
-      if(offerRule.wordCount < ruleLength.min){
-        toast.error(`Offer rule shuold have minimum ${ruleLength.min} words!`);
-        return
-      }
-      
+    if(isValid && isValidAmounts){
+
       setIsLoading(true)
 
       const finalData = {
         ...data,
-        expiry: utcDate(data.expiry),
+        startDate: utcDate(data?.startDate),
+        endDate: utcDate(data?.endDate),
         status: data?.active ? 'active' : 'inactive',
-        discountValue: parseFloat(data?.discountValue),
-        minPurchase: parseFloat(data?.minPurchase || 0),
-        maxDiscount: parseFloat(data?.maxDiscount || 0),
-        usageLimit: parseInt(data?.usageLimit || 1),
-        offerRule: data?.rule
       }
+
+      const finalized = finalizeValues(finalData);
 
       try {
         
         const response = await Axios({
           ...ApiBucket.addOffer,
-          data: finalData
+          data: finalized
         })
 
-        if(response.data.success){
+
+        if(response?.data?.success){
 
           const newOffer = response.data.offer;
 
           AxiosToast(response, false);
           setData({
-            code: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
-            expiry: "", usageLimit: "", active:true, rule: ""
+            title: "", type: "", couponCode: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
+            startDate: "", endDate: "", usageLimit: "", usagePerUser: "", active:true 
           })
           setDicountType(null)
 
@@ -155,7 +168,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
           {/* form inputs */}
           <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='new-offer-form'>
             
-            {/* code */}
+            {/* title */}
             <div className='flex flex-col w-full'>
               <label className="flex mandatory">Title</label>
               <input type="text" name='title' value={data?.title} 
@@ -165,21 +178,38 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
             </div>
 
             {/* offer type */}
-            <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium mandatory">Offer type</label>
-              <CustomSelect
-                value={offerType}
-                onChange={handleChangeOfferType}
-                options={[
-                  {value: 'offer', label: 'offer'},
-                  {value: 'coupon', label: 'coupon'},
-                ]} />
+            <div className="flex space-x-4">
+              
+              <div className='flex flex-col w-full'>
+                <label className="flex mandatory">Offer type</label>
+                <CustomSelect
+                  value={offerType}
+                  onChange={handleChangeOfferType}
+                  options={[
+                    {value: 'offer', label: 'offer'},
+                    {value: 'coupon', label: 'coupon'},
+                  ]} 
+                />
+              </div>
+
+              {/* coupon code */}
+              {offerType?.value === 'coupon'&&
+                (
+                  <div className='flex flex-col w-full'>
+                    <label className="flex mandatory">Coupon code</label>
+                    <input type="text" name='couponCode' value={data?.couponCode} 
+                      onChange={handleChange}
+                      spellCheck={false}
+                      placeholder='Enter discount value'/>
+                  </div>
+                )
+              }
             </div>
 
             {/* discount type */}
             <div className="flex space-x-4">
               <div className='flex flex-col w-full'>
-                <label className="flex text-sm font-medium mandatory">Discount type</label>
+                <label className="flex mandatory">Discount type</label>
                 <CustomSelect
                   value={discountType}
                   onChange={handleChangeDiscountType}
@@ -192,7 +222,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
 
               {/* discount value */}
               <div className='flex flex-col w-full'>
-                <label className="flex text-sm font-medium mandatory">Discount Value</label>
+                <label className="flex mandatory">Discount Value</label>
                 <input type="number" name='discountValue' value={data.discountValue} 
                   onChange={handleChange}
                   spellCheck={false}
@@ -203,7 +233,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
             {/* minimum purchase value */}
             <div className="flex space-x-4">
               <div className='flex flex-col w-full'>
-                <label className="flex text-sm font-medium">Min. purchase Value</label>
+                <label>Min. purchase Value</label>
                 <input type="number" name='minPurchase' value={data.minPurchase} 
                   onChange={handleChange}
                   spellCheck={false}
@@ -212,7 +242,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
 
               {/* max disocunt */}
               <div className='flex flex-col w-full'>
-                <label className="flex text-sm font-medium">Max Discount</label>
+                <label>Max Discount</label>
                 <input type="number" name='maxDiscount' value={data.maxDiscount} 
                   onChange={handleChange}
                   spellCheck={false}
@@ -223,20 +253,20 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
             {/* start date */}
             <div className="flex space-x-4">
               <div className='flex flex-col w-full'>
-                <label className="flex text-sm font-medium mandatory">Start date</label>
+                <label className="flex mandatory">Start date</label>
                 <MyDatePicker
                   value={data?.startDate ?? ''}
-                  onChange={handleDateChange} 
+                  onChange={handleStartDateChange} 
                   placeholder="Offer start date"
                 />
               </div>
 
               {/* end date */}
               <div className='flex flex-col w-full'>
-                <label className="flex text-sm font-medium">End date</label>
+                <label>End date</label>
                 <MyDatePicker
                   value={data?.endDate ?? ''}
-                  onChange={handleDateChange}
+                  onChange={handleEndDateChange}
                   placeholder="Offer end date"
                 />
               </div>
@@ -245,45 +275,45 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
             {/* usage limit */}
             <div className="flex space-x-4">
               <div className='flex flex-col w-full'>
-                <label className="flex text-sm font-medium">Max. usage limit</label>
+                <label>Max. usage limit</label>
                 <input type="number" name='usageLimit' value={data.usageLimit} 
                   onChange={handleChange}
                   spellCheck={false}
-                  placeholder='Enter max offer count'/>
+                  placeholder='Max. offer count'/>
               </div>
 
               {/* usage per user */}
               <div className='flex flex-col w-full'>
-                <label className="flex text-sm font-medium">Usage per user</label>
-                <input type="number" name='usageLimit' value={data.usageLimit} 
+                <label>Usage per user</label>
+                <input type="number" name='usagePerUser' value={data.usagePerUser} 
                   onChange={handleChange}
                   spellCheck={false}
-                  placeholder='Enter count per user'/>
+                  placeholder='Count per user'/>
               </div>
             </div>
 
             {/* applicable categories */}
             <div className='flex flex-col w-full  overflow-visible'>
-              <label className="flex text-sm font-medium">Applicable Categories</label>
-              <MultiSelectCheck 
+              <label>Applicable Categories</label>
+              <MultiSelectCheck
+                searchable={true}
+                searchPlaceholder='Search with slug'
                 className='border-neutral-300'
-                /* options={categoryList?.map(category => 
-                  ({value: category?._id, label: category?.name})
-                )} */
-               options={[
-                {value: "option1", label: "Option 1"},
-                {value: "option2", label: "Option 2"},
-                /* {value: "option3", label: "Option 3"},
-                {value: "option4", label: "Option 4"}, */
-               ]}
+                options={categoryList?.map(category => 
+                  ({value: category?.slug, label: category?.name})
+                )}
               />
             </div>
 
-            {/* applicable categories */}
+            {/* applicable products */}
             <div className='flex flex-col w-full  overflow-visible'>
-              <label className="flex text-sm font-medium">Applicable Products</label>
+              <label>Applicable Products</label>
               <MultiSelectCheck
-                searchable={true} 
+                onSelect={(items) => {
+                  console.log(items)
+                }}
+                searchable={true}
+                searchPlaceholder='Search with sku'
                 className='border-neutral-300'
                 options={productList?.flatMap(product =>{
                   const list = []
@@ -301,7 +331,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
 
             {/* status */}
             <div className='flex flex-col w-full'>
-              <label className="flex text-sm font-medium">Status</label>
+              <label>Status</label>
               <div className="h-[40px] inline-flex gap-2 items-center 
                 border border-neutral-300 rounded-input-border px-3.5">
                 <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Active</label>

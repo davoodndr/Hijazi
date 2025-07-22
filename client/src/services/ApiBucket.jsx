@@ -156,8 +156,8 @@ const ApiBucket = {
     url: '/api/admin/get-offers',
     method: 'get'
   },
-  addCoupon: {
-    url: '/api/admin/add-coupon',
+  addOffer: {
+    url: '/api/admin/add-offer',
     method: 'post'
   },
   changeCouponStatus: {

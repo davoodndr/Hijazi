@@ -1,20 +1,24 @@
 import clsx from 'clsx'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { FaCheck } from 'react-icons/fa6'
 import { IoIosArrowDown } from 'react-icons/io'
 import { FiSearch } from "react-icons/fi";
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
+import * as motion from 'motion/react-client'
 
 function MultiSelectCheckComponent({
   options = [],
   className,
-  searchable = false
+  searchable = false,
+  searchPlaceholder = 'Search',
+  onSelect = () => {}
 }) {
 
   const [selected, setSelected] = useState([]);
   const [dropUp, setDropUp] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [readyToShow, setReadyToShow] = useState(false);
+  const [isLayoutReady, setIsLayoutReady] = useState(false);
   const wrapperRef = useRef(null);
   const triggerRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -32,9 +36,9 @@ function MultiSelectCheckComponent({
   }, []);
 
   /* handles expansion position */
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isExpanded) {
+      setIsLayoutReady(false);
       return
     };
 
@@ -52,11 +56,19 @@ function MultiSelectCheckComponent({
       const shouldDropUp = spaceBelow < dropdownHeight + buffer && spaceAbove > spaceBelow;
       setDropUp(shouldDropUp);
       setReadyToShow(true);
+      setIsLayoutReady(true);
     };
 
     setReadyToShow(false);
 
     requestAnimationFrame(measure);
+
+    // to avoid flickers
+    const timer = setTimeout(() => {
+      setIsLayoutReady(true)
+    }, 10);
+
+    return () => clearTimeout(timer)
 
   }, [isExpanded]);
 
@@ -64,6 +76,7 @@ function MultiSelectCheckComponent({
   const [query, setQuery] = useState("");
   const [searchQuery, setSearchQuery] = useState(query);
 
+  /* debouncer */
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(query);
@@ -72,11 +85,17 @@ function MultiSelectCheckComponent({
     return () => clearTimeout(timer);
   },[query])
 
+  /* search filter */
   const filteredOptions = useMemo(() => {
     return options?.filter(option => 
       option?.value?.toString().match(searchQuery)
     )
   }, [searchQuery, options])
+
+  /* select export */
+  useEffect(() => {
+    onSelect(selected)
+  },[selected])
 
   return (
     <div
@@ -112,7 +131,7 @@ function MultiSelectCheckComponent({
         {isExpanded &&  (
           <motion.div
             ref={dropdownRef}
-            key="dropdown"
+            key={isLayoutReady ? "dropdown" : ""}
             initial={{ opacity: 0, scaleY: 0.85 }}
             animate={{ opacity: 1, scaleY: 1 }}
             exit={{ opacity: 0, scaleY: 0.85 }}
@@ -128,7 +147,7 @@ function MultiSelectCheckComponent({
           {/* search */}
           {searchable &&
             (<div className="flex p-2 border-b border-neutral-300 relative">
-              <input type="text" placeholder='Search'
+              <input type="text" placeholder={searchPlaceholder}
                 value={query ?? ""}
                 onChange={e => setQuery(e.target.value)}
               />
@@ -140,7 +159,7 @@ function MultiSelectCheckComponent({
 
           {/* options */}
           <motion.div className='overflow-hidden overflow-y-auto h-full'>
-            {
+            {filteredOptions?.length > 0 ?
               filteredOptions?.map(item => 
                 <motion.div
                   key={item?.value}
@@ -160,6 +179,12 @@ function MultiSelectCheckComponent({
                     {selected?.includes(item.value) && <FaCheck className='text-lg' />}
                   </div>
                   <span className='pr-3.75 py-2 text-sm capitalize'> {item?.label} </span>
+                </motion.div>
+              )
+              :
+              (
+                <motion.div className='flex items-center justify-center'>
+                  <span className='pr-3.75 py-2 text-sm capitalize text-gray-400'>No items found</span>
                 </motion.div>
               )
             }
