@@ -179,7 +179,7 @@ const CategoryList = () => {
   );
 
   return (
-    <section className='flex flex-col p-6 bg-gray-100'>
+    <section className='flex flex-col p-6'>
     
       {/* page title & add category button */}
       <div className="mb-5 flex justify-between items-start">
@@ -277,9 +277,10 @@ const CategoryList = () => {
       </div>
 
       {/* content - first div fot smooth animaion */}
-      <div className="relative flex flex-col w-full bg-white rounded-3xl shadow-lg border border-gray-200">
+      <div className="relative flex flex-col w-full bg-white rounded-3xl shade border border-gray-200">
         {/* Header */}
-        <div className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
+        <div className="text-gray-400 uppercase font-semibold tracking-wider
+          border-b border-gray-300 px-4.5 py-3.5 bg-gray-50 rounded-t-3xl">
           <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full">
             <span><input type="checkbox" /></span>
             <span>Name</span>
@@ -299,7 +300,7 @@ const CategoryList = () => {
           className="flex flex-col w-full h-full text-sm text-gray-700">
 
             {/* Rows */}
-            {isLoading ? 
+            {isLoading || paginatedCategories.length <= 0 ? 
               <>
                 <li className="rounded px-6 py-4 space-y-3">
                   <Skeleton height="h-10" width="w-full" />
@@ -313,11 +314,11 @@ const CategoryList = () => {
               </>
               :
 
-              <li className="divide-y divide-gray-300">
+              <motion.li layout className="divide-y divide-gray-300">
 
                 <AnimatePresence exitBeforeEnter>
 
-                  {paginatedCategories.length > 0 ?
+                  {/* paginatedCategories.length > 0 ? */
                     ( paginatedCategories.map((category, index) => {
 
                     const statusColors = () => {
@@ -440,20 +441,21 @@ const CategoryList = () => {
                       </motion.div>
                                             
                     )}))
-                    :
+                    /* :
                     (<div className="flex items-center justify-center h-20 text-primary-400
                       text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl">
                       No categories
-                    </div> )
+                    </div> ) */
                   }
 
                 </AnimatePresence>
 
-              </li>
+              </motion.li>
             }
 
           {/* Pagination */}
-          {paginatedCategories.length > 0 && <li
+          {paginatedCategories.length > 0 && <motion.li
+            layout
             key="pagination"
             custom={filteredCategories.length + 1}
             className="px-4 py-5"
@@ -465,7 +467,7 @@ const CategoryList = () => {
               setCurrentPage={setCurrentPage}
             />
 
-          </li>
+          </motion.li>
           }
         </motion.ul>
       </div>

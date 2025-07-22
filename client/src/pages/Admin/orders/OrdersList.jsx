@@ -13,6 +13,7 @@ import clsx from 'clsx';
 import { Menu, MenuButton } from '@headlessui/react';
 import ContextMenu from '../../../components/ui/ContextMenu';
 import { useNavigate } from 'react-router';
+import Skeleton from '../../../components/ui/Skeleton';
 
 function OrdersList() {
 
@@ -212,7 +213,7 @@ function OrdersList() {
           className="flex flex-col w-full h-full text-sm text-gray-700">
 
           {/* Rows */}
-          {isLoading ? 
+          {isLoading || paginatedOrders?.length <= 0 ? 
             <>
               <li className="rounded px-6 py-4 space-y-3">
                 <Skeleton height="h-10" width="w-full" />
@@ -225,12 +226,12 @@ function OrdersList() {
               </li>
             </>
             :
-            <li className="divide-y divide-gray-300">
+            <motion.li layout className="divide-y divide-gray-300">
             
               <AnimatePresence exitBeforeEnter>
 
-                {paginatedOrders.length > 0 ?
-                    ( paginatedOrders.map((order, index) => {
+                {/* paginatedOrders.length > 0 ? */
+                    ( paginatedOrders?.map((order, index) => {
 
                       const title = order?.cartItems?.length > 1 ? `${order?.cartItems?.length} items includes` 
                         : order?.cartItems[0].name;
@@ -365,19 +366,20 @@ function OrdersList() {
                         </motion.div>
                       )
                     }))
-                    :
+                    /* :
                     (<div className="flex items-center justify-center h-20 text-primary-400
                       text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl">
                       No orders exists
-                    </div> )
+                    </div> ) */
                   }
 
               </AnimatePresence>
-            </li>
+            </motion.li>
           }
 
           {/* Pagination */}
-          {paginatedOrders.length > 0 && <li
+          {paginatedOrders.length > 0 && <motion.li
+            layout
             key="pagination"
             custom={filteredOrders.length + 1}
             className="px-4 py-5"
@@ -389,7 +391,7 @@ function OrdersList() {
               setCurrentPage={setCurrentPage}
             />
 
-          </li>}
+          </motion.li>}
 
         </motion.ul>
 

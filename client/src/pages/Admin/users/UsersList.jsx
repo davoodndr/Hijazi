@@ -156,7 +156,7 @@ const UsersList = () => {
   );
 
   return (
-    <section className='min-h-full h-fit flex flex-col p-6 bg-gray-100'>
+    <section className='min-h-full h-fit flex flex-col p-6'>
 
       {/* page title & add user button */}
       <div className="mb-5 flex justify-between items-start">
@@ -253,9 +253,10 @@ const UsersList = () => {
         
       </div>
 
-      <div className="relative flex flex-col w-full bg-white rounded-3xl shadow-lg border border-gray-200">
+      <div className="relative flex flex-col w-full bg-white rounded-3xl shade border border-gray-200">
         {/* Header */}
-        <div className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
+        <div className="text-gray-400 uppercase font-semibold tracking-wider
+          border-b border-gray-300 px-4.5 py-3.5 bg-gray-50 rounded-t-3xl">
           <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full">
             <span><input type="checkbox" /></span>
             <span>User</span>
@@ -265,6 +266,7 @@ const UsersList = () => {
             <span className="text-center">Actions</span>
           </div>
         </div>
+
         <motion.ul 
           layout
           variants={containerVariants}
@@ -273,7 +275,7 @@ const UsersList = () => {
           className="flex flex-col w-full h-full text-sm text-gray-700">
 
             {/* Rows */}
-            {loading ? 
+            {loading || paginatedUsers.length <= 0 ? 
               <>
                 <li className="rounded px-6 py-4 space-y-3">
                   <Skeleton height="h-10" width="w-full" />
@@ -287,10 +289,10 @@ const UsersList = () => {
               </>
               :
 
-              <li className="divide-y divide-gray-300">
+              <motion.li layout className="divide-y divide-gray-300">
 
                 <AnimatePresence exitBeforeEnter>
-                  {paginatedUsers.length > 0 ? 
+                  {/* paginatedUsers.length > 0 ? */ 
                     (paginatedUsers.map((user, index) => {
 
                       const statusColors = () => {
@@ -408,22 +410,23 @@ const UsersList = () => {
                         </motion.div>
                       )
                     }))
-                  :
+                  /* :
                   (<div className="flex items-center justify-center h-20 text-primary-400
                     text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl">
                     No Users
-                  </div> )
+                  </div> ) */
                   }
 
                 </AnimatePresence>
 
-              </li>
+              </motion.li>
             }
 
           
 
           {/* Pagination */}
-          {paginatedUsers.length > 0 && <li
+          {paginatedUsers.length > 0 && <motion.li
+            layout
             key="pagination"
             custom={filteredUsers.length + 1}
             className="px-4 py-5"
@@ -435,7 +438,7 @@ const UsersList = () => {
               setCurrentPage={setCurrentPage}
             />
 
-          </li>
+          </motion.li>
           }
         </motion.ul>
       </div>

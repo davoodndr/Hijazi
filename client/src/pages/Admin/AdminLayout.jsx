@@ -20,7 +20,6 @@ const AdminLayout = () => {
       { icon: SlBadge, label: 'Brands', href: '/admin/brands' },
       { icon: LuPackage, label: 'Products', href: '/admin/products' },
       { icon: PiShoppingCartSimpleBold, label: 'Orders', href: '/admin/orders' },
-      { icon: RiCoupon3Line, label: 'Coupons', href: '/admin/coupons' },
       { icon: LuBadgePercent, label: 'Offers', href: '/admin/offers' },
       { icon: IoSettingsOutline, label: 'Settings', href: '/admin/settings' },
     ];

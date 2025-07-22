@@ -396,6 +396,8 @@ const OffersList = () => {
             <span className="text-center">Actions</span>
           </div>
         </div>
+
+        {/* rows */}
         <motion.ul 
           layout
           variants={containerVariants}
@@ -405,7 +407,7 @@ const OffersList = () => {
           className="flex flex-col w-full h-full text-sm text-gray-700">
 
             {/* Rows */}
-            {isLoading ? 
+            {isLoading || paginatedOffers.length <= 0 ? 
               <>
                 <li className="rounded px-6 py-4 space-y-3">
                   <Skeleton height="h-10" width="w-full" />
@@ -419,11 +421,11 @@ const OffersList = () => {
               </>
               :
 
-              <li className="divide-y divide-gray-300">
+              <motion.li layout className="divide-y divide-gray-300">
 
                 <AnimatePresence exitBeforeEnter>
 
-                  {paginatedOffers.length > 0 ?
+                  {/* paginatedOffers.length > 0 ? */
                     ( paginatedOffers.map((offer, index) => {
 
                     const statusColors = () => {
@@ -584,20 +586,24 @@ const OffersList = () => {
                       </motion.div>
                                             
                     )}))
-                    :
-                    (<div className="flex items-center justify-center h-20 text-primary-400
+                    /* :
+                    (<motion.div 
+                      layout
+                      key="no-data"
+                      className="flex items-center justify-center h-20 text-primary-400
                       text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl">
                       No offers
-                    </div> )
-                  }
+                    </motion.div> )*/
+                  } 
 
                 </AnimatePresence>
 
-              </li>
+              </motion.li>
             }
 
           {/* Pagination */}
-          {paginatedOffers.length > 0 && <li
+          {paginatedOffers.length > 0 && <motion.li
+            layout
             key="pagination"
             custom={filteredOffers.length + 1}
             className="px-4 py-5"
@@ -609,7 +615,7 @@ const OffersList = () => {
               setCurrentPage={setCurrentPage}
             />
 
-          </li>
+          </motion.li>
           }
         </motion.ul>
       </div>
