@@ -565,6 +565,7 @@ const OffersList = () => {
                                         <IoMdCheckmarkCircleOutline className='text-xl text-primary-400' />
                                         : <FaRegCircleXmark className='text-xl' />,
                                         text: <span className={`capitalize`}> {offer?.status} </span>,
+                                        onClick: () => {},
                                         tail: <ToggleSwitch 
                                                 size={4}
                                                 value={offer?.status === 'active'}

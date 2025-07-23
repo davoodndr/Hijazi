@@ -81,32 +81,30 @@ export const addOffer = async(req, res) => {
 }
 
 // change offer status / visibility
-export const changeCouponStatus = async(req, res) => {
+export const changeOfferStatus = async(req, res) => {
 
-  const { offer_id, status, visibility } = req.body;
+  const { offer_id, status } = req.body;
 
   try {
 
-    const offer = await Coupon.findById(offer_id);
+    const offer = await Offer.findById(offer_id);
 
     if(!offer){
-      return responseMessage(res, 400, false, "Coupon not found");
+      return responseMessage(res, 400, false, "Offer not found");
     }
 
     if(status) {
       offer.status = status
-    }else{
-      offer.visible = visibility
     }
     await offer.save();
 
     return responseMessage(res, 200, true, 
-      status ? "Coupon status changed successfully" : "Coupon visibility changed successfully",
+      "Offer status changed successfully",
       {offer}
     );
     
   } catch (error) {
-    console.log('changeCouponStatus',error)
+    console.log('changeOfferStatus',error)
     return responseMessage(res, 500, false, error.message || error)
   }
 }
