@@ -25,6 +25,8 @@
   --color-status-yellow: oklch(0.72 0.0505 157.41);
   --color-status-blue: oklch(0.72 0.0505 157.41);
 
+  --color-theme-divider: --alpha(var(--color-primary-300) / 30%);
+
   --radius-input-border: 10px;
   --text-slider-header-title: 22px
 }

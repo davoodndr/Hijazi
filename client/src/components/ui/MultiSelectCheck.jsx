@@ -7,6 +7,7 @@ import { AnimatePresence } from 'motion/react'
 import * as motion from 'motion/react-client'
 
 function MultiSelectCheckComponent({
+  values = [],
   options = [],
   className,
   searchable = false,
@@ -24,6 +25,11 @@ function MultiSelectCheckComponent({
   const dropdownRef = useRef(null);
 
   /* handles expanded */
+
+  useEffect(() => {
+    setSelected(values)
+  },[values])
+
   useEffect(() => {
 
     const handleClickOutside = (e) => {

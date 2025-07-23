@@ -37,8 +37,8 @@ const offerSchema = new mongoose.Schema(
 			type: Number,
 			default: 1
 		},
-		applicableCategories: [mongoose.Schema.Types.ObjectId],
-		applicableProducts: [mongoose.Schema.Types.ObjectId],
+		applicableCategories: [String], // stores slug, for simpliciy
+		applicableProducts: [String], // stores sku to capture variants
 		status: {
 			type: String,
 			enum: ["active", "inactive", "expired"],

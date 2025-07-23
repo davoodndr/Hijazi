@@ -284,7 +284,7 @@ const OffersList = () => {
       </div>
       
       {/* beadcrumps */}
-      <div className='flex items-center gap-2 mb-5 py-2 border-y border-gray-200'>
+      <div className='flex items-center gap-2 mb-5 py-2 border-y border-theme-divider'>
         <HiHome size={20} />
         <IoIosArrowForward size={13} />
         <div className='inline-flex items-center text-sm gap-2'>
@@ -365,10 +365,10 @@ const OffersList = () => {
       </div>
 
       {/* content - first div fot smooth animaion */}
-      <div className="relative flex flex-col w-full bg-white rounded-3xl shade border border-gray-200">
+      <div className="relative flex flex-col w-full bg-white rounded-3xl shade border border-theme-divider">
         {/* Header */}
         <div className="text-gray-400 uppercase font-semibold tracking-wider
-          border-b border-gray-300 px-4.5 py-3.5 bg-gray-50 rounded-t-3xl">
+          border-b border-theme-divider px-4.5 py-3.5 bg-gray-50 rounded-t-3xl">
           <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1.2fr_1fr_1fr_1fr] items-center w-full">
             <span><input type="checkbox" /></span>
             {
@@ -392,7 +392,7 @@ const OffersList = () => {
                 />
               )
             }
-            <span>Status</span>
+            <span className='text-center'>Status</span>
             <span className="text-center">Actions</span>
           </div>
         </div>
@@ -421,7 +421,7 @@ const OffersList = () => {
               </>
               :
 
-              <motion.li layout className="divide-y divide-gray-300">
+              <motion.li layout className="divide-y divide-theme-divider">
 
                 <AnimatePresence exitBeforeEnter>
 
@@ -461,7 +461,10 @@ const OffersList = () => {
                           {/* Caoupon Info */}
                           <div>
                             <p className="text-sm font-semibold capitalize">{offer?.title}</p>
-                            <p className="text-xs text-gray-400 capitalize">{offer?.type}</p>
+                            <p className="text-xs text-gray-500 capitalize">
+                              <span>{offer?.type}</span>
+                              {offer?.type === 'coupon' && <span> | {offer?.couponCode}</span>}
+                            </p>
                           </div>
 
                           {/* discount */}
@@ -475,14 +478,16 @@ const OffersList = () => {
                                 {offer.discountValue}
                               </span>
                             </p>
-                            <p className='tracking-tight space-x-1'>
-                              <span className='text-gray-400'>Max:</span>
-                              {offer?.maxDiscount > 0 ? 
-                                (<span className='price-before'>{offer?.maxDiscount}</span>)
-                                :
-                                <span>Maximum</span>
-                              }
-                            </p>
+                            {offer?.discountType === 'percentage' &&
+                              <p className='tracking-tight space-x-1'>
+                                <span className='text-gray-400'>Max:</span>
+                                {offer?.maxDiscount > 0 ? 
+                                  (<span className='price-before'>{offer?.maxDiscount}</span>)
+                                  :
+                                  <span>Unlimited</span>
+                                }
+                              </p>
+                            }
                           </div>
 
                           {/* validity */}
@@ -496,7 +501,7 @@ const OffersList = () => {
                               {offer?.endDate ? 
                                 (<span>{format(new Date(offer?.endDate), 'dd-MM-yy')}</span>)
                                 :
-                                <span>Maximum</span>
+                                <span>Unlimited</span>
                               }
                             </p>
                           </div>
@@ -512,18 +517,18 @@ const OffersList = () => {
 
                           {/* usage limit */}
                           <div className='flex flex-col'>
-                            <div className="inline-flex space-x-1">
+                            <div className="inline-flex space-x-1 text-sm">
                               <span className="text-gray-400">Total:</span>
-                              <span>{offer?.usageLimit ?? 'Max.'}</span>
+                              <span>{offer?.usageLimit ?? 'No limit'}</span>
                             </div>
-                            <div className="inline-flex">
-                              <span>{offer?.usagePerUser ?? 'Max.'}</span>
+                            <div className="inline-flex text-sm">
+                              <span>{offer?.usagePerUser ?? 'No limit'}</span>
                               <span className="text-gray-400"> /per user</span>
                             </div>
                           </div>
 
                           {/* Status */}
-                          <div>
+                          <div className='flex justify-center'>
                             <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
                               ${statusColors()}`}>
                               {offer?.status}

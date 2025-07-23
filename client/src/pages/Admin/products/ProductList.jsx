@@ -343,7 +343,7 @@ const ProductList = () => {
   );
 
   return (
-    <section className='flex flex-col p-6 bg-gray-100'>
+    <section className='flex flex-col p-6'>
     
       {/* page title & add product button */}
       <div className="mb-5 flex justify-between items-start">
@@ -360,7 +360,7 @@ const ProductList = () => {
       </div>
       
       {/* beadcrumps */}
-      <div className='flex items-center gap-2 mb-5 py-2 border-y border-gray-200'>
+      <div className='flex items-center gap-2 mb-5 py-2 border-y border-theme-divider'>
         <HiHome size={20} />
         <IoIosArrowForward size={13} />
         <div className='inline-flex items-center text-sm gap-2'>
@@ -451,9 +451,10 @@ const ProductList = () => {
       </div>
 
       {/* content - first div for smooth animaion */}
-      <div className="relative flex flex-col w-full bg-white rounded-3xl shadow-lg border border-gray-200">
+      <div className="relative flex flex-col w-full bg-white rounded-3xl shade border border-theme-divider">
         {/* Header */}
-        <div className="text-gray-500 uppercase font-semibold tracking-wider border-b border-gray-300 p-4.5">
+        <div className="text-gray-400 uppercase font-semibold tracking-wider
+          border-b border-theme-divider px-4.5 py-3.5 bg-gray-50 rounded-t-3xl">
           <div className="grid grid-cols-[40px_2fr_1fr_1fr_1fr_1fr_1fr_88px] items-center w-full">
             <span><input type="checkbox" /></span>
             <span>Product</span>
@@ -488,7 +489,7 @@ const ProductList = () => {
                 </li>
               </>
               :
-              <li className="divide-y divide-gray-300">
+              <li className="divide-y divide-theme-divider">
 
                 <AnimatePresence exitBeforeEnter>
                   

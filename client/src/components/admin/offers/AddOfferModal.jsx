@@ -21,8 +21,10 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
   const { categoryList } = useSelector(state => state.categories);
   const { items:productList } = useSelector(state => state.products);
   const [isLoading, setIsLoading] = useState(false);
-  const [offerType, setOfferType] = useState(null)
-  const [discountType, setDicountType] = useState(null)
+  const [offerType, setOfferType] = useState(null);
+  const [discountType, setDicountType] = useState(null);
+  const [applicableCategories, setApplicableCategories] = useState([]);
+  const [applicableProducts, setApplicableProducts] = useState([]);
     
   /* data input handling */
   const [data, setData] = useState({
@@ -102,6 +104,8 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
         startDate: utcDate(data?.startDate),
         endDate: utcDate(data?.endDate),
         status: data?.active ? 'active' : 'inactive',
+        applicableCategories,
+        applicableProducts
       }
 
       const finalized = finalizeValues(finalData);
@@ -200,7 +204,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
                     <input type="text" name='couponCode' value={data?.couponCode} 
                       onChange={handleChange}
                       spellCheck={false}
-                      placeholder='Enter discount value'/>
+                      placeholder='Enter coupon code'/>
                   </div>
                 )
               }
@@ -241,13 +245,15 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
               </div>
 
               {/* max disocunt */}
-              <div className='flex flex-col w-full'>
-                <label>Max Discount</label>
-                <input type="number" name='maxDiscount' value={data.maxDiscount} 
-                  onChange={handleChange}
-                  spellCheck={false}
-                  placeholder='@ex: 0000'/>
-              </div>
+              {data?.discountType === 'percentage' &&
+                <div className='flex flex-col w-full'>
+                  <label>Max Discount</label>
+                  <input type="number" name='maxDiscount' value={data.maxDiscount} 
+                    onChange={handleChange}
+                    spellCheck={false}
+                    placeholder='@ex: 0000'/>
+                </div>
+              }
             </div>
 
             {/* start date */}
@@ -296,6 +302,9 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
             <div className='flex flex-col w-full  overflow-visible'>
               <label>Applicable Categories</label>
               <MultiSelectCheck
+                onSelect={(items) => {
+                  setApplicableCategories(items)
+                }}
                 searchable={true}
                 searchPlaceholder='Search with slug'
                 className='border-neutral-300'
@@ -310,7 +319,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
               <label>Applicable Products</label>
               <MultiSelectCheck
                 onSelect={(items) => {
-                  console.log(items)
+                  setApplicableProducts(items)
                 }}
                 searchable={true}
                 searchPlaceholder='Search with sku'
