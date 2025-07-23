@@ -164,8 +164,8 @@ const ApiBucket = {
     url: '/api/admin/change-offer-status',
     method: 'patch'
   },
-  updateCoupon: {
-    url: '/api/admin/update-coupon',
+  updateOffer: {
+    url: '/api/admin/update-offer',
     method: 'put'
   },
 

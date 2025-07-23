@@ -110,34 +110,36 @@ export const changeOfferStatus = async(req, res) => {
 }
 
 // update offer
-export const updateCoupon = async(req, res) => {
+export const updateOffer = async(req, res) => {
 
-  const { offer_id, code, discountType, discountValue, 
-    expiry, minPurchase, maxDiscount, usageLimit} = req.body;
+  const { offer_id, title, type, couponCode, discountType, discountValue, 
+    startDate, minPurchase, maxDiscount, usageLimit, usagePerUser} = req.body;
 
   try {
 
-    if(!code || !discountType || !discountValue || !expiry){
+    if(!title || !type || !discountType || !discountValue || !startDate){
       return responseMessage(res, 400, false, "Please fill all mandatory fields!");
     }
 
-    if(discountValue < 1 || (discountType !== 'fixed' && maxDiscount < 1)){
-      return responseMessage(res, 400, false, "Please enter a valid amount");
-    }
-    if(minPurchase &&  minPurchase < 1){
-      return responseMessage(res, 400, false, "Please enter a valid amount");
-    }
-    if(usageLimit &&  usageLimit < 1){
-      return responseMessage(res, 400, false, "Please enter a valid count");
+    const invalidMessage = validateAmounts({discountValue, minPurchase, maxDiscount, usageLimit, usagePerUser});
+
+    if(!invalidMessage){
+      return responseMessage(res, 400, false, invalidMessage);
     }
 
-    const updated = await Coupon.findByIdAndUpdate(offer_id, req.body, {new: true});
+    if(type === 'coupon'){
+      if(!couponCode){
+        return responseMessage(res, 400, false, "Please fill all mandatory fields!");
+      }
+    }
+
+    const updated = await Offer.findByIdAndUpdate(offer_id, req.body, {new: true});
 
 
-    return responseMessage(res, 201, true, "Coupon updated successfully!", {offer: updated});
+    return responseMessage(res, 200, true, "Offer updated successfully!", {offer: updated});
     
   } catch (error) {
-    console.log('updateCoupon:',error);
+    console.log('updateOffer:',error);
     return responseMessage(500,false, error.message || error);
   }
 }

@@ -5,7 +5,7 @@ import Modal from '../../ui/Modal'
 import { TbCategoryPlus } from 'react-icons/tb';
 import ToggleSwitch from '../../ui/ToggleSwitch';
 import toast from 'react-hot-toast'
-import { isValidDatas, utcDate } from '../../../utils/Utils';
+import { finalizeValues, isValidDatas, utcDate } from '../../../utils/Utils';
 import AxiosToast from '../../../utils/AxiosToast';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
@@ -53,6 +53,8 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
     }))
     setDicountType({value: offer?.discountType, label: offer?.discountType});
     setOfferType({value: offer?.type, label: offer?.type});
+    setApplicableCategories(offer?.applicableCategories);
+    setApplicableProducts(offer?.applicableProducts);
   },[offer])
 
   const handleChange = (e) => {
@@ -115,7 +117,7 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    const isValid = isValidDatas(['title','startDate','discountType','discountValue'], data)
+    const isValid = isValidDatas(['title','startDate','discountType','discountValue'], data);
     const isValidAmounts = validateAmounts();
 
     if(isValid && isValidAmounts){
@@ -128,7 +130,8 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
         endDate: utcDate(data?.endDate),
         status: data?.active ? 'active' : 'inactive',
         applicableCategories,
-        applicableProducts
+        applicableProducts,
+        offer_id: offer?._id
       }
 
       const finalized = finalizeValues(finalData);
@@ -136,27 +139,27 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
       try {
         
         const response = await Axios({
-          ...ApiBucket.updateCoupon,
+          ...ApiBucket.updateOffer,
           data: finalized
         })
 
-        if(response.data.success){
+        if(response?.data?.success){
 
-          const newCoupon = response.data.coupon;
+          const updatedOffer = response.data.offer;
 
           AxiosToast(response, false);
           setData({
             title: "", type: "", couponCode: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
-            startDate: "", endDate: "", usageLimit: "", usagePerUser: "", active:true 
+            startDate: "", endDate: "", usageLimit: "", usagePerUser: "", active:true, applicableCategories: [], applicableProducts: []
           })
           setDicountType(null)
 
-          onUpdate(newCoupon);
+          onUpdate(updatedOffer);
 
         }
 
       } catch (error) {
-        AxiosToast(error)
+        AxiosToast(error);
       }finally{
         setIsLoading(false)
       }

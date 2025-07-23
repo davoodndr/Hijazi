@@ -244,14 +244,18 @@ export const resizeImageFile = async(file, maxWidth = 800, maxHeight = 800, qual
 }
 
 export const utcDate = (localDate) => {
+  let utc;
   if(localDate && localDate instanceof Date){
-    return new Date(Date.UTC(
-      localDate.getFullYear(),
-      localDate.getMonth(),
-      localDate.getDate(),
-      localDate.getHours(),
-      localDate.getMinutes(),
-      localDate.getSeconds()
-    ))
+    utc = localDate
+  }else{
+    utc = new Date(localDate)
   }
+  return new Date(Date.UTC(
+    utc?.getFullYear(),
+    utc?.getMonth(),
+    utc?.getDate(),
+    utc?.getHours(),
+    utc?.getMinutes(),
+    utc?.getSeconds()
+  ))
 }
