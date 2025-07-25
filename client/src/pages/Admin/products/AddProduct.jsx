@@ -19,6 +19,7 @@ import VariantsTable from "../../../components/admin/products/VariantsTable";
 import DynamicInputList from "../../../components/ui/DynamicInputList";
 import CropperModal from "../../../components/ui/CropperModal";
 import clsx from "clsx";
+import { addProduct } from "../../../store/slices/ProductSlices";
 
 const EditProduct = () => {
 
@@ -338,8 +339,11 @@ const EditProduct = () => {
         const resultProduct = response.data.product;
         
         await uploadProductImages(product, resultProduct._id);
+        const newProduct = response?.data?.product;
+        dispatch(addProduct(newProduct))
 
         AxiosToast(response, false);
+
         setData({
           name: "", slug:"", sku:"", description:"", price:"", stock:"", tax: "",
           visible: true, status: "active",

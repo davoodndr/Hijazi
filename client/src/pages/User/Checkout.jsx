@@ -26,7 +26,7 @@ function Checkout() {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { items, couponDiscount, cartTotal, appliedCoupon } = useSelector(state => state.cart);
+  const { items, couponDiscount, roundOff, cartTotal, appliedCoupon } = useSelector(state => state.cart);
   const { addressList } = useSelector(state => state.address);
   const cartCount = useSelector(getCartCount);
   const subTotal = useSelector(getItemsTotal);
@@ -97,6 +97,7 @@ function Checkout() {
         taxAmount: cartTax,
         shippingPrice: 0,
         discount: discounts,
+        roundOff,
         couponApplied: {
           _id: appliedCoupon._id,
           appliedAmount: couponDiscount
@@ -449,7 +450,7 @@ function Checkout() {
                     appliedCoupon ? '!text-primary-400 uppercase' : 'text-gray-400'
                   )}>
                     {appliedCoupon ? 
-                      `${appliedCoupon?.code} | ${appliedCoupon?.discountType === 'fixed' ? ' ₹' : ''}${appliedCoupon?.discountValue}${appliedCoupon?.discountType !== 'fixed' ? '%' : ''} OFF`
+                      `${appliedCoupon?.couponCode} | ${appliedCoupon?.discountType === 'fixed' ? ' ₹' : ''}${appliedCoupon?.discountValue}${appliedCoupon?.discountType !== 'fixed' ? '%' : ''} OFF`
                       : "No coupon applied"
                     }
                   </p>
@@ -479,6 +480,12 @@ function Checkout() {
               <span>Discount</span>
               <p>-<span className='ms-1 price-before price-before:text-red-300 price-before:!font-normal font-bold text-red-400'>
                 {Number(discounts).toFixed(2)}</span>
+              </p>
+            </div>
+            <div className='flex items-center justify-between text-base'>
+              <span>Round off</span>
+              <p>-<span className='ms-1 price-before price-before:text-red-300 price-before:!font-normal font-bold text-red-400'>
+                {Number(roundOff).toFixed(2)}</span>
               </p>
             </div>
 

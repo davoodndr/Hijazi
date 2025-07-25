@@ -34,6 +34,7 @@ const cartSlice = createSlice({
     cartTotal: 0,
     cartSubTotal: 0,
     couponDiscount: 0,
+    roundOff: 0,
     appliedCoupon: null,
     error: null
   },
@@ -81,6 +82,9 @@ const cartSlice = createSlice({
     },
     setCouponDiscount: (state, action) => {
       state.couponDiscount = action.payload
+    },
+    setRoundOff: (state, action) => {
+      state.roundOff = action.payload
     },
     setAppliedCoupon: (state, action) => {
       state.appliedCoupon = action.payload
@@ -152,6 +156,6 @@ export const getCartCount = (state) => {
   return state?.cart?.items?.reduce((total, item) => total + item?.quantity,0)
 }
 
-export const { addToCart, removeFromCart, updateQuantity, 
-  clearCart, setCouponDiscount, setCartTotal, setAppliedCoupon } = cartSlice.actions;
+export const { addToCart, removeFromCart, updateQuantity, clearCart, 
+  setCouponDiscount, setRoundOff, setCartTotal, setAppliedCoupon } = cartSlice.actions;
 export default cartSlice.reducer;

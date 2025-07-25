@@ -196,7 +196,7 @@ export const updateProduct = async(req, res) => {
     if(!product_id) {
       return responseMessage(res, 400, false, "Product id not specified");
     }
-
+    
     const msg = validateProduct(name, sku, slug, price, stock, tax, description, category, brand, variants)
 
     if(msg.length){
@@ -255,14 +255,14 @@ export const changeProductStatus = async(req, res) => {
 }
 
 const validateProduct = (
-  name, sku, slug, price, stock, description, category, brand, variants,
+  name, sku, slug, price, stock, tax, description, category, brand, variants,
   exceptions = []
 ) => {
   let msg = "";
   const isExcepted = (field) => exceptions.includes(field);
-
+  
   if (variants?.length) {
-    variants.map((variant, index) => {
+    variants?.map((variant, index) => {
       if (!isExcepted('variant.sku') && !variant.sku?.trim())
         msg = "Variant SKU is required";
       if (!isExcepted('variant.price') && (!variant.price || variant.price <= 0))

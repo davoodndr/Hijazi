@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { CiSquareMinus, CiSquarePlus } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart, getCartCount, getCartTax, getItemsTotal, setAppliedCoupon, 
-  setCartTotal, setCouponDiscount, syncCartitem} from '../../store/slices/CartSlice';
+import { addToCart, deleteCartItem, getCartCount, getCartTax, getItemsTotal, removeFromCart, setAppliedCoupon, 
+  setCartTotal, setCouponDiscount, setRoundOff, syncCartitem} from '../../store/slices/CartSlice';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router'
 import clsx from 'clsx'
@@ -15,6 +15,7 @@ import CouponCardSmall from '../../components/ui/CouponCardSmall';
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import { MdContentPaste } from 'react-icons/md';
 import { IoCloseCircleOutline } from 'react-icons/io5';
+import { BsTrash3 } from "react-icons/bs";
 import { motion } from 'motion/react';
 
 function UserCart(){
@@ -26,10 +27,11 @@ function UserCart(){
   const cartSubTotal = useSelector(getItemsTotal);
   const cartCount = useSelector(getCartCount);
   const cartTax = useSelector(getCartTax);
-  const { couponList } = useSelector(state => state.coupons);
+  const { offersList } = useSelector(state => state.offers);
   const [coupons, setCoupons] = useState([]);
   const [activeCoupon, setActiveCoupon] = useState(null);
   const [discount, setDiscount] = useState(0)
+  const [roundOffValue, setRoundOffValue] = useState(0)
   const [grandTotal, setGrandTotal] = useState(0);
 
 
@@ -51,18 +53,34 @@ function UserCart(){
     }
   }
 
+  // handle remove cart item
+  const handleRemoveCartItem = async(item) => {
+  
+    if(user?.roles.includes('user')){
+      const { payload: data } = await dispatch(deleteCartItem({user_id: user._id, item}))
+      if(data?.success){
+        toast.success(data.message,{position: 'top-center'})
+      }
+    }else{
+      dispatch(removeFromCart(item.id));
+      toast.success("Item removed from cart",{position: 'top-center'})
+    }
+  }
+
   /* coupon handling */
 
   // initial filtering
   useEffect(() => {
-    const availableCoupons = couponList?.filter(c => c?.minPurchase <= cartSubTotal);
+    const availableCoupons = offersList?.filter(off => 
+       off?.type === 'coupon' && off?.minPurchase <= cartSubTotal
+    );
     setCoupons(availableCoupons)
-  },[couponList]);
+  },[offersList]);
 
   // handling coupon input typing
   const handleCouponChange = (e) => {
     const value = e.target.value;
-    const suggestedCoupon = coupons?.find(c => c.code === value);
+    const suggestedCoupon = coupons?.find(c => c.couponCode === value);
     if(suggestedCoupon){
       setActiveCoupon(suggestedCoupon);
     }
@@ -72,6 +90,7 @@ function UserCart(){
   const checkClipBoard = async() => {
     try {
       const text = await navigator.clipboard.readText();
+      console.log(text)
       if (text.trim()) {
         return text.trim();
       }
@@ -85,10 +104,13 @@ function UserCart(){
   const handleApplyCoupon = () => {
     
     const discValue = calculateDiscount();
-    const totalAmount = Number(cartSubTotal) + Number(cartTax) - discValue;
+    const rawTotal = Number(cartSubTotal) + Number(cartTax) - discValue;
+    const roundedTotal = Math.floor(rawTotal);
+    const roundOffValueAmount = (rawTotal - roundedTotal);
 
     setDiscount(discValue)
-    setGrandTotal(totalAmount)
+    setGrandTotal(roundedTotal)
+    setRoundOffValue(roundOffValueAmount)
   }
 
   const handleRemoveCoupon = () => {
@@ -126,6 +148,7 @@ function UserCart(){
   const handleCheckout = () => {
     if(user?.roles?.includes('user')){
       dispatch(setCouponDiscount(discount));
+      dispatch(setRoundOff(roundOffValue));
       dispatch(setCartTotal(grandTotal));
       dispatch(setAppliedCoupon(activeCoupon))
       dispatch(setLoading(true))
@@ -137,7 +160,7 @@ function UserCart(){
   
   return (
 
-    <section className='w-full flex justify-center bg-gray-100 border-b border-gray-300'>
+    <section className='w-full flex justify-center bg-primary-50 border-b border-gray-300'>
       <div className="w-9/10 flex items-start my-10 space-x-8">
 
         {/* products */}
@@ -152,15 +175,16 @@ function UserCart(){
           }
 
           {/* products */}
-          <ul className='flex flex-col p-5 pb-0 mt-8 rounded-2xl bg-white shadow-lg 
+          <ul className='flex flex-col p-5 pb-0 mt-8 rounded-2xl bg-white shade 
             divide-y divide-gray-300 space-y-5'>
             {/* header */}
-            <li className='grid grid-cols-[3fr_1fr_1fr_1fr] 
+            <li className='grid grid-cols-[3fr_1fr_1fr_1fr_0.5fr] 
               justify-items-center border-0 capitalize font-bold'>
               <span className='w-full'>product</span>
               <span>price</span>
               <span>quantity</span>
               <span>total price</span>
+              <span></span>
             </li>
 
             {/* item */}
@@ -172,7 +196,7 @@ function UserCart(){
                 const itemTotal = item.quantity * item.price;
 
                 return (
-                  <li key={item.id} className='grid grid-cols-[3fr_1fr_1fr_1fr] pb-5 justify-items-center'>
+                  <li key={item.id} className='grid grid-cols-[3fr_1fr_1fr_1fr_0.5fr] pb-5 justify-items-center'>
                     <div className='flex w-full items-center space-x-4'>
                       {/* image */}
                       <div className='w-30 rounded-2xl overflow-hidden'>
@@ -221,6 +245,18 @@ function UserCart(){
                       </span>
                     </div>
                     <p className='price-before !text-base font-bold'>{itemTotal}</p>
+                    {/* delete button */}
+                    <div className='flex items-center'>
+                      <span
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleRemoveCartItem(item)
+                        }} 
+                        className='cursor-pointer p-2 rounded-xl smooth hover:shadow-lg/20
+                          hover:scale-110 hover:text-red-500'>
+                        <BsTrash3 className='text-xl' />
+                      </span>
+                    </div>
                   </li>
                 )
               })
@@ -234,7 +270,7 @@ function UserCart(){
         </div>
 
         {/* right side summery */}
-        <motion.div layout className='w-[25%] shrink-0 p-2 rounded-2xl bg-white shadow-lg'>
+        <motion.div layout className='w-[25%] shrink-0 p-2 rounded-2xl bg-white shade'>
 
           {/* coupon */}
           <motion.div layout className='flex flex-col p-3 pb-8 space-y-4'>
@@ -297,14 +333,14 @@ function UserCart(){
                 placeholder='Coupon code'
                 onChange={handleCouponChange}
                 value={
-                  activeCoupon?.code ?
-                  `${activeCoupon?.code} | ${activeCoupon?.discountType === 'fixed' ? ' ₹' : ''}${activeCoupon?.discountValue}${activeCoupon?.discountType !== 'fixed' ? '%' : ''} OFF`
+                  activeCoupon?.couponCode ?
+                  `${activeCoupon?.couponCode} | ${activeCoupon?.discountType === 'fixed' ? ' ₹' : ''}${activeCoupon?.discountValue}${activeCoupon?.discountType !== 'fixed' ? '%' : ''} OFF`
                   : ""
                 }
               />
 
               {/* copy paste buttons */}
-              {activeCoupon?.code ?
+              {activeCoupon?.couponCode ?
                 <div 
                   onClick={handleRemoveCoupon}
                   className={`absolute right-1.5 top-1/2 -translate-y-1/2 
@@ -316,8 +352,8 @@ function UserCart(){
                   onClick={async() => {
                     const clipboardText = await checkClipBoard();
                     if(clipboardText?.length){
-                      const copiedCoupon = coupons?.find(c => c.code === clipboardText)
-                      if(copiedCoupon?.code){
+                      const copiedCoupon = coupons?.find(c => c.couponCode === clipboardText)
+                      if(copiedCoupon?.couponCode){
                         setActiveCoupon(copiedCoupon)
                       }else{
                         toast.error("Invalid coupon code!")
@@ -362,6 +398,14 @@ function UserCart(){
                 <p className=''>-
                   <span className='price-before price-before:!text-red-300 ps-0.5 font-bold text-red-400'>
                     {Number(discount).toFixed(2)}
+                  </span>
+                </p>
+              </li>
+              <li className='flex w-full items-center justify-between'>
+                <span>Round off</span>
+                <p className=''>-
+                  <span className='price-before price-before:!text-red-300 ps-0.5 font-bold text-red-400'>
+                    {Number(roundOffValue).toFixed(2)}
                   </span>
                 </p>
               </li>

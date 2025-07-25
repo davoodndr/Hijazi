@@ -2,9 +2,11 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { getProductList } from "../../services/FetchDatas";
 
 
-export const fetchProducts = createAsyncThunk('fetch-produts',async () => {
-  return await getProductList()
-  .then(response => response);
+export const fetchProducts = createAsyncThunk(
+  'products/fetch-produts',
+  async () => {
+    return await getProductList()
+    .then(response => response);
 })
 
 const productSlice = createSlice({
@@ -14,7 +16,17 @@ const productSlice = createSlice({
     productsLoading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    addProduct: (state, action) => {
+      state.items = state.items.unshift(action.payload);
+      state.error = null;
+    },
+    updateProduct: (state, action) => {
+      const updated = action.payload;
+      state.items = state.items.map(el => el._id === updated._id ? updated : el);
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchProducts.pending, (state) => {
@@ -30,5 +42,7 @@ const productSlice = createSlice({
       })
   }
 })
+
+export const { addProduct, updateProduct } = productSlice.actions;
 
 export default productSlice.reducer

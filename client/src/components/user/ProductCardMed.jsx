@@ -12,6 +12,8 @@ import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { addToList, syncWishlistItem } from '../../store/slices/WishlistSlice';
 import { useLocation, useNavigate } from 'react-router';
+import ProductCardBadge from './ProductCardBadge';
+import clsx from 'clsx';
 
 function ProducCardMedComponent({product, onClick}) {
 
@@ -21,7 +23,10 @@ function ProducCardMedComponent({product, onClick}) {
   const { user } = useSelector(state => state.user);
   const [completed, setCompleted] = useState(false);
   const [activeVariant, setActiveVariant] = useState(null);
+  const [offerPrice, setOfferPrice] = useState(0);
+  const [bestOffer, setBestOffer] = useState(null);
 
+  /* initialize product */
   useEffect(()=> {
       
     if(product?.variants?.length) {
@@ -39,6 +44,55 @@ function ProducCardMedComponent({product, onClick}) {
     }
 
   },[product])
+
+  /* initialize offers */
+  useEffect(() => {
+    const price = (activeVariant?.price || product?.price);
+    const offs = product?.offers?.filter(el => {
+      const isGeneralOffer = !el?.applicableCategories?.length && !el?.applicableProducts?.length;
+      const isCategoryMatch = el?.applicableCategories?.includes(product?.category?.slug);
+      const isProductMatch = el?.applicableProducts?.includes(product?.sku || activeVariant?.sku);
+      const meetsMinPurchase = price >= el?.minPurchase;
+
+      return (isGeneralOffer && meetsMinPurchase) || isCategoryMatch || isProductMatch
+    })
+    
+    
+    const best = findBestOffer(offs, price);
+    const newPrice = price - best.value;
+
+    setBestOffer(best);
+    setOfferPrice(newPrice)
+
+  },[product, activeVariant])
+
+
+  /* find best offer */
+  const findBestOffer = (offers, price) => {
+    if (!offers?.length || !price) return 0;
+
+    const getDiscountAmount = (offer) => {
+      if (offer.discountType === 'percentage') {
+        const calculated = price * (offer.discountValue / 100);
+        return offer.maxDiscount ? Math.min(calculated, offer.maxDiscount) : calculated;
+      }
+      return offer.discountValue || 0;
+    };
+
+    return offers.reduce((best, current) => {
+      const currentValue = getDiscountAmount(current);
+      
+      if(currentValue > best.discount){
+        return {
+          discount: current.discountValue,
+          value: currentValue,
+          type: current.discountType
+        }
+      }
+      return best
+    }, {discount: 0, value: 0, type: null});
+  }
+
 
   const handleAddToCart = async(e) => {
     e.stopPropagation();
@@ -101,7 +155,7 @@ function ProducCardMedComponent({product, onClick}) {
       onClick={onClick}
       >
         
-      <div className="w-[220px] rounded-4xl overflow-hidden bg-white px-2 pt-2 h-fit group/item
+      <div className="w-[220px] h-full rounded-4xl overflow-hidden bg-white px-2 pt-2 group/item
         border border-gray-300 smooth hover:shadow-lg/20 hover:border-primary-300 cursor-pointer">
 
         <div className="relative overflow-hidden max-h-[320px] rounded-3xl 
@@ -123,26 +177,53 @@ function ProducCardMedComponent({product, onClick}) {
           </div>
 
           {/* badge */}
-          {/* <ProductCardBadge
-            title='Hot'
-          /> */}
+          {/* {offerPrice > 0 &&
+            <ProductCardBadge
+            title={`-${bestOffer?.discount}`}
+          />} */}
 
         </div>
 
         {/* detail */}
         <div className="flex flex-col px-2 pt-3 pb-5 relative">
           <span className='text-xs mb-0.25 capitalize'>{product?.category?.name}</span>
-          <p className='text-base !font-bold capitalize'>{product?.name}</p>
+          <p className='text-sm !font-bold capitalize'>{product?.name}</p>
           <div className="py-0.25 mb-2">
             <span className='text-xl'>
-              <StarRating starClass='text-base' />
+              <StarRating starClass='text-sm' />
             </span>
           </div>
-          <div className='flex gap-1 items-center'>
-            <span className='text-lg font-semibold text-primary-400 price-before
-              price-before:!text-[13px] !items-start leading-4.5'>{activeVariant?.price || product?.price}</span>
-            {<span className="old-price price-before line-through text-gray-400">245.8</span>}
+          <div className='flex flex-col leading-3'>
+            <div className='flex gap-1 items-center'>
+              <span className='text-lg font-semibold text-primary-400 price-before
+                price-before:!text-[13px] !items-start leading-4.5'>
+                  {offerPrice ? offerPrice : (activeVariant?.price || product?.price)}
+                </span>
+              {offerPrice > 0 &&
+                <>
+                  <span className="old-price price-before line-through">
+                    {activeVariant?.price || product?.price}
+                  </span>
+                  <p className='text-xs text-red-400 price-before:text-red-400'>(
+                    <span className={clsx('mr-1',
+                      bestOffer?.type === 'percentage' ? 
+                        'content-after content-after:content-["%"] content-after:text-red-400' 
+                        : 'content-before content-before:text-red-400'
+                    )}>
+                      {bestOffer.discount}
+                    </span>
+                    OFF)
+                  </p>
+                </>
+              }
+            </div>
+            
           </div>
+          <p className={clsx('text-[12.5px] font-bold pt-2',
+            product?.stock < 5 ? 'text-orange-500' : 'text-green-600'
+          )}>
+            {product?.stock < 5 ? 'Only few left!' : 'In Stock'}
+          </p>
           
           {/* buttons - add to cart, add to wishlist */}
           <div className='absolute right-0 bottom-3 inline-flex flex-col gap-1 z-10'>

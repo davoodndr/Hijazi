@@ -20,6 +20,7 @@ import DynamicInputList from "../../../components/ui/DynamicInputList";
 import VariantsTable from "../../../components/admin/products/VariantsTable";
 import { useCallback } from "react";
 import clsx from "clsx";
+import { updateProduct } from "../../../store/slices/ProductSlices";
 
 const EditProduct = () => {
 
@@ -90,8 +91,8 @@ const EditProduct = () => {
         setFinalAttributes(prev => [...prev, ...currentProduct.customAttributes])
       }
       
-      if(currentProduct.variants.length){
-        setVariants(currentProduct.variants.map(variant => {
+      if(currentProduct?.variants?.length){
+        setVariants(currentProduct?.variants?.map(variant => {
           return {
             ...variant,
             id: variant._id,
@@ -99,7 +100,7 @@ const EditProduct = () => {
             preview: variant.image?.thumb || null
           }
         }))
-        setVariantImages(currentProduct.variants.map(variant => variant.image?.public_id ).filter(Boolean))
+        setVariantImages(currentProduct?.variants?.map(variant => variant.image?.public_id ).filter(Boolean))
       }
     }
 
@@ -213,7 +214,7 @@ const EditProduct = () => {
     //setup for remove the attribute from variant
     /* custom attr will be stored in variants attributes 
     through final attributes */
-    const removedVariatns = variants.map(variant => {
+    const removedVariatns = variants?.map(variant => {
       
       return {
         ...variant,
@@ -296,7 +297,7 @@ const EditProduct = () => {
     if (!product.description?.trim()) throw("Description is required");
     if (!product.files?.length && !viewImages.length) throw("At least one image is required")
 
-    const isUsingVariants = product.variants?.length > 0;
+    const isUsingVariants = product?.variants?.length > 0;
 
     if (!isUsingVariants) {
       if (!product.sku?.trim()) throw("SKU is required") 
@@ -304,7 +305,7 @@ const EditProduct = () => {
       if (!product.stock || product.stock == null || product.stock < 0) throw("Stock must be 0 or more") 
       if (!product.tax || product.tax == null || product.tax < 0) throw("Tax must be 0 or more") 
     } else {
-      product.variants.map((variant, index) => {
+      product?.variants?.map((variant, index) => {
         if (!variant.sku?.trim()) throw("Variant SKU is required") 
         if (!variant.price || variant.price <= 0) throw("Variant Price must be greater than 0") 
         if (!variant.stock || variant.stock < 0) throw("Variant Stock is required") 
@@ -317,7 +318,7 @@ const EditProduct = () => {
   }
 
   function validateVariants(product){
-    const attributes = product.variants.map(item => {
+    const attributes = product?.variants?.map(item => {
       return {
         ...item.attributes,
         sku: item.sku
@@ -344,164 +345,169 @@ const EditProduct = () => {
 
   const handleSubmit = async(e) => {
     e.preventDefault();
+    
+    let product = {
+      ...data,
+      variants
+    }
+    
 
-      let product = {
-        ...data,
-        variants
+    if(!isValidName(product['name']) || !isValidName(product['slug'])){
+      toast.error('Name and slug should have minimum 3 letters')
+      return
+    }
+
+    let remove_ids = []
+    const initialImageList = currentProduct?.images?.map(el => el?.public_id);
+    const updatedImageList = viewImages?.map(img => img?.id);      
+    
+    if(product['files'].length){
+
+      const invalidFile = product.files.find(item => !isValidFile(item.file));
+
+      if(invalidFile){
+        toast.error('Some of your image files are invalid');
+        return;
       }
 
+      const maintainedList = initialImageList.filter(img => updatedImageList.includes(img));
 
-      if(!isValidName(product['name']) || !isValidName(product['slug'])){
-        toast.error('Name and slug should have minimum 3 letters')
+      if(product['files'].length + maintainedList?.length > maxLimit){
+        toast.error(`Maximum ${maxLimit} files allowed to upload`);
         return
       }
 
-      let remove_ids = []
-      const initialImageList = currentProduct?.images?.map(el => el?.public_id);
-      const updatedImageList = viewImages?.map(img => img?.id);      
+      // place temp items to arrange the files to get missing index
+      const indexList = maintainedList?.map(el => {
+        return {
+          index: Number(el.split('_').filter(Boolean).pop()) - 1,
+          value: el
+        }
+      })
+      if(maintainedList?.length){
+        let list = new Array(maintainedList.length + product.files.length).fill(null);
+        
+        indexList.forEach(({index, value}) => {
+          list[index] = value
+        })
+
+        let fileIndex = 0;
+        for(let i = 0; i < list.length; i++){
+          if(list[i] === null && fileIndex < list.length){
+            list[i] = product.files[fileIndex++];
+          }
+        }
+        
+        product.files = list;
+          
+      };
+
+    }
+
+    //deleted images hadnling
+    if(updatedImageList.length < initialImageList.length){
+      remove_ids = [...remove_ids, ...initialImageList.filter(el => !updatedImageList.includes(el))]
+    }
+
+    //variant image delete handling
+    const initialVariantImages = currentProduct?.variants?.map(el => el?.image?.public_id).filter(Boolean);
+    const updatedVariantImages = product?.variants?.map(el => el?.image?.public_id).filter(Boolean);
+    if(updatedVariantImages.length < initialVariantImages.length){
+      remove_ids = [...remove_ids, ...initialVariantImages.filter(el => !updatedVariantImages.includes(el))];
+    }
+
+    // if the variant sku is changed the image url & public_id should be changed
+    // this code is to find chages and download file to reupload
+    const oldVariants = currentProduct?.variants;
+    const modifiedVariants = oldVariants?.map(variant => {
+      const modified = product?.variants?.find(el => el.id === variant._id && el.sku !== variant.sku)
+      // checking is sku differ old & not changed the image file
+      if(modified && modified.image && !modified?.files?.file){
+        remove_ids.push(modified.image.public_id)
+        return {id: modified.id, image: modified.image}
+      }
+    }).filter(Boolean)
+
+    dispatch(setLoading(true));
+
+    try {
+
+      const downloads = await Promise.all(
+        modifiedVariants.map(async item => {
+          const file = await fetchImageAsFile(item.image.url, `${item.id}`);
+          const thumb = await fetchImageAsFile(item.image.thumb, `${item.id}`);
+
+          return {file, thumb}
+        })
+      )
+
+      // update variants with downloaded images
+      if(downloads.length){
+        product.variants = product?.variants?.map(variant => {
+          const modified = downloads.find(img => img.file.name === variant.id);
+          if(modified){
+            return {
+              ...variant,
+              files: modified
+            }
+          }
+          return variant;
+        })
+      }
       
-      if(product['files'].length){
+      validateProduct(product)
+      validateVariants(product)
 
-        const invalidFile = product.files.find(item => !isValidFile(item.file));
-
-        if(invalidFile){
-          toast.error('Some of your image files are invalid');
-          return;
+      product.variants = product?.variants?.map(variant => {
+        return {
+          ...variant,
+          preview: null
         }
+      })
 
-        const maintainedList = initialImageList.filter(img => updatedImageList.includes(img));
-
-        if(product['files'].length + maintainedList.length > maxLimit){
-          toast.error(`Maximum ${maxLimit} files allowed to upload`);
-          return
+      const response = await Axios({
+        ...ApiBucket.updateProduct,
+        data: {
+          ...product,
+          product_id: currentProduct._id
         }
+      })
 
-        // place temp items to arrange the files to get missing index
-        const indexList = maintainedList?.map(el => {
-          return {
-            index: Number(el.split('_').filter(Boolean).pop()) - 1,
-            value: el
-          }
-        })
-        if(maintainedList.length){
-          let list = new Array(maintainedList.length + product.files.length).fill(null);
-          
-          indexList.forEach(({index, value}) => {
-            list[index] = value
-          })
+      
 
-          let fileIndex = 0;
-          for(let i = 0; i < list.length; i++){
-            if(list[i] === null && fileIndex < list.length){
-              list[i] = product.files[fileIndex++];
-            }
-          }
-          
-          product.files = list;
-            
-        };
+      if(response?.data?.success){
+        await uploadProductImages(product, currentProduct._id, remove_ids);
 
-      }
-
-      //deleted images hadnling
-      if(updatedImageList.length < initialImageList.length){
-        remove_ids = [...remove_ids, ...initialImageList.filter(el => !updatedImageList.includes(el))]
-      }
-
-      //variant image delete handling
-      const initialVariantImages = currentProduct?.variants.map(el => el?.image?.public_id).filter(Boolean);
-      const updatedVariantImages = product.variants.map(el => el?.image?.public_id).filter(Boolean);
-      if(updatedVariantImages.length < initialVariantImages.length){
-        remove_ids = [...remove_ids, ...initialVariantImages.filter(el => !updatedVariantImages.includes(el))];
-      }
-
-      // if the variant sku is changed the image url & public_id should be changed
-      // this code is to find chages and download file to reupload
-      const oldVariants = currentProduct.variants;
-      const modifiedVariants = oldVariants.map(variant => {
-        const modified = product.variants.find(el => el.id === variant._id && el.sku !== variant.sku)
-        // checking is sku differ old & not changed the image file
-        if(modified && modified.image && !modified?.files?.file){
-          remove_ids.push(modified.image.public_id)
-          return {id: modified.id, image: modified.image}
-        }
-      }).filter(Boolean)
-
-      dispatch(setLoading(true));
-
-      try {
-
-        const downloads = await Promise.all(
-          modifiedVariants.map(async item => {
-            const file = await fetchImageAsFile(item.image.url, `${item.id}`);
-            const thumb = await fetchImageAsFile(item.image.thumb, `${item.id}`);
-
-            return {file, thumb}
-          })
-        )
-
-        // update variants with downloaded images
-        if(downloads.length){
-          product.variants = product.variants.map(variant => {
-            const modified = downloads.find(img => img.file.name === variant.id);
-            if(modified){
-              return {
-                ...variant,
-                files: modified
-              }
-            }
-            return variant;
-          })
-        }
+        const updated = response?.data?.product;
+        dispatch(updateProduct(updated))
+        AxiosToast(response, false);
         
-        validateProduct(product)
-        validateVariants(product)
-
-        product.variants = product?.variants.map(variant => {
-          return {
-            ...variant,
-            preview: null
-          }
+        setData({
+          name: "", slug:"", sku:"", description:"", price:"", stock:"", tax: "",
+          visible: true, status: "active",
+          brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: [], customAttributes: []
         })
-
-        const response = await Axios({
-          ...ApiBucket.updateProduct,
-          data: {
-            ...product,
-            product_id: currentProduct._id
-          }
-        })
-
-        if(response?.data?.success){
-          await uploadProductImages(product, currentProduct._id, remove_ids);
-
-          AxiosToast(response, false);
-          setData({
-            name: "", slug:"", sku:"", description:"", price:"", stock:"", tax: "",
-            visible: true, status: "active",
-            brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: [], customAttributes: []
-          })
-          setBrand(null);
-          setStatus(null);
-          setCategory(null);
-          setVariants([]);
-          setAttributes([]);
-          setCustomAttributes([])
-          setFinalAttributes([])
-          setViewImages([]);
-          setVariantImages([])
-          setDisableMessage('');
-          navigate('/admin/products')
-        }
-        
-      } catch (error) {
-
-        console.log(error?.response?.data || error)
-        AxiosToast(error)
-
-      }finally{
-        dispatch(setLoading(false))
+        setBrand(null);
+        setStatus(null);
+        setCategory(null);
+        setVariants([]);
+        setAttributes([]);
+        setCustomAttributes([])
+        setFinalAttributes([])
+        setViewImages([]);
+        setVariantImages([])
+        setDisableMessage('');
+        navigate('/admin/products',{state})
       }
+      
+    } catch (error) {
+
+      console.log(error?.response?.data || error)
+      AxiosToast(error)
+
+    }finally{
+      dispatch(setLoading(false))
+    }
 
   };
 
@@ -523,7 +529,7 @@ const EditProduct = () => {
             <span>Back</span>
           </button>
           <button 
-            form="add-product-form"
+            form="edit-product-form"
             type="submit"
             className='ps-2! pe-4! inline-flex items-center gap-2 text-white'>
             <IoIosAdd size={25} />
@@ -549,7 +555,7 @@ const EditProduct = () => {
       <div className="flex flex-col space-y-2">
         
         {/* form */}
-        <form onSubmit={handleSubmit} className="grid grid-cols-[2fr_1fr] gap-2" id="add-product-form">
+        <form onSubmit={handleSubmit} className="grid grid-cols-[2fr_1fr] gap-2" id="edit-product-form">
           {/* basic Information */}
           <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
             <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">

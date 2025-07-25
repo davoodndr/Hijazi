@@ -7,6 +7,7 @@ function CouponCardMedium({
   className = "",
   containerClass = ""
 }) {
+
   return (
     <div className={`flex min-w-1/2 min-h-20 ${className}`}>
       <div className='flex w-full'>
@@ -23,20 +24,27 @@ function CouponCardMedium({
         >
           <span className='absolute -left-1 top-1/2 -translate-y-1/2 
             border-l-5 border-white h-[80%] border-dotted'></span>
-          <p className='text-[8.5px]'>Valid up to - {format(new Date(coupon?.expiry), 'dd-MM-yyyy')}</p>
+          <p className='text-[8.5px]'>Valid up to - {coupon?.endDate ? format(new Date(coupon?.endDate), 'dd-MM-yyyy') : 'upcoming days'}</p>
           <p className='text-2xl space-x-1 flex items-center'>
             <span className={clsx('font-bold before:text-white after:text-white',
               coupon?.discountType === 'fixed' ? 
-                'content-before content-before:text-[15px]' 
+                'content-before content-before:font-normal' 
                 : 'content-after content-after:content-["%"]'
             )}>{coupon?.discountValue}</span>
-            <span className='text-pink-200'>OFF</span>
+            <span className='text-pink-100'>OFF</span>
           </p>
           <div className={clsx('flex space-x-1 px-1 w-full text-center',
-            coupon?.minPurchase > 0 ? 'justify-between' : 'justify-center'
+            coupon?.discountType === 'percentage' && coupon?.minPurchase > 0 ? 'justify-between' : 'justify-center'
           )}>
-            <p className='text-[11px]'>UP TO <span className='content-before:content-["₹"] font-bold'>{coupon?.maxDiscount}</span></p>
-            {coupon?.minPurchase > 0 && <p className='text-[11px]'>On - {coupon?.minPurchase}</p>}
+            {coupon?.discountType === 'percentage' &&
+              <p className='text-[11px]'>
+                UP TO 
+                <span className='content-before:content-["₹"] font-bold ms-1'>{coupon?.maxDiscount}</span>
+              </p>
+              }
+            {coupon?.minPurchase > 0 && <p className='text-[11px]'>
+              On - <span className='content-before content-before:text-white'>{coupon?.minPurchase}</span>
+            </p>}
           </div>
           
         </div>

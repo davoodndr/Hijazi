@@ -20,7 +20,7 @@ function OrderDetail() {
   const navigate = useNavigate();
   const { order:currentOrder } = location.state;
   const [order, setOrder] = useState(currentOrder);
-  const { couponList } = useSelector(state => state.coupons);
+  const { offersList } = useSelector(state => state.offers);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const { ordersList } = useSelector(state => state.orders);
   const formattedDate = format(new Date(order?.paidAt || order?.createdAt), "dd.MM.yyyy 'at' hh.mm a")
@@ -29,11 +29,10 @@ function OrderDetail() {
   const itemsCount = order?.cartItems?.reduce((total, item) => total + item?.quantity, 0)
 
   useEffect(() => {
-    const coupon = couponList?.find(c => c?._id?.toString() === order?.couponApplied?._id.toString());
+    const coupon = offersList?.find(c => c?._id?.toString() === order?.couponApplied?._id.toString());
     setAppliedCoupon(coupon)
-  },[couponList]);
+  },[offersList]);
 
-  console.log(order)
 
   return (
     <section className='flex-grow w-full flex flex-col items-center py-15 bg-primary-25'>
@@ -202,6 +201,10 @@ function OrderDetail() {
                   <span>Discount</span>
                   <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{Number(order?.discount).toFixed(2)}</span></p>
                 </div>
+                <div className='flex items-center justify-between'>
+                  <span>Round off</span>
+                  <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{Number(order?.roundOff).toFixed(2)}</span></p>
+                </div>
                 <span className='w-full border-b border-gray-200 my-4'></span>
                 <p className='flex items-center justify-between font-bold'>
                   <span className='text-base'>Total Amount</span>
@@ -212,7 +215,7 @@ function OrderDetail() {
 
             <div className='grid grid-cols-2 bg-white p-6 shade rounded-3xl'>
               <div className='flex flex-col'>
-                <h3 className='mb-3'>Applied Offers</h3>
+                <h3 className='text-lg mb-3'>Applied Offers</h3>
                 <div className="flex items-center border border-gray-300 rounded-2xl p-4">
                   {appliedCoupon ? (
                     <CouponCardMedium coupon={appliedCoupon} />

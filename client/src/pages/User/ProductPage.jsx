@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ProductImageViewer from '../../components/ui/ProductImageViewer'
 import StarRating from '../../components/user/StarRating'
 import { Link, useLocation, useNavigate } from 'react-router'
@@ -35,10 +35,11 @@ function ProductPageComponent() {
   const path = location.pathname;
 
   const [product, setProduct] = useState(null);
+  const [variants, setVariants] = useState([]);
+  const [activeVariant, setActiveVariant] = useState(null);
   const [relatedItems, setRelatedItems] = useState(null);
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [attributes, setAttributes] = useState(null);
-  const [activeVariant, setActiveVariant] = useState(null);
   const [productQty, setProductQty] = useState(1);
   const cartItem = useSelector(state => getCartItem(state, activeVariant?._id || product?._id))
 
@@ -81,6 +82,7 @@ function ProductPageComponent() {
 
     if(product){
       if(product?.variants?.length) {
+        setVariants(product?.variants)
         setAttributes(getAttributeMap(product.variants))
 
         const minPricedVariant = product.variants.reduce((minVariant, current) => {
@@ -230,34 +232,74 @@ function ProductPageComponent() {
     }
   }
 
-  /* coupons & offer */
-  const { couponList } = useSelector(state => state.coupons);
-  const [couponAvail, setCouponAvail] = useState(null);
+  /* offers & offer */
+  const { offersList } = useSelector(state => state.offers);
+  const [bestCouponValue, setBestCouponValue] = useState(null);
   const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [availableOffers, setAvailableOffers] = useState([]);
   const [isListExpanded, setIsListExpanded] = useState(false);
+  const wrapperRef = useRef(null)
   
-  /* selecting max value coupon */
+  /* selecting max value offer */
   useEffect(() => {
-    const filteredCoupons = [...couponList].filter(el => el.minPurchase <= (activeVariant?.price || product?.price))
-    let coup;
-    
-    if(filteredCoupons?.length){
-      coup = filteredCoupons.reduce((pre, cur) => {
-        return cur?.maxDiscount > pre?.maxDiscount ? cur : pre
-      })
-    }
-    setAvailableCoupons(filteredCoupons);
-    setCouponAvail(coup)
-  },[couponList, activeVariant?.price, product?.price])
+    const price = (activeVariant?.price || product?.price);
+    const filteredOffers = offersList.filter(el => {
+      const isGeneralOffer = !el?.applicableCategories?.length && !el?.applicableProducts?.length;
+      const isCategoryMatch = el?.applicableCategories?.includes(product?.category?.slug);
+      const isProductMatch = el?.applicableProducts?.includes(product?.sku || activeVariant?.sku);
+      const meetsMinPurchase = price >= el?.minPurchase;
 
-  const handleCopyCoupon = (coupon) => {
+      return (isGeneralOffer || isCategoryMatch || isProductMatch) && meetsMinPurchase;
+    });
+
+    const coupons = filteredOffers?.filter(el => el?.type === 'coupon');
+    setAvailableCoupons(coupons);
+
+    const offers = filteredOffers?.filter(el => el?.type === 'offer');
+    setAvailableOffers(offers);
+
+    const findBest = findBestCouponValue(coupons, activeVariant?.price || product?.price);
     
-    navigator.clipboard.writeText(coupon?.code)
+    setBestCouponValue(findBest)
+
+  },[offersList, activeVariant?.price, product?.price])
+
+  /* handle click out side of the coupon */
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setIsListExpanded(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const findBestCouponValue = (coupons, price) => {
+    if (!coupons?.length || !price) return 0;
+
+    const getDiscountAmount = (coupon) => {
+      if (coupon.discountType === 'percentage') {
+        const calculated = price * (coupon.discountValue / 100);
+        return coupon.maxDiscount ? Math.min(calculated, coupon.maxDiscount) : calculated;
+      }
+      return coupon.discountValue || 0;
+    };
+
+    return coupons.reduce((max, current) => {
+      const currentValue = getDiscountAmount(current);
+      return currentValue > max ? currentValue : max;
+    }, 0);
+  }
+
+  const handleCopyCoupon = (offer) => {
+    
+    navigator.clipboard.writeText(offer?.code)
     .then(() => {
       toast.success("Coupon code copied!")
     })
     .catch(err => {
-      toast.error("Failed to copy coupon code")
+      toast.error("Failed to copy offer code")
     })
     setIsListExpanded(false)
   }
@@ -270,9 +312,11 @@ function ProductPageComponent() {
         {/* image viewer with magnification */}
         <ProductImageViewer
           images={useMemo(() => {
-            return product?.images?.concat(activeVariant?.image)
+            const variantImages = variants?.map(v => v.image)
+            return product?.images?.concat(variantImages)
             .filter(Boolean)
           },[product, activeVariant])}
+          defaultImage={activeVariant?.image}
           className='w-[42%] shrink-0 flex flex-col'
         />
 
@@ -367,15 +411,17 @@ function ProductPageComponent() {
             })}
           </div>
 
-          {/* coupons & offers */}
-          {couponAvail && 
+          {/* offers & offers */}
+          {bestCouponValue > 0 && 
             <div className='mb-5 flex space-x-2 items-center'>
               <div className='bg-amber-500 w-fit px-3 pe-5 text-black relative inline-flex items-center'>
-                <span className='font-bold'>Coupon:</span>
+                <span className='font-bold'>Coupon{availableCoupons?.length > 1 ? 's' : '' }:</span>
                 <div className='w-[17px] h-[17px] bg-white absolute -right-2 top-1/2 -translate-y-1/2 rotate-45'></div>
               </div>
               {/* message */}
-              <div className="inline-flex items-center space-x-1
+              <div 
+                ref={wrapperRef}
+                className="inline-flex items-center space-x-1
                   smooth hover:text-primary-400 hover:underline relative">
                 <p 
                   onClick={() => {
@@ -384,18 +430,15 @@ function ProductPageComponent() {
                   className='z-5 cursor-pointer'>
                   Save up to
                   <span
-                    className={clsx('mx-1 font-extrabold text-black',
-                      couponAvail.discountType === 'fixed' ? 'price-before price-before:text-black items-start leading-4.5' 
-                        : 'content-after content-after:content-["%"] content-after:text-black'
-                    )}
-                  >{couponAvail.maxDiscount}</span> 
-                  with coupon
+                    className={clsx('mx-1 font-extrabold text-black price-before price-before:text-black')}
+                  >{bestCouponValue}</span> 
+                  with offer
                 </p>
                 <div>
                   <IoIosArrowDown />
                 </div>
 
-                {/* coupon list */}
+                {/* offer list */}
                 
                 {isListExpanded &&
                     <motion.ul 

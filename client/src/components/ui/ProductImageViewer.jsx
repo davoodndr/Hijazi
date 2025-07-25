@@ -7,14 +7,21 @@ import { Navigation } from 'swiper/modules';
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import MyFadeLoader from '../ui/MyFadeLoader'
 
-const ProductImageViewerComponent = ({className = '', images = []}) => {
+const ProductImageViewerComponent = ({className = '', images = [], defaultImage}) => {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeImage, setActiveImage] = useState(null);
 
   useEffect(() => {
-    setActiveImage(images[0])
-  },[images])
+    setActiveImage(defaultImage || images[0])
+    const defImageIndex = images.findIndex(img => img?.url === defaultImage?.url)
+    setActiveIndex(defImageIndex || 0)
+  },[images, defaultImage])
+
+  const handleSetDefaultThumb = (i) => {
+    setActiveIndex(i);
+    setActiveImage(images[i])
+  }
   
   return (
     <div className={className}>
@@ -62,10 +69,7 @@ const ProductImageViewerComponent = ({className = '', images = []}) => {
         >
           {images.length > 0 && images?.map((img, i) => 
             <SwiperSlide key={i}
-              onClick={() => {
-                setActiveIndex(i);
-                setActiveImage(images[i])
-              }} 
+              onClick={() => handleSetDefaultThumb(i)} 
               className='!inline-flex p-1 bg-white !w-fit h-fit'
             >
               <div className={`inline-flex w-[100px] h-[100px] border border-gray-200 smooth hover:border-primary-300 cursor-pointer

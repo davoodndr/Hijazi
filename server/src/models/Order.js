@@ -48,6 +48,7 @@ const orderSchema = new mongoose.Schema({
   taxAmount: { type: Number, default: 0 },
   shippingPrice: { type: Number, default: 0 },
   discount: { type: Number, default: 0 },
+  roundOff: { type: Number, default: 0 },
   couponApplied: {
     _id: {
       type: mongoose.Schema.Types.ObjectId,

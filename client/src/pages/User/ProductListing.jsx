@@ -17,6 +17,7 @@ import { sortProductsByPrice } from '../../utils/Utils';
 import { IoMdCheckmarkCircleOutline } from "react-icons/io";
 import { useNavigate } from 'react-router'
 import { setLoading } from '../../store/slices/CommonSlices';
+import clsx from 'clsx';
 
 function ProductListingComponent() {
 
@@ -88,11 +89,11 @@ function ProductListingComponent() {
       );
 
       const priceMatch = matchesProductPrice || matchesVariantPrice;
-
+      
       // other select
       const selectMatch = !filters.selectedList.length ||
         filters.selectedList.some(item => item.id === p.brand._id) ||
-        filters.selectedList.some(item => item.id === p.category._id);
+        filters.selectedList.some(item => item.id === p.category._id || item.id === p.category.parentId._id);
 
       return priceMatch && selectMatch
     });
@@ -178,6 +179,17 @@ function ProductListingComponent() {
     return currentSort
   }
 
+  /* offers */
+  const { offersList } = useSelector(state => state.offers);
+  const [offers, setOffers] = useState([]);
+
+  /* initial loading */
+  useEffect(() => {
+    const offs = offersList?.filter(off => off?.type === 'offer');
+    setOffers(offs);
+  },[offersList])
+
+
   /* paingation logic */
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
@@ -240,7 +252,10 @@ function ProductListingComponent() {
                 id={category._id}
               />
               <label htmlFor={category._id} 
-                className='!text-sm !text-gray-600 !ps-2 cursor-pointer capitalize'
+                className={clsx('text-sm ps-2 cursor-pointer capitalize smooth',
+                  filters?.selectedList?.some(el => el?.id === category._id) ? 'font-bold text-primary-400' 
+                    : 'font-normal text-gray-600'
+                )}
                 >{category.name}
               </label>
             </li>
@@ -280,7 +295,10 @@ function ProductListingComponent() {
                 id={brand._id} 
               />
               <label htmlFor={brand._id} 
-              className='!text-sm !text-gray-600 !ps-2 cursor-pointer capitalize'
+                className={clsx('text-sm ps-2 cursor-pointer capitalize smooth',
+                  filters?.selectedList?.some(el => el?.id === brand._id) ? 'font-bold text-primary-400' 
+                    : 'font-normal text-gray-600'
+                )}
               >{brand.name}</label>
             </li>
           )}
@@ -444,14 +462,15 @@ function ProductListingComponent() {
             (<li className='grid grid-cols-4 gap-6 h-fit'>
               
               {paginatedProducts?.map((product, i) => 
-                
                 <ProductCardMed 
-                  key={product?._id} 
-                  index={i} 
-                  product={product}
-                  onClick={() => handleSingleProductClick(product)}
-                />
-              
+                    key={product?._id} 
+                    index={i} 
+                    product={{
+                      ...product,
+                      offers
+                    }}
+                    onClick={() => handleSingleProductClick(product)}
+                  />
               )}
               
             </li>)

@@ -33,6 +33,10 @@ const offerSchema = new mongoose.Schema(
 			type: Number,
 			default: 0
 		},
+		usageCount: {
+			type: Number,
+			default: 0
+		},
   	usagePerUser: {
 			type: Number,
 			default: 1

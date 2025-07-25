@@ -114,7 +114,6 @@ function VariantsTable(
 
   const handleModalResult = async(files) => {
 
-    console.log(variants[activeIndex])
     if(!hasBlankObjectValue(variants[activeIndex], ['files','image','preview'])){
 
       if(files){
@@ -173,8 +172,8 @@ function VariantsTable(
           className={`grid gap-1 capitalize font-semibold`}
         >
           <span></span>
-          {attributes.map(item =>
-            <span key={item.name}>{item.name}</span>
+          {attributes.map((item, i) =>
+            <span key={`${item.name}${i}`}>{item.name}</span>
           )}
           <span>sku</span>
           <span>price</span>

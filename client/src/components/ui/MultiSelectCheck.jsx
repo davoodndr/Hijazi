@@ -25,11 +25,11 @@ function MultiSelectCheckComponent({
   const dropdownRef = useRef(null);
 
   /* handles expanded */
-
   useEffect(() => {
     setSelected(values)
   },[values])
 
+  /* handle click outside */
   useEffect(() => {
 
     const handleClickOutside = (e) => {
