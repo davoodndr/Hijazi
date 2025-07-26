@@ -25,6 +25,7 @@ import { MdOutlineCopyAll } from "react-icons/md";
 import { AnimatePresence, motion } from 'motion/react'
 import { containerVariants, rowVariants } from '../../utils/Anim'
 import { BsTags } from "react-icons/bs";
+import { filterDiscountOffers, findBestCouponValue, findBestOffer } from '../../utils/Utils'
 
 function ProductPageComponent() {
 
@@ -245,18 +246,8 @@ function ProductPageComponent() {
   /* selecting max value offer */
   useEffect(() => {
     const price = (activeVariant?.price || product?.price);
-    const filteredOffers = offersList.filter(el => {
-      const isGeneralOffer = !el?.applicableCategories?.length && !el?.applicableProducts?.length;
-      const isCategoryMatch = el?.applicableCategories?.includes(product?.category?.slug);
-      const isProductMatch = el?.applicableProducts?.includes(product?.sku || activeVariant?.sku);
-      const meetsMinPurchase = price >= el?.minPurchase;
 
-      if(el?.type === 'offer'){
-        return (isGeneralOffer && meetsMinPurchase) || isCategoryMatch || isProductMatch;
-      }
-
-      return (isGeneralOffer || isCategoryMatch || isProductMatch) && meetsMinPurchase;
-    });
+    const filteredOffers = filterDiscountOffers(offersList, product, activeVariant);
 
     const coupons = filteredOffers?.filter(el => el?.type === 'coupon');
     setAvailableCoupons(coupons);
@@ -286,24 +277,6 @@ function ProductPageComponent() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  /* find best coupon value */
-  const findBestCouponValue = (coupons, price) => {
-    if (!coupons?.length || !price) return 0;
-
-    const getDiscountAmount = (coupon) => {
-      if (coupon.discountType === 'percentage') {
-        const calculated = price * (coupon.discountValue / 100);
-        return coupon.maxDiscount ? Math.min(calculated, coupon.maxDiscount) : calculated;
-      }
-      return coupon.discountValue || 0;
-    };
-
-    return coupons.reduce((max, current) => {
-      const currentValue = getDiscountAmount(current);
-      return currentValue > max ? currentValue : max;
-    }, 0);
-  }
-
   const handleCopyCoupon = (offer) => {
     
     navigator.clipboard.writeText(offer?.code)
@@ -314,32 +287,6 @@ function ProductPageComponent() {
       toast.error("Failed to copy offer code")
     })
     setIsListExpanded(false)
-  }
-
-  /* find best offer */
-  const findBestOffer = (offers, price) => {
-    if (!offers?.length || !price) return 0;
-
-    const getDiscountAmount = (offer) => {
-      if (offer.discountType === 'percentage') {
-        const calculated = price * (offer.discountValue / 100);
-        return offer.maxDiscount ? Math.min(calculated, offer.maxDiscount) : calculated;
-      }
-      return offer.discountValue || 0;
-    };
-
-    return offers.reduce((best, current) => {
-      const currentValue = getDiscountAmount(current);
-      
-      if(currentValue > best.discount){
-        return {
-          discount: current.discountValue,
-          value: currentValue,
-          type: current.discountType
-        }
-      }
-      return best
-    }, {discount: 0, value: 0, type: null});
   }
 
   return (

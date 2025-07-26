@@ -259,3 +259,62 @@ export const utcDate = (localDate) => {
     utc?.getSeconds()
   ))
 }
+
+export const filterDiscountOffers = (offersList, product, activeVariant) => {
+  const price = (activeVariant?.price || product?.price);
+  return offersList?.filter(el => {
+      const isGeneralOffer = !el?.applicableCategories?.length && !el?.applicableProducts?.length;
+      const isCategoryMatch = el?.applicableCategories?.includes(product?.category?.slug);
+      const isProductMatch = el?.applicableProducts?.includes(product?.sku || activeVariant?.sku);
+      const meetsMinPurchase = price >= el?.minPurchase;
+
+      if(el?.type === 'offer'){
+        return (isGeneralOffer && meetsMinPurchase) || isCategoryMatch || isProductMatch;
+      }
+
+      return (isGeneralOffer || isCategoryMatch || isProductMatch) && meetsMinPurchase;
+    });
+}
+
+export  const findBestOffer = (offers, price) => {
+    if (!offers?.length || !price) return 0;
+
+    const getDiscountAmount = (offer) => {
+      if (offer.discountType === 'percentage') {
+        const calculated = price * (offer.discountValue / 100);
+        return offer.maxDiscount ? Math.min(calculated, offer.maxDiscount) : calculated;
+      }
+      return offer.discountValue || 0;
+    };
+
+    return offers.reduce((best, current) => {
+      const currentValue = getDiscountAmount(current);
+      
+      if(currentValue > best.discount){
+        return {
+          discount: current.discountValue,
+          value: currentValue,
+          type: current.discountType,
+          title: current?.title
+        }
+      }
+      return best
+    }, {discount: 0, value: 0, type: null, title: null});
+}
+
+export const findBestCouponValue = (coupons, price) => {
+  if (!coupons?.length || !price) return 0;
+
+  const getDiscountAmount = (coupon) => {
+    if (coupon.discountType === 'percentage') {
+      const calculated = price * (coupon.discountValue / 100);
+      return coupon.maxDiscount ? Math.min(calculated, coupon.maxDiscount) : calculated;
+    }
+    return coupon.discountValue || 0;
+  };
+
+  return coupons.reduce((max, current) => {
+    const currentValue = getDiscountAmount(current);
+    return currentValue > max ? currentValue : max;
+  }, 0);
+}

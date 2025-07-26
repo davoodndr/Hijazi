@@ -14,6 +14,7 @@ import { addToList, syncWishlistItem } from '../../store/slices/WishlistSlice';
 import { useLocation, useNavigate } from 'react-router';
 import ProductCardBadge from './ProductCardBadge';
 import clsx from 'clsx';
+import { filterDiscountOffers } from '../../utils/Utils';
 
 function ProducCardMedComponent({product, onClick}) {
 
@@ -48,15 +49,7 @@ function ProducCardMedComponent({product, onClick}) {
   /* initialize offers */
   useEffect(() => {
     const price = (activeVariant?.price || product?.price);
-    const offs = product?.offers?.filter(el => {
-      const isGeneralOffer = !el?.applicableCategories?.length && !el?.applicableProducts?.length;
-      const isCategoryMatch = el?.applicableCategories?.includes(product?.category?.slug);
-      const isProductMatch = el?.applicableProducts?.includes(product?.sku || activeVariant?.sku);
-      const meetsMinPurchase = price >= el?.minPurchase;
-
-      return (isGeneralOffer && meetsMinPurchase) || isCategoryMatch || isProductMatch
-    })
-    
+    const offs = filterDiscountOffers(product?.offers, product, activeVariant);
     
     const best = findBestOffer(offs, price);
     const newPrice = price - best.value;
@@ -203,11 +196,11 @@ function ProducCardMedComponent({product, onClick}) {
                   <span className="old-price price-before line-through">
                     {activeVariant?.price || product?.price}
                   </span>
-                  <p className='text-xs text-red-400 price-before:text-red-400'>(
+                  <p className='text-xs text-red-400'>(
                     <span className={clsx('mr-1',
                       bestOffer?.type === 'percentage' ? 
                         'content-after content-after:content-["%"] content-after:text-red-400' 
-                        : 'content-before content-before:text-red-400'
+                        : 'content-before content-before:text-red-400 content-before:text-[11px]'
                     )}>
                       {bestOffer.discount}
                     </span>

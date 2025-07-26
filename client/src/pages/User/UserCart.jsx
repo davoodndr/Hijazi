@@ -17,6 +17,7 @@ import { MdContentPaste } from 'react-icons/md';
 import { IoCloseCircleOutline } from 'react-icons/io5';
 import { BsTrash3 } from "react-icons/bs";
 import { motion } from 'motion/react';
+import { filterDiscountOffers, findBestOffer } from '../../utils/Utils'
 
 function UserCart(){
 
@@ -29,6 +30,7 @@ function UserCart(){
   const cartTax = useSelector(getCartTax);
   const { offersList } = useSelector(state => state.offers);
   const [coupons, setCoupons] = useState([]);
+  const [offers, setOffers] = useState([]);
   const [activeCoupon, setActiveCoupon] = useState(null);
   const [discount, setDiscount] = useState(0)
   const [roundOffValue, setRoundOffValue] = useState(0)
@@ -67,14 +69,29 @@ function UserCart(){
     }
   }
 
-  /* coupon handling */
+  /* coupon & offer handling */
+  // add offer to total discount
+  useEffect(() => {
+    let offerDiscount = 0;
+    if(items?.length){
+      items?.forEach(item => {
+        const availbleOffers  = filterDiscountOffers(offers, item, null);
+        const bestOffer = findBestOffer(availbleOffers, item?.price);
+        offerDiscount += bestOffer?.value || 0;
+      })
+      setDiscount(prev => prev += offerDiscount);
+      setGrandTotal(prev => prev -= offerDiscount)
+    }
+  },[items, offers])
 
   // initial filtering
   useEffect(() => {
     const availableCoupons = offersList?.filter(off => 
-       off?.type === 'coupon' && off?.minPurchase <= cartSubTotal
+      off?.type === 'coupon' &&  off?.minPurchase <= cartSubTotal  
     );
+    
     setCoupons(availableCoupons)
+    setOffers(offersList?.filter(el => el?.type === 'offer'));
   },[offersList]);
 
   // handling coupon input typing
@@ -104,19 +121,20 @@ function UserCart(){
   const handleApplyCoupon = () => {
     
     const discValue = calculateDiscount();
-    const rawTotal = Number(cartSubTotal) + Number(cartTax) - discValue;
+    const rawTotal = Number(cartSubTotal) + Number(cartTax) - (discount + discValue);
     const roundedTotal = Math.floor(rawTotal);
     const roundOffValueAmount = (rawTotal - roundedTotal);
 
-    setDiscount(discValue)
+    setDiscount(prev => prev += discValue)
     setGrandTotal(roundedTotal)
     setRoundOffValue(roundOffValueAmount)
   }
 
   const handleRemoveCoupon = () => {
+    const discValue = calculateDiscount();
+    setDiscount(prev => prev - discValue);
+    setGrandTotal(prev => prev + discValue)
     setActiveCoupon(null)
-    setDiscount(0);
-    setGrandTotal(Number(cartSubTotal) + Number(cartTax))
   }
 
   const calculateDiscount = () => {
@@ -132,7 +150,7 @@ function UserCart(){
 
   }
 
-  /* total */
+  /* initial total */
   useEffect(() => {
     let totalAmount = Number(cartSubTotal) + Number(cartTax) - Number(discount);
     setGrandTotal(totalAmount)
@@ -193,7 +211,12 @@ function UserCart(){
               items.map(item => {
 
                 const attributes = item?.attributes ? Object.entries(item.attributes) : [];
-                const itemTotal = item.quantity * item.price;
+                
+                const availbleOffers  = filterDiscountOffers(offers, item, null);
+                const bestOffer = findBestOffer(availbleOffers, item?.price);
+                const offerPrice = item?.price - bestOffer?.value;
+
+                const itemTotal = item.quantity * item?.price;
 
                 return (
                   <li key={item.id} className='grid grid-cols-[3fr_1fr_1fr_1fr_0.5fr] pb-5 justify-items-center'>
@@ -208,6 +231,7 @@ function UserCart(){
                           <p className='uppercase text-[10px] text-gray-400'>{item?.category}</p>
                           <p className='capitalize font-bold'>{item.name}</p>
                         </div>
+                        {/* attributes */}
                         <div>
                           {attributes.length > 0 && attributes.map(([name, value]) => 
                             <div key={name} className='grid grid-cols-3 capitalize'>
@@ -225,9 +249,34 @@ function UserCart(){
                             </div>
                           )}
                         </div>
+
+                        {/* offer detal */}
+                        {offerPrice > 0 &&
+                          <p className='text-xs text-primary-400'>
+                            {bestOffer?.title}
+                          </p>
+                        }
                       </div>
                     </div>
-                    <span className='price-before !text-base font-bold'>{item.price}</span>
+
+                    {/* item price */}
+                    {/* <div className='flex flex-col justify-center'>
+                      <div className='relative leading-0'>
+                        <span className={clsx('price-before !text-base font-bold',
+                          offerPrice && 'text-primary-400 price-before:text-primary-300'
+                        )}>
+                          {offerPrice || item?.price}
+                        </span>
+                        {offerPrice > 0 &&
+                          <span className='absolute top-full right-0 price-before text-gray-400 line-through'>
+                            {item?.price}
+                          </span>
+                        }
+                      </div>
+                    </div> */}
+                    <span className='price-before text-base'>
+                      {item?.price}
+                    </span>
                     <div className='flex items-center'>
                       <span 
                         onClick={() => 
