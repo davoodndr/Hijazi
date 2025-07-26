@@ -24,7 +24,7 @@ import { RiCoupon3Line } from "react-icons/ri";
 import { MdOutlineCopyAll } from "react-icons/md";
 import { AnimatePresence, motion } from 'motion/react'
 import { containerVariants, rowVariants } from '../../utils/Anim'
-import CouponCardSmall from '../../components/ui/CouponCardSmall'
+import { BsTags } from "react-icons/bs";
 
 function ProductPageComponent() {
 
@@ -233,11 +233,13 @@ function ProductPageComponent() {
   }
 
   /* offers & offer */
+  const [isListExpanded, setIsListExpanded] = useState(false);
   const { offersList } = useSelector(state => state.offers);
   const [bestCouponValue, setBestCouponValue] = useState(null);
   const [availableCoupons, setAvailableCoupons] = useState([]);
   const [availableOffers, setAvailableOffers] = useState([]);
-  const [isListExpanded, setIsListExpanded] = useState(false);
+  const [offerPrice, setOfferPrice] = useState(0);
+  const [bestOffer, setBestOffer] = useState(null);
   const wrapperRef = useRef(null)
   
   /* selecting max value offer */
@@ -249,18 +251,27 @@ function ProductPageComponent() {
       const isProductMatch = el?.applicableProducts?.includes(product?.sku || activeVariant?.sku);
       const meetsMinPurchase = price >= el?.minPurchase;
 
+      if(el?.type === 'offer'){
+        return (isGeneralOffer && meetsMinPurchase) || isCategoryMatch || isProductMatch;
+      }
+
       return (isGeneralOffer || isCategoryMatch || isProductMatch) && meetsMinPurchase;
     });
 
     const coupons = filteredOffers?.filter(el => el?.type === 'coupon');
     setAvailableCoupons(coupons);
 
+    const findBest = findBestCouponValue(coupons, activeVariant?.price || product?.price);
+    setBestCouponValue(findBest)
+    
     const offers = filteredOffers?.filter(el => el?.type === 'offer');
     setAvailableOffers(offers);
 
-    const findBest = findBestCouponValue(coupons, activeVariant?.price || product?.price);
-    
-    setBestCouponValue(findBest)
+    const best = findBestOffer(offers, price);
+    const newPrice = price - best.value;
+
+    setBestOffer(best);
+    setOfferPrice(newPrice)
 
   },[offersList, activeVariant?.price, product?.price])
 
@@ -275,6 +286,7 @@ function ProductPageComponent() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  /* find best coupon value */
   const findBestCouponValue = (coupons, price) => {
     if (!coupons?.length || !price) return 0;
 
@@ -302,6 +314,32 @@ function ProductPageComponent() {
       toast.error("Failed to copy offer code")
     })
     setIsListExpanded(false)
+  }
+
+  /* find best offer */
+  const findBestOffer = (offers, price) => {
+    if (!offers?.length || !price) return 0;
+
+    const getDiscountAmount = (offer) => {
+      if (offer.discountType === 'percentage') {
+        const calculated = price * (offer.discountValue / 100);
+        return offer.maxDiscount ? Math.min(calculated, offer.maxDiscount) : calculated;
+      }
+      return offer.discountValue || 0;
+    };
+
+    return offers.reduce((best, current) => {
+      const currentValue = getDiscountAmount(current);
+      
+      if(currentValue > best.discount){
+        return {
+          discount: current.discountValue,
+          value: currentValue,
+          type: current.discountType
+        }
+      }
+      return best
+    }, {discount: 0, value: 0, type: null});
   }
 
   return (
@@ -336,15 +374,56 @@ function ProductPageComponent() {
           </div>
 
           {/* price */}
-          <div className="border-y border-gray-200 flex items-center py-4 mb-7">
-            <div>
-              <ins><span className="price-before price-before:!text-xl price-before:font-normal 
+          <div className="border-y border-gray-200 flex items-center py-4 mb-5">
+            
+            <ins>
+              <span 
+                className="price-before price-before:!text-xl price-before:font-normal 
                 price-before:!top-8 price-before:leading-8
-                text-3xl font-semibold !items-start text-primary-400">{activeVariant?.price || product?.price}</span></ins>
-              <span className="text-xl line-through ml-4 price-before price-before:!text-base">200.00</span>
-              <span className=" ml-4">25% Off</span>
-            </div>
+                text-3xl font-semibold !items-start text-primary-400"
+              >
+                {offerPrice ? offerPrice : (activeVariant?.price || product?.price)}
+              </span>
+            </ins>
+            
+            {offerPrice > 0 &&
+              <>
+                <span className="text-xl line-through ml-3 price-before price-before:!text-base">
+                  {activeVariant?.price || product?.price}
+                </span>
+                <p className='text-base text-red-400 price-before:text-red-400 ml-2'>(
+                  <span className={clsx('mr-1',
+                    bestOffer?.type === 'percentage' ? 
+                      'content-after content-after:content-["%"] content-after:text-red-400' 
+                      : 'content-before content-before:text-red-400'
+                  )}>
+                    {bestOffer?.discount}
+                  </span>
+                  OFF)
+                </p>
+              </>
+            }
+            
           </div>
+
+          {/* available offers */}
+          {availableOffers?.length > 0 &&
+            <div className="flex flex-col mb-7">
+              <div className='inline-flex items-center space-x-2 mb-2'>
+                <h3 className='text-base'>Available Offers</h3>
+                <BsTags className='text-xl' />
+              </div>
+              <ul className='pl-3 list-disc list-inside'>
+                {availableOffers?.map(offer => 
+                  (
+                    <li key={offer._id}>
+                      <span>{offer?.title}</span>
+                    </li>
+                  )
+                )}
+              </ul>
+            </div>
+          }
 
           {/* waranty return delivery */}
           <div className="text-sm mb-5">
@@ -411,7 +490,7 @@ function ProductPageComponent() {
             })}
           </div>
 
-          {/* offers & offers */}
+          {/* coupons */}
           {bestCouponValue > 0 && 
             <div className='mb-5 flex space-x-2 items-center'>
               <div className='bg-amber-500 w-fit px-3 pe-5 text-black relative inline-flex items-center'>
@@ -432,13 +511,13 @@ function ProductPageComponent() {
                   <span
                     className={clsx('mx-1 font-extrabold text-black price-before price-before:text-black')}
                   >{bestCouponValue}</span> 
-                  with offer
+                  with coupon
                 </p>
                 <div>
                   <IoIosArrowDown />
                 </div>
 
-                {/* offer list */}
+                {/* coupon list */}
                 
                 {isListExpanded &&
                     <motion.ul 
@@ -568,7 +647,12 @@ function ProductPageComponent() {
           <ul>
             <li>SKU: {activeVariant?.sku || product?.sku}</li>
             <li>Availability:
-              <span className="text-primary-400 ml-2">{activeVariant?.stock || product?.stock} Items In Stock</span>
+              <span className={clsx("ml-1 text-[12.5px] font-bold",
+                (product?.stock || activeVariant?.stock) < 5 ? 'text-orange-500' : 'text-green-600'
+              )}>
+                {(product?.stock || activeVariant?.stock) < 5 ? 'Only few left!' 
+                  : `${activeVariant?.stock || product?.stock} items in stock`}
+              </span>
             </li>
           </ul>
         </div>

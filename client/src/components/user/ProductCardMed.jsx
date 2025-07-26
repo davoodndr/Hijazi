@@ -93,7 +93,6 @@ function ProducCardMedComponent({product, onClick}) {
     }, {discount: 0, value: 0, type: null});
   }
 
-
   const handleAddToCart = async(e) => {
     e.stopPropagation();
     const newitem = {
@@ -220,9 +219,9 @@ function ProducCardMedComponent({product, onClick}) {
             
           </div>
           <p className={clsx('text-[12.5px] font-bold pt-2',
-            product?.stock < 5 ? 'text-orange-500' : 'text-green-600'
+            (product?.stock || activeVariant?.stock) < 5 ? 'text-orange-500' : 'text-green-600'
           )}>
-            {product?.stock < 5 ? 'Only few left!' : 'In Stock'}
+            {(product?.stock || activeVariant?.stock) < 5 ? 'Only few left!' : 'In Stock'}
           </p>
           
           {/* buttons - add to cart, add to wishlist */}
