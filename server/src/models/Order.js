@@ -56,6 +56,13 @@ const orderSchema = new mongoose.Schema({
     },
     appliedAmount: Number
   },
+  offerApplied: {
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Offer",
+    },
+    appliedAmount: Number
+  },
   totalPrice: { type: Number, default: 0 },
   isPaid: { type: Boolean, default: false },
   paidAt: { type: Date },

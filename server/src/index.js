@@ -6,7 +6,7 @@ import connectDB from "./common/db.js";
 import authRouter from "./routes/authRouter.js";
 import adminRouter from "./routes/adminRouter.js";
 import userRouter from "./routes/userRoutes.js";
-import { expireCoupon } from "./controllers/admin/offerController.js";
+import { expireOffer } from "./controllers/admin/offerController.js";
 dotenv.config();
 
 const app = express();
@@ -42,7 +42,7 @@ app.use('/api/admin',adminRouter)
 app.use('/api/user',userRouter)
 
 /* cron-jobs */
-expireCoupon()
+expireOffer()
 
 
 connectDB().then(() => {

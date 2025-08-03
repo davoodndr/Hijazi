@@ -145,24 +145,26 @@ export const updateOffer = async(req, res) => {
 }
 
 // auto set expiery
-export const expireCoupon = () => {
+export const expireOffer = () => {
 
   cron.schedule('0 0 * * *', async() => {
 
     try {
 
-    const now = new Date();
+      const now = new Date();
 
-    await Coupon.updateMany(
-      { expiry: {$lt: now}, status: 'active' },
-      { $set: {status: 'expired'} }
-    )
+      await Offer.updateMany(
+        { endDate: {$lt: now}, status: 'active' },
+        { $set: {status: 'expired'} }
+      )
     
     } catch (error) {
-      console.log('expireCoupon:',error);
+      console.log('expireOffer:',error);
       return responseMessage(500,false, error.message || error);
     }
 
+  },{
+    timezone: 'Asia/Kolkata'
   })
   
 }

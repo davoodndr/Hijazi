@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { CiSquareMinus, CiSquarePlus } from "react-icons/ci";
 import { useDispatch, useSelector } from 'react-redux';
 import { addToCart, deleteCartItem, getCartCount, getCartTax, getItemsTotal, removeFromCart, setAppliedCoupon, 
-  setCartTotal, setCouponDiscount, setRoundOff, syncCartitem} from '../../store/slices/CartSlice';
+  setAppliedOffer, 
+  setCartTotal, setTotalDiscount, setRoundOff, syncCartitem} from '../../store/slices/CartSlice';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router'
 import clsx from 'clsx'
@@ -32,6 +33,7 @@ function UserCart(){
   const [coupons, setCoupons] = useState([]);
   const [offers, setOffers] = useState([]);
   const [activeCoupon, setActiveCoupon] = useState(null);
+  const [activeOffer, setActiveOffer] = useState(null);
   const [discount, setDiscount] = useState(0)
   const [roundOffValue, setRoundOffValue] = useState(0)
   const [grandTotal, setGrandTotal] = useState(0);
@@ -70,28 +72,24 @@ function UserCart(){
   }
 
   /* coupon & offer handling */
-  // add offer to total discount
+  
+  // reset the discount on logout
   useEffect(() => {
-    let offerDiscount = 0;
-    if(items?.length){
-      items?.forEach(item => {
-        const availbleOffers  = filterDiscountOffers(offers, item, null);
-        const bestOffer = findBestOffer(availbleOffers, item?.price);
-        offerDiscount += bestOffer?.value || 0;
-      })
-      setDiscount(prev => prev += offerDiscount);
-      setGrandTotal(prev => prev -= offerDiscount)
+    if (!user) {
+      setDiscount(0);
+      setGrandTotal(0);
     }
-  },[items, offers])
+  }, [user]);
 
   // initial filtering
   useEffect(() => {
     const availableCoupons = offersList?.filter(off => 
       off?.type === 'coupon' &&  off?.minPurchase <= cartSubTotal  
     );
+    const offs = offersList?.filter(el => el?.type === 'offer');
     
     setCoupons(availableCoupons)
-    setOffers(offersList?.filter(el => el?.type === 'offer'));
+    setOffers(offs);
   },[offersList]);
 
   // handling coupon input typing
@@ -107,7 +105,7 @@ function UserCart(){
   const checkClipBoard = async() => {
     try {
       const text = await navigator.clipboard.readText();
-      console.log(text)
+      
       if (text.trim()) {
         return text.trim();
       }
@@ -120,7 +118,7 @@ function UserCart(){
 
   const handleApplyCoupon = () => {
     
-    const discValue = calculateDiscount();
+    const discValue = calcCoupnDiscount();
     const rawTotal = Number(cartSubTotal) + Number(cartTax) - (discount + discValue);
     const roundedTotal = Math.floor(rawTotal);
     const roundOffValueAmount = (rawTotal - roundedTotal);
@@ -128,16 +126,20 @@ function UserCart(){
     setDiscount(prev => prev += discValue)
     setGrandTotal(roundedTotal)
     setRoundOffValue(roundOffValueAmount)
+    setActiveCoupon({
+      ...activeCoupon,
+      appliedAmount: discValue
+    })
   }
 
   const handleRemoveCoupon = () => {
-    const discValue = calculateDiscount();
+    const discValue = calcCoupnDiscount();
     setDiscount(prev => prev - discValue);
     setGrandTotal(prev => prev + discValue)
     setActiveCoupon(null)
   }
 
-  const calculateDiscount = () => {
+  const calcCoupnDiscount = () => {
 
     let discountValue = 0;
     if(activeCoupon?.discountType === "percentage"){
@@ -162,13 +164,46 @@ function UserCart(){
 
   },[cartSubTotal])
 
+  // add offer to total discount | poition strict
+  useEffect(() => {
+
+    if(!items?.length){
+      setDiscount(0);
+      setGrandTotal(0);
+      return;
+    }
+
+    let offerDiscount = 0;
+    let bestOffer;
+
+    items?.forEach(item => {
+      const availbleOffers  = filterDiscountOffers(offers, item, null);
+      const itemBestOffer = findBestOffer(availbleOffers, item?.price);
+      
+      offerDiscount += itemBestOffer?.value || 0
+
+      if(!bestOffer || itemBestOffer?.value > bestOffer?.value){
+        const off = offers?.find(el => el._id === itemBestOffer.id);
+        bestOffer = {
+          ...off,
+          appliedAmount: itemBestOffer?.value
+        }
+      }
+    })
+    
+    setDiscount(prev => prev += offerDiscount);
+    setGrandTotal(prev => prev -= offerDiscount)
+    setActiveOffer(bestOffer)
+  },[items, offers])
+
   /* handle press checkout */
   const handleCheckout = () => {
     if(user?.roles?.includes('user')){
-      dispatch(setCouponDiscount(discount));
+      dispatch(setTotalDiscount(discount));
       dispatch(setRoundOff(roundOffValue));
       dispatch(setCartTotal(grandTotal));
       dispatch(setAppliedCoupon(activeCoupon))
+      dispatch(setAppliedOffer(activeOffer))
       dispatch(setLoading(true))
       navigate('/checkout')
     }else{
@@ -260,23 +295,11 @@ function UserCart(){
                     </div>
 
                     {/* item price */}
-                    {/* <div className='flex flex-col justify-center'>
-                      <div className='relative leading-0'>
-                        <span className={clsx('price-before !text-base font-bold',
-                          offerPrice && 'text-primary-400 price-before:text-primary-300'
-                        )}>
-                          {offerPrice || item?.price}
-                        </span>
-                        {offerPrice > 0 &&
-                          <span className='absolute top-full right-0 price-before text-gray-400 line-through'>
-                            {item?.price}
-                          </span>
-                        }
-                      </div>
-                    </div> */}
                     <span className='price-before text-base'>
                       {item?.price}
                     </span>
+
+                    {/* quantity */}
                     <div className='flex items-center'>
                       <span 
                         onClick={() => 
@@ -293,7 +316,10 @@ function UserCart(){
                         <CiSquarePlus className='text-3xl' />
                       </span>
                     </div>
+
+                    {/* item total */}
                     <p className='price-before !text-base font-bold'>{itemTotal}</p>
+
                     {/* delete button */}
                     <div className='flex items-center'>
                       <span
@@ -311,7 +337,7 @@ function UserCart(){
               })
               :
               (<div className='mb-5 text-center py-3 text-lg bg-primary-25 rounded-xl'>
-                Bag is emply
+                Bag is empty
               </div>)
             }
             
@@ -444,20 +470,22 @@ function UserCart(){
               </li>
               <li className='flex w-full items-center justify-between'>
                 <span>Discount</span>
-                <p className=''>-
-                  <span className='price-before price-before:!text-red-300 ps-0.5 font-bold text-red-400'>
+                <p className='text-red-400'>-
+                  <span className='price-before price-before:!text-red-300 ps-0.5 font-bold'>
                     {Number(discount).toFixed(2)}
                   </span>
                 </p>
               </li>
-              <li className='flex w-full items-center justify-between'>
-                <span>Round off</span>
-                <p className=''>-
-                  <span className='price-before price-before:!text-red-300 ps-0.5 font-bold text-red-400'>
-                    {Number(roundOffValue).toFixed(2)}
-                  </span>
-                </p>
-              </li>
+              {roundOffValue > 0 &&
+                <li className='flex w-full items-center justify-between'>
+                  <span>Round off</span>
+                  <p className=''>-
+                    <span className='price-before price-before:!text-red-300 ps-0.5 font-bold text-red-400'>
+                      {Number(roundOffValue).toFixed(2)}
+                    </span>
+                  </p>
+                </li>
+              }
               <li className='my-1 border-t border-primary-500/20'></li>
               <li className='flex w-full items-center justify-between py-1'>
                 <h3 className='text-base'>Cart Total</h3>

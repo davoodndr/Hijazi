@@ -195,7 +195,7 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
           </div>
 
           {/* form inputs */}
-          <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='new-offer-form'>
+          <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='update-offer-form'>
             
             {/* title */}
             <div className='flex flex-col w-full'>
@@ -394,10 +394,10 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
 
             <LoadingButton
               loading={isLoading}
-              text='Create Now'
-              loadingText='Creating . . . . .'
+              text='Update Now'
+              loadingText='Updating . . . . .'
               type='submit'
-              form='new-offer-form'
+              form='update-offer-form'
               icon={<ClipLoader color="white" size={23} />}
               className={`px-4! rounded-3xl! inline-flex items-center
                 transition-all duration-300`}

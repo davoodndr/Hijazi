@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { getCartCount, getCartTax, getItemsTotal, setAppliedCoupon, setCartTotal, setCouponDiscount } from '../../store/slices/CartSlice';
+import { getCartCount, getCartTax, getItemsTotal, setAppliedCoupon, 
+  setAppliedOffer, setCartTotal, setTotalDiscount } from '../../store/slices/CartSlice';
 import { IoWallet } from "react-icons/io5";
 import ToggleSwitch  from '../../components/ui/ToggleSwitch'
 import { CiDeliveryTruck } from 'react-icons/ci';
@@ -26,7 +27,8 @@ function Checkout() {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { items, couponDiscount, roundOff, cartTotal, appliedCoupon } = useSelector(state => state.cart);
+  const { items, couponDiscount, roundOff, 
+    cartTotal, appliedCoupon, appliedOffer } = useSelector(state => state.cart);
   const { addressList } = useSelector(state => state.address);
   const cartCount = useSelector(getCartCount);
   const subTotal = useSelector(getItemsTotal);
@@ -100,7 +102,11 @@ function Checkout() {
         roundOff,
         couponApplied: {
           _id: appliedCoupon._id,
-          appliedAmount: couponDiscount
+          appliedAmount: appliedCoupon?.appliedAmount
+        },
+        offerApplied: {
+          _id: appliedOffer._id,
+          appliedAmount: appliedOffer?.appliedAmount
         },
         totalPrice: cartTotal,
         isPaid: false,
@@ -198,8 +204,9 @@ function Checkout() {
 
   const handleRemoveCoupon = () => {
     dispatch(setCartTotal(cartTotal + couponDiscount))
-    dispatch(setCouponDiscount(0))
+    dispatch(setTotalDiscount(0))
     dispatch(setAppliedCoupon(null))
+    dispatch(setAppliedOffer(null))
   }
 
   return (
@@ -482,12 +489,14 @@ function Checkout() {
                 {Number(discounts).toFixed(2)}</span>
               </p>
             </div>
-            <div className='flex items-center justify-between text-base'>
-              <span>Round off</span>
-              <p>-<span className='ms-1 price-before price-before:text-red-300 price-before:!font-normal font-bold text-red-400'>
-                {Number(roundOff).toFixed(2)}</span>
-              </p>
-            </div>
+            {roundOff > 0 &&
+              <div className='flex items-center justify-between text-base'>
+                <span>Round off</span>
+                <p>-<span className='ms-1 price-before price-before:text-red-300 price-before:!font-normal font-bold text-red-400'>
+                  {Number(roundOff).toFixed(2)}</span>
+                </p>
+              </div>
+            }
 
             {/* total */}
             <h3 className='mt-4 flex items-center justify-between text-gray-400 text-lg'>

@@ -259,7 +259,7 @@ function ProductPageComponent() {
     setAvailableOffers(offers);
 
     const best = findBestOffer(offers, price);
-    const newPrice = price - best.value;
+    const newPrice = price - best?.value;
 
     setBestOffer(best);
     setOfferPrice(newPrice)

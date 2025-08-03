@@ -35,7 +35,7 @@ export const finalizeValues = (data) => {
   const filtered = Object.entries(data).filter(([_,value]) => {
     if (value === "" || value === null || value === undefined) return false;
     if (Array.isArray(value) && value.length === 0) return false;
-    if(typeof value === 'object' && !value instanceof Date && Object.keys(value).length === 0) return false;
+    if(typeof value === 'object' && !(value instanceof Date) && Object.keys(value).length === 0) return false;
     return true;
   });
 
@@ -277,7 +277,7 @@ export const filterDiscountOffers = (offersList, product, activeVariant) => {
 }
 
 export  const findBestOffer = (offers, price) => {
-    if (!offers?.length || !price) return 0;
+    if (!offers?.length || !price) return null;
 
     const getDiscountAmount = (offer) => {
       if (offer.discountType === 'percentage') {
@@ -295,11 +295,12 @@ export  const findBestOffer = (offers, price) => {
           discount: current.discountValue,
           value: currentValue,
           type: current.discountType,
-          title: current?.title
+          title: current?.title,
+          id: current._id
         }
       }
       return best
-    }, {discount: 0, value: 0, type: null, title: null});
+    }, {id: null, discount: 0, value: 0, type: null, title: null});
 }
 
 export const findBestCouponValue = (coupons, price) => {
