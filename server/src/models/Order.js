@@ -49,20 +49,8 @@ const orderSchema = new mongoose.Schema({
   shippingPrice: { type: Number, default: 0 },
   discount: { type: Number, default: 0 },
   roundOff: { type: Number, default: 0 },
-  couponApplied: {
-    _id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Coupon",
-    },
-    appliedAmount: Number
-  },
-  offerApplied: {
-    _id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Offer",
-    },
-    appliedAmount: Number
-  },
+  appliedCoupon: mongoose.Schema.Types.Mixed,
+  appliedOffer: mongoose.Schema.Types.Mixed,
   totalPrice: { type: Number, default: 0 },
   isPaid: { type: Boolean, default: false },
   paidAt: { type: Date },

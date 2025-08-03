@@ -100,14 +100,8 @@ function Checkout() {
         shippingPrice: 0,
         discount: discounts,
         roundOff,
-        couponApplied: {
-          _id: appliedCoupon._id,
-          appliedAmount: appliedCoupon?.appliedAmount
-        },
-        offerApplied: {
-          _id: appliedOffer._id,
-          appliedAmount: appliedOffer?.appliedAmount
-        },
+        appliedCoupon,
+        appliedOffer,
         totalPrice: cartTotal,
         isPaid: false,
         isDelivered: false
