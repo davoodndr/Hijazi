@@ -185,7 +185,7 @@ function ProductListingComponent() {
 
   /* initial loading */
   useEffect(() => {
-    const offs = offersList?.filter(off => off?.type === 'offer');
+    const offs = offersList?.filter(off => off?.type !== 'coupon');
     setOffers(offs);
   },[offersList])
 

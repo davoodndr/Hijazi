@@ -255,11 +255,11 @@ function ProductPageComponent() {
     const findBest = findBestCouponValue(coupons, activeVariant?.price || product?.price);
     setBestCouponValue(findBest)
     
-    const offers = filteredOffers?.filter(el => el?.type === 'offer');
+    const offers = filteredOffers?.filter(el => el?.type !== 'coupon');
     setAvailableOffers(offers);
 
     const best = findBestOffer(offers, price);
-    const newPrice = price - best?.value;
+    const newPrice = price > best?.value ? price - best?.value : 0;
 
     setBestOffer(best);
     setOfferPrice(newPrice)
@@ -364,7 +364,7 @@ function ProductPageComponent() {
                 {availableOffers?.map(offer => 
                   (
                     <li key={offer._id}>
-                      <span>{offer?.title}</span>
+                      <span>{offer?.detail || offer?.title}</span>
                     </li>
                   )
                 )}

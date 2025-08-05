@@ -26,7 +26,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
   const [parentAttributes, setParentAttributes] = useState([]);
   const categoryImageDimen = {width: 440, height: 440};
   const categoryThumbdimen = {width:300, height: 300}
-    
+  
 
   /* data input handling */
   const [data, setData] = useState({

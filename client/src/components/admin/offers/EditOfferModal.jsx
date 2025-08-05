@@ -15,6 +15,7 @@ import CustomSelect from '../../ui/CustomSelect';
 import MyDatePicker from '../../ui/MyDatePicker';
 import { useSelector } from 'react-redux';
 import MultiSelectCheck from '../../ui/MultiSelectCheck';
+import clsx from 'clsx';
 
 function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
 
@@ -25,10 +26,17 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
   const [discountType, setDicountType] = useState(null)
   const [applicableCategories, setApplicableCategories] = useState([]);
   const [applicableProducts, setApplicableProducts] = useState([]);
+
+  const offerTypes = [
+    {value: 'coupon', label: 'coupon'},
+    {value: 'product', label: 'product'},
+    {value: 'category', label: 'category'},
+    {value: 'cart', label: 'cart'},
+  ]
     
   /* data input handling */
   const [data, setData] = useState({
-    title: "", type: "", couponCode: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
+    title: "", type: "", detail: "", couponCode: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
     startDate: "", endDate: "", usageLimit: "", usagePerUser: "", active:true, applicableCategories: [], applicableProducts: []
   });
 
@@ -38,6 +46,7 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
       ...prev,
       title: offer?.title,
       type: offer?.type,
+      detail: offer?.detail,
       couponCode: offer?.couponCode,
       discountType: offer?.discountType,
       discountValue: offer?.discountValue,
@@ -117,7 +126,7 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    const isValid = isValidDatas(['title','startDate','discountType','discountValue'], data);
+    const isValid = isValidDatas(['title','startDate','discountType','discountValue', 'detail'], data);
     const isValidAmounts = validateAmounts();
 
     if(isValid && isValidAmounts){
@@ -134,13 +143,11 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
         offer_id: offer?._id
       }
 
-      const finalized = finalizeValues(finalData);
-
       try {
         
         const response = await Axios({
           ...ApiBucket.updateOffer,
-          data: finalized
+          data: finalData
         })
 
         if(response?.data?.success){
@@ -149,7 +156,7 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
 
           AxiosToast(response, false);
           setData({
-            title: "", type: "", couponCode: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
+            title: "", type: "", detail: "", couponCode: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
             startDate: "", endDate: "", usageLimit: "", usagePerUser: "", active:true, applicableCategories: [], applicableProducts: []
           })
           setDicountType(null)
@@ -214,10 +221,7 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
                 <CustomSelect
                   value={offerType}
                   onChange={handleChangeOfferType}
-                  options={[
-                    {value: 'offer', label: 'offer'},
-                    {value: 'coupon', label: 'coupon'},
-                  ]} 
+                  options={offerTypes} 
                 />
               </div>
 
@@ -325,45 +329,60 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
             </div>
 
             {/* applicable categories */}
-            <div className='flex flex-col w-full  overflow-visible'>
-              <label>Applicable Categories</label>
-              <MultiSelectCheck
-                values={data?.applicableCategories}
-                onSelect={(items) => {
-                  setApplicableCategories(items)
-                }}
-                searchable={true}
-                searchPlaceholder='Search with slug'
-                className='border-neutral-300'
-                options={categoryList?.map(category => 
-                  ({value: category?.slug, label: category?.name})
-                )}
-              />
-            </div>
+            {offerType?.value !== 'cart' &&
+              <>
+                <div className='flex flex-col w-full  overflow-visible'>
+                  <label>Applicable Categories</label>
+                  <MultiSelectCheck
+                    values={data?.applicableCategories}
+                    onSelect={(items) => {
+                      setApplicableCategories(items)
+                    }}
+                    searchable={true}
+                    searchPlaceholder='Search with slug'
+                    className='border-neutral-300'
+                    options={categoryList?.map(category => 
+                      ({value: category?.slug, label: category?.name})
+                    )}
+                  />
+                </div>
 
-            {/* applicable products */}
-            <div className='flex flex-col w-full  overflow-visible'>
-              <label>Applicable Products</label>
-              <MultiSelectCheck
-                values={data?.applicableProducts}
-                onSelect={(items) => {
-                  setApplicableProducts(items)
-                }}
-                searchable={true}
-                searchPlaceholder='Search with sku'
-                className='border-neutral-300'
-                options={productList?.flatMap(product =>{
-                  const list = []
-                  if(product?.variants?.length){
-                    product?.variants?.forEach(p => 
-                      list.push({value: p?.sku, label: `${p?.sku} | ${product?.name}`})
-                    )
-                  }else{
-                    list.push({value: product?.sku, label: `${product?.sku} | ${product?.name}`})
-                  }
-                  return list
-                })}
-              />
+                {/* applicable products */}
+                <div className={clsx('flex flex-col w-full overflow-visible',
+                  offerType?.value === 'category' && 'pointer-events-none text-gray-300'
+                )}>
+                  <label>Applicable Products</label>
+                  <MultiSelectCheck
+                    values={data?.applicableProducts}
+                    onSelect={(items) => {
+                      setApplicableProducts(items)
+                    }}
+                    searchable={true}
+                    searchPlaceholder='Search with sku'
+                    className={clsx('border-neutral-300', offerType?.value === 'category' && 'bg-gray-100')}
+                    options={productList?.flatMap(product =>{
+                      const list = []
+                      if(product?.variants?.length){
+                        product?.variants?.forEach(p => 
+                          list.push({value: p?.sku, label: `${p?.sku} | ${product?.name}`})
+                        )
+                      }else{
+                        list.push({value: product?.sku, label: `${product?.sku} | ${product?.name}`})
+                      }
+                      return list
+                    })}
+                  />
+                </div>
+              </>
+            }
+
+            {/* detal */}
+            <div className='flex flex-col w-full col-span-2'>
+              <label className="flex mandatory">Detail</label>
+              <input type="text" name='detail' value={data?.detail ?? ''} 
+                onChange={handleChange}
+                spellCheck={false}
+                placeholder='Enter a clean short description'/>
             </div>
 
             {/* status */}

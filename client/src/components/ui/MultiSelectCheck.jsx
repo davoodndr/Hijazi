@@ -27,7 +27,7 @@ function MultiSelectCheckComponent({
   /* handles expanded */
   useEffect(() => {
     setSelected(values)
-  },[values])
+  },[])
 
   /* handle click outside */
   useEffect(() => {
@@ -100,7 +100,9 @@ function MultiSelectCheckComponent({
 
   /* select export */
   useEffect(() => {
-    onSelect(selected)
+    if (typeof onSelect === 'function') {
+      onSelect(selected);
+    }
   },[selected])
 
   return (

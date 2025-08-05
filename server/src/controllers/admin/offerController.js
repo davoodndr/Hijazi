@@ -43,12 +43,12 @@ const validateAmounts = (data) => {
 export const addOffer = async(req, res) => {
   
 
-  const { title, type, couponCode, discountType, discountValue, 
+  const { title, type, detail, couponCode, discountType, discountValue, 
     startDate, minPurchase, maxDiscount, usageLimit, usagePerUser } = req.body;
 
   try {
 
-    if(!title || !type || !discountType || !discountValue || !startDate){
+    if(!title || !type || !detail || !discountType || !discountValue || !startDate){
       return responseMessage(res, 400, false, "Please fill all mandatory fields!");
     }
 
@@ -112,12 +112,12 @@ export const changeOfferStatus = async(req, res) => {
 // update offer
 export const updateOffer = async(req, res) => {
 
-  const { offer_id, title, type, couponCode, discountType, discountValue, 
+  const { offer_id, title, type, detail, couponCode, discountType, discountValue, 
     startDate, minPurchase, maxDiscount, usageLimit, usagePerUser} = req.body;
 
   try {
 
-    if(!title || !type || !discountType || !discountValue || !startDate){
+    if(!title || !type || !detail || !discountType || !discountValue || !startDate){
       return responseMessage(res, 400, false, "Please fill all mandatory fields!");
     }
 

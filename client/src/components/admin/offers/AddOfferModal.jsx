@@ -15,6 +15,7 @@ import CustomSelect from '../../ui/CustomSelect'
 import MyDatePicker from '../../ui/MyDatePicker';
 import MultiSelectCheck from '../../ui/MultiSelectCheck';
 import { useSelector } from 'react-redux';
+import clsx from 'clsx';
 
 function AddOfferModal({isOpen, onCreate, onClose}) {
 
@@ -25,10 +26,17 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
   const [discountType, setDicountType] = useState(null);
   const [applicableCategories, setApplicableCategories] = useState([]);
   const [applicableProducts, setApplicableProducts] = useState([]);
+
+  const offerTypes = [
+    {value: 'coupon', label: 'coupon'},
+    {value: 'product', label: 'product'},
+    {value: 'category', label: 'category'},
+    {value: 'cart', label: 'cart'},
+  ]
     
   /* data input handling */
   const [data, setData] = useState({
-    title: "", type: "", couponCode: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
+    title: "", type: "", detail:"", couponCode: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
     startDate: "", endDate: "", usageLimit: "", usagePerUser: "", active:true 
   });
 
@@ -92,7 +100,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    const isValid = isValidDatas(['title','startDate','discountType','discountValue'], data)
+    const isValid = isValidDatas(['title','startDate','discountType','discountValue', 'detail'], data)
     const isValidAmounts = validateAmounts();
 
     if(isValid && isValidAmounts){
@@ -124,7 +132,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
 
           AxiosToast(response, false);
           setData({
-            title: "", type: "", couponCode: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
+            title: "", type: "", detail: "", couponCode: "", discountType:"", discountValue:"", minPurchase: "", maxDiscount: "",
             startDate: "", endDate: "", usageLimit: "", usagePerUser: "", active:true 
           })
           setDicountType(null)
@@ -189,10 +197,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
                 <CustomSelect
                   value={offerType}
                   onChange={handleChangeOfferType}
-                  options={[
-                    {value: 'offer', label: 'offer'},
-                    {value: 'coupon', label: 'coupon'},
-                  ]} 
+                  options={offerTypes} 
                 />
               </div>
 
@@ -299,43 +304,58 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
             </div>
 
             {/* applicable categories */}
-            <div className='flex flex-col w-full  overflow-visible'>
-              <label>Applicable Categories</label>
-              <MultiSelectCheck
-                onSelect={(items) => {
-                  setApplicableCategories(items)
-                }}
-                searchable={true}
-                searchPlaceholder='Search with slug'
-                className='border-neutral-300'
-                options={categoryList?.map(category => 
-                  ({value: category?.slug, label: category?.name})
-                )}
-              />
-            </div>
+            {offerType?.value !== 'cart' &&
+              <>
+                <div className='flex flex-col w-full  overflow-visible'>
+                  <label>Applicable Categories</label>
+                  <MultiSelectCheck
+                    onSelect={(items) => {
+                      setApplicableCategories(items)
+                    }}
+                    searchable={true}
+                    searchPlaceholder='Search with slug'
+                    className='border-neutral-300'
+                    options={categoryList?.map(category => 
+                      ({value: category?.slug, label: category?.name})
+                    )}
+                  />
+                </div>
 
-            {/* applicable products */}
-            <div className='flex flex-col w-full  overflow-visible'>
-              <label>Applicable Products</label>
-              <MultiSelectCheck
-                onSelect={(items) => {
-                  setApplicableProducts(items)
-                }}
-                searchable={true}
-                searchPlaceholder='Search with sku'
-                className='border-neutral-300'
-                options={productList?.flatMap(product =>{
-                  const list = []
-                  if(product?.variants?.length){
-                    product?.variants?.forEach(p => 
-                      list.push({value: p?.sku, label: `${p?.sku} | ${product?.name}`})
-                    )
-                  }else{
-                    list.push({value: product?.sku, label: `${product?.sku} | ${product?.name}`})
-                  }
-                  return list
-                })}
-              />
+                {/* applicable products */}
+                <div className={clsx('flex flex-col w-full overflow-visible',
+                  offerType?.value === 'category' && 'pointer-events-none text-gray-300'
+                )}>
+                  <label>Applicable Products</label>
+                  <MultiSelectCheck
+                    onSelect={(items) => {
+                      setApplicableProducts(items)
+                    }}
+                    searchable={true}
+                    searchPlaceholder='Search with sku'
+                    className={clsx('border-neutral-300', offerType?.value === 'category' && 'bg-gray-100')}
+                    options={productList?.flatMap(product =>{
+                      const list = []
+                      if(product?.variants?.length){
+                        product?.variants?.forEach(p => 
+                          list.push({value: p?.sku, label: `${p?.sku} | ${product?.name}`})
+                        )
+                      }else{
+                        list.push({value: product?.sku, label: `${product?.sku} | ${product?.name}`})
+                      }
+                      return list
+                    })}
+                  />
+                </div>
+              </>
+            }
+
+            {/* detal */}
+            <div className='flex flex-col w-full col-span-2'>
+              <label className="flex mandatory">Detail</label>
+              <input type="text" name='detail' value={data?.detail} 
+                onChange={handleChange}
+                spellCheck={false}
+                placeholder='Enter a clean short description'/>
             </div>
 
             {/* status */}

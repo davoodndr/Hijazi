@@ -73,7 +73,7 @@ function Addresses() {
                     <div className='px-1.5 py-0.5 inline-flex items-center space-x-1 
                       bg-primary-300 rounded-xl rounded-t-none text-white'>
                       <span className='text-xs'>Default</span>
-                      <FaCircleCheck className='text-md' />
+                      <FaCircleCheck className='text-xs' />
                     </div>
                   </div>
                 }

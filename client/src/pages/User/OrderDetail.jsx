@@ -7,7 +7,7 @@ import { IoDocumentTextOutline } from "react-icons/io5";
 import { MdOutlineCall } from "react-icons/md";
 import { TbCancel } from "react-icons/tb";
 import { IoMdArrowRoundForward } from "react-icons/io";
-import { useLocation, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { format } from 'date-fns';
 import { useSelector } from 'react-redux';
 import clsx from 'clsx';
@@ -244,9 +244,7 @@ function OrderDetail() {
                   )}
                   {appliedCoupon && (
                     <CouponCardMedium coupon={appliedCoupon} />
-                  )}
-                  {console.log(appliedOffer)}
-                  
+                  )}                  
                   {!appliedCoupon && !appliedOffer && (
                     <span className="text-gray-400">No offers applied</span>
                   )}
@@ -270,10 +268,10 @@ function OrderDetail() {
                   </span>
                   <p className='font-bold'>{order?.billingAddress.name}</p>
                 </div>
-                <span className='border border-gray-300 rounded-lg p-0.5 smooth
+                <Link to='/dashboard/profile' className='border border-gray-300 rounded-lg p-0.5 smooth
                   hover:scale-105 hover:shadow-md cursor-pointer'>
                   <LuArrowUpRight className='text-lg' />
-                </span>
+                </Link>
               </div>
 
               {/* orders link */}
@@ -284,10 +282,10 @@ function OrderDetail() {
                   </span>
                   <p className='font-bold'>{ordersList?.length} Orders</p>
                 </div>
-                <span className='border border-gray-300 rounded-lg p-0.5 smooth
+                <Link to='/dashboard/orders' className='border border-gray-300 rounded-lg p-0.5 smooth
                   hover:scale-105 hover:shadow-md cursor-pointer'>
                   <LuArrowUpRight className='text-lg' />
-                </span>
+                </Link>
               </div>
 
               {/* contact info */}

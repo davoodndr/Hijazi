@@ -462,8 +462,11 @@ const OffersList = () => {
                           <div>
                             <p className="text-sm font-semibold capitalize">{offer?.title}</p>
                             <p className="text-xs text-gray-500 capitalize">
-                              <span>{offer?.type}</span>
-                              {offer?.type === 'coupon' && <span> | {offer?.couponCode}</span>}
+                              {offer?.type === 'coupon' ? 
+                                (<span>{offer?.type} | {offer?.couponCode}</span>)
+                                :
+                                (<span>Offer | {offer?.type} level</span>)
+                              }
                             </p>
                           </div>
 

@@ -14,7 +14,7 @@ import { addToList, syncWishlistItem } from '../../store/slices/WishlistSlice';
 import { useLocation, useNavigate } from 'react-router';
 import ProductCardBadge from './ProductCardBadge';
 import clsx from 'clsx';
-import { filterDiscountOffers } from '../../utils/Utils';
+import { filterDiscountOffers, findBestOffer } from '../../utils/Utils';
 
 function ProducCardMedComponent({product, onClick}) {
 
@@ -52,39 +52,13 @@ function ProducCardMedComponent({product, onClick}) {
     const offs = filterDiscountOffers(product?.offers, product, activeVariant);
     
     const best = findBestOffer(offs, price);
-    const newPrice = price - best.value;
+    const newPrice = price > best?.value ? price - best?.value : 0;
 
     setBestOffer(best);
     setOfferPrice(newPrice)
 
   },[product, activeVariant])
 
-
-  /* find best offer */
-  const findBestOffer = (offers, price) => {
-    if (!offers?.length || !price) return 0;
-
-    const getDiscountAmount = (offer) => {
-      if (offer.discountType === 'percentage') {
-        const calculated = price * (offer.discountValue / 100);
-        return offer.maxDiscount ? Math.min(calculated, offer.maxDiscount) : calculated;
-      }
-      return offer.discountValue || 0;
-    };
-
-    return offers.reduce((best, current) => {
-      const currentValue = getDiscountAmount(current);
-      
-      if(currentValue > best.discount){
-        return {
-          discount: current.discountValue,
-          value: currentValue,
-          type: current.discountType
-        }
-      }
-      return best
-    }, {discount: 0, value: 0, type: null});
-  }
 
   const handleAddToCart = async(e) => {
     e.stopPropagation();

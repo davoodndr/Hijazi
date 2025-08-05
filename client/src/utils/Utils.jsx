@@ -263,12 +263,14 @@ export const utcDate = (localDate) => {
 export const filterDiscountOffers = (offersList, product, activeVariant) => {
   const price = (activeVariant?.price || product?.price);
   return offersList?.filter(el => {
-      const isGeneralOffer = !el?.applicableCategories?.length && !el?.applicableProducts?.length;
-      const isCategoryMatch = el?.applicableCategories?.includes(product?.category?.slug);
-      const isProductMatch = el?.applicableProducts?.includes(product?.sku || activeVariant?.sku);
-      const meetsMinPurchase = price >= el?.minPurchase;
+    const isGeneralOffer = !el?.applicableCategories?.length && !el?.applicableProducts?.length;
+    const isCategoryMatch = el?.applicableCategories?.some(slug =>
+      slug === product?.category?.slug || slug === product?.category?.parentId?.slug
+    );
+    const isProductMatch = el?.applicableProducts?.some(sku => sku === product?.sku || sku === activeVariant?.sku);
+    const meetsMinPurchase = price >= el?.minPurchase;
 
-      if(el?.type === 'offer'){
+      if(el?.type !== 'coupon'){
         return (isGeneralOffer && meetsMinPurchase) || isCategoryMatch || isProductMatch;
       }
 

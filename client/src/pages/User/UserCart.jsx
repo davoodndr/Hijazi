@@ -55,6 +55,7 @@ function UserCart(){
       dispatch(addToCart({item: newitem, type:'update'}))
       toast.success("Item removed from cart",{position: 'top-center'})
     }
+    //calculateOfferDiscount();
   }
 
   // handle remove cart item
@@ -86,7 +87,7 @@ function UserCart(){
     const availableCoupons = offersList?.filter(off => 
       off?.type === 'coupon' &&  off?.minPurchase <= cartSubTotal  
     );
-    const offs = offersList?.filter(el => el?.type === 'offer');
+    const offs = offersList?.filter(el => el?.type !== 'coupon');
     
     setCoupons(availableCoupons)
     setOffers(offs);
@@ -167,6 +168,11 @@ function UserCart(){
   // add offer to total discount | poition strict
   useEffect(() => {
 
+    calculateOfferDiscount()
+    
+  },[items, offers]);
+
+  const calculateOfferDiscount = () => {
     if(!items?.length){
       setDiscount(0);
       setGrandTotal(0);
@@ -194,7 +200,7 @@ function UserCart(){
     setDiscount(prev => prev += offerDiscount);
     setGrandTotal(prev => prev -= offerDiscount)
     setActiveOffer(bestOffer)
-  },[items, offers])
+  }
 
   /* handle press checkout */
   const handleCheckout = () => {
