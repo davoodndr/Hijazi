@@ -285,6 +285,24 @@ export const removeFromCartAction = async(item) => {
 
 }
 
+export const emptyCartAction = async() => {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.clearCart
+    })
+
+    return response.data
+
+  } catch (error) {
+
+    console.log(error)
+    throw new Error(error?.response?.data?.message);
+  }
+
+}
+
 //wishlsit
 export const addToWishlistAction = async(item) => {
 

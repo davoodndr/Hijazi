@@ -451,11 +451,11 @@ function ProductListingComponent() {
 
             (<li className='grid grid-cols-4 gap-6 h-fit'>
               {Array(4).fill(null).map((_, i) => 
-                <ProductCardMed key={i} index={i} product={{
+                {/* <ProductCardMed key={i} index={i} product={{
                   category: {name:'Loading..'},
                   name: 'Loading..',
                   images: []
-                }} />
+                }} /> */}
               )}
             </li>)
             :
@@ -465,10 +465,8 @@ function ProductListingComponent() {
                 <ProductCardMed 
                     key={product?._id} 
                     index={i} 
-                    product={{
-                      ...product,
-                      offers
-                    }}
+                    product={product}
+                    offers={offers}
                     onClick={() => handleSingleProductClick(product)}
                   />
               )}

@@ -119,25 +119,6 @@ export const addToCart = async(req, res) => {
       cart = await cart.save();
     }
 
-    /* const itemIndex = cart.items.findIndex(item => 
-        item.product_id.toString() === product_id && 
-        ((item?.variant_id?.toString() === variant_id) || (!item?.variant_id && !variant_id)) 
-      )
-    const item = cart.items[itemIndex];
-
-    const itemData = {
-      id: item?.variant_id || product._id,
-      name:product.name,
-      category: product?.category?.name,
-      sku: variant?.sku || product.sku,
-      price: variant?.price || product.price,
-      stock: variant?.stock || product.stock,
-      quantity: item.quantity,
-      image: variant?.image || product?.images[0],
-      attributes: item.attributes,
-      product_id: item.product_id
-    } */
-
     const items = await Promise.all(cart?.items?.map(async item => {
       const product = await Product.findById(item?.product_id)
         .populate({path: 'category', select: 'name'});
@@ -222,6 +203,26 @@ export const removeFromCart = async(req, res) => {
     
   } catch (error) {
     console.log('removeFromCart',error)
+    return responseMessage(res, 500, false, error.message || error)
+  }
+}
+
+// clear cart
+export const emptyCart = async(req, res) => {
+
+  const { user_id } = req;
+
+  try {
+
+    await Cart.findOneAndUpdate(
+      {user_id},
+      {$set: {items: []}}
+    )
+
+    return responseMessage(res, 200, true, "Cart cleared successfully")
+    
+  } catch (error) {
+    console.log('emptyCart',error)
     return responseMessage(res, 500, false, error.message || error)
   }
 }

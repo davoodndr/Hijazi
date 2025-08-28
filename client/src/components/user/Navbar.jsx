@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import { BsBag } from "react-icons/bs";
 import { BiUser } from "react-icons/bi";
 import { BsHeart } from "react-icons/bs";
@@ -19,6 +19,7 @@ import toast from 'react-hot-toast';
 
 function NavbarComponent(){
 
+  const location = useLocation();
   let { user } = useSelector(state => state.user);
   let cartCount = useSelector(getCartCount);
   let wishlistCount = useSelector(getWishlistCount);
@@ -35,6 +36,7 @@ function NavbarComponent(){
   const setMobMenuExpand = useCallback((expand) => {
     setIsExpanded(expand);
   }, [isExpaned])
+
 
   return (
     <header className="flex flex-col sticky top-0 bg-white z-1000 shadow-sm">
@@ -118,13 +120,14 @@ function NavbarComponent(){
                     <span>Bag</span>
                     <div className={clsx(
                       'menu-indicator h-[3px] w-full bg-primary-300 z-10',
-                      cartCount > 0 && 'group-hover:!visible group-hover:!opacity-100 group-hover:!transform translate-y-0'
+                      cartCount > 0 && !location.pathname.match('cart') &&
+                       'group-hover:!visible group-hover:!opacity-100 group-hover:!transform translate-y-0'
                     )}></div>
                   </div>
                 </div>
                 
                 {/* cart dropdown */}
-                {cartCount > 0 && 
+                {cartCount > 0 && !location.pathname.match('cart') &&
                   <CartDropdown 
                     className='group-hover:!visible group-hover:!opacity-100 group-hover:!transform translate-y-0'
                   />

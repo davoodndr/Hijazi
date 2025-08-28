@@ -3,7 +3,7 @@ import { allowRoles, authenticate } from '../middleware/authMiddleware.js';
 import { getCategories } from '../controllers/user/categoryController.js';
 import { getBrands } from '../controllers/user/brandController.js';
 import { getProduct, getProductList, getRelatedItems } from '../controllers/user/productController.js';
-import { addToCart, getCart, removeFromCart } from '../controllers/user/cartController.js';
+import { addToCart, emptyCart, getCart, removeFromCart } from '../controllers/user/cartController.js';
 import { addToWishlist, getWishlist, removeFromWishlist } from '../controllers/user/wishlistController.js';
 import { createRazorpayOrder, generatePaymentLink, verifyRazorpay } from '../controllers/user/paymentController.js';
 import { addNewAddress, getAddressList, makeAddressDefault } from '../controllers/user/addressController.js';
@@ -29,6 +29,8 @@ userRouter.get('/get-related-items', getRelatedItems)
 userRouter.get('/get-cart', authenticate, allowRoles(['user']), getCart);
 userRouter.post('/add-to-cart', authenticate, allowRoles(['user']), addToCart);
 userRouter.patch('/remove-from-cart', authenticate, allowRoles(['user']), removeFromCart);
+/* not used this till yet */
+userRouter.put('/clear-cart', authenticate, allowRoles(['user']), emptyCart);
 
 /* wishlist management */
 userRouter.get('/get-wishlist', authenticate, allowRoles(['user']), getWishlist);

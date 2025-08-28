@@ -5,7 +5,7 @@ import { addToWishlistAction, removeFromWishlistAction } from "../../services/Ap
 
 export const fetchWishlist = createAsyncThunk(
   'whislist/fetchList',
-  async({rejectWithValue}) => 
+  async(_,{rejectWithValue}) => 
     await getWishlist()
     .then(res => res)
     .catch(err => rejectWithValue(err.message || 'Failed to fetch wishlist'))

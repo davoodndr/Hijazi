@@ -12,26 +12,19 @@ function Wishlist() {
   const dispatch = useDispatch();
 
   const handleAddToCart = async(item) => {
-    /* {
-                        dispatch(addToCart({
-                          id: item.id,
-                          name:item.name,
-                          category:item.category,
-                          sku:item.sku,
-                          price:item.price,
-                          quantity: item.quantity,
-                          image:item.image,
-                          attributes:item.attributes,
-                          variant_id: item.variant_id
-                        }))
-                        
-                      } */
+
+    if(item.stock <= 0) {
+      toast.error("Out of Stock!",{position: 'top-center'});
+      return
+    }
+
     const newitem = {
       id: item.id,
       name:item.name,
       category:item.category,
       sku:item.sku,
       price:item.price,
+      stock: item.stock,
       quantity: 1,
       image:item.image,
       attributes:item.attributes,
@@ -126,10 +119,13 @@ function Wishlist() {
                   </div>
                   <span className='price-before !text-base font-bold'>{item.price}</span>
                   <div className='flex items-center'>
-                    {item.stock < 5 ?
-                      <span className='text-red-400'>Only few left!</span>
+                    {item.stock > 5 ?
+                      (<span className='text-primary-400'>In stock</span>)
                       :
-                      <span className='text-primary-400'>In stock</span>
+                      item.stock <= 0 ?
+                      <span className='text-red-500'>Out of Stock!</span>
+                      :
+                      <span className='text-orange-500'>Only few left!</span>
                     }
                   </div>
 

@@ -1,6 +1,10 @@
 import Counter from "../../models/Counter.js";
 import Order from "../../models/Order.js";
+import Product from "../../models/Product.js";
+import Offer from "../../models/Offer.js";
 import { responseMessage } from "../../utils/messages.js"
+import mongoose from "mongoose";
+import Cart from "../../models/Cart.js";
 
 
 // get orders list
@@ -22,12 +26,20 @@ export const getOrders = async(req, res) => {
 }
 
 // place new order
+/* ************ dont trust on front end calculations, need to recalculate ******** */
 export const placeOrder = async(req, res) => {
 
   const { user_id } = req;
-  
+  const { cartItems, appliedCoupon, cartOffer } = req.body;
+  const session = await mongoose.startSession();
+
+  session.startTransaction();
 
   try {
+
+    if(!user_id){
+      return responseMessage(res, 400, false, "Invalid user");
+    }
 
     const validate = validateOrder(req.body);
     if(validate){
@@ -36,17 +48,107 @@ export const placeOrder = async(req, res) => {
 
     const order_no = await getNextOrderNumber();
 
-    const order = await Order.create({
+    /* updates stocks */
+    const updatedItems = await Promise.all(cartItems?.map(async item => {
+      let p = await Product.findById(item?.product_id);
+      if(p){
+        p.variants = p.variants.map(el => {
+          if(el._id.toString() === item?.variant_id){
+            return {
+              ...el,
+              stock: el?.stock > 0 ? el.stock - item.quantity : 0
+            }
+          }else{
+            return el
+          }
+        });
+        await p.save();
+      }
+      if(item?.appliedOffer){
+        const off = await Offer.findById(item?.appliedOffer?._id);
+        return {
+          ...item,
+          appliedOffer: {
+            ...(off).toObject(),
+            appliedAmount: item?.appliedOffer?.appliedAmount
+          }
+        }
+      }
+      return item
+    }))
+
+    /* update coupon */
+    let coupon;
+    if(appliedCoupon){
+      coupon = await Offer.findById(appliedCoupon._id);
+      if(coupon){
+
+        const used = coupon.usedBy?.find(el => el.user === user_id);
+
+        coupon = {
+          ...(coupon.toObject()),
+          usageCount: coupon.usageCount + 1,
+          usedBy: [...coupon.usedBy, {
+            user: user_id,
+            count: used ? used?.count + 1 : 1
+          }]
+        }
+        await Offer.findByIdAndUpdate(appliedCoupon._id, coupon)
+      }
+    }
+
+    /* update offer */
+    let off;
+    if(cartOffer){
+      off = await Offer.findById(cartOffer._id);
+      if(off){
+
+        const used = off.usedBy?.find(el => el.user === user_id);
+
+        off = {
+          ...(off.toObject()),
+          usageCount: off.usageCount + 1,
+          usedBy: [...off.usedBy, {
+            user: user_id,
+            count: used ? used?.count + 1 : 1
+          }]
+        }
+        await Offer.findByIdAndUpdate(cartOffer._id, off)
+      }
+    }
+
+    let order = await Order.create({
       user_id,
       order_no,
       ...req.body
     });
 
+    order = order.toObject();
+    order.cartItems = updatedItems;
+    if(off) order.cartOffer = {
+      ...off,
+      ...cartOffer
+    }
+    if(coupon) order.appliedCoupon = {
+      ...coupon,
+      ...appliedCoupon
+    }
+
+    await Cart.findOneAndUpdate(
+      {user_id},
+      {$set: {items: []}},
+      {new: true}
+    )
+
+    await session.commitTransaction();
     return responseMessage(res, 201, true, "Order placed successfully", {order})
     
   } catch (error) {
     console.log('placeOrder',error)
+    await session.abortTransaction();
     return responseMessage(res, 500, false, error.message || error)
+  }finally{
+    session.endSession();
   }
 }
 

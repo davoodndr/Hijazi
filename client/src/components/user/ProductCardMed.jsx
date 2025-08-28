@@ -16,7 +16,7 @@ import ProductCardBadge from './ProductCardBadge';
 import clsx from 'clsx';
 import { filterDiscountOffers, findBestOffer } from '../../utils/Utils';
 
-function ProducCardMedComponent({product, onClick}) {
+function ProducCardMedComponent({product, offers = [], onClick}) {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -26,6 +26,8 @@ function ProducCardMedComponent({product, onClick}) {
   const [activeVariant, setActiveVariant] = useState(null);
   const [offerPrice, setOfferPrice] = useState(0);
   const [bestOffer, setBestOffer] = useState(null);
+  const [activeOffer, setActiveOffer] = useState(null);
+  const [stock, setStock] = useState(0);
 
   /* initialize product */
   useEffect(()=> {
@@ -48,27 +50,41 @@ function ProducCardMedComponent({product, onClick}) {
 
   /* initialize offers */
   useEffect(() => {
-    const price = (activeVariant?.price || product?.price);
-    const offs = filterDiscountOffers(product?.offers, product, activeVariant);
     
-    const best = findBestOffer(offs, price);
-    const newPrice = price > best?.value ? price - best?.value : 0;
+    const offs = filterDiscountOffers(offers, product, activeVariant);
+    const actualPrice = activeVariant?.price || product?.price
+    
+    const best = findBestOffer(offs, actualPrice);
+    
+    const newPrice = actualPrice > best?.value ? actualPrice - best?.value : 0;
+    if(actualPrice < best?.value) {
+      const aOffer = offers?.find(el => el?._id === best?.id);
+      setActiveOffer(aOffer);
+    }
+
+    setStock(product?.stock || activeVariant?.stock);
 
     setBestOffer(best);
-    setOfferPrice(newPrice)
+    setOfferPrice(newPrice);
 
   },[product, activeVariant])
 
 
   const handleAddToCart = async(e) => {
     e.stopPropagation();
+
+    if(stock <= 0){
+      toast.error("Out of stock",{position: 'top-center'});
+      return
+    }
+
     const newitem = {
       id: activeVariant?._id || product._id,
       name:product.name,
       category:product.category.name,
       sku:activeVariant?.sku || product?.sku,
       price:activeVariant?.price || product?.price,
-      stock: activeVariant?.stock || product?.stock,
+      stock,
       quantity: 1,
       image:activeVariant?.image || product?.images[0],
       attributes:activeVariant?.attributes,
@@ -165,30 +181,47 @@ function ProducCardMedComponent({product, onClick}) {
                 price-before:!text-[13px] !items-start leading-4.5'>
                   {offerPrice ? offerPrice : (activeVariant?.price || product?.price)}
                 </span>
-              {offerPrice > 0 &&
+              {offerPrice > 0 ?
                 <>
                   <span className="old-price price-before line-through">
                     {activeVariant?.price || product?.price}
                   </span>
                   <p className='text-xs text-red-400'>(
                     <span className={clsx('mr-1',
-                      bestOffer?.type === 'percentage' ? 
+                      bestOffer?.discountType === 'percentage' ? 
                         'content-after content-after:content-["%"] content-after:text-red-400' 
                         : 'content-before content-before:text-red-400 content-before:text-[11px]'
                     )}>
-                      {bestOffer.discount}
+                      {bestOffer?.discount}
                     </span>
                     OFF)
                   </p>
                 </>
+                :
+                activeOffer  && 
+                (<p className='text-xs text-red-400'>
+                  <span className={clsx('mr-1',
+                    activeOffer?.type === 'percentage' ? 
+                      'content-after content-after:content-["%"] content-after:text-red-400' 
+                      : 'content-before content-before:text-red-400 content-before:text-[11px]'
+                  )}>
+                    {activeOffer?.discountValue}
+                  </span>
+                  OFF above
+                  <span className='ml-1 content-before content-before:text-red-400 content-before:text-[11px]'>
+                    {activeOffer?.minPurchase}
+                  </span>
+                </p>)
               }
             </div>
             
           </div>
           <p className={clsx('text-[12.5px] font-bold pt-2',
-            (product?.stock || activeVariant?.stock) < 5 ? 'text-orange-500' : 'text-green-600'
+            stock > 5 ? 'text-green-600' 
+            : stock <= 0 ? 'text-red-500' : 'text-orange-500'
           )}>
-            {(product?.stock || activeVariant?.stock) < 5 ? 'Only few left!' : 'In Stock'}
+            {stock > 5 ? 'In Stock' 
+            : stock <= 0 ? 'Out of Stock' : 'Only few left!'}
           </p>
           
           {/* buttons - add to cart, add to wishlist */}

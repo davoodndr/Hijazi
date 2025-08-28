@@ -20,16 +20,13 @@ function OrderDetail() {
   const navigate = useNavigate();
   const { order:currentOrder } = location.state;
   const [order, setOrder] = useState(currentOrder);
-  //const { offersList } = useSelector(state => state.offers);
-  //const [appliedCoupon, setAppliedCoupon] = useState(null);
   const { ordersList } = useSelector(state => state.orders);
   const formattedDate = format(new Date(order?.paidAt || order?.createdAt), "dd.MM.yyyy 'at' hh.mm a")
   const isPaid = order?.isPaid ? 'paid' : 'unpaid';
   const isDelivered = order?.isDelivered ? 'delivered' : 'not delivered';
   const itemsCount = order?.cartItems?.reduce((total, item) => total + item?.quantity, 0)
   const appliedCoupon = order?.appliedCoupon;
-  const appliedOffer = order?.appliedOffer;
-
+  const appliedOffers = [...order?.cartItems, order?.cartOffer].map(item => item?.appliedOffer).filter(Boolean)
 
   return (
     <section className='flex-grow w-full flex flex-col items-center py-15 bg-primary-25'>
@@ -139,7 +136,7 @@ function OrderDetail() {
                       </div>
                       <div className='flex flex-col justify-center'>
                         <div>
-                          <p className='uppercase text-xs text-gray-400/80 mb-1'>{item.category}</p>
+                          <p className='uppercase text-xs text-gray-400/80 mb-1'>{item.category.name}</p>
                           <h3 className='capitalize mb-1.5'>{item.name}</h3>
                         </div>
                         <ul className='flex space-x-2'>
@@ -219,33 +216,35 @@ function OrderDetail() {
                 <div className="flex items-center justify-between border 
                   border-gray-300 rounded-2xl p-4 space-x-5">
                   
-                  {appliedOffer && (
-                    <div className='
-                      inline-flex p-0.5 relative h-full w-full'
-                    >
-                      <div className="absolute rounded-xl border-4 border-dotted border-amber-300 inset-0"></div>
-                      <div className="flex flex-col leading-5 bg-amber-300 rounded-xl p-2 h-full w-full
-                        items-center justify-center"
+                  {appliedOffers?.length > 0 && 
+                    appliedOffers.map(offer => (
+                      <div key={offer?._id} className='
+                        inline-flex p-0.5 relative h-full w-full'
                       >
-                        <span className='font-bold text-xs text-black'>{appliedOffer?.title}</span>
-                        <p className='text-[11px]'>On order above
-                          <span className='content-before ml-1'
-                          >{appliedOffer?.minPurchase}</span>
-                        </p>
-                        {appliedOffer?.endDate &&
-                          <p className='text-[10px] font-bold text-amber-700'>Offer ends on  
-                            <span className='ml-1'>
-                              {format(new Date(appliedOffer?.endDate), 'dd-MM-yyyy')}
-                            </span>
+                        <div className="absolute rounded-xl border-4 border-dotted border-amber-300 inset-0"></div>
+                        <div className="flex flex-col leading-5 bg-amber-300 rounded-xl p-2 h-full w-full
+                          items-center justify-center"
+                        >
+                          <span className='font-bold text-xs text-black'>{offer?.title}</span>
+                          <p className='text-[11px]'>On order above
+                            <span className='content-before ml-1'
+                            >{offer?.minPurchase}</span>
                           </p>
-                        }
+                          {offer?.endDate &&
+                            <p className='text-[10px] font-bold text-amber-700'>Offer ends on  
+                              <span className='ml-1'>
+                                {format(new Date(offer?.endDate), 'dd-MM-yyyy')}
+                              </span>
+                            </p>
+                          }
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    ))
+                  }
                   {appliedCoupon && (
                     <CouponCardMedium coupon={appliedCoupon} />
                   )}                  
-                  {!appliedCoupon && !appliedOffer && (
+                  {!appliedCoupon && !cartOffer && (
                     <span className="text-gray-400">No offers applied</span>
                   )}
                 </div>

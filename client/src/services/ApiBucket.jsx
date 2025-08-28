@@ -210,6 +210,10 @@ const ApiBucket = {
     url: '/api/user/remove-from-cart',
     method: 'patch'
   },
+  clearCart: {
+    url: '/api/user/clear-cart',
+    method: 'put'
+  },
 
   /* wishlist */
   getWishlist: {

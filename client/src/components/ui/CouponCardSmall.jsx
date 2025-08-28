@@ -6,6 +6,7 @@ function CouponCardSmall({
   className = "",
   containerClass = ""
 }) {
+
   return (
     <div className={`flex items-center space-x-2 overflow-hidden ${className}`}>
       <div className={`min-w-30 inline-flex flex-col items-center bg-pink-500 
@@ -24,7 +25,7 @@ function CouponCardSmall({
           >{coupon?.discountValue}</span>
           <span className='inline-flex'>OFF</span>
         </div>
-        {coupon?.discountType === 'percentage' ? 
+        {coupon?.discountType === 'percentage' && coupon?.maxDiscount > 0 ? 
           <p className='text-gray-200 text-xs leading-1.5'>Up to
             <span className='ms-1 content-before content-before:content-["₹"]
             content-before:text-white content-before:text-[11px]'>
@@ -32,8 +33,11 @@ function CouponCardSmall({
             </span>
           </p>
           :
-          <span className='text-gray-200 text-xs leading-1.5'>
-            On {coupon?.usageLimit > 1 ? 'purchase' : 'first purchase'}
+          <span className='text-gray-100 text-xs leading-1.5'>
+            On {
+                coupon?.minPurchase ? `subtotal ₹${coupon?.minPurchase}` :
+                coupon?.usageLimit > 1 ? 'purchase' : 'first purchase'
+              }
           </span>
         }
       </div>

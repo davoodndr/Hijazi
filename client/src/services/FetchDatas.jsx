@@ -92,6 +92,7 @@ export const getProductList = async() => {
 
 /* cart */
 export const getCart = async() => {
+  
   try {
     
     const response = await Axios({
@@ -109,6 +110,7 @@ export const getCart = async() => {
 /* wishlist */
 export const getWishlist = async() => {
   try {
+    
     
     const response = await Axios({
       ...ApiBucket.getWishlist,

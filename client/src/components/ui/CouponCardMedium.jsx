@@ -34,17 +34,21 @@ function CouponCardMedium({
             <span className='text-pink-100'>OFF</span>
           </p>
           <div className={clsx('flex space-x-1 px-1 w-full text-center',
-            coupon?.discountType === 'percentage' && coupon?.minPurchase > 0 ? 'justify-between' : 'justify-center'
+            coupon?.discountType === 'percentage' && coupon?.minPurchase &&  coupon?.maxDiscount> 0 ? 
+            'justify-between' : 'justify-center'
           )}>
-            {coupon?.discountType === 'percentage' &&
+            {/* {console.log(coupon)} */}
+            {coupon?.maxDiscount && coupon?.discountType === 'percentage' &&
               <p className='text-[11px]'>
                 UP TO 
                 <span className='content-before:content-["₹"] font-bold ms-1'>{coupon?.maxDiscount}</span>
               </p>
-              }
-            {coupon?.minPurchase > 0 && <p className='text-[11px]'>
-              On - <span className='content-before content-before:text-white'>{coupon?.minPurchase}</span>
-            </p>}
+            }
+            {coupon?.minPurchase > 0 && 
+              <p className='text-[11px]'>
+                On - <span className='content-before content-before:text-white'>{coupon?.minPurchase}</span>
+              </p>
+            }
           </div>
           
         </div>

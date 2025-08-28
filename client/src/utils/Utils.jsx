@@ -261,7 +261,11 @@ export const utcDate = (localDate) => {
 }
 
 export const filterDiscountOffers = (offersList, product, activeVariant) => {
-  const price = (activeVariant?.price || product?.price);
+  const bestPrice = product?.variants?.reduce((max, cur) => 
+    max && max?.price > cur?.price ? max?.price : cur?.price, 0
+  )
+  const price = (bestPrice || activeVariant?.price || product?.price);
+
   return offersList?.filter(el => {
     const isGeneralOffer = !el?.applicableCategories?.length && !el?.applicableProducts?.length;
     const isCategoryMatch = el?.applicableCategories?.some(slug =>
@@ -271,53 +275,59 @@ export const filterDiscountOffers = (offersList, product, activeVariant) => {
     const meetsMinPurchase = price >= el?.minPurchase;
 
       if(el?.type !== 'coupon'){
+        //console.log(item?.name, isGeneralOffer, el?.applicableCategories)
         return (isGeneralOffer && meetsMinPurchase) || isCategoryMatch || isProductMatch;
       }
 
       return (isGeneralOffer || isCategoryMatch || isProductMatch) && meetsMinPurchase;
-    });
+  });
+}
+
+export const calculateDiscount = (item, price) => {
+  if (item?.discountType === 'percentage') {
+    const calculated = price * (item.discountValue / 100);
+    return item.maxDiscount ? Math.min(calculated, item.maxDiscount) : calculated;
+  }
+  return item?.discountValue || 0;
 }
 
 export  const findBestOffer = (offers, price) => {
     if (!offers?.length || !price) return null;
 
-    const getDiscountAmount = (offer) => {
-      if (offer.discountType === 'percentage') {
-        const calculated = price * (offer.discountValue / 100);
-        return offer.maxDiscount ? Math.min(calculated, offer.maxDiscount) : calculated;
-      }
-      return offer.discountValue || 0;
-    };
-
     return offers.reduce((best, current) => {
-      const currentValue = getDiscountAmount(current);
-      
+      const currentValue = calculateDiscount(current, price);
       if(currentValue > best.discount){
         return {
           discount: current.discountValue,
           value: currentValue,
-          type: current.discountType,
+          min: current?.minPurchase,
+          max: current?.maxDiscount,
+          endDate: current?.endDate,
+          type: current?.type,
+          discountType: current.discountType,
           title: current?.title,
           id: current._id
         }
       }
       return best
-    }, {id: null, discount: 0, value: 0, type: null, title: null});
+    }, {id: null,
+        discount: 0,
+        value: 0,
+        min: 0,
+        max: 0,
+        endDate: null,
+        type: null,
+        discountType: null,
+        title: null
+      }
+    );
 }
 
 export const findBestCouponValue = (coupons, price) => {
   if (!coupons?.length || !price) return 0;
 
-  const getDiscountAmount = (coupon) => {
-    if (coupon.discountType === 'percentage') {
-      const calculated = price * (coupon.discountValue / 100);
-      return coupon.maxDiscount ? Math.min(calculated, coupon.maxDiscount) : calculated;
-    }
-    return coupon.discountValue || 0;
-  };
-
   return coupons.reduce((max, current) => {
-    const currentValue = getDiscountAmount(current);
+    const currentValue = calculateDiscount(current, price);
     return currentValue > max ? currentValue : max;
   }, 0);
 }

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { getCartCount, getCartTax, getItemsTotal, setAppliedCoupon, 
-  setAppliedOffer, setCartTotal, setTotalDiscount } from '../../store/slices/CartSlice';
+import { clearCart, getCartCount, getCartTax, getItemsTotal, setAppliedCoupon } from '../../store/slices/CartSlice';
 import { IoWallet } from "react-icons/io5";
 import ToggleSwitch  from '../../components/ui/ToggleSwitch'
 import { CiDeliveryTruck } from 'react-icons/ci';
@@ -20,24 +19,30 @@ import { fetchAddresses } from '../../store/slices/AddressSlice';
 import { IoMdCall } from "react-icons/io";
 import { addToOrders } from '../../store/slices/OrderSlice';
 import { placeOrderAction, processRazorpayAction, verifyRazorpayAction } from '../../services/ApiActions';
+import { format } from 'date-fns'
 import clsx from 'clsx';
+import CouponCardMedium from '../../components/ui/CouponCardMedium';
 
 
 function Checkout() {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { items, couponDiscount, roundOff, 
-    cartTotal, appliedCoupon, appliedOffer } = useSelector(state => state.cart);
+  const { items, checkoutItems, appliedCoupon, appliedCartOffer } = useSelector(state => state.cart);
   const { addressList } = useSelector(state => state.address);
+  const { offersList } = useSelector(state => state.offers);
   const cartCount = useSelector(getCartCount);
   const subTotal = useSelector(getItemsTotal);
   const cartTax = useSelector(getCartTax);
   const [data, setData] = useState({
     payment_method: null, bill_address: null, ship_address: null
   });
-  const [grandTotal, setGrandTotal] = useState(0);
-  const [discounts, setDiscounts] = useState(couponDiscount);
+  const [appliedOffers, setAppliedOffers] = useState([]);
+  const [cartOffer, setCartOffer] = useState(null);
+  const [couponApplied, setCouponApplied] = useState(null);
+  const [discounts, setDiscounts] = useState(0);
+  const [cartTotal, setCartTotal] = useState(0);
+  const [roundOff, setRoundOff] = useState(0);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [addressType, setAddresType] = useState(null);
 
@@ -45,6 +50,52 @@ function Checkout() {
     dispatch(fetchAddresses())
     dispatch(setLoading(false))
   },[])
+
+  useEffect(() => {
+    /* checkout items are set on cart redirect, won't effect on state update */
+    const updatedItems = checkoutItems?.map(item => {
+      const off = offersList?.find(el => el?._id === item?.appliedOffer?.id);
+      
+      if(off){
+        return {
+          ...off,
+          appliedAmount: item?.appliedOffer?.value * item?.quantity
+        }
+      }
+    }).filter(Boolean);
+
+    /* filter for expired offer */
+    let cartOff = offersList?.find(el => el._id === appliedCartOffer?.id);
+    if(cartOff){
+      cartOff = {
+        ...cartOff,
+        appliedAmount: appliedCartOffer?.value
+      }
+    }
+    let coupon = offersList?.find(el => el._id === appliedCoupon?._id);
+    if(coupon){
+      coupon = {
+        ...coupon,
+        appliedAmount: appliedCoupon?.appliedAmount
+      }
+    }
+
+    const offs = [...updatedItems, cartOff].filter(Boolean)
+    setCartOffer(cartOff);
+    setCouponApplied(coupon);
+    setAppliedOffers(offs);
+
+    const offDiscount = offs?.reduce((val, cur) => (cur?.appliedAmount ?? 0) + val,0)
+    const totalDiscount = offDiscount + (coupon?.appliedAmount || 0);
+    const rawTotal = Number(subTotal) + Number(cartTax) - totalDiscount;
+    const roundedTotal = Math.floor(rawTotal);
+    const roundOffValueAmount = (rawTotal - roundedTotal);
+
+    setDiscounts(totalDiscount || 0);
+    setRoundOff(roundOffValueAmount || 0)
+    setCartTotal(roundedTotal || 0)
+
+  },[offersList, checkoutItems, appliedCartOffer, appliedCoupon]);
 
   // handle select payment method
   const handleMethodChange = (e) => {
@@ -81,27 +132,41 @@ function Checkout() {
       toast.error(`Please ${type} ${emptyField}!`,{position: 'top-center'});
     }else{
 
-      const cartItems = items.map(item => {
+      const cartItems = checkoutItems.map(item => {
+        let off = item?.appliedOffer;
+        if(off){
+          off = {
+            _id: off.id,
+            appliedAmount: off.value * item?.quantity
+          }
+        }
         return {
           ...item,
+          appliedOffer: off,
           variant_id: item.product_id === item.id ? null : item.id,
           image: item?.image?.thumb || item?.image?.url,
         }
       })
+
 
       let order = {
         cartItems,
         shippingAddress: data.ship_address,
         billingAddress: data.bill_address,
         paymentMethod: data.payment_method,
-        paymentResult: {},
-        itemsPrice: subTotal,
-        taxAmount: cartTax,
+        itemsPrice: Number(subTotal),
+        taxAmount: Number(cartTax),
         shippingPrice: 0,
         discount: discounts,
         roundOff,
-        appliedCoupon,
-        appliedOffer,
+        appliedCoupon: {
+          _id:couponApplied?._id,
+          appliedAmount: couponApplied?.appliedAmount
+        },
+        cartOffer: {
+          _id:cartOffer?._id,
+          appliedAmount: cartOffer?.appliedAmount
+        },
         totalPrice: cartTotal,
         isPaid: false,
         isDelivered: false
@@ -197,10 +262,9 @@ function Checkout() {
   }
 
   const handleRemoveCoupon = () => {
-    dispatch(setCartTotal(cartTotal + couponDiscount))
-    dispatch(setTotalDiscount(0))
+    const couponDisc = appliedCoupon?.appliedAmount || 0
+    setDiscounts(prev => prev - couponDisc)
     dispatch(setAppliedCoupon(null))
-    dispatch(setAppliedOffer(null))
   }
 
   return (
@@ -208,7 +272,7 @@ function Checkout() {
 
       <div className='flex w-9/10 space-x-10'>
         {/* left side */}
-        <div className="flex flex-col flex-grow">
+        <div className="flex flex-col flex-grow space-y-6">
 
           {/* items */}
           <div className='bg-primary-50 rounded-3xl'>
@@ -281,6 +345,56 @@ function Checkout() {
                 </li>)
               }
             </ul>
+          </div>
+
+          {/* applied offers */}
+          <div className='bg-white p-6 shadow-lg rounded-3xl'>
+            <div className='flex flex-col'>
+              <h3 className='text-lg mb-3'>Applied Offers</h3>
+              <div className="flex items-center border 
+                border-gray-300 rounded-2xl p-4 space-x-5">
+                  {couponApplied && (
+                    <CouponCardMedium
+                      className='!w-[180px] h-[76px] !min-w-[180px]'
+                      coupon={couponApplied} />
+                    )
+                  }
+                  {appliedOffers?.length > 0 && 
+                    appliedOffers?.map(item => 
+                      <div key={item?._id ?? item?.id} 
+                       className='inline-flex p-0.5 relative h-full w-[160px]'
+                      >
+                        <div className="absolute rounded-xl border-4 border-dotted border-amber-300 inset-0"></div>
+                        <div 
+                          className='absolute bottom-0 left-1/2 -translate-x-1/2 bg-white
+                          px-1 pt-0.5 leading-3 text-[9px] capitalize rounded-t-lg'
+                        >{item?.type} Offer</div>
+                        <div className="flex flex-col leading-5 bg-amber-300 rounded-xl px-2.5 py-3 h-full w-full
+                          items-center justify-center"
+                        >
+                          <span className='font-bold text-xs text-black'>{item?.title}</span>
+                          <p className='text-[11px]'>On order above
+                            <span className='content-before ml-1'
+                            >{item?.minPurchase ?? item?.min}</span>
+                          </p>
+                          {item?.endDate &&
+                            <p className='text-[10px] font-bold text-amber-700'>Offer ends on  
+                              <span className='ml-1'>
+                                {format(new Date(item?.endDate), 'dd-MM-yyyy')}
+                              </span>
+                            </p>
+                          }
+                        </div>
+                      </div>
+                    )
+                  }
+                
+                                 
+                {!couponApplied && !appliedOffers?.length && (
+                  <span className="text-gray-400">No offer applied</span>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -446,12 +560,12 @@ function Checkout() {
             <div>
               <div className='border border-gray-200 rounded-lg p-3 flex items-center justify-between'>
                 <div className='inline-flex items-center space-x-2 '>
-                  <RiCoupon3Fill className={clsx('text-lg', appliedCoupon ? 'text-primary-300' : 'text-gray-400/60')} />
+                  <RiCoupon3Fill className={clsx('text-lg', couponApplied ? 'text-primary-300' : 'text-gray-400/60')} />
                   <p className={clsx('!leading-normal',
-                    appliedCoupon ? '!text-primary-400 uppercase' : 'text-gray-400'
+                    couponApplied ? '!text-primary-400 uppercase' : 'text-gray-400'
                   )}>
-                    {appliedCoupon ? 
-                      `${appliedCoupon?.couponCode} | ${appliedCoupon?.discountType === 'fixed' ? ' ₹' : ''}${appliedCoupon?.discountValue}${appliedCoupon?.discountType !== 'fixed' ? '%' : ''} OFF`
+                    {couponApplied ? 
+                      `${couponApplied?.couponCode} | ${couponApplied?.discountType === 'fixed' ? ' ₹' : ''}${couponApplied?.discountValue}${couponApplied?.discountType !== 'fixed' ? '%' : ''} OFF`
                       : "No coupon applied"
                     }
                   </p>
@@ -459,11 +573,11 @@ function Checkout() {
                 <span
                   onClick={handleRemoveCoupon}
                   className={clsx('leading-normal smooth text-gray-400',
-                    appliedCoupon && 'text-red-300 hover:text-red-500 cursor-pointer'
+                    couponApplied && 'text-red-300 hover:text-red-500 cursor-pointer'
                   )}
-                >Remove</span>
+                >{couponApplied && 'Remove'}</span>
               </div>
-              {appliedCoupon && <span className='text-xs text-primary-300'>Coupon code is valid</span>}
+              {couponApplied && <span className='text-xs text-primary-300'>Coupon code is valid</span>}
             </div>
           </div>
           
@@ -477,12 +591,14 @@ function Checkout() {
               <span>Tax (GST)</span>
               <span className='price-before price-before:!font-normal font-bold'>{Number(cartTax).toFixed(2)}</span>
             </div>
-            <div className='flex items-center justify-between text-base'>
-              <span>Discount</span>
-              <p>-<span className='ms-1 price-before price-before:text-red-300 price-before:!font-normal font-bold text-red-400'>
-                {Number(discounts).toFixed(2)}</span>
-              </p>
-            </div>
+            {discounts > 0 &&
+              <div className='flex items-center justify-between text-base'>
+                <span>Discount</span>
+                <p>-<span className='ms-1 price-before price-before:text-red-300 price-before:!font-normal font-bold text-red-400'>
+                  {Number(discounts).toFixed(2)}</span>
+                </p>
+              </div>
+            }
             {roundOff > 0 &&
               <div className='flex items-center justify-between text-base'>
                 <span>Round off</span>

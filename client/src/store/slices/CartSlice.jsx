@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import toast from 'react-hot-toast';
 import { getCart } from '../../services/FetchDatas';
-import { addToCartAction, removeFromCartAction } from '../../services/ApiActions';
+import { addToCartAction, emptyCartAction, removeFromCartAction } from '../../services/ApiActions';
 
 export const fetchCart = createAsyncThunk(
   'cart/fetch-cart', 
@@ -26,21 +26,29 @@ export const deleteCartItem = createAsyncThunk(
     .catch(err => rejectWithValue(err.message || 'Failed to remove cart item'))
 )
 
+export const clearCartSync = createAsyncThunk(
+  'cart/emptyCart',
+  async(_,{rejectWithValue}) => 
+    await emptyCartAction()
+    .then(res => res)
+    .catch(err => rejectWithValue(err.message || 'Failed to sync clear cart'))
+)
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState: {
     items:[],
+    checkoutItems:[],
     cartCount:0,
-    cartTotal: 0,
     cartSubTotal: 0,
-    totalDiscount: 0,
-    roundOff: 0,
     appliedCoupon: null,
-    appliedOffer: null,
+    appliedCartOffer: null,
     error: null
   },
   reducers: {
-
+    setCheckoutItems:  (state, action) => {
+      state.checkoutItems = action.payload
+    },
     addToCart: (state, action) => {
       const { item, type } = action.payload;
       const existing = state?.items?.find(i => i.id === item.id);
@@ -80,27 +88,23 @@ const cartSlice = createSlice({
     },
     clearCart: (state) => {
       state.items = []
-    },
-    setTotalDiscount: (state, action) => {
-      state.totalDiscount = action.payload
-    },
-    setRoundOff: (state, action) => {
-      state.roundOff = action.payload
+      state.checkoutItems = []
+      state.cartCount = 0
+      state.cartSubTotal =  0
+      state.appliedCoupon =  null
+      state.appliedCartOffer =  null
     },
     setAppliedCoupon: (state, action) => {
       state.appliedCoupon = action.payload
     },
-    setAppliedOffer: (state, action) => {
-      state.appliedOffer = action.payload
+    setAppliedCartOffer: (state, action) => {
+      state.appliedCartOffer = action.payload
     },
     setCartCount: (state, action) => {
       state.cartCount = action.payload
     },
     setCartSubTotal: (state, action) => {
       state.cartSubTotal = action.payload
-    },
-    setCartTotal: (state, action) => {
-      state.cartTotal = action.payload
     }
   },
   extraReducers: (builder) => {
@@ -124,6 +128,14 @@ const cartSlice = createSlice({
         state.error = null;
       })
       .addCase(deleteCartItem.rejected, (state, action) => {
+        state.error = action.payload;
+        toast.error(state.error, {position: 'top-center'})
+      })
+      .addCase(clearCartSync.fulfilled, (state) => {
+        state.items = [];
+        state.error = null;
+      })
+      .addCase(clearCartSync.rejected, (state, action) => {
         state.error = action.payload;
         toast.error(state.error, {position: 'top-center'})
       })
@@ -160,6 +172,6 @@ export const getCartCount = (state) => {
   return state?.cart?.items?.reduce((total, item) => total + item?.quantity,0)
 }
 
-export const { addToCart, removeFromCart, updateQuantity, clearCart, 
-  setTotalDiscount, setRoundOff, setCartTotal, setAppliedCoupon, setAppliedOffer } = cartSlice.actions;
+export const { setCart, setCheckoutItems, addToCart, removeFromCart, updateQuantity, clearCart, 
+  setAppliedCoupon, setAppliedCartOffer } = cartSlice.actions;
 export default cartSlice.reducer;

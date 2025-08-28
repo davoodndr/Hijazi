@@ -1,4 +1,5 @@
 import Offer from "../../models/Offer.js";
+import Product from "../../models/Product.js";
 import { responseMessage } from "../../utils/messages.js";
 import cron from 'node-cron'
 
