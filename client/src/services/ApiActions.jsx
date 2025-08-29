@@ -499,3 +499,22 @@ export const placeOrderAction = async(order) => {
   }
 
 }
+
+export const getOrder = async(id) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.getOrder,
+      params: {
+        order_id: id
+      }
+    })
+
+    return response.data.order
+    
+  } catch (error) {
+    return error
+  }
+
+}

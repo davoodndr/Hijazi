@@ -9,12 +9,12 @@ export const getUserDetail = async() => {
     const response = await Axios({
       ...ApiBucket.fatchUser
     })
-
+    
     return response.data.user;
 
   } catch (error) {
     //console.log(error.response.data)
-    //return error.response.data // it will return the user data not null
+    throw new Error(error?.response?.data?.message)
   }
 
 }
@@ -103,7 +103,7 @@ export const getCart = async() => {
 
   } catch (error) {
     console.log(error.response.data)
-    //return error.response.data
+    throw new Error(error?.response?.data?.message)
   }
 }
 

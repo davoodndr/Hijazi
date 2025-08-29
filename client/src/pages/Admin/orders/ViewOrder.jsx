@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 import clsx from 'clsx';
 import { HiHome } from 'react-icons/hi2';
 import { TbArrowBackUp } from 'react-icons/tb';
+import CouponCardMedium from '../../../components/ui/CouponCardMedium';
 
 function ViewOrder() {
 
@@ -22,6 +23,9 @@ function ViewOrder() {
   const formattedDate = format(new Date(order?.paidAt || order?.createdAt), "dd.MM.yyyy 'at' hh.mm a")
   const isPaid = order?.isPaid ? 'paid' : 'unpaid';
   const isDelivered = order?.isDelivered ? 'delivered' : 'not delivered';
+  const itemsCount = order?.cartItems?.reduce((total, item) => total + item?.quantity, 0)
+  const appliedCoupon = order?.appliedCoupon;
+  const appliedOffers = [...order?.cartItems, order?.cartOffer].map(item => item?.appliedOffer).filter(Boolean)
 
   return (
     <section className='flex flex-col p-6'>
@@ -113,9 +117,10 @@ function ViewOrder() {
         <div className="flex space-x-6">
           {/* left */}
           <div className="flex flex-col flex-grow space-y-5">
+
             
             {/* items */}
-            <ul className='bg-white p-6 space-y-5 shadow-md rounded-3xl'>
+            <ul className='bg-white p-6 space-y-5 shade rounded-3xl'>
               {order?.cartItems?.map((item, index) => {
                 const attributes = item?.attributes ? Object.entries(item.attributes) : [];
                 const itemTotal = item.quantity * item.price;
@@ -128,7 +133,7 @@ function ViewOrder() {
                       </div>
                       <div className='flex flex-col justify-center'>
                         <div>
-                          <p className='uppercase text-xs text-gray-400/80 mb-1'>{item.category}</p>
+                          <p className='uppercase text-xs text-gray-400/80 mb-1'>{item.category.name}</p>
                           <h3 className='capitalize mb-1.5'>{item.name}</h3>
                         </div>
                         <ul className='flex space-x-2'>
@@ -168,12 +173,12 @@ function ViewOrder() {
             </ul>
 
             {/* payment summery */}
-            <div className='bg-white p-6 shadow-md rounded-3xl'>
+            <div className='bg-white p-6 shade rounded-3xl'>
               <h3 className='text-lg mb-3'>Payment Summery</h3>
               <div className="flex flex-col">
                 <p className='flex items-center justify-between'>
-                  <span>Subtotal <span className='text-gray-400'>({order?.cartItems.length} items)</span></span>
-                  <span className='font-bold price-before text-base'>{order?.itemsPrice}</span>
+                  <span>Subtotal <span className='text-gray-400'>{itemsCount} {itemsCount > 1 ? 'items' : 'item'}</span></span>
+                  <span className='font-bold price-before text-base'>{Number(order?.itemsPrice).toFixed(2)}</span>
                 </p>
                 {/* <p className='flex items-center justify-between'>
                   <span>Delivery</span>
@@ -181,13 +186,65 @@ function ViewOrder() {
                 </p> */}
                 <p className='flex items-center justify-between'>
                   <span>Tax <span className='text-gray-400'>5% GST included</span></span>
-                  <span className='font-bold price-before text-base'>0</span>
+                  <span className='font-bold price-before text-base'>{Number(order?.taxAmount).toFixed(2)}</span>
                 </p>
+                <div className='flex items-center justify-between'>
+                  <span>Discount</span>
+                  <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{Number(order?.discount).toFixed(2)}</span></p>
+                </div>
+                {order?.roundOff > 0 &&
+                  <div className='flex items-center justify-between'>
+                    <span>Round off</span>
+                    <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{Number(order?.roundOff).toFixed(2)}</span></p>
+                  </div>
+                }
                 <span className='w-full border-b border-gray-200 my-4'></span>
                 <p className='flex items-center justify-between font-bold'>
                   <span className='text-base'>Total Amount</span>
-                  <span className='price-before text-lg'>{order?.totalPrice}</span>
+                  <span className='price-before text-lg'>{Number(order?.totalPrice).toFixed(2)}</span>
                 </p>
+              </div>
+            </div>
+
+            {/* applied offers */}
+            <div className='grid grid-cols-2 bg-white p-6 shade rounded-3xl'>
+              <div className='flex flex-col'>
+                <h3 className='text-lg mb-3'>Applied Offers</h3>
+                <div className="flex items-center justify-between border 
+                  border-gray-300 rounded-2xl p-4 space-x-5">
+                  {console.log(appliedOffers)}
+                  {appliedOffers?.length > 0 && 
+                    appliedOffers.map(offer => (
+                      <div key={offer?._id} className='
+                        inline-flex p-0.5 relative h-full w-full'
+                      >
+                        <div className="absolute rounded-xl border-4 border-dotted border-amber-300 inset-0"></div>
+                        <div className="flex flex-col leading-5 bg-amber-300 rounded-xl p-2 h-full w-full
+                          items-center justify-center"
+                        >
+                          <span className='font-bold text-xs text-black'>{offer?.title}</span>
+                          <p className='text-[11px]'>On order above
+                            <span className='content-before ml-1'
+                            >{offer?.minPurchase}</span>
+                          </p>
+                          {offer?.endDate &&
+                            <p className='text-[10px] font-bold text-amber-700'>Offer ends on  
+                              <span className='ml-1'>
+                                {format(new Date(offer?.endDate), 'dd-MM-yyyy')}
+                              </span>
+                            </p>
+                          }
+                        </div>
+                      </div>
+                    ))
+                  }
+                  {appliedCoupon && (
+                    <CouponCardMedium coupon={appliedCoupon} />
+                  )}                  
+                  {!appliedCoupon && !cartOffer && (
+                    <span className="text-gray-400">No offers applied</span>
+                  )}
+                </div>
               </div>
             </div>
             

@@ -1,7 +1,7 @@
-import { BrowserRouter, Route, Routes} from "react-router"
+import { BrowserRouter, Route, Routes, useLocation} from "react-router"
 import { useDispatch } from "react-redux"
 import { useEffect } from "react"
-import { fetchUser } from "../store/slices/UsersSlice"
+import { fetchUser, setActiveRole } from "../store/slices/UsersSlice"
 import AdminRouter from "./admin/AdminRouter"
 import UserRouter from "./user/UserRouter"
 import { clearCart, fetchCart } from "../store/slices/CartSlice"
@@ -16,6 +16,7 @@ import { clearOffers, fetchOffers } from "../store/slices/OfferSlice"
 function App() {
 
   const dispatch = useDispatch();
+  //const location = useLocation();
 
   useEffect(() => {
     const fetchAuthData = async() => {
@@ -39,6 +40,13 @@ function App() {
     dispatch(fetchBrands())
     dispatch(fetchProducts())
   },[])
+
+
+  /* useEffect(() => {
+    if(location.pathname.includes('admin')){
+      dispatch(setActiveRole('admin'))
+    }
+  },[location]) */
 
   return (
     <BrowserRouter>

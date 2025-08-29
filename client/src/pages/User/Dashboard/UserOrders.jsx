@@ -106,9 +106,9 @@ function UserOrders() {
         {paginatedOrders?.length > 0 &&
           paginatedOrders?.map(order => {
 
-            const title = order?.cartItems?.length > 1 ? `${order?.cartItems?.length} items includes` 
-              : order?.cartItems[0].name;
-            const images = order?.cartItems?.slice(0,3).map(item => ({name: item.name, image: item.image}));
+            const title = order?.itemsCount > 1 ? `${order?.itemsCount} items includes` 
+              : order?.name;
+
             const isPaid = order?.isPaid ? 'Paid' : 'Unpaid';
             const payment = order?.paymentMethod === 'cod' ? 'cash on delivery' : order?.paymentMethod;
 
@@ -120,7 +120,7 @@ function UserOrders() {
                 
                 {/* thumb */}
                 <div className='w-20 rounded-2xl overflow-hidden'>
-                  <img src={images[0]?.image} alt={images[0]?.name} />
+                  <img src={order?.image} alt={order?.name} />
                 </div>
 
                 {/* title */}

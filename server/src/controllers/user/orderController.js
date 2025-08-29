@@ -6,6 +6,55 @@ import { responseMessage } from "../../utils/messages.js"
 import mongoose from "mongoose";
 import Cart from "../../models/Cart.js";
 
+// get single order
+export const getOrder = async(req, res) => {
+
+  const { user_id } = req
+  const { order_id } = req.query
+  
+  try {
+
+    let data = await Order.findOne({user_id, _id: order_id});
+    
+    data = data.toObject();
+
+    const updateItems = await Promise.all(data?.cartItems?.map(async item => {
+      const off = await Offer.findById(item?.appliedOffer?._id);
+      if(off){
+        return {
+          ...item,
+          appliedOffer: {
+            ...(off.toObject()),
+            ...item?.appliedOffer
+          }
+        }
+      }
+      return item
+    }))
+
+    const coupon = await Offer.findById(data?.appliedCoupon?._id);
+    const cartOff = await Offer.findById(data?.cartOffer?._id);
+
+    const order = {
+      ...data,
+      cartItems: updateItems,
+      appliedCoupon: {
+        ...(coupon.toObject()),
+        ...data?.appliedCoupon
+      },
+      cartOffer: {
+        ...(cartOff.toObject()),
+        ...data?.cartOffer
+      }
+    }
+    
+    return responseMessage(res, 200, true, "", {order})
+    
+  } catch (error) {
+    console.log('getOrder',error)
+    return responseMessage(res, 500, false, error.message || error)
+  }
+}
 
 // get orders list
 export const getOrders = async(req, res) => {
@@ -15,12 +64,28 @@ export const getOrders = async(req, res) => {
 
   try {
 
-    const orders = await Order.find({user_id});
+    const orders = await Order.aggregate([
+      {$match: { user_id } },
+      {
+        $project: {
+          order_no: 1,
+          itemsCount: {$size: "$cartItems"},
+          totalPrice: 1,
+          paymentMethod: 1,
+          image: { $arrayElemAt: ["$cartItems.image", 0] },
+          name: { $arrayElemAt: ["$cartItems.name", 0] },
+          shippingAddress: 1,
+          status: 1,
+          isPaid: 1,
+          createdAt: 1
+        }
+      }
+    ]);
 
-    return responseMessage(res, 201, true, "", {orders})
+    return responseMessage(res, 200, true, "", {orders})
     
   } catch (error) {
-    console.log('placeOrder',error)
+    console.log('getOrders',error)
     return responseMessage(res, 500, false, error.message || error)
   }
 }

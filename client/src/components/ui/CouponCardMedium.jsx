@@ -37,7 +37,7 @@ function CouponCardMedium({
             coupon?.discountType === 'percentage' && coupon?.minPurchase &&  coupon?.maxDiscount> 0 ? 
             'justify-between' : 'justify-center'
           )}>
-            {/* {console.log(coupon)} */}
+            
             {coupon?.maxDiscount && coupon?.discountType === 'percentage' &&
               <p className='text-[11px]'>
                 UP TO 

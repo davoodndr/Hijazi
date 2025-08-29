@@ -13,20 +13,58 @@ import { useSelector } from 'react-redux';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
 import CouponCardMedium from '../../components/ui/CouponCardMedium';
+import { getOrder } from '../../services/ApiActions';
 
 function OrderDetail() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const { order:currentOrder } = location.state;
-  const [order, setOrder] = useState(currentOrder);
+  const currentOrder = location.state?.order;
+  const [order, setOrder] = useState(null);
+  const [isPaid, setIsPaid] = useState(null);
+  const [isDelivered, setIsDelivered] = useState(null);
+  const [formattedDate, setFormattedDate] = useState(null);
+  const [itemsCount, setItemsCount] = useState(0);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [appliedOffers, setAppliedOffers] = useState([]);
   const { ordersList } = useSelector(state => state.orders);
-  const formattedDate = format(new Date(order?.paidAt || order?.createdAt), "dd.MM.yyyy 'at' hh.mm a")
-  const isPaid = order?.isPaid ? 'paid' : 'unpaid';
-  const isDelivered = order?.isDelivered ? 'delivered' : 'not delivered';
-  const itemsCount = order?.cartItems?.reduce((total, item) => total + item?.quantity, 0)
-  const appliedCoupon = order?.appliedCoupon;
-  const appliedOffers = [...order?.cartItems, order?.cartOffer].map(item => item?.appliedOffer).filter(Boolean)
+  
+
+  useEffect(() => {
+    if(currentOrder){
+
+      const fetchOrder = async() => {
+        try {
+          
+          const data = await getOrder(currentOrder._id);
+
+          const payment = data?.isPaid ? 'paid' : 'unpaid';
+          const delivery = data?.isDelivered ? 'delivered' : 'not delivered';
+          const dt = data ? 
+            format(new Date(data?.paidAt || data?.createdAt), "dd.MM.yyyy 'at' hh.mm a")
+            :
+            null
+          const count = data?.cartItems?.reduce((total, item) => total + item?.quantity, 0);
+          const coupon = data?.appliedCoupon;
+          const offs = data?.cartItems?.map(item => item?.appliedOffer).filter(Boolean);
+          if(data?.cartOffer) offs.push(data?.cartOffer)
+
+          setOrder(data)
+          setIsPaid(payment);
+          setIsDelivered(delivery);
+          setFormattedDate(dt);
+          setItemsCount(count);
+          setAppliedCoupon(coupon);
+          setAppliedOffers(offs)
+
+        } catch (error) {
+          console.log(error)
+        }
+      }
+
+      fetchOrder();
+    }
+  },[currentOrder])
 
   return (
     <section className='flex-grow w-full flex flex-col items-center py-15 bg-primary-25'>
@@ -39,7 +77,7 @@ function OrderDetail() {
           <div className='inline-flex items-center space-x-3 capitalize w-full'>
             <h3 className='text-xl !font-extrabold space-x-2'>
               <span className='text-gray-400'>Order</span>
-              <span>#{order.order_no}</span>
+              <span>#{order?.order_no}</span>
             </h3>
 
             <span 
@@ -213,15 +251,19 @@ function OrderDetail() {
             <div className='grid grid-cols-2 bg-white p-6 shade rounded-3xl'>
               <div className='flex flex-col'>
                 <h3 className='text-lg mb-3'>Applied Offers</h3>
-                <div className="flex items-center justify-between border 
-                  border-gray-300 rounded-2xl p-4 space-x-5">
+                <div className="flex flex-wrap items-center justify-between border 
+                  border-gray-300 rounded-2xl p-4 space-x-2 space-y-5">
                   
                   {appliedOffers?.length > 0 && 
                     appliedOffers.map(offer => (
                       <div key={offer?._id} className='
-                        inline-flex p-0.5 relative h-full w-full'
+                        inline-flex p-0.5 relative h-[88px] w-[47%]'
                       >
                         <div className="absolute rounded-xl border-4 border-dotted border-amber-300 inset-0"></div>
+                        <div 
+                          className='absolute bottom-0 left-1/2 -translate-x-1/2 bg-white
+                          px-1 pt-0.5 leading-3 text-[9px] capitalize rounded-t-lg'
+                        >{offer?.type} Offer</div>
                         <div className="flex flex-col leading-5 bg-amber-300 rounded-xl p-2 h-full w-full
                           items-center justify-center"
                         >
@@ -242,9 +284,12 @@ function OrderDetail() {
                     ))
                   }
                   {appliedCoupon && (
-                    <CouponCardMedium coupon={appliedCoupon} />
+                    <CouponCardMedium 
+                      coupon={appliedCoupon}
+                      className='!w-[170px] !min-w-[170px]'
+                    />
                   )}                  
-                  {!appliedCoupon && !cartOffer && (
+                  {!appliedCoupon && !appliedOffers && (
                     <span className="text-gray-400">No offers applied</span>
                   )}
                 </div>

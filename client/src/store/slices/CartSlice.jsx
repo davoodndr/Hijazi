@@ -5,9 +5,10 @@ import { addToCartAction, emptyCartAction, removeFromCartAction } from '../../se
 
 export const fetchCart = createAsyncThunk(
   'cart/fetch-cart', 
-  async() => 
+  async(_,{rejectWithValue}) => 
     await getCart()
     .then(res => res)
+    .catch(err => rejectWithValue(err.message || 'Failed to fetch cart'))
 )
 
 export const syncCartitem = createAsyncThunk(

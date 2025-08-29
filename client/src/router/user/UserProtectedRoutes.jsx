@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 
 const UserProtectedRoutes = () => {
 
-  const location = useLocation();
   const { user, isLoading } = useSelector(state => state.user);
   
   if(isLoading) return <LoadingFallOff />
