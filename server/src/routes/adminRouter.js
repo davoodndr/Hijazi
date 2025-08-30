@@ -15,6 +15,7 @@ import { addCategory, deleteCategory, getCategories, updateCategory, uploadCateg
 import { addBrand, deleteBrand, getBrands, updateBrand, uploadBrandLogo } from "../controllers/admin/brandController.js";
 import { addProduct, changeProductStatus, getProducts, updateProduct, uploadProductImages } from "../controllers/admin/productController.js";
 import { addOffer, changeOfferStatus, getOffers, updateOffer } from "../controllers/admin/offerController.js";
+import { getOrder, getOrders } from "../controllers/admin/orderController.js";
 
 
 const adminRouter = express.Router();
@@ -51,6 +52,10 @@ adminRouter.post('/add-product', authenticate, allowRoles(['admin']), addProduct
 adminRouter.post('/upload-product-images',authenticate, allowRoles(['admin']), productUpload, uploadProductImages);
 adminRouter.patch('/update-product', authenticate, allowRoles(['admin']), updateProduct)
 adminRouter.patch('/change-product-status', authenticate, allowRoles(['admin']), changeProductStatus)
+
+/* order management */
+adminRouter.get('/get-order', /* authenticate, allowRoles(['admin']), */ getOrder)
+adminRouter.get('/get-orders', authenticate, allowRoles(['admin']), getOrders)
 
 /* coupon management */
 adminRouter.get('/get-offers', authenticate, allowRoles(['admin']), getOffers)

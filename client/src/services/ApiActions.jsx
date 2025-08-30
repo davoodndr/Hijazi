@@ -505,7 +505,7 @@ export const getOrder = async(id) => {
   try {
 
     const response = await Axios({
-      ...ApiBucket.getOrder,
+      ...ApiBucket.fetchOrder,
       params: {
         order_id: id
       }

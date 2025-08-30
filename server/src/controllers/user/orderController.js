@@ -38,14 +38,14 @@ export const getOrder = async(req, res) => {
     const order = {
       ...data,
       cartItems: updateItems,
-      appliedCoupon: {
+      appliedCoupon: coupon ? {
         ...(coupon.toObject()),
         ...data?.appliedCoupon
-      },
-      cartOffer: {
-        ...(cartOff.toObject()),
+      }: null,
+      cartOffer: cartOff ? {
+        ...(cartOff?.toObject()),
         ...data?.cartOffer
-      }
+      } : null
     }
     
     return responseMessage(res, 200, true, "", {order})
@@ -61,7 +61,6 @@ export const getOrders = async(req, res) => {
 
   const { user_id } = req;
   
-
   try {
 
     const orders = await Order.aggregate([

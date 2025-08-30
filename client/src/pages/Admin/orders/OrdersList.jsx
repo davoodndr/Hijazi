@@ -14,22 +14,45 @@ import { Menu, MenuButton } from '@headlessui/react';
 import ContextMenu from '../../../components/ui/ContextMenu';
 import { useNavigate } from 'react-router';
 import Skeleton from '../../../components/ui/Skeleton';
+import { Axios } from '../../../utils/AxiosSetup';
+import ApiBucket from '../../../services/ApiBucket';
 
 function OrdersList() {
 
   const navigate = useNavigate();
-  const { ordersList } = useSelector(state => state.orders);
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
 
-    if(ordersList.length){
-      const sorted = [...ordersList].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
-      setOrders(sorted);
+    const fetchOrders = async() => {
+      try {
+        
+        const response = await Axios({
+          ...ApiBucket.getOrders
+        })
+
+        if(response.data?.success){
+          const sorted = [...response.data?.orders].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+          setOrders(sorted);
+        }
+
+      } catch (error) {
+        console.log(error)
+      }
     }
 
-  },[ordersList])
+    fetchOrders();
+
+  },[]);
+
+  const handleViewOrderClick = (order) => { 
+    navigate(`view-order/${order?.order_no}`,
+      {
+        state: {order}
+      }
+    )
+  }
 
   /* debouncer */
   const [query, setQuery] = useState('');
@@ -234,9 +257,11 @@ function OrdersList() {
                 {/* paginatedOrders.length > 0 ? */
                     ( paginatedOrders?.map((order, index) => {
 
-                      const title = order?.cartItems?.length > 1 ? `${order?.cartItems?.length} items includes` 
-                        : order?.cartItems[0].name;
-                      const images = order?.cartItems?.slice(0,3).map(item => ({name: item.name, image: item.image}));
+                      const title = order?.itemsCount > 1 ? `${order?.itemsCount} items includes` 
+                        : order?.name;
+                      const images = Array(order?.itemsCount).fill(0).map((el, i) => 
+                        ({name: "", image: order?.image || ''})
+                      );
                       const isPaid = order?.isPaid ? 'Paid' : 'Unpaid';
                       const payment = order?.paymentMethod === 'cod' ? 'cash on delivery' : order?.paymentMethod;
 
@@ -313,9 +338,10 @@ function OrdersList() {
                             {/* status */}
                             <div className='capitalize flex flex-col'>
                               <span className={clsx('badge',
-                                order?.status === 'delivered' && 'bg-green-100 text-primary-400',
                                 order?.status === 'pending' && 'bg-amber-100 text-amber-500',
+                                order?.status === 'processing' && 'bg-gray-100 text-gray-500',
                                 order?.status === 'shipped' && 'bg-violet-100 text-violet-500',
+                                order?.status === 'delivered' && 'bg-green-100 text-primary-400',
                                 order?.status === 'cancelled' && 'bg-red-100 text-red-500',
                               )}>{order?.status}</span>
                             </div>
@@ -337,11 +363,7 @@ function OrdersList() {
                                         { id: 'view', 
                                           icon: <LuEye className='text-xl'/>,
                                           text: <span className={`capitalize`}>view order</span>,
-                                          onClick: () => { navigate(`view-order/${order?.order_no}`,
-                                            {
-                                              state: {order}
-                                            }
-                                          )}
+                                          onClick: () => handleViewOrderClick(order)
                                         },
                                         { id: 'shipped', 
                                           icon: <LuEye className='text-xl'/>,

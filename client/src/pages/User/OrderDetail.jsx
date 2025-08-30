@@ -28,7 +28,6 @@ function OrderDetail() {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [appliedOffers, setAppliedOffers] = useState([]);
   const { ordersList } = useSelector(state => state.orders);
-  
 
   useEffect(() => {
     if(currentOrder){
@@ -64,7 +63,10 @@ function OrderDetail() {
 
       fetchOrder();
     }
-  },[currentOrder])
+  },[currentOrder]);
+
+  /* handling cancel order */
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <section className='flex-grow w-full flex flex-col items-center py-15 bg-primary-25'>
@@ -143,7 +145,11 @@ function OrderDetail() {
             {/* <span className='inline-flex border border-gray-300 items-center px-1 rounded-input-border'>
               <IoMdMore className='text-3xl'/>
             </span> */}
-            <div className='button px-5 space-x-2 border-gray-300 text-gray-400 hover-shade hover:border-red-400 hover:text-red-400'>
+            <div 
+              onClick={() => {
+                setIsModalOpen(true);
+              }}
+              className='button px-5 space-x-2 border-gray-300 text-gray-400 hover-shade hover:border-red-400 hover:text-red-400'>
               <TbCancel className='text-xl' />
               <span>Cancel</span>
             </div>
@@ -163,19 +169,19 @@ function OrderDetail() {
             {/* items */}
             <ul className='bg-white p-6 space-y-5 shade rounded-3xl'>
               {order?.cartItems?.map((item, index) => {
-                const attributes = item?.attributes ? Object.entries(item.attributes) : [];
-                const itemTotal = item.quantity * item.price;
+                const attributes = item?.attributes ? Object.entries(item?.attributes) : [];
+                const itemTotal = item?.quantity * item.price;
                 
                 return (
-                  <li key={`${item.id}-${index}`} className='grid grid-cols-[2fr_1fr_1fr] not-last:pb-5 not-last:border-b border-gray-200'>
+                  <li key={`${item?.id}-${index}`} className='grid grid-cols-[2fr_1fr_1fr] not-last:pb-5 not-last:border-b border-gray-200'>
                     <div className='inline-flex space-x-4'>
                       <div className='w-20 h-20 border border-gray-200 rounded-lg overflow-hidden'>
-                        <img src={item.image} alt={item.name} />
+                        <img src={item?.image} alt={item?.name} />
                       </div>
                       <div className='flex flex-col justify-center'>
                         <div>
-                          <p className='uppercase text-xs text-gray-400/80 mb-1'>{item.category.name}</p>
-                          <h3 className='capitalize mb-1.5'>{item.name}</h3>
+                          <p className='uppercase text-xs text-gray-400/80 mb-1'>{item?.category.name}</p>
+                          <h3 className='capitalize mb-1.5'>{item?.name}</h3>
                         </div>
                         <ul className='flex space-x-2'>
                           {attributes.length > 0 && attributes.map(([name, val]) => 
@@ -201,9 +207,9 @@ function OrderDetail() {
                     </div>
                     <div className='inline-flex space-x-2 items-center justify-end relative
                       before:content-["rate"] before:capitalize before:absolute before:top-2 before:text-gray-300'>
-                      <h3 className='price-before price-before:font-normal'>{item.price}</h3>
+                      <h3 className='price-before price-before:font-normal'>{item?.price}</h3>
                       <p className='text-gray-500'>x</p>
-                      <h3>{item.quantity}</h3>
+                      <h3>{item?.quantity}</h3>
                     </div>
                     <div className='inline-flex flex-col justify-center items-end capitalize relative
                       before:content-["total"] before:absolute before:top-2 before:text-gray-300'>
@@ -251,13 +257,13 @@ function OrderDetail() {
             <div className='grid grid-cols-2 bg-white p-6 shade rounded-3xl'>
               <div className='flex flex-col'>
                 <h3 className='text-lg mb-3'>Applied Offers</h3>
-                <div className="flex flex-wrap items-center justify-between border 
-                  border-gray-300 rounded-2xl p-4 space-x-2 space-y-5">
+                <div className="grid grid-cols-2 border 
+                  border-gray-300 rounded-2xl p-4 gap-5">
                   
                   {appliedOffers?.length > 0 && 
                     appliedOffers.map(offer => (
                       <div key={offer?._id} className='
-                        inline-flex p-0.5 relative h-[88px] w-[47%]'
+                        inline-flex p-0.5 relative h-[88px] w-full'
                       >
                         <div className="absolute rounded-xl border-4 border-dotted border-amber-300 inset-0"></div>
                         <div 
@@ -289,7 +295,7 @@ function OrderDetail() {
                       className='!w-[170px] !min-w-[170px]'
                     />
                   )}                  
-                  {!appliedCoupon && !appliedOffers && (
+                  {!appliedCoupon && !appliedOffers?.length && (
                     <span className="text-gray-400">No offers applied</span>
                   )}
                 </div>
@@ -310,7 +316,7 @@ function OrderDetail() {
                   <span className='bg-gray-100 p-2.5 rounded-full'>
                     <LuUserRound className='text-xl' />
                   </span>
-                  <p className='font-bold'>{order?.billingAddress.name}</p>
+                  <p className='font-bold'>{order?.billingAddress?.name}</p>
                 </div>
                 <Link to='/dashboard/profile' className='border border-gray-300 rounded-lg p-0.5 smooth
                   hover:scale-105 hover:shadow-md cursor-pointer'>
@@ -348,24 +354,25 @@ function OrderDetail() {
               {/* shipping address */}
               <div className='flex flex-col capitalize py-3'>
                 <h3 className='mb-3'>Shipping Address</h3>
-                <p className='font-bold'>{order?.shippingAddress.name}</p>
-                <p>{order?.shippingAddress.address_line}</p>
-                <p>{order?.shippingAddress.landmark}</p>
-                <p>{order?.shippingAddress.city}, {order?.shippingAddress.state}, {order?.shippingAddress.country}</p>
-                <p>{order?.shippingAddress.pincode}</p>
+                <p className='font-bold'>{order?.shippingAddress?.name}</p>
+                <p>{order?.shippingAddress?.address_line}</p>
+                <p>{order?.shippingAddress?.landmark}</p>
+                <p>{order?.shippingAddress?.city}, {order?.shippingAddress?.state}, {order?.shippingAddress?.country}</p>
+                <p>{order?.shippingAddress?.pincode}</p>
               </div>
 
               {/* billing address */}
               <div className='flex flex-col capitalize py-3'>
                 <h3 className='mb-3'>Billing Address</h3>
-                <p className='font-bold'>{order?.billingAddress.name}</p>
-                <p>{order?.billingAddress.address_line}</p>
-                <p>{order?.billingAddress.landmark}</p>
-                <p>{order?.billingAddress.city}, {order?.billingAddress.state}, {order?.billingAddress.country}</p>
-                <p>{order?.billingAddress.pincode}</p>
+                <p className='font-bold'>{order?.billingAddress?.name}</p>
+                <p>{order?.billingAddress?.address_line}</p>
+                <p>{order?.billingAddress?.landmark}</p>
+                <p>{order?.billingAddress?.city}, {order?.billingAddress?.state}, {order?.billingAddress?.country}</p>
+                <p>{order?.billingAddress?.pincode}</p>
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </section>

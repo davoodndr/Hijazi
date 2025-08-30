@@ -145,7 +145,7 @@ export const getOrdersList = async() => {
   try {
     
     const response = await Axios({
-      ...ApiBucket.getOrders,
+      ...ApiBucket.fetchOrders,
     })
 
     return response.data.orders;

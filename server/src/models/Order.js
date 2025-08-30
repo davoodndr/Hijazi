@@ -58,6 +58,12 @@ const orderSchema = new mongoose.Schema({
   isDelivered: { type: Boolean, default: false },
   deliveredAt: { type: Date },
   status: { type: String, default: 'pending' }, // Pending, Shipped, Delivered
+  cancelledBy: {
+    name: String,
+    role: String,
+    date: Date,
+    reason: String
+  }
 }, { timestamps: true });
 
 export default mongoose.model('Order', orderSchema);

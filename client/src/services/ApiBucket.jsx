@@ -151,7 +151,17 @@ const ApiBucket = {
     method: 'patch'
   },
 
-  /* product */
+  /* orders */
+  getOrder: {
+    url: '/api/admin/get-order',
+    method: 'get'
+  },
+  getOrders: {
+    url: '/api/admin/get-orders',
+    method: 'get'
+  },
+
+  /* offer */
   getOffers: {
     url: '/api/admin/get-offers',
     method: 'get'
@@ -168,6 +178,8 @@ const ApiBucket = {
     url: '/api/admin/update-offer',
     method: 'put'
   },
+
+  
 
   // ----------- user side -------------//
 
@@ -258,11 +270,11 @@ const ApiBucket = {
   },
 
   /* orders */
-  getOrder: {
+  fetchOrder: {
     url: '/api/user/get-order',
     method: 'get'
   },
-  getOrders: {
+  fetchOrders: {
     url: '/api/user/get-orders-list',
     method: 'get'
   },

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { CiCalendar } from "react-icons/ci";
 import { IoIosArrowForward, IoMdArrowRoundBack, IoMdMore } from "react-icons/io";
 import { LuArrowUpRight, LuUserRound } from "react-icons/lu";
@@ -13,19 +13,70 @@ import clsx from 'clsx';
 import { HiHome } from 'react-icons/hi2';
 import { TbArrowBackUp } from 'react-icons/tb';
 import CouponCardMedium from '../../../components/ui/CouponCardMedium';
+import { Axios } from '../../../utils/AxiosSetup';
+import ApiBucket from '../../../services/ApiBucket';
 
 function ViewOrder() {
 
-  const navigate = useNavigate();
   const location = useLocation();
-  const { order } = location.state;
-  const { ordersList } = useSelector(state => state.orders);
-  const formattedDate = format(new Date(order?.paidAt || order?.createdAt), "dd.MM.yyyy 'at' hh.mm a")
-  const isPaid = order?.isPaid ? 'paid' : 'unpaid';
-  const isDelivered = order?.isDelivered ? 'delivered' : 'not delivered';
-  const itemsCount = order?.cartItems?.reduce((total, item) => total + item?.quantity, 0)
-  const appliedCoupon = order?.appliedCoupon;
-  const appliedOffers = [...order?.cartItems, order?.cartOffer].map(item => item?.appliedOffer).filter(Boolean)
+    const navigate = useNavigate();
+    const currentOrder = location.state?.order;
+    const [order, setOrder] = useState(null);
+    const [isPaid, setIsPaid] = useState(null);
+    const [isDelivered, setIsDelivered] = useState(null);
+    const [formattedDate, setFormattedDate] = useState(null);
+    const [itemsCount, setItemsCount] = useState(0);
+    const [appliedCoupon, setAppliedCoupon] = useState(null);
+    const [appliedOffers, setAppliedOffers] = useState([]);
+    const { ordersList } = useSelector(state => state.orders);
+    
+  
+    useEffect(() => {
+      if(currentOrder){
+  
+        const fetchOrder = async() => {
+          try {
+            
+            const response = await Axios({
+              ...ApiBucket.getOrder,
+              params: {
+                order_id: currentOrder?._id
+              }
+            });
+
+            if(response.data?.success){
+              setupOrder(response.data?.order)
+            }
+  
+          } catch (error) {
+            console.log(error)
+          }
+        }
+  
+        fetchOrder();
+      }
+    },[currentOrder]);
+
+  const setupOrder = (data) => {
+    const payment = data?.isPaid ? 'paid' : 'unpaid';
+    const delivery = data?.isDelivered ? 'delivered' : 'not delivered';
+    const dt = data ? 
+      format(new Date(data?.paidAt || data?.createdAt), "dd.MM.yyyy 'at' hh.mm a")
+      :
+      null
+    const count = data?.cartItems?.reduce((total, item) => total + item?.quantity, 0);
+    const coupon = data?.appliedCoupon;
+    const offs = data?.cartItems?.map(item => item?.appliedOffer).filter(Boolean);
+    if(data?.cartOffer) offs.push(data?.cartOffer)
+
+    setOrder(data)
+    setIsPaid(payment);
+    setIsDelivered(delivery);
+    setFormattedDate(dt);
+    setItemsCount(count);
+    setAppliedCoupon(coupon);
+    setAppliedOffers(offs)
+  }
 
   return (
     <section className='flex flex-col p-6'>
@@ -65,7 +116,7 @@ function ViewOrder() {
           <div className='inline-flex items-center space-x-3 capitalize w-full'>
             <h3 className='text-lg !font-extrabold space-x-2'>
               <span className='text-gray-400'>Order</span>
-              <span>#{order.order_no}</span>
+              <span>#{order?.order_no}</span>
             </h3>
 
             <span 
@@ -210,15 +261,19 @@ function ViewOrder() {
             <div className='grid grid-cols-2 bg-white p-6 shade rounded-3xl'>
               <div className='flex flex-col'>
                 <h3 className='text-lg mb-3'>Applied Offers</h3>
-                <div className="flex items-center justify-between border 
-                  border-gray-300 rounded-2xl p-4 space-x-5">
-                  {console.log(appliedOffers)}
+                <div className="grid grid-cols-2 border 
+                  border-gray-300 rounded-2xl p-4 gap-5">
+                  
                   {appliedOffers?.length > 0 && 
                     appliedOffers.map(offer => (
                       <div key={offer?._id} className='
-                        inline-flex p-0.5 relative h-full w-full'
+                        inline-flex p-0.5 relative h-[88px] w-full'
                       >
                         <div className="absolute rounded-xl border-4 border-dotted border-amber-300 inset-0"></div>
+                        <div 
+                          className='absolute bottom-0 left-1/2 -translate-x-1/2 bg-white
+                          px-1 pt-0.5 leading-3 text-[9px] capitalize rounded-t-lg'
+                        >{offer?.type} Offer</div>
                         <div className="flex flex-col leading-5 bg-amber-300 rounded-xl p-2 h-full w-full
                           items-center justify-center"
                         >
@@ -241,7 +296,7 @@ function ViewOrder() {
                   {appliedCoupon && (
                     <CouponCardMedium coupon={appliedCoupon} />
                   )}                  
-                  {!appliedCoupon && !cartOffer && (
+                  {!appliedCoupon && !appliedOffers.length && (
                     <span className="text-gray-400">No offers applied</span>
                   )}
                 </div>
