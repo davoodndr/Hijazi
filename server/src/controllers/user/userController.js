@@ -104,10 +104,15 @@ export const userLogin = async(req, res) => {
     res.cookie('accessToken',accessToken, cookieOptions);
     res.cookie('refreshToken',refreshToken, cookieOptions);
 
-    const updated = await User.findByIdAndUpdate(user?._id,
-      { last_login: new Date() },
+    const updated = await User.findByIdAndUpdate(
+      user?._id,
+      { 
+        last_login: new Date(),
+        activeRole: role
+      },
       { new: true}
     )
+    
 
     let userData = {...updated};
     
@@ -117,7 +122,7 @@ export const userLogin = async(req, res) => {
     return responseMessage(res, 200, true, 'Login Successfull',{
       accessToken,
       refreshToken,
-      user: updated
+      user: userData
     })
 
   } catch (error) {

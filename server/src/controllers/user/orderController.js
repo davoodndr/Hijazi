@@ -5,6 +5,7 @@ import Offer from "../../models/Offer.js";
 import { responseMessage } from "../../utils/messages.js"
 import mongoose from "mongoose";
 import Cart from "../../models/Cart.js";
+import User from "../../models/User.js";
 
 // get single order
 export const getOrder = async(req, res) => {
@@ -213,6 +214,68 @@ export const placeOrder = async(req, res) => {
     return responseMessage(res, 500, false, error.message || error)
   }finally{
     session.endSession();
+  }
+}
+
+export const cancelOrder = async(req, res) => {
+
+  const { user_id } = req;
+  const { order_id, reason } = req.body;
+
+  try {
+
+    const user = await User.findById(user_id);
+    const order = await Order.findById(order_id);
+
+    //console.log(user_id, user?.activeRole, reason)
+
+    await Promise.all(
+      order?.cartItems?.map(async item => {
+        let product = await Product.findById(item?.product_id);
+        
+        if(item?.variant_id){
+          product.variants = product?.variants?.map(el => {
+            if(el?._id?.toString() === item?.variant_id){
+              return {
+                ...(el.toObject()),
+                stock: el?.stock + item?.quantity
+              }
+            }else{
+              return el
+            }
+          })
+        }else{
+          product = {
+            ...Cart(product.toObject()),
+            stock: product?.stock + item?.quantity
+          }
+        }
+        await product.save();
+      })
+    )
+
+    const cancelled = await Order.findByIdAndUpdate(
+      order_id,
+      {
+        status: "cancelled",
+        cancelledBy: {
+          user_id,
+          name: user?.fullname || user?.username,
+          role: user?.activeRole,
+          date: new Date(),
+          reason
+        }
+      },
+      {new: true}
+    )
+
+    //console.log(cancelled)
+
+    return responseMessage(res, 200, true, "Order cancelled successfully!", {order: cancelled})
+    
+  } catch (error) {
+    console.log('cancelOrder',error)
+    return responseMessage(res, 500, false, error.message || error)
   }
 }
 

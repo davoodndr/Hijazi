@@ -14,6 +14,7 @@ import clsx from 'clsx';
 import toast from 'react-hot-toast';
 import CouponCardMedium from '../../components/ui/CouponCardMedium';
 import { getOrder } from '../../services/ApiActions';
+import CancelOrderModal from '../../components/ui/CancelOrderModal';
 
 function OrderDetail() {
 
@@ -68,6 +69,14 @@ function OrderDetail() {
   /* handling cancel order */
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const handleCancelOrderPop = () => {
+    if(order?.status === 'pending'){
+      setIsModalOpen(true);
+    }else{
+      toast.error("You can cancel order only on pending state", {position: "top-center"})
+    }
+  }
+
   return (
     <section className='flex-grow w-full flex flex-col items-center py-15 bg-primary-25'>
       <div className='w-9/10 flex flex-col space-y-5'>
@@ -82,20 +91,20 @@ function OrderDetail() {
               <span>#{order?.order_no}</span>
             </h3>
 
-            <span 
-              className={clsx(`font-bold px-2 leading-normal rounded-md text-sm 
-              inline-flex items-center h-fit`,
+            <p 
+              className={clsx(`font-bold px-2 py-1 rounded-md text-sm 
+              inline-flex leading-4`,
               order?.isPaid ? 'bg-green-200 text-primary-400' 
               : 'bg-gray-200 text-gray-400'
             )}
-            >{isPaid}</span>
-            <span 
-              className={clsx(`leading-normal px-2 rounded-md text-sm 
-              inline-flex items-center h-fit`,
-              order?.isDelivered ? 'bg-green-200 text-primary-400' 
-              : 'bg-yellow-200 text-yellow-500'
+            >{isPaid}</p>
+            <p 
+              className={clsx(`px-2 py-1 rounded-md text-sm inline-flex leading-4`,
+              order?.status === "pending" && 'bg-yellow-200 text-orange-500',
+              order?.isDelivered && 'bg-green-200 text-primary-400',
+              order?.status === "cancelled" && 'bg-red-200 text-red-500'
             )}
-            >{isDelivered}</span>
+            >{order?.status}</p>
             <span className='border-r border-gray-200 w-px h-6'></span>
             <div className='inline-flex items-center space-x-1'>
               <CiCalendar className='text-xl' />
@@ -146,9 +155,7 @@ function OrderDetail() {
               <IoMdMore className='text-3xl'/>
             </span> */}
             <div 
-              onClick={() => {
-                setIsModalOpen(true);
-              }}
+              onClick={handleCancelOrderPop}
               className='button px-5 space-x-2 border-gray-300 text-gray-400 hover-shade hover:border-red-400 hover:text-red-400'>
               <TbCancel className='text-xl' />
               <span>Cancel</span>
@@ -158,6 +165,19 @@ function OrderDetail() {
               <span>Invoice</span>
             </button>
           </div>
+
+          <CancelOrderModal
+            onSubmit={(orderData) => {
+              //console.log(orderData)
+              setOrder(orderData)
+              setIsModalOpen(false);
+            }}
+            isOpen={isModalOpen}
+            order={{_id:order?._id}}
+            onClose={() => {
+              setIsModalOpen(false);
+            }}
+          />
 
         </div>
 

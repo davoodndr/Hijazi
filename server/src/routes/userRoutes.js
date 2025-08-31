@@ -7,7 +7,7 @@ import { addToCart, emptyCart, getCart, removeFromCart } from '../controllers/us
 import { addToWishlist, getWishlist, removeFromWishlist } from '../controllers/user/wishlistController.js';
 import { createRazorpayOrder, generatePaymentLink, verifyRazorpay } from '../controllers/user/paymentController.js';
 import { addNewAddress, getAddressList, makeAddressDefault } from '../controllers/user/addressController.js';
-import { getOrder, getOrders, placeOrder } from '../controllers/user/orderController.js';
+import { cancelOrder, getOrder, getOrders, placeOrder } from '../controllers/user/orderController.js';
 import { getOffers } from '../controllers/user/offerController.js';
 
 const userRouter = express.Router();
@@ -51,6 +51,7 @@ userRouter.patch('/make-address-default', authenticate, allowRoles(['user']), ma
 userRouter.get('/get-orders-list', authenticate, allowRoles(['user']), getOrders)
 userRouter.get('/get-order', authenticate, allowRoles(['user']), getOrder)
 userRouter.post('/place-order', authenticate, allowRoles(['user']), placeOrder)
+userRouter.post('/cancel-order', authenticate, allowRoles(['user']), cancelOrder)
 
 /* coupon management */
 userRouter.get('/get-offers-list',getOffers)

@@ -282,6 +282,10 @@ const ApiBucket = {
     url: '/api/user/place-order',
     method: 'post'
   },
+  cancelOrder: {
+    url: '/api/user/cancel-order',
+    method: 'post'
+  },
 
   /* offers */
   getOffersList: {

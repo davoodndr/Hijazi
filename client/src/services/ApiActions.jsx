@@ -518,3 +518,23 @@ export const getOrder = async(id) => {
   }
 
 }
+
+export const cancelOrder = async(id, reason) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.cancelOrder,
+      data: {
+        order_id: id,
+        reason
+      }
+    })
+
+    return response.data
+    
+  } catch (error) {
+    return error
+  }
+
+}

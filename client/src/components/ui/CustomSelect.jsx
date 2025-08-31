@@ -3,9 +3,15 @@ import React from 'react'
 import { Component } from 'react';
 import Select from 'react-select'
 
-const CustomSelectComponent = (
-  {options, searchable = false, isMulti = false, onChange, value, labelClass = ''}
-) => {
+function CustomSelectComponent({
+  options, 
+  searchable = false, 
+  isMulti = false, 
+  onChange, 
+  value, 
+  labelClass = '', 
+  placeholder = "Select..."
+}) {
   
   return (
     <Select
@@ -17,6 +23,7 @@ const CustomSelectComponent = (
       onChange={onChange}
       value={value}
       isSearchable={searchable}
+      placeholder={placeholder}
       formatOptionLabel={({ label }) => 
         label instanceof Component ? (label) :
         (<span className={`inline-flex capitalize ${labelClass}`}>{label}</span>)
