@@ -214,6 +214,8 @@ export const cancelOrder = async(req, res) => {
 
   try {
 
+    if(!reason) return responseMessage(res, 400, false, "Please specify a reason");
+
     const user = await User.findById(user_id);
     const order = await Order.findById(order_id);
     let appliedOffers = [];
