@@ -51,6 +51,7 @@ userRouter.patch('/make-address-default', authenticate, allowRoles(['user']), ma
 userRouter.get('/get-orders-list', authenticate, allowRoles(['user']), getOrders)
 userRouter.get('/get-order', authenticate, allowRoles(['user']), getOrder)
 userRouter.post('/place-order', authenticate, allowRoles(['user']), placeOrder)
+userRouter.post('/cancel-item', /* authenticate, allowRoles(['user']), */ cancelOrder)
 userRouter.post('/cancel-order', authenticate, allowRoles(['user']), cancelOrder)
 
 /* coupon management */

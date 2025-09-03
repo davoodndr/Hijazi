@@ -22,6 +22,13 @@ const orderSchema = new mongoose.Schema({
     sku: String,
     category: mongoose.Schema.Types.Mixed,
     appliedOffer: mongoose.Schema.Types.Mixed,
+    cancelledBy: {
+      user_id: String,
+      name: String,
+      role: String,
+      date: Date,
+      reason: String
+    }
   }],
   shippingAddress: {
     name: String,

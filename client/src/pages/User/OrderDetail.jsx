@@ -23,7 +23,7 @@ function OrderDetail() {
   const currentOrder = location.state?.order;
   const [order, setOrder] = useState(null);
   const [isPaid, setIsPaid] = useState(null);
-  const [isDelivered, setIsDelivered] = useState(null);
+  const [isPending, setIsPending] = useState(true);
   const [formattedDate, setFormattedDate] = useState(null);
   const [itemsCount, setItemsCount] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -39,9 +39,13 @@ function OrderDetail() {
           const data = await getOrder(currentOrder._id);
 
           const payment = data?.isPaid ? 'paid' : 'unpaid';
-          const delivery = data?.isDelivered ? 'delivered' : 'not delivered';
+          const pending = data?.status === 'pending';
           const dt = data ? 
-            format(new Date(data?.paidAt || data?.createdAt), "dd.MM.yyyy 'at' hh.mm a")
+            format(new Date(
+              data?.status === 'cancelled' ? 
+                data?.cancelledBy?.date 
+                : (data?.paidAt || data?.createdAt)
+              ), "dd.MM.yyyy 'at' hh.mm a")
             :
             null
           const count = data?.cartItems?.reduce((total, item) => total + item?.quantity, 0);
@@ -51,7 +55,7 @@ function OrderDetail() {
 
           setOrder(data)
           setIsPaid(payment);
-          setIsDelivered(delivery);
+          setIsPending(pending);
           setFormattedDate(dt);
           setItemsCount(count);
           setAppliedCoupon(coupon);
@@ -106,7 +110,9 @@ function OrderDetail() {
             )}
             >{order?.status}</p>
             <span className='border-r border-gray-200 w-px h-6'></span>
-            <div className='inline-flex items-center space-x-1'>
+            <div className={clsx('inline-flex items-center space-x-1',
+              order?.status === 'cancelled' && 'text-red-400'
+            )}>
               <CiCalendar className='text-xl' />
               <span>{formattedDate}</span>
             </div>
@@ -193,7 +199,10 @@ function OrderDetail() {
                 const itemTotal = item?.quantity * item.price;
                 
                 return (
-                  <li key={`${item?.id}-${index}`} className='grid grid-cols-[2fr_1fr_1fr] not-last:pb-5 not-last:border-b border-gray-200'>
+                  <li 
+                    key={`${item?.id}-${index}`} 
+                    className='grid grid-cols-[2fr_1fr_1fr_0.5fr] not-last:pb-5 not-last:border-b border-gray-200'
+                  >
                     <div className='inline-flex space-x-4'>
                       <div className='w-20 h-20 border border-gray-200 rounded-lg overflow-hidden'>
                         <img src={item?.image} alt={item?.name} />
@@ -203,6 +212,8 @@ function OrderDetail() {
                           <p className='uppercase text-xs text-gray-400/80 mb-1'>{item?.category.name}</p>
                           <h3 className='capitalize mb-1.5'>{item?.name}</h3>
                         </div>
+
+                        {/* attributes */}
                         <ul className='flex space-x-2'>
                           {attributes.length > 0 && attributes.map(([name, val]) => 
                             (name === 'color' || name === 'colour') ?
@@ -215,8 +226,8 @@ function OrderDetail() {
                               :
                               (<li key={name}
                                 
-                                className={clsx(`not-first:point-before point-before:!bg-gray-500 point-before:!p-0.5 
-                                point-before:!me-2 !text-sm !text-gray-400`,
+                                className={clsx(`not-first:point-before point-before:!bg-gray-400/80 point-before:!p-0.5 
+                                point-before:!me-2 !text-sm !text-gray-500`,
                                 name === 'size' ? 'uppercase' : 'capitalize'
                               )}
                               >{val}</li>)
@@ -234,6 +245,12 @@ function OrderDetail() {
                     <div className='inline-flex flex-col justify-center items-end capitalize relative
                       before:content-["total"] before:absolute before:top-2 before:text-gray-300'>
                       <h3 className='price-before price-before:font-normal price-before:text-sm text-lg items-start'>{itemTotal}</h3>
+                    </div>
+                    <div className='inline-flex items-center justify-end'>
+                      <span 
+                        className='text-xs bg-gray-100 px-3 py-1 rounded-lg cursor-pointer
+                        smooth hover:shadow-md hover:bg-red-300 hover:text-white'
+                      >Cancel</span>
                     </div>
                   </li>
                 )})}

@@ -112,75 +112,64 @@ export const placeOrder = async(req, res) => {
     }
 
     const order_no = await getNextOrderNumber();
+    let appliedOffers = [];
+    let cartOff, coupon;
+    if(appliedCoupon) appliedOffers?.push(appliedCoupon?._id);
+    if(cartOffer) appliedOffers?.push(cartOffer?._id);
 
     /* updates stocks */
-    const updatedItems = await Promise.all(cartItems?.map(async item => {
-      let p = await Product.findById(item?.product_id);
-      if(p){
-        p.variants = p.variants.map(el => {
-          if(el._id.toString() === item?.variant_id){
-            return {
-              ...el,
-              stock: el?.stock > 0 ? el.stock - item.quantity : 0
+    const updatedItems = await Promise.all(
+      cartItems?.map(async item => {
+        let p = await Product.findById(item?.product_id);
+        if(p){
+          p.variants = p.variants.map(el => {
+            if(el._id.toString() === item?.variant_id){
+              return {
+                ...el,
+                stock: el?.stock > 0 ? el.stock - item.quantity : 0
+              }
+            }else{
+              return el
             }
-          }else{
-            return el
+          });
+          await p.save();
+        }
+        if(item?.appliedOffer){
+          const off = await Offer.findById(item?.appliedOffer?._id);
+          appliedOffers.push(off?._id);
+          return {
+            ...item,
+            appliedOffer: {
+              ...(off).toObject(),
+              appliedAmount: item?.appliedOffer?.appliedAmount
+            }
           }
-        });
-        await p.save();
-      }
-      if(item?.appliedOffer){
-        const off = await Offer.findById(item?.appliedOffer?._id);
-        return {
-          ...item,
-          appliedOffer: {
-            ...(off).toObject(),
-            appliedAmount: item?.appliedOffer?.appliedAmount
+        }
+        return item
+      }),
+      appliedOffers?.map(async item => {
+        const off = await Offer.findById(item);
+        if(off){
+
+          const used = off.usedBy?.find(el => el.user === user_id);
+          off = {
+            ...(off.toObject()),
+            usageCount: off.usageCount + 1,
+            usedBy: off.usedBy?.map(el => ({...(el.toObject()), count: used ? used?.count + 1 : 1})),
+            status: off.usageCount + 1 === off?.usageLimit ? 'inactive' : off?.status
           }
+
+          if(off?.type === 'cart'){
+            cartOff = off;
+          }else if(off?.type === 'coupon'){
+            coupon = off;
+          }
+
+          await Offer.findByIdAndUpdate(off._id, off)
         }
-      }
-      return item
-    }))
-
-    /* update coupon */
-    let coupon;
-    if(appliedCoupon){
-      coupon = await Offer.findById(appliedCoupon._id);
-      if(coupon){
-
-        const used = coupon.usedBy?.find(el => el.user === user_id);
-
-        coupon = {
-          ...(coupon.toObject()),
-          usageCount: coupon.usageCount + 1,
-          usedBy: [...coupon.usedBy, {
-            user: user_id,
-            count: used ? used?.count + 1 : 1
-          }]
-        }
-        await Offer.findByIdAndUpdate(appliedCoupon._id, coupon)
-      }
-    }
-
-    /* update offer */
-    let off;
-    if(cartOffer){
-      off = await Offer.findById(cartOffer._id);
-      if(off){
-
-        const used = off.usedBy?.find(el => el.user === user_id);
-
-        off = {
-          ...(off.toObject()),
-          usageCount: off.usageCount + 1,
-          usedBy: [...off.usedBy, {
-            user: user_id,
-            count: used ? used?.count + 1 : 1
-          }]
-        }
-        await Offer.findByIdAndUpdate(cartOffer._id, off)
-      }
-    }
+        return item
+      })
+    )
 
     let order = await Order.create({
       user_id,
@@ -190,8 +179,8 @@ export const placeOrder = async(req, res) => {
 
     order = order.toObject();
     order.cartItems = updatedItems;
-    if(off) order.cartOffer = {
-      ...off,
+    if(cartOff) order.cartOffer = {
+      ...cartOff,
       ...cartOffer
     }
     if(coupon) order.appliedCoupon = {
@@ -199,6 +188,7 @@ export const placeOrder = async(req, res) => {
       ...appliedCoupon
     }
 
+    /* clear cart */
     await Cart.findOneAndUpdate(
       {user_id},
       {$set: {items: []}},
@@ -226,12 +216,20 @@ export const cancelOrder = async(req, res) => {
 
     const user = await User.findById(user_id);
     const order = await Order.findById(order_id);
+    let appliedOffers = [];
+    appliedOffers.push(order?.appliedCoupon?._id);
+    appliedOffers.push(order?.cartOffer?._id);
+    appliedOffers = appliedOffers?.filter(Boolean);
 
-    //console.log(user_id, user?.activeRole, reason)
+    //console.log(appliedOffers)
 
     await Promise.all(
+
+      /* stock clearing */
       order?.cartItems?.map(async item => {
         let product = await Product.findById(item?.product_id);
+        
+        if(item?.appliedOffer) appliedOffers.push(item?.appliedOffer?._id);
         
         if(item?.variant_id){
           product.variants = product?.variants?.map(el => {
@@ -250,7 +248,22 @@ export const cancelOrder = async(req, res) => {
             stock: product?.stock + item?.quantity
           }
         }
-        await product.save();
+        await Product.findByIdAndUpdate(product?._id, product);
+        return item
+      }),
+
+      /* offers clearing */
+      appliedOffers?.map(async el => {
+        let off = await Offer.findById(el);
+        if(off){
+          off = {
+            ...(off.toObject()),
+            usageCount: off?.usageCount - 1,
+            usedBy: off?.usedBy?.map(o => ({...(o.toObject()), count: o?.count - 1}))
+          }
+        }
+        await Offer.findByIdAndUpdate(off._id, off)
+        return el
       })
     )
 
@@ -269,7 +282,7 @@ export const cancelOrder = async(req, res) => {
       {new: true}
     )
 
-    //console.log(cancelled)
+    //console.log(appliedOffers)
 
     return responseMessage(res, 200, true, "Order cancelled successfully!", {order: cancelled})
     
