@@ -217,13 +217,14 @@ export const cancelOrder = async(req, res) => {
     if(!reason) return responseMessage(res, 400, false, "Please specify a reason");
 
     const user = await User.findById(user_id);
+
+    if(!user) return responseMessage(res, 400, false, "Unauthorized access denied");
+
     const order = await Order.findById(order_id);
     let appliedOffers = [];
     appliedOffers.push(order?.appliedCoupon?._id);
     appliedOffers.push(order?.cartOffer?._id);
     appliedOffers = appliedOffers?.filter(Boolean);
-
-    //console.log(appliedOffers)
 
     await Promise.all(
 
@@ -284,14 +285,187 @@ export const cancelOrder = async(req, res) => {
       {new: true}
     )
 
-    //console.log(appliedOffers)
-
     return responseMessage(res, 200, true, "Order cancelled successfully!", {order: cancelled})
     
   } catch (error) {
     console.log('cancelOrder',error)
     return responseMessage(res, 500, false, error.message || error)
   }
+}
+
+export const cancelItem = async(req, res) => {
+
+  const {user_id} = req;
+  const {order_id, item_id, reason} = req.body;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+
+    const user = await User.findById(user_id);
+    if(!user) return responseMessage(res, 400, false, "Unauthorized acces denied");
+
+    let order = await Order.findById(order_id);
+    if(!order) return responseMessage(res, 400, false, "Order not found!");
+
+    const item = order?.cartItems?.find(el => el?._id.toString() === item_id);
+    if(!item) return responseMessage(res, 400, false, "Item not found!");
+
+    const product = await Product.findById(item?.product_id);
+    const taxRate = product?.tax || 0.05;
+    let itemsPrice = 0, rawTotal = 0, taxAmount = 0, discount = 0;
+
+    if(item?.variant_id){
+      
+      product.variants = product?.variants?.map(el => {
+
+        if(el?._id?.toString() === item?.variant_id){
+          return {
+            ...(el?.toObject()),
+            stock: el?.stock + item?.quantity
+          }
+        }
+        return el;
+      })
+      await product.save();
+    }
+
+    /* removing item offer */
+
+    const off_id = item?.appliedOffer?._id;
+    let appliedOffer = off_id ? await Offer.findById(off_id) : null;
+    let offs = [order?.cartOffer?._id, order?.appliedCoupon?._id].filter(Boolean);
+
+    if(appliedOffer){
+      
+      const off = {
+        ...(appliedOffer.toObject()),
+        usageCount: appliedOffer?.usageCount > 0 ? appliedOffer?.usageCount - 1 : 0,
+        usedBy: appliedOffer?.usedBy?.map(o =>  {
+          return {
+            ...(o.toObject()), 
+            count: o?.count > 0 ? o?.count - 1 : 0,
+          }
+        })
+      }
+
+      await Offer?.findByIdAndUpdate(off_id, off)
+    }
+    
+    /* update cart items */
+    const cartItems = await Promise.all(order?.cartItems?.map(async el => {
+
+      if(el?._id === item?._id){
+        
+        return {
+          ...(el.toObject()),
+          status: 'cancelled',
+          cancelledBy: {
+            user_id,
+            name: user?.fullname || user?.username,
+            role: user?.activeRole,
+            date: new Date(),
+            reason
+          },
+          appliedOffer: {
+            ...(el.appliedOffer),
+            status: 'cancelled'
+          }
+        }
+      }
+      
+      taxAmount += (el?.price * taxRate * el?.quantity);
+      itemsPrice += (el?.price * el?.quantity);
+      
+      /* recalculate item offer */
+      const itemOff = el?.appliedOffer ? await Offer.findById(el?.appliedOffer?._id) : null;
+      if(itemOff){
+        const offAmount = calculateDiscount(itemOff, el?.price);
+        discount += offAmount * el?.quantity;
+        return {
+          ...(el.toObject()),
+          appliedOffer: {
+            ...el?.appliedOffer,
+            appliedAmount: offAmount * el?.quantity
+          }
+        }
+      }
+      return el
+    }));
+
+
+
+    /* recalculate cart related discount */
+    let cartOffer = null;
+    let appliedCoupon = null;
+
+    await Promise.all(offs?.map(async id => {
+      const off = await Offer.findById(id);
+      const isEligible = itemsPrice >= off?.minPurchase;
+
+      const applyOffer = () => {
+        const discountValue = calculateDiscount(off, itemsPrice);
+        const appliedAmount = Math.floor(discountValue);
+        discount += discountValue;
+
+        const offerData = { _id: off._id, appliedAmount };
+
+        if (off.type === 'coupon') {
+          appliedCoupon = offerData;
+        } else if (off.type === 'cart') {
+          cartOffer = offerData;
+        }
+      };
+
+      const cancelOffer = () => {
+        const cancelled = { status: 'cancelled' };
+        if (off.type === 'coupon') {
+          appliedCoupon = { ...order?.appliedCoupon, ...cancelled };
+        } else if (off.type === 'cart') {
+          cartOffer = { ...order?.cartOffer, ...cancelled };
+        }
+      };
+
+      if (isEligible) {
+        applyOffer();
+      } else {
+        cancelOffer();
+      }
+
+    }));
+
+    offs = offs.filter(Boolean);
+    
+    discount = Math.floor(discount);
+    rawTotal = itemsPrice + taxAmount - discount;
+
+    /* recreate order data */
+    order = {
+      ...(order.toObject()),
+      cartItems,
+      itemsPrice,
+      totalPrice: Math.floor(rawTotal),
+      roundOff: rawTotal - Math.floor(rawTotal),
+      appliedCoupon,
+      cartOffer,
+      discount,
+      taxAmount
+    }
+  
+    const updated = await Order.findByIdAndUpdate(order?._id, order, {new: true});
+    
+    await session.commitTransaction();
+    return responseMessage(res, 200, true, "Item cancelled successfully", {order: updated})
+
+  } catch (error) {
+    console.log('cancelItem',error)
+    await session.abortTransaction();
+    return responseMessage(res, 500, false, error.message || error);
+  }finally{
+    session.endSession();
+  }
+
 }
 
 // Increment function
@@ -318,4 +492,12 @@ const validateOrder = (data) => {
   }else{
     return null;
   }
+}
+
+const calculateDiscount = (item, price) => {
+  if (item?.discountType === 'percentage') {
+    const calculated = price * (item.discountValue / 100);
+    return item.maxDiscount ? Math.min(calculated, item.maxDiscount) : calculated;
+  }
+  return item?.discountValue || 0;
 }

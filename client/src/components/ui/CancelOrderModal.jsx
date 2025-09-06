@@ -5,12 +5,12 @@ import Modal from './Modal';
 import LoadingButton from './LoadingButton';
 import { ClipLoader } from 'react-spinners';
 import CustomSelect from './CustomSelect';
-import { cancelOrder } from '../../services/ApiActions';
+import { cancelItem, cancelOrder } from '../../services/ApiActions';
 import { useDispatch } from 'react-redux';
 import { updateOrder } from '../../store/slices/OrderSlice';
 import toast from 'react-hot-toast';
 
-function CancelOrderModalComponent({isOpen, order, onSubmit, onClose}) {
+function CancelOrderModalComponent({isOpen, order, item, onSubmit, onClose}) {
 
   const dispatch = useDispatch();
   const [writingSelected, setWritingSelected] = useState(false);
@@ -44,8 +44,13 @@ function CancelOrderModalComponent({isOpen, order, onSubmit, onClose}) {
         toast.error("Please specify a reason", {position: "top-center"});
         return
       }
+
+      console.log(item)
       
-      const response = await cancelOrder(order?._id, reason)
+      const response = item ? 
+        await cancelItem(order?._id, item?._id, reason) 
+        : await cancelOrder(order?._id, reason);
+
       if(response.success){
         toast.success(response.message, {position: "top-center"});
 
@@ -78,7 +83,7 @@ function CancelOrderModalComponent({isOpen, order, onSubmit, onClose}) {
           </div>
 
           <motion.div className='flex flex-col mt-5 px-3'>
-            <p>Why are you cancelling this order?</p>
+            <p>Why are you cancelling this {item ? 'item' :'order'}?</p>
             <CustomSelect
               onChange={handleOnChange}
               labelClass='normal-case'

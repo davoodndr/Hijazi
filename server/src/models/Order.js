@@ -22,6 +22,7 @@ const orderSchema = new mongoose.Schema({
     sku: String,
     category: mongoose.Schema.Types.Mixed,
     appliedOffer: mongoose.Schema.Types.Mixed,
+    status: { type: String, default: 'pending' },
     cancelledBy: {
       user_id: String,
       name: String,
@@ -50,20 +51,24 @@ const orderSchema = new mongoose.Schema({
     country: String,
     mobile: String,
   },
-  paymentMethod: { type: String },
-  paymentResult: {type:mongoose.Schema.Types.Mixed, default: null},
+  paymentInfo: {
+    paymentMethod: { type: String },
+    paymentResult: {type:mongoose.Schema.Types.Mixed, default: null},
+    isPaid: { type: Boolean, default: false },
+    paidAt: { type: Date }
+  },
   itemsPrice: { type: Number, default: 0 },
   taxAmount: { type: Number, default: 0 },
   shippingPrice: { type: Number, default: 0 },
   discount: { type: Number, default: 0 },
   roundOff: { type: Number, default: 0 },
+  totalPrice: { type: Number, default: 0 },
   appliedCoupon: mongoose.Schema.Types.Mixed,
   cartOffer: mongoose.Schema.Types.Mixed,
-  totalPrice: { type: Number, default: 0 },
-  isPaid: { type: Boolean, default: false },
-  paidAt: { type: Date },
-  isDelivered: { type: Boolean, default: false },
-  deliveredAt: { type: Date },
+  deliveryInfo: {
+    isDelivered: { type: Boolean, default: false },
+    deliveredAt: { type: Date },
+  },
   status: { type: String, default: 'pending' }, // Pending, Shipped, Delivered
   cancelledBy: {
     user_id: String,

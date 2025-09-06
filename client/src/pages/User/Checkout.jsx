@@ -153,7 +153,10 @@ function Checkout() {
         cartItems,
         shippingAddress: data.ship_address,
         billingAddress: data.bill_address,
-        paymentMethod: data.payment_method,
+        paymentInfo: {
+          paymentMethod: data.payment_method,
+          isPaid: false
+        },
         itemsPrice: Number(subTotal),
         taxAmount: Number(cartTax),
         shippingPrice: 0,
@@ -168,7 +171,6 @@ function Checkout() {
           appliedAmount: cartOffer?.appliedAmount
         },
         totalPrice: cartTotal,
-        isPaid: false,
         isDelivered: false
       }
 
@@ -176,7 +178,7 @@ function Checkout() {
 
       try {
 
-        if(data?.payment_method === 'cod'){
+        if(data?.paymentInfo?.payment_method === 'cod'){
           const response = await placeOrderAction(order);
           if(response.success){
             dispatch(addToOrders(response.order));
@@ -188,9 +190,12 @@ function Checkout() {
           const result = await verifyRazorpayAction(paymentResponse);
           order = {
             ...order,
-            paymentResult:result.paymentResult,
-            isPaid: true,
-            paidAt: result.paidAt
+            paymentInfo: {
+              ...paymentInfo,
+              paymentResult:result.paymentResult,
+              isPaid: true,
+              paidAt: result.paidAt
+            },
           }
           const response = await placeOrderAction(order);
           if(response.success){

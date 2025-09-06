@@ -158,6 +158,10 @@
   .hover-shade{
     @apply hover:shadow-lg shadow-green-600/30 hover:bg-white
   }
+
+  .disabled-el {
+    @apply bg-gray-200 text-gray-500 opacity-50 cursor-not-allowed pointer-events-none;
+  }
 }
 
 @utility smooth {

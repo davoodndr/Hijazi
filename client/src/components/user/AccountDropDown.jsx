@@ -1,5 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { RiArrowRightUpLine } from "react-icons/ri";
 import user_placeholder from '../../assets/user_placeholder.jpg'
 import { useLogout } from '../../services/hooks';
@@ -8,6 +8,7 @@ const AccountDropDown = ({user}) => {
 
   /*  md:invisible opacity-0 */
   const logout = useLogout()
+  const navigate = useNavigate();
 
   return (
     <div className='nav-account-dropdown border md:invisible opacity-0 border-primary-200 absolute top-[100%] 
@@ -45,22 +46,23 @@ const AccountDropDown = ({user}) => {
       <hr className='text-neutral-200' />
 
       <ul className='flex flex-col p-5 text-[13px] tracking-wide font-semibold text-neutral-400'>
-        <li className='cursor-pointer transition-all duration-300
-          hover:text-primary-500 hover:translate-x-0.5'>
-          <div>Orders</div>
+        <li
+          onClick={() => navigate('/dashboard/orders')}
+          className='cursor-pointer smooth hover:text-primary-500 hover:translate-x-0.5'>
+          Orders
         </li>
-        <li className='cursor-pointer transition-all duration-300
+        <li className='cursor-pointer smooth
           hover:text-primary-500 hover:translate-x-0.5'>
           <div>Wishlist</div>
         </li>
-        <li className='cursor-pointer transition-all duration-300
+        <li className='cursor-pointer smooth
           hover:text-primary-500 hover:translate-x-0.5'>
           <div>Contact</div>
         </li>
         {user &&
           <li className='inline-flex justify-end w-full'>
             <div onClick={logout} className='cursor-pointer text-red-400 hover:bg-red-200 w-fit px-3
-            transition-all duration-300 hover:text-red-500'>Logout</div>
+            smooth hover:text-red-500'>Logout</div>
           </li>
         }
       </ul>
