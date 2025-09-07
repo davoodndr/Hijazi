@@ -1,5 +1,6 @@
 import { createAction, createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
 import { getUserDetail } from "../../services/FetchDatas";
+import { updateUserRole } from "../../services/ApiActions";
 
 export const fetchUser = createAsyncThunk(
   'fetch-users',
@@ -7,6 +8,14 @@ export const fetchUser = createAsyncThunk(
     await getUserDetail()
       .then(response => response)
       .catch(err => rejectWithValue(err.message || "Failed to fetch user data"))
+)
+
+export const updateRole = createAsyncThunk(
+  'update-user-role',
+  async (role,{rejectWithValue}) => 
+    await updateUserRole(role)
+      .then(response => response)
+      .catch(err => rejectWithValue(err.message || "Failed to update role"))
 )
 
 export const logoutUser = createAction('logout');
@@ -41,6 +50,14 @@ const userSlice = createSlice({
       state.isLoading = false;
     }),
     builder.addCase(logoutUser, (state) => {
+      state.user = null;
+      state.isLoading = false;
+    }),
+    builder.addCase(updateRole.fulfilled, (state, action) => {
+      state.user = action.payload;
+      state.isLoading = false;
+    }),
+    builder.addCase(updateRole.rejected, (state) => {
       state.user = null;
       state.isLoading = false;
     })

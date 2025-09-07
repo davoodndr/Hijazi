@@ -15,10 +15,6 @@ export const getCart = async(req, res) => {
       return responseMessage(res, 400, false, "Bag does not exists")
     }
 
-    if(!cart?.items?.length){
-      return responseMessage(res, 400, false, "Bag is empty")
-    }
-
     cart.items = await Promise.all(cart?.items?.map(async item => {
       const product = await Product.findById(item?.product_id)
         .populate({path: 'category', select: 'name'});

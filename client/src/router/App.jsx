@@ -16,25 +16,8 @@ import { clearOffers, fetchOffers } from "../store/slices/OfferSlice"
 function App() {
 
   const dispatch = useDispatch();
-  //const location = useLocation();
 
   useEffect(() => {
-    const fetchAuthData = async() => {
-      const { payload: user } = await dispatch(fetchUser());
-      if(user?.roles?.includes('user')){
-        dispatch(fetchCart())
-        dispatch(fetchWishlist())
-        dispatch(fetchOrders())
-        dispatch(fetchAddresses())
-      }else{
-        dispatch(clearCart())
-        dispatch(clearWishlist())
-        dispatch(clearOrders())
-        dispatch(clearAddressList())
-        dispatch(clearOffers())
-      }
-    }
-    fetchAuthData()
     dispatch(fetchCategories())
     dispatch(fetchOffers())
     dispatch(fetchBrands())

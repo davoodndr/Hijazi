@@ -25,6 +25,24 @@ export const uploadAvatar = async(user_id, file, public_id= "") => {
 
 }
 
+export const updateUserRole = async(role) => {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.updateUserRole,
+      data: {role}
+    })
+
+    return response?.data?.user
+
+  } catch (error) {
+    console.log(error?.response?.data?.message)
+    throw new Error(error?.response?.data?.message)
+  }
+
+}
+
 export const uploadSingleImage = async(folder, fieldName, file, public_id= "") => {
 
   try {

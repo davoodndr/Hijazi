@@ -9,6 +9,7 @@ import {
 	resendOtp,
 	resetUserPassword,
 	updateUserDetail,
+	updateUserRole,
 	userLogin,
 	verifyForgotPassOtp,
 } from "../controllers/user/userController.js";
@@ -28,6 +29,7 @@ authRouter.post('/resend-forgot-pass-otp', resendOtp);
 authRouter.post('/verify-forgot-pass-otp', verifyForgotPassOtp);
 authRouter.patch('/reset-password', resetUserPassword);
 authRouter.patch('/update-user', authenticate, allowRoles(["user", "admin"]), upload, updateUserDetail);
+authRouter.patch('/update-user-role', authenticate, allowRoles(["user", "admin"]), updateUserRole);
 authRouter.get("/logout", authenticate, allowRoles(["user"]), logoutUser);
 
 

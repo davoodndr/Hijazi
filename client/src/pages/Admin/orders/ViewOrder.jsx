@@ -11,71 +11,108 @@ import { format } from 'date-fns';
 import { useSelector } from 'react-redux';
 import clsx from 'clsx';
 import { HiHome } from 'react-icons/hi2';
-import { TbArrowBackUp } from 'react-icons/tb';
+import { TbArrowBackUp, TbCancel } from 'react-icons/tb';
 import CouponCardMedium from '../../../components/ui/CouponCardMedium';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
+import CancelOrderModal from '../../../components/ui/CancelOrderModal';
+import toast from 'react-hot-toast';
 
 function ViewOrder() {
 
   const location = useLocation();
-    const navigate = useNavigate();
-    const currentOrder = location.state?.order;
-    const [order, setOrder] = useState(null);
-    const [isPaid, setIsPaid] = useState(null);
-    const [isDelivered, setIsDelivered] = useState(null);
-    const [formattedDate, setFormattedDate] = useState(null);
-    const [itemsCount, setItemsCount] = useState(0);
-    const [appliedCoupon, setAppliedCoupon] = useState(null);
-    const [appliedOffers, setAppliedOffers] = useState([]);
-    const { ordersList } = useSelector(state => state.orders);
-    
-  
-    useEffect(() => {
-      if(currentOrder){
-  
-        const fetchOrder = async() => {
-          try {
-            
-            const response = await Axios({
-              ...ApiBucket.getOrder,
-              params: {
-                order_id: currentOrder?._id
-              }
-            });
+  const navigate = useNavigate();
+  const currentOrder = location.state?.order;
+  const [order, setOrder] = useState(null);
+  const [isPaid, setIsPaid] = useState(null);
+  const [formattedDate, setFormattedDate] = useState(null);
+  const [itemsCount, setItemsCount] = useState(0);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [appliedOffers, setAppliedOffers] = useState([]);
+  const [paymentInfo, setPaymentInfo] = useState(null);
+  const { ordersList } = useSelector(state => state.orders);
 
-            if(response.data?.success){
-              setupOrder(response.data?.order)
+  useEffect(() => {
+    if(currentOrder){
+
+      const fetchOrder = async() => {
+        try {
+          
+          const response = await Axios({
+            ...ApiBucket.getOrder,
+            params: {
+              order_id: currentOrder?._id
             }
-  
-          } catch (error) {
-            console.log(error)
+          });
+
+          if(response.data?.success){
+            setupOrder(response.data?.order)
           }
+
+        } catch (error) {
+          console.log(error)
         }
-  
-        fetchOrder();
       }
-    },[currentOrder]);
+
+      fetchOrder();
+    }
+  },[currentOrder]);
 
   const setupOrder = (data) => {
-    const payment = data?.isPaid ? 'paid' : 'unpaid';
-    const delivery = data?.isDelivered ? 'delivered' : 'not delivered';
+    
+    const payment = data?.paymentInfo?.isPaid ? 'paid' : 'unpaid';
     const dt = data ? 
-      format(new Date(data?.paidAt || data?.createdAt), "dd.MM.yyyy 'at' hh.mm a")
+      format(new Date(
+        data?.status === 'cancelled' ? 
+          data?.cancelledBy?.date 
+          : (data?.paidAt || data?.createdAt)
+        ), "dd.MM.yyyy 'at' hh.mm a")
       :
       null
-    const count = data?.cartItems?.reduce((total, item) => total + item?.quantity, 0);
+    const count = data?.cartItems?.reduce((total, item) => {
+      return total + (item?.status === 'cancelled' ? 0 : item?.quantity)
+    }, 0);
     const coupon = data?.appliedCoupon;
     const offs = data?.cartItems?.map(item => item?.appliedOffer).filter(Boolean);
     if(data?.cartOffer) offs.push(data?.cartOffer)
+    
+    let payMethod = null;
+    switch (data?.paymentInfo?.paymentMethod) {
+      case 'cod':
+        payMethod = 'Cash on delvery';
+        break;
+      case 'razor-pay':
+        payMethod = 'Razorpay';
+        break;
+      default: null
+        break;
+    }
+    
+    const payInfo = {
+      ...data?.paymentInfo,
+      paymentMethod: payMethod
+    }
 
     setOrder(data)
     setIsPaid(payment);
-    setIsDelivered(delivery);
     setFormattedDate(dt);
     setItemsCount(count);
     setAppliedCoupon(coupon);
     setAppliedOffers(offs)
+    setPaymentInfo(payInfo)
+  }
+
+  /* handling cancel order */
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cancelItem, setCancelItem] = useState(null);
+
+  const handleCancelOrderPop = (item) => {
+    if(order?.status === 'pending'){
+      if(item) setCancelItem(item)
+      setIsModalOpen(true);
+    }else{
+      toast.error("You can cancel order only on pending state", {position: "top-center"})
+    }
   }
 
   return (
@@ -119,32 +156,63 @@ function ViewOrder() {
               <span>#{order?.order_no}</span>
             </h3>
 
-            <span 
-              className={clsx(`font-bold px-2 leading-normal rounded-md text-xs 
-              inline-flex items-center h-fit`,
+            <p 
+              className={clsx(`font-bold px-2 py-1 rounded-md text-sm 
+              inline-flex leading-4`,
               order?.isPaid ? 'bg-green-200 text-primary-400' 
               : 'bg-gray-200 text-gray-400'
             )}
-            >{isPaid}</span>
-            <span 
-              className={clsx(`leading-normal px-2 rounded-md text-xs 
-              inline-flex items-center h-fit`,
-              order?.isDelivered ? 'bg-green-200 text-primary-400' 
-              : 'bg-yellow-200 text-yellow-500'
+            >{isPaid}</p>
+            <p 
+              className={clsx(`px-2 py-1 rounded-md text-sm inline-flex leading-4`,
+              order?.status === "pending" && 'bg-yellow-200 text-orange-500',
+              order?.isDelivered && 'bg-green-200 text-primary-400',
+              order?.status === "cancelled" && 'bg-red-200 text-red-500'
             )}
-            >{isDelivered}</span>
+            >{order?.status}</p>
             <span className='border-r border-gray-200 w-px h-6'></span>
-            <div className='inline-flex items-center space-x-1'>
+            <div className={clsx('inline-flex items-center space-x-1',
+              order?.status === 'cancelled' && 'text-red-400'
+            )}>
               <CiCalendar className='text-xl' />
               <span>{formattedDate}</span>
             </div>
 
+            {/* navigation buttons */}
             <div className='ml-auto inline-flex space-x-2'>
-              <span className='inline-flex bg-primary-100 p-1 rounded-full cursor-pointer
+              {/* prev */}
+              <span 
+                onClick={() => {
+                  const index = ordersList?.findIndex(el => el._id === order._id);
+                  if(index > 0) {
+                    const foundOrder = ordersList.find((_,i) => i === index - 1);
+                    setOrder(foundOrder)
+                    navigate(`/admin/orders/view-order/${foundOrder.order_no}`, {
+                      state: { order: foundOrder }
+                    })
+                  }else{
+                    toast.error("No more order found!", { position: 'top-center'})
+                  }
+                }}
+                className='inline-flex bg-primary-100 p-1 rounded-full cursor-pointer
                 smooth hover:shadow-md/30 hover:text-primary-400'>
                 <IoMdArrowRoundBack className='text-xl' />
               </span>
-              <span className='inline-flex bg-primary-100 p-1 rounded-full cursor-pointer
+              {/* next */}
+              <span 
+                onClick={() => {
+                  const index = ordersList?.findIndex(el => el._id === order._id);
+                  if(index < ordersList.length - 1) {
+                    const foundOrder = ordersList.find((_,i) => i === index + 1);
+                    setOrder(foundOrder)
+                    navigate(`/admin/orders/view-order/${foundOrder.order_no}`, {
+                      state: { order: foundOrder }
+                    })
+                  }else{
+                    toast.error("No more order found!", { position: 'top-center'})
+                  }
+                }}
+                className='inline-flex bg-primary-100 p-1 rounded-full cursor-pointer
                 smooth hover:shadow-md/30 hover:text-primary-400'>
                 <IoMdArrowRoundForward className='text-xl' />
               </span>
@@ -156,6 +224,12 @@ function ViewOrder() {
             {/* <span className='inline-flex border border-gray-300 items-center px-1 rounded-input-border'>
               <IoMdMore className='text-3xl'/>
             </span> */}
+            <div 
+              onClick={() => handleCancelOrderPop(null)}
+              className='button px-5 space-x-2 border-gray-300 text-gray-400 hover-shade hover:border-red-400 hover:text-red-400'>
+              <TbCancel className='text-xl' />
+              <span>Cancel</span>
+            </div>
             <button className='inline-flex items-center !px-5 !space-x-2'>
               <VscCloudDownload className='text-xl' />
               <span>Invoice</span>
@@ -169,91 +243,137 @@ function ViewOrder() {
           {/* left */}
           <div className="flex flex-col flex-grow space-y-5">
 
-            
             {/* items */}
-            <ul className='bg-white p-6 space-y-5 shade rounded-3xl'>
+            <ul className='bg-white shade rounded-3xl overflow-hidden divide-y divide-theme-divider'>
               {order?.cartItems?.map((item, index) => {
-                const attributes = item?.attributes ? Object.entries(item.attributes) : [];
-                const itemTotal = item.quantity * item.price;
+                const attributes = item?.attributes ? Object.entries(item?.attributes) : [];
+                const itemTotal = item?.quantity * item.price;
                 
                 return (
-                  <li key={`${item.id}-${index}`} className='grid grid-cols-[2fr_1fr_1fr] not-last:pb-5 not-last:border-b border-gray-200'>
-                    <div className='inline-flex space-x-4'>
-                      <div className='w-20 h-20 border border-gray-200 rounded-lg overflow-hidden'>
-                        <img src={item.image} alt={item.name} />
+                  <li 
+                    key={`${item?.id}-${index}`} 
+                    className='relative overflow-hidden'
+                  >
+                    {item?.status === 'cancelled' &&
+                      <div className="absolute top-[12%] -left-[3%] text-xs z-2">
+                        <p className='-rotate-45 bg-red-500 text-white leading-4 px-6 py-0.5 shadow-md/20'
+                        >Cancelled</p>
                       </div>
-                      <div className='flex flex-col justify-center'>
-                        <div>
-                          <p className='uppercase text-xs text-gray-400/80 mb-1'>{item.category.name}</p>
-                          <h3 className='capitalize mb-1.5'>{item.name}</h3>
+                    }
+                    <div
+                      className={clsx('grid grid-cols-[2fr_1fr_1fr_0.5fr] p-5 not-last:border-b border-gray-200',
+                        item?.status === 'cancelled' && 'disabled-el'
+                      )}
+                    >
+                      <div className='inline-flex space-x-4'>
+                        <div className='w-20 h-20 border border-gray-200 rounded-lg overflow-hidden'>
+                          <img src={item?.image} alt={item?.name} />
                         </div>
-                        <ul className='flex space-x-2'>
-                          {attributes.length > 0 && attributes.map(([name, val]) => 
-                            (name === 'color' || name === 'colour') ?
-                              (<li
-                                key={name}
-                                style={{ "--dynamic": val }}
-                                className='point-before point-before:!p-1.5 point-before:!me-0.5 
-                                point-before:!bg-(--dynamic) point-before:!rounded-sm'
-                              ></li>)
-                              :
-                              (<li key={name}
-                                
-                                className={clsx(`not-first:point-before point-before:!bg-gray-500 point-before:!p-0.5 
-                                point-before:!me-2 !text-sm !text-gray-400`,
-                                name === 'size' ? 'uppercase' : 'capitalize'
-                              )}
-                              >{val}</li>)
-                            
-                          )}
-                        </ul>
+                        <div className='flex flex-col justify-center'>
+                          <div>
+                            <p className='uppercase text-xs text-gray-400/80 mb-1'>{item?.category.name}</p>
+                            <h3 className='capitalize mb-1.5'>{item?.name}</h3>
+                          </div>
+
+                          {/* attributes */}
+                          <ul className='flex space-x-2'>
+                            {attributes.length > 0 && attributes.map(([name, val]) => 
+                              (name === 'color' || name === 'colour') ?
+                                (<li
+                                  key={name}
+                                  style={{ "--dynamic": val }}
+                                  className='point-before point-before:!p-1.5 point-before:!me-0.5 
+                                  point-before:!bg-(--dynamic) point-before:!rounded-sm'
+                                ></li>)
+                                :
+                                (<li key={name}
+                                  
+                                  className={clsx(`not-first:point-before point-before:!bg-gray-400/80 point-before:!p-0.5 
+                                  point-before:!me-2 !text-sm !text-gray-500`,
+                                  name === 'size' ? 'uppercase' : 'capitalize'
+                                )}
+                                >{val}</li>)
+                              
+                            )}
+                          </ul>
+                        </div>
                       </div>
-                    </div>
-                    <div className='inline-flex space-x-2 items-center justify-end relative
-                      before:content-["rate"] before:capitalize before:absolute before:top-2 before:text-gray-300'>
-                      <h3 className='price-before price-before:font-normal'>{item.price}</h3>
-                      <p className='text-gray-500'>x</p>
-                      <h3>{item.quantity}</h3>
-                    </div>
-                    <div className='inline-flex flex-col justify-center items-end capitalize relative
-                      before:content-["total"] before:absolute before:top-2 before:text-gray-300'>
-                      <h3 className='price-before price-before:font-normal price-before:text-sm text-lg items-start'>{itemTotal}</h3>
+                      <div className='inline-flex space-x-2 items-center justify-end relative
+                        before:content-["rate"] before:capitalize before:absolute before:top-2 before:text-gray-300'>
+                        <h3 className='price-before price-before:font-normal'>{item?.price}</h3>
+                        <p className='text-gray-500'>x</p>
+                        <h3>{item?.quantity}</h3>
+                      </div>
+                      <div className='inline-flex flex-col justify-center items-end capitalize relative
+                        before:content-["total"] before:absolute before:top-2 before:text-gray-300'>
+                        <h3 className='price-before price-before:font-normal price-before:text-sm text-lg items-start'>{itemTotal}</h3>
+                      </div>
+                      <div className='inline-flex items-center justify-end'>
+                        <span
+                          onClick={() => {
+                            if(item?.status !== 'cancelled'){
+                              handleCancelOrderPop(item)
+                            }
+                          }} 
+                          className={clsx(`text-xs bg-gray-100 px-3 py-1 rounded-lg cursor-pointer
+                            smooth hover:shadow-md hover:bg-red-300 hover:text-white`,
+                            item?.status === 'cancelled' && 'disabled-el'
+                          )}
+                        >Cancel</span>
+                      </div>
                     </div>
                   </li>
                 )})}
             </ul>
 
             {/* payment summery */}
-            <div className='bg-white p-6 shade rounded-3xl'>
-              <h3 className='text-lg mb-3'>Payment Summery</h3>
+            <div className='grid grid-cols-2 space-x-6 bg-white p-6 shade rounded-3xl'>
+
+              {/* payment method */}
               <div className="flex flex-col">
-                <p className='flex items-center justify-between'>
-                  <span>Subtotal <span className='text-gray-400'>{itemsCount} {itemsCount > 1 ? 'items' : 'item'}</span></span>
-                  <span className='font-bold price-before text-base'>{Number(order?.itemsPrice).toFixed(2)}</span>
-                </p>
-                {/* <p className='flex items-center justify-between'>
-                  <span>Delivery</span>
-                  <span className='font-bold price-before text-base'>0</span>
-                </p> */}
-                <p className='flex items-center justify-between'>
-                  <span>Tax <span className='text-gray-400'>5% GST included</span></span>
-                  <span className='font-bold price-before text-base'>{Number(order?.taxAmount).toFixed(2)}</span>
-                </p>
-                <div className='flex items-center justify-between'>
-                  <span>Discount</span>
-                  <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{Number(order?.discount).toFixed(2)}</span></p>
+                <h3 className='text-lg mb-3'>Payment Info</h3>
+                <div className="p-4 border w-fit border-gray-300 rounded-xl">
+                  <p className='inline-flex space-x-3 items-center'>
+                    <span className='text-sm text-gray-400'>Method:</span>
+                    <span>{paymentInfo?.paymentMethod}</span>
+                  </p>
                 </div>
-                {order?.roundOff > 0 &&
-                  <div className='flex items-center justify-between'>
-                    <span>Round off</span>
-                    <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{Number(order?.roundOff).toFixed(2)}</span></p>
-                  </div>
-                }
-                <span className='w-full border-b border-gray-200 my-4'></span>
-                <p className='flex items-center justify-between font-bold'>
-                  <span className='text-base'>Total Amount</span>
-                  <span className='price-before text-lg'>{Number(order?.totalPrice).toFixed(2)}</span>
-                </p>
+              </div>
+              
+              {/* summery */}
+              <div className="flex flex-col">
+                <h3 className='text-lg mb-3'>Payment Summery</h3>
+                <div className="flex flex-col">
+                  <p className='flex items-center justify-between'>
+                    <span>Subtotal <span className='text-gray-400'>{itemsCount} {itemsCount > 1 ? 'items' : 'item'}</span></span>
+                    <span className='font-bold price-before text-base'>{Number(order?.itemsPrice).toFixed(2)}</span>
+                  </p>
+                  {/* <p className='flex items-center justify-between'>
+                    <span>Delivery</span>
+                    <span className='font-bold price-before text-base'>0</span>
+                  </p> */}
+                  <p className='flex items-center justify-between'>
+                    <span>Tax <span className='text-gray-400'>5% GST included</span></span>
+                    <span className='font-bold price-before text-base'>{Number(order?.taxAmount).toFixed(2)}</span>
+                  </p>
+                  {order?.discount > 0 &&
+                    <div className='flex items-center justify-between'>
+                      <span>Discount</span>
+                      <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{Number(order?.discount).toFixed(2)}</span></p>
+                    </div>
+                  }
+                  {order?.roundOff > 0 &&
+                    <div className='flex items-center justify-between'>
+                      <span>Round off</span>
+                      <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{Number(order?.roundOff).toFixed(2)}</span></p>
+                    </div>
+                  }
+                  <span className='w-full border-b border-gray-200 my-4'></span>
+                  <p className='flex items-center justify-between font-bold'>
+                    <span className='text-base'>Total Amount</span>
+                    <span className='price-before text-lg'>{Number(order?.totalPrice).toFixed(2)}</span>
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -265,38 +385,61 @@ function ViewOrder() {
                   border-gray-300 rounded-2xl p-4 gap-5">
                   
                   {appliedOffers?.length > 0 && 
-                    appliedOffers.map(offer => (
-                      <div key={offer?._id} className='
-                        inline-flex p-0.5 relative h-[88px] w-full'
-                      >
-                        <div className="absolute rounded-xl border-4 border-dotted border-amber-300 inset-0"></div>
-                        <div 
-                          className='absolute bottom-0 left-1/2 -translate-x-1/2 bg-white
-                          px-1 pt-0.5 leading-3 text-[9px] capitalize rounded-t-lg'
-                        >{offer?.type} Offer</div>
-                        <div className="flex flex-col leading-5 bg-amber-300 rounded-xl p-2 h-full w-full
-                          items-center justify-center"
+                    appliedOffers.map((offer, i) => {
+
+                      const cancelled = offer?.status === 'cancelled';
+
+                      return (
+                        <div key={offer?._id || i} 
+                          className='inline-flex p-0.5 relative h-[88px] w-full overflow-hidden'
                         >
-                          <span className='font-bold text-xs text-black'>{offer?.title}</span>
-                          <p className='text-[11px]'>On order above
-                            <span className='content-before ml-1'
-                            >{offer?.minPurchase}</span>
-                          </p>
-                          {offer?.endDate &&
-                            <p className='text-[10px] font-bold text-amber-700'>Offer ends on  
-                              <span className='ml-1'>
-                                {format(new Date(offer?.endDate), 'dd-MM-yyyy')}
-                              </span>
-                            </p>
+                          {cancelled && 
+                            <div className="absolute top-[10%] -left-[10%] text-[11px] z-2">
+                              <p className='-rotate-45 bg-red-500 text-white leading-3 px-5 pb-0.5 shadow-md/20'
+                              >Lost</p>
+                            </div>
                           }
+
+                          <div className={clsx("absolute rounded-xl border-4 border-dotted inset-0",
+                            cancelled ? "border-gray-300" : "border-amber-300"
+                          )}></div>
+
+                          <div 
+                            className='absolute bottom-0 left-1/2 -translate-x-1/2 bg-white
+                            px-1 pt-0.5 leading-3 text-[9px] capitalize rounded-t-lg z-1'
+                          >{offer?.type} Offer</div>
+
+                          <div className={clsx(`flex flex-col leading-5 rounded-xl p-2 h-full w-full
+                            items-center justify-center`,
+                            cancelled ? 'disabled-el' : 'bg-amber-300'
+                          )}>
+                            <span className={clsx('font-bold text-xs',
+                              cancelled ? '' : 'text-black'
+                            )}>{offer?.title}</span>
+
+                            <p className='text-[11px]'>On order above
+                              <span className='content-before ml-1'
+                              >{offer?.minPurchase}</span>
+                            </p>
+                            {offer?.endDate &&
+                              <p className={clsx('text-[10px] font-bold',
+                                cancelled ? "" : "text-amber-700"
+                              )}>Offer ends on  
+                                <span className='ml-1'>
+                                  {format(new Date(offer?.endDate), 'dd-MM-yyyy')}
+                                </span>
+                              </p>
+                            }
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  }
+                    )
+                  })}
                   {appliedCoupon && (
-                    <CouponCardMedium coupon={appliedCoupon} />
+                    <CouponCardMedium 
+                      coupon={appliedCoupon}
+                    />
                   )}                  
-                  {!appliedCoupon && !appliedOffers.length && (
+                  {!appliedCoupon && !appliedOffers?.length && (
                     <span className="text-gray-400">No offers applied</span>
                   )}
                 </div>
@@ -306,9 +449,9 @@ function ViewOrder() {
           </div>
 
           {/* right */}
-          <div className="flex flex-col w-[30%] shrink-0 rounded-3xl shadow-md overflow-hidden h-fit">
+          <div className="flex flex-col w-[30%] shrink-0 rounded-3xl shade overflow-hidden h-fit">
             {/* customer details */}
-            <div className="flex flex-col bg-white p-6 divide-y divide-gray-200">
+            <div className="flex flex-col bg-white p-6 divide-y divide-theme-divider">
               <h3 className='text-lg mb-2 border-0'>Customer</h3>
               
               {/* profile */}
@@ -317,7 +460,7 @@ function ViewOrder() {
                   <span className='bg-gray-100 p-2.5 rounded-full'>
                     <LuUserRound className='text-xl' />
                   </span>
-                  <p className='font-bold'>{order?.billingAddress.name}</p>
+                  <p className='font-bold'>{order?.billingAddress?.name}</p>
                 </div>
                 <span className='border border-gray-300 rounded-lg p-0.5 smooth
                   hover:scale-105 hover:shadow-md cursor-pointer'>
@@ -355,25 +498,39 @@ function ViewOrder() {
               {/* shipping address */}
               <div className='flex flex-col capitalize py-3'>
                 <h3 className='mb-3'>Shipping Address</h3>
-                <p className='font-bold'>{order?.shippingAddress.name}</p>
-                <p>{order?.shippingAddress.address_line}</p>
-                <p>{order?.shippingAddress.landmark}</p>
-                <p>{order?.shippingAddress.city}, {order?.shippingAddress.state}, {order?.shippingAddress.country}</p>
-                <p>{order?.shippingAddress.pincode}</p>
+                <p className='font-bold'>{order?.shippingAddress?.name}</p>
+                <p>{order?.shippingAddress?.address_line}</p>
+                <p>{order?.shippingAddress?.landmark}</p>
+                <p>{order?.shippingAddress?.city}, {order?.shippingAddress?.state}, {order?.shippingAddress?.country}</p>
+                <p>{order?.shippingAddress?.pincode}</p>
               </div>
 
               {/* billing address */}
               <div className='flex flex-col capitalize py-3'>
                 <h3 className='mb-3'>Billing Address</h3>
-                <p className='font-bold'>{order?.billingAddress.name}</p>
-                <p>{order?.billingAddress.address_line}</p>
-                <p>{order?.billingAddress.landmark}</p>
-                <p>{order?.billingAddress.city}, {order?.billingAddress.state}, {order?.billingAddress.country}</p>
-                <p>{order?.billingAddress.pincode}</p>
+                <p className='font-bold'>{order?.billingAddress?.name}</p>
+                <p>{order?.billingAddress?.address_line}</p>
+                <p>{order?.billingAddress?.landmark}</p>
+                <p>{order?.billingAddress?.city}, {order?.billingAddress?.state}, {order?.billingAddress?.country}</p>
+                <p>{order?.billingAddress?.pincode}</p>
               </div>
             </div>
           </div>
         </div>
+
+        <CancelOrderModal
+          onSubmit={(orderData) => {
+            setOrder(orderData)
+            setIsModalOpen(false);
+            if(cancelItem) setCancelItem(null);
+          }}
+          isOpen={isModalOpen}
+          order={{_id:order?._id}}
+          item={cancelItem ? {_id: cancelItem?._id}: null}
+          onClose={() => {
+            setIsModalOpen(false);
+          }}
+        />
       </div>
 
     </section>

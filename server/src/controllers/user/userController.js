@@ -284,6 +284,35 @@ export const updateUserDetail = async(req, res) => {
   }
 }
 
+// update user role
+export const updateUserRole = async(req, res) => {
+
+  const { user_id } = req;
+  const { role } = req.body;
+
+  try {
+    
+    const user = await User.findById(user_id);
+
+    if(!user){
+      return responseMessage(res, 400, false, "Invalid user request");
+    }
+
+    const updated = await User.findByIdAndUpdate(
+      user_id,
+      {activeRole: role},
+      {new: true}
+    )
+    
+    return responseMessage(res, 200, true, "", {user: updated});
+
+  } catch (error) {
+    console.log('updateUserRole',error)
+    return responseMessage(res, 500, false, error.message || error)
+  }
+
+}
+
 //logut user
 export const logoutUser = async(req, res) => {
   try {

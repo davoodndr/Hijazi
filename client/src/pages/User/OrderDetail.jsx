@@ -23,7 +23,6 @@ function OrderDetail() {
   const currentOrder = location.state?.order;
   const [order, setOrder] = useState(null);
   const [isPaid, setIsPaid] = useState(null);
-  const [isPending, setIsPending] = useState(true);
   const [formattedDate, setFormattedDate] = useState(null);
   const [itemsCount, setItemsCount] = useState(0);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -40,7 +39,6 @@ function OrderDetail() {
           const data = await getOrder(currentOrder._id);
 
           const payment = data?.paymentInfo?.isPaid ? 'paid' : 'unpaid';
-          const pending = data?.status === 'pending';
           const dt = data ? 
             format(new Date(
               data?.status === 'cancelled' ? 
@@ -75,7 +73,6 @@ function OrderDetail() {
 
           setOrder(data)
           setIsPaid(payment);
-          //setIsPending(pending);
           setFormattedDate(dt);
           setItemsCount(count);
           setAppliedCoupon(coupon);
@@ -203,7 +200,7 @@ function OrderDetail() {
           <div className="flex flex-col flex-grow space-y-5">
             
             {/* items */}
-            <ul className='bg-white shade rounded-3xl overflow-hidden'>
+            <ul className='bg-white shade rounded-3xl overflow-hidden divide-y divide-theme-divider'>
               {order?.cartItems?.map((item, index) => {
                 const attributes = item?.attributes ? Object.entries(item?.attributes) : [];
                 const itemTotal = item?.quantity * item.price;
@@ -411,7 +408,7 @@ function OrderDetail() {
           {/* right */}
           <div className="flex flex-col w-[28%] shrink-0 rounded-3xl shade overflow-hidden h-fit">
             {/* customer details */}
-            <div className="flex flex-col bg-white p-6 divide-y divide-gray-200">
+            <div className="flex flex-col bg-white p-6 divide-y divide-theme-divider">
               <h3 className='text-lg mb-2 border-0'>Customer</h3>
               
               {/* profile */}

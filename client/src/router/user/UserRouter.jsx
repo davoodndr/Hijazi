@@ -1,11 +1,16 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Route, Routes } from 'react-router'
 import UserLayout from "../../pages/User/UserLayout"
 import PublicRoutes from "./UserPublicRoutes"
 import ProtectedRoutes from "./UserProtectedRoutes"
 import { Suspense } from 'react'
 import LoadingFallOff from '../../components/ui/LoadingFallOff'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchCart } from '../../store/slices/CartSlice'
+import { fetchWishlist } from '../../store/slices/WishlistSlice'
+import { fetchOrders } from '../../store/slices/OrderSlice'
+import { fetchAddresses } from '../../store/slices/AddressSlice'
+import { updateRole } from '../../store/slices/UsersSlice'
 
 const Register = React.lazy(() => import("../../pages/User/Auth/Register"))
 const Login = React.lazy(() => import("../../pages/User/Auth/Login"))
@@ -26,6 +31,31 @@ const Addresses = React.lazy(() => import("../../pages/User/Dashboard/Addresses"
 const UserRouter = () => {
 
   const { loading } = useSelector(state => state.common);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      
+      if (document.visibilityState === "visible") {
+        dispatch(updateRole('user'))
+        dispatch(fetchCart())
+        dispatch(fetchWishlist())
+        dispatch(fetchOrders())
+        dispatch(fetchAddresses())
+      }
+    };
+
+    dispatch(updateRole('user'))
+    dispatch(fetchCart())
+    dispatch(fetchWishlist())
+    dispatch(fetchOrders())
+    dispatch(fetchAddresses())
+    
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   return (
     <>

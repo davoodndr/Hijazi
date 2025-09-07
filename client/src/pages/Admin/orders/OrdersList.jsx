@@ -259,9 +259,14 @@ function OrdersList() {
 
                       const title = order?.itemsCount > 1 ? `${order?.itemsCount} items includes` 
                         : order?.name;
-                      const images = Array(order?.itemsCount).fill(0).map((el, i) => 
-                        ({name: "", image: order?.image || ''})
-                      );
+
+                      const count = Math.min(order?.itemsCount || 0, 3);
+
+                      /* const images = Array.from({ length: count }, (_, i) => ({
+                        name: "",
+                        image: order?.image || ''
+                      })); */
+
                       const isPaid = order?.isPaid ? 'Paid' : 'Unpaid';
                       const payment = order?.paymentMethod === 'cod' ? 'cash on delivery' : order?.paymentMethod;
 
@@ -293,11 +298,12 @@ function OrdersList() {
                             <div className="flex gap-2 items-center relative">
 
                               <div className="inline-flex">
-                                <AvatarGroup
+                                {/* <AvatarGroup
                                   images={images}
-                                  avatarClass={`w-12 rounded-full overflow-hidden border-2 border-gray-300`}
+                                  avatarClass={`w-12 rounded-md overflow-hidden border-2 border-gray-300`}
                                   className='flex w-full -space-x-11 items-end'
-                                />
+                                /> */}
+                                <img src={order?.image} className='rounded-xl border border-gray-300 w-12 h-12' alt="" />
                               </div>
 
                               <div className="inline-flex flex-col capitalize">
@@ -332,7 +338,9 @@ function OrdersList() {
                             <div className='capitalize flex flex-col'>
                               <span className='text-xs font-semibold'>{payment}</span>
                               {order?.paymentMethod === 'razor-pay' && 
-                                <span className='text-xs text-gray-400'>{order?.paymentResult?.razorpay_payment_id}</span>}
+                                <span className='text-xs text-gray-400'>
+                                  {order?.paymentResult?.razorpay_payment_id}
+                                </span>}
                             </div>
 
                             {/* status */}

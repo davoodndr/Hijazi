@@ -52,6 +52,10 @@ const ApiBucket = {
     url: '/api/auth/update-user',
     method: 'patch'
   },
+  updateUserRole: {
+    url: '/api/auth/update-user-role',
+    method: 'patch'
+  },
 
   // -------------- admin side -------------- //
 

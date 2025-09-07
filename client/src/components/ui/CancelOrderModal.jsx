@@ -44,8 +44,6 @@ function CancelOrderModalComponent({isOpen, order, item, onSubmit, onClose}) {
         toast.error("Please specify a reason", {position: "top-center"});
         return
       }
-
-      console.log(item)
       
       const response = item ? 
         await cancelItem(order?._id, item?._id, reason) 

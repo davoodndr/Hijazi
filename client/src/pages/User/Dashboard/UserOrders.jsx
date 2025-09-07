@@ -111,64 +111,79 @@ function UserOrders() {
 
             const isPaid = order?.isPaid ? 'Paid' : 'Unpaid';
             const payment = order?.paymentMethod === 'cod' ? 'cash on delivery' : order?.paymentMethod;
+            const cancelled = order?.status === 'cancelled';
 
             return (
               <div
                 key={order?._id}
-                className='grid grid-cols-[100px_1fr_0.5fr_0.75fr_180px_0.5fr]
-                 items-center space-x-3 p-2 border border-gray-300 rounded-3xl'>
-                
-                {/* thumb */}
-                <div className='w-20 rounded-2xl overflow-hidden'>
-                  <img src={order?.image} alt={order?.name} />
-                </div>
+                className=' relative overflow-hidden'
+              >
 
-                {/* title */}
-                <div className='inline-flex flex-col'>
-                  <p className='text-xs'><span className='text-gray-400'>Order </span>#{order?.order_no}</p>
-                  <p className='capitalize font-semibold'>{title}</p>
-                  <p className='capitalize text-xs'>
-                    <span className='text-gray-400'>Date: </span>
-                    <span>{format(new Date(order?.createdAt), 'MMM dd, yyyy')}</span>
-                  </p>
-                </div>
+                {cancelled &&
+                  <div className="absolute top-[15%] -left-[3%] text-xs z-2">
+                    <p className='-rotate-45 bg-red-500 text-white leading-4 px-6 py-0.5 shadow-md/20'
+                    >Cancelled</p>
+                  </div>
+                }
 
-                {/* total */}
-                <div className='inline-flex flex-col'>
-                  <span className='text-xs text-gray-400'>Order Total</span>
-                  <span className='price-before'>{order?.totalPrice}</span>
-                </div>
+                <div
+                  className={clsx(`grid grid-cols-[100px_1fr_0.5fr_0.75fr_180px_0.5fr]
+                    items-center space-x-3 p-2 border border-gray-300 rounded-3xl`,
+                    cancelled ? 'disabled-el pointer-events-auto cursor-auto' : ' bg-white' 
+                )}>
 
-                {/* paid by */}
-                <div className='inline-flex flex-col'>
-                  <span className='text-xs text-gray-400'>Payment</span>
-                  <span className='capitalize'>{payment}</span>
-                </div>
+                  {/* thumb */}
+                  <div className='w-20 rounded-2xl overflow-hidden'>
+                    <img src={order?.image} alt={order?.name} />
+                  </div>
 
-                {/* ship to */}
-                <div className='inline-flex flex-col px-2'>
-                  <span className='text-xs text-gray-400'>Ship to</span>
-                  <span className='truncate capitalize'>{Object.values(order?.shippingAddress).join(', ')}</span>
-                </div>
+                  {/* title */}
+                  <div className='inline-flex flex-col'>
+                    <p className='text-xs'><span className='text-gray-400'>Order </span>#{order?.order_no}</p>
+                    <p className='capitalize font-semibold'>{title}</p>
+                    <p className='capitalize text-xs'>
+                      <span className='text-gray-400'>Date: </span>
+                      <span>{format(new Date(order?.createdAt), 'MMM dd, yyyy')}</span>
+                    </p>
+                  </div>
 
-                {/* order id */}
-                <div className='inline-flex flex-col justify-between text-xs space-y-1 capitalize'>
-                  <span 
-                    onClick={() => {
-                      navigate(`/my-order/${order?.order_no}`,{
-                        state: { order }
-                      })
-                    }}
-                    className='underline text-primary-400 cursor-pointer'
-                  >View Order</span>
-                  <span className='underline text-primary-400 cursor-pointer'>Invoice</span>
-                  <span className='underline text-primary-400 cursor-pointer'>rate product</span>
-                </div>
+                  {/* total */}
+                  <div className='inline-flex flex-col'>
+                    <span className='text-xs text-gray-400'>Order Total</span>
+                    <span className='price-before'>{order?.totalPrice}</span>
+                  </div>
 
-                {/* action button */}
-                {/* <div className='w-full'>
-                  <button className='w-full text-xs'>Buy Again</button>
-                </div> */}
+                  {/* paid by */}
+                  <div className='inline-flex flex-col'>
+                    <span className='text-xs text-gray-400'>Payment</span>
+                    <span className='capitalize'>{payment}</span>
+                  </div>
+
+                  {/* ship to */}
+                  <div className='inline-flex flex-col px-2'>
+                    <span className='text-xs text-gray-400'>Ship to</span>
+                    <span className='truncate capitalize'>{Object.values(order?.shippingAddress).join(', ')}</span>
+                  </div>
+
+                  {/* order id */}
+                  <div className='inline-flex flex-col justify-between text-xs space-y-1 capitalize'>
+                    <span 
+                      onClick={() => {
+                        navigate(`/my-order/${order?.order_no}`,{
+                          state: { order }
+                        })
+                      }}
+                      className='underline text-primary-400 cursor-pointer'
+                    >View Order</span>
+                    <span className='underline text-primary-400 cursor-pointer'>Invoice</span>
+                    <span className='underline text-primary-400 cursor-pointer'>rate product</span>
+                  </div>
+
+                  {/* action button */}
+                  {/* <div className='w-full'>
+                    <button className='w-full text-xs'>Buy Again</button>
+                  </div> */}
+                </div>
               </div>
             )
           })

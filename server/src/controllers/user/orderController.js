@@ -69,9 +69,23 @@ export const getOrders = async(req, res) => {
       {
         $project: {
           order_no: 1,
-          itemsCount: {$size: "$cartItems"},
+          itemsCount: {
+            $sum: {
+              $map: {
+                input:{
+                  $filter: {
+                    input: "$cartItems",
+                    as: "item",
+                    cond: {$ne: ["$$item.status", "cancelled"]}
+                  }
+                },
+                as: "item",
+                in: "$$item.quantity"
+              }
+            }
+          },
           totalPrice: 1,
-          paymentMethod: 1,
+          paymentMethod: "$paymentInfo.paymentMethod",
           image: { $arrayElemAt: ["$cartItems.image", 0] },
           name: { $arrayElemAt: ["$cartItems.name", 0] },
           shippingAddress: 1,
@@ -211,6 +225,8 @@ export const cancelOrder = async(req, res) => {
 
   const { user_id } = req;
   const { order_id, reason } = req.body;
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
 
@@ -247,7 +263,7 @@ export const cancelOrder = async(req, res) => {
           })
         }else{
           product = {
-            ...Cart(product.toObject()),
+            ...(product.toObject()),
             stock: product?.stock + item?.quantity
           }
         }
@@ -285,11 +301,15 @@ export const cancelOrder = async(req, res) => {
       {new: true}
     )
 
+    await session.commitTransaction();
     return responseMessage(res, 200, true, "Order cancelled successfully!", {order: cancelled})
     
   } catch (error) {
     console.log('cancelOrder',error)
+    await session.abortTransaction();
     return responseMessage(res, 500, false, error.message || error)
+  }finally{
+    session.endSession();
   }
 }
 
@@ -368,10 +388,10 @@ export const cancelItem = async(req, res) => {
             date: new Date(),
             reason
           },
-          appliedOffer: {
+          appliedOffer: el?.appliedOffer ? {
             ...(el.appliedOffer),
             status: 'cancelled'
-          }
+          } : null
         }
       }
       

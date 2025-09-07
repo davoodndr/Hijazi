@@ -3,9 +3,16 @@ import { Navigate, Route, Routes } from 'react-router'
 import PublicRoutes from './AdminPublicRoutes'
 import ProtectedRoutes from './AdminProtectedRoutes'
 import { Toaster } from 'react-hot-toast'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import LoadingFallOff from '../../components/ui/LoadingFallOff'
 import AdminLayout from '../../pages/Admin/AdminLayout'
+import { useEffect } from 'react'
+import { updateRole } from '../../store/slices/UsersSlice'
+import { clearWishlist } from '../../store/slices/WishlistSlice'
+import { clearOrders } from '../../store/slices/OrderSlice'
+import { clearAddressList } from '../../store/slices/AddressSlice'
+import { clearOffers } from '../../store/slices/OfferSlice'
+import { clearCart } from '../../store/slices/CartSlice'
 
 const Login = React.lazy(() => import('../../pages/Admin/auth/Login'))
 const Register = React.lazy(() => import('../../pages/Admin/auth/Register'))
@@ -26,6 +33,31 @@ const OffersList = React.lazy(() => import('../../pages/Admin/offers/OffersList'
 const AdminRouter = () => {
 
   const { loading } = useSelector(state => state.common);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        dispatch(updateRole('admin'))
+        dispatch(clearCart())
+        dispatch(clearWishlist())
+        dispatch(clearOrders())
+        dispatch(clearAddressList())
+        dispatch(clearOffers())
+      }
+    };
+    dispatch(updateRole('admin'))
+    dispatch(clearCart())
+    dispatch(clearWishlist())
+    dispatch(clearOrders())
+    dispatch(clearAddressList())
+    dispatch(clearOffers())
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   return (
     <>
