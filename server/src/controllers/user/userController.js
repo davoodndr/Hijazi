@@ -9,6 +9,7 @@ import { OAuth2Client } from "google-auth-library";
 import { generateOtp } from '../../services/misc.js'
 import { sendMail } from "../../services/sendmail.js";
 import { uploadImagesToCloudinary } from "../../utils/coudinaryActions.js";
+import Wallet from "../../models/Wallet.js";
 dotenv.config();
 
 // register user
@@ -42,7 +43,8 @@ export const registerUser= async(req, res) => {
       password: hashedPass,
       roles: roles && roles.length ? [...roles,'user'] : ['user']
     }).save();
-    
+
+    await Wallet.create({user: newUser._id});
 
     // can delete filed from new user if want to response with new user
     //delete {...newUser}._doc.password;
@@ -282,35 +284,6 @@ export const updateUserDetail = async(req, res) => {
     console.log('updateUserDetail:',error);
     return responseMessage(res,500,false,error);
   }
-}
-
-// update user role
-export const updateUserRole = async(req, res) => {
-
-  const { user_id } = req;
-  const { role } = req.body;
-
-  try {
-    
-    const user = await User.findById(user_id);
-
-    if(!user){
-      return responseMessage(res, 400, false, "Invalid user request");
-    }
-
-    const updated = await User.findByIdAndUpdate(
-      user_id,
-      {activeRole: role},
-      {new: true}
-    )
-    
-    return responseMessage(res, 200, true, "", {user: updated});
-
-  } catch (error) {
-    console.log('updateUserRole',error)
-    return responseMessage(res, 500, false, error.message || error)
-  }
-
 }
 
 //logut user

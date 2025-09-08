@@ -9,6 +9,7 @@ import wishlistReducer from './slices/WishlistSlice'
 import addressReducer from './slices/AddressSlice'
 import ordersReducer from './slices/OrderSlice'
 import offersReducer from './slices/OfferSlice'
+import walletReducer from './slices/WalletSlice'
 
 let preloadedCart;
 try {
@@ -38,6 +39,7 @@ const store = configureStore({
     address: addressReducer,
     orders: ordersReducer,
     offers: offersReducer,
+    wallet: walletReducer,
   },
   preloadedState
 })

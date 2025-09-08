@@ -24,13 +24,6 @@ function App() {
     dispatch(fetchProducts())
   },[])
 
-
-  /* useEffect(() => {
-    if(location.pathname.includes('admin')){
-      dispatch(setActiveRole('admin'))
-    }
-  },[location]) */
-
   return (
     <BrowserRouter>
       <Routes>

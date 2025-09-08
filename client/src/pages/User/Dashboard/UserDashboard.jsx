@@ -17,6 +17,7 @@ function UserDashboard() {
     {label: 'My Profile', url: 'profile'},
     {label: 'My Orders', url: 'orders'},
     {label: 'address management', url: 'address-list'},
+    {label: 'my wallet', url: 'wallet'},
   ]
 
   return (

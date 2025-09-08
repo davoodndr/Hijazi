@@ -1,6 +1,8 @@
 import ApiBucket from "./ApiBucket"
 import { Axios } from "../utils/AxiosSetup"
 
+/* ------ shared actions -------- */
+
 /* auth */
 export const getUserDetail = async() => {
 
@@ -14,6 +16,24 @@ export const getUserDetail = async() => {
 
   } catch (error) {
     //console.log(error.response.data)
+    throw new Error(error?.response?.data?.message)
+  }
+
+}
+
+export const getWallet = async() => {
+  
+  try {
+    
+
+    const response = await Axios({
+      ...ApiBucket.getWallet
+    })
+
+    return response?.data?.wallet
+    
+  } catch (error) {
+    console.log(error);
     throw new Error(error?.response?.data?.message)
   }
 

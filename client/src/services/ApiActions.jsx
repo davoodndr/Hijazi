@@ -577,3 +577,22 @@ export const cancelOrder = async(id, reason) => {
   }
 
 }
+
+/* wallet */
+export const addFundAction = async(amount, description) => {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.addFund,
+      data: {amount, description}
+    })
+
+    return response?.data?.updates;
+
+  } catch (error) {
+    console.log(error)
+    throw new Error(error?.response?.data?.message)
+  }
+
+}

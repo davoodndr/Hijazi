@@ -9,6 +9,7 @@ import { createRazorpayOrder, generatePaymentLink, verifyRazorpay } from '../con
 import { addNewAddress, getAddressList, makeAddressDefault } from '../controllers/user/addressController.js';
 import { cancelItem, cancelOrder, getOrder, getOrders, placeOrder } from '../controllers/user/orderController.js';
 import { getOffers } from '../controllers/user/offerController.js';
+import { getWallet } from '../controllers/shared/walletController.js';
 
 const userRouter = express.Router();
 
@@ -54,7 +55,8 @@ userRouter.post('/place-order', authenticate, allowRoles(['user']), placeOrder)
 userRouter.post('/cancel-item', authenticate, allowRoles(['user']), cancelItem)
 userRouter.post('/cancel-order', authenticate, allowRoles(['user']), cancelOrder)
 
-/* coupon management */
+/* offer management */
 userRouter.get('/get-offers-list',getOffers)
+
 
 export default userRouter;

@@ -1,9 +1,21 @@
 
 const ApiBucket = {
 
-  /* common */
+  /* shared routes */
   uploadSingleImage:{
     url: '/api/admin/upload-single-image',
+    method: 'post'
+  },
+  updateUserRole: {
+    url: '/api/update-user-role',
+    method: 'patch'
+  },
+  getWallet: {
+    url: '/api/get-wallet',
+    method: 'get'
+  },
+  addFund: {
+    url: '/api/add-fund',
     method: 'post'
   },
 
@@ -50,10 +62,6 @@ const ApiBucket = {
   },
   updateUserDetail: {
     url: '/api/auth/update-user',
-    method: 'patch'
-  },
-  updateUserRole: {
-    url: '/api/auth/update-user-role',
     method: 'patch'
   },
 

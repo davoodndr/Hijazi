@@ -6,6 +6,7 @@ import connectDB from "./common/db.js";
 import authRouter from "./routes/authRouter.js";
 import adminRouter from "./routes/adminRouter.js";
 import userRouter from "./routes/userRoutes.js";
+import sharedRouter from "./routes/sharedRouter.js";
 import { expireOffer } from "./controllers/admin/offerController.js";
 dotenv.config();
 
@@ -37,9 +38,10 @@ app.use(cookieParser());
   console.log(req.body)
 }) */
 
-app.use('/api/auth',authRouter)
-app.use('/api/admin',adminRouter)
-app.use('/api/user',userRouter)
+app.use('/api', sharedRouter)
+app.use('/api/auth', authRouter)
+app.use('/api/admin', adminRouter)
+app.use('/api/user', userRouter)
 
 /* cron-jobs */
 expireOffer()

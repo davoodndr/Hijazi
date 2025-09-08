@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema(
 			default: "active",
 		},
 		default_address: {
-			type: mongoose.Schema.ObjectId,
+			type: mongoose.Schema.Types.ObjectId,
 			ref: "Address",
 		},
 		forgot_password_otp: {
@@ -44,7 +44,10 @@ const userSchema = new mongoose.Schema(
 		},
 		roles: { type: [String], default: ["user"] },
 		activeRole: { type: String, default: "user" },
-		wallet_balance: { type: Number, default: 0 },
+		/* wallet: {
+			_id: {type: mongoose.Schema.Types.ObjectId, ref: "Wallet"},
+			balance: {type: Number, default: 0 },
+		} */
 	},
 	{ timestamps: true }
 );

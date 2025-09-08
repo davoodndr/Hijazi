@@ -3,6 +3,7 @@ import Address from "../../models/Address.js";
 import User from "../../models/User.js";
 import { responseMessage } from "../../utils/messages.js";
 import { deleteImageFromCloudinary, uploadImagesToCloudinary } from '../../utils/coudinaryActions.js'
+import Wallet from "../../models/Wallet.js";
 
 // fetch users
 export const getUsers = async(req, res) => {
@@ -58,10 +59,13 @@ export const addUser= async(req, res) => {
       password: hashedPass,
     })
 
+    const wallet = new Wallet({user: newUser?._id});
+
     await Promise.all(
       [
         newUser.save(),
-        address_line ? new Address(req.body).save() : Promise.resolve()
+        address_line ? new Address(req.body).save() : Promise.resolve(),
+        wallet.save()
       ]
     )
     
