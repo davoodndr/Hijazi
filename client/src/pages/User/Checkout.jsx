@@ -178,15 +178,22 @@ function Checkout() {
 
       try {
 
+        const prefill = {
+              name: order.billingAddress.name,
+              contact: order.billingAddress.mobile
+            }
+
         if(data?.paymentInfo?.payment_method === 'cod'){
+
           const response = await placeOrderAction(order);
+
           if(response.success){
             dispatch(addToOrders(response.order));
             showAlert(response.order)
           }
         }else{
 
-          const paymentResponse = await processRazorpayAction(order);
+          const paymentResponse = await processRazorpayAction(order?.itemsPrice, prefill, `rcpt_${Date.now()}`);
           const result = await verifyRazorpayAction(paymentResponse);
           order = {
             ...order,

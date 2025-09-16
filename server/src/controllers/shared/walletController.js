@@ -29,7 +29,7 @@ export const addFund = async(req, res) => {
 
   //const user_id = '680fcd85ccab7af6a4332392'
   const {user_id} = req;
-  const { amount, description } = req.body;
+  const { amount, description, paymentInfo } = req.body;
 
   try {
 
@@ -43,9 +43,9 @@ export const addFund = async(req, res) => {
     wallet.balance += Number(amount);
     wallet.transactions.push({
       type: 'credit',
-      paymentMethod: 'none',
       amount,
-      description
+      description,
+      paymentInfo
     })
 
     await wallet.save();

@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getWalletSync } from '../../../store/slices/WalletSlice';
 import { format } from 'date-fns';
 import { clsx } from 'clsx';
+import AdminPagination from '../../../components/ui/AdminPagination';
 
 function Wallet() {
 
@@ -22,8 +23,21 @@ function Wallet() {
 
   useEffect(() => {
     if(walletBalance) setBalance(walletBalance);
-    if(list?.length) setTransactions(list);
+    if(list?.length) {
+      const newList = list?.map((item, i) => ({...item, sl:++i}))
+      setTransactions(newList);
+    }
   },[walletBalance, list])
+
+  /* paingation logic */
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10
+  const totalPages = Math.ceil(transactions.length / itemsPerPage);
+
+  const paginatedTransactions = transactions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className='w-full h-full p-6'>
@@ -64,17 +78,19 @@ function Wallet() {
               <p className='font-bold'>Date</p>
             </li>
             
-            {transactions.length > 0 ?
-              transactions?.map((item, i) => {
+            {paginatedTransactions.length > 0 ?
+              paginatedTransactions?.map(item => {
 
                 const credit = item?.type === 'credit';
-                const dt = format(new Date(item?.createdAt), "dd-MM-yyyy")
+                const payment = item?.paymentInfo
+                const dt = format(new Date(payment?.paidAt), "dd-MM-yyyy");
+                const time = format(new Date(payment?.paidAt), "hh:mm:ss a");
                 
                 return (
                   <li 
                     key={item?._id}
                     className='grid grid-cols-[0.5fr_0.5fr_1.5fr_1fr_1fr_1fr] py-0.5'>
-                    <p>{++i}</p>
+                    <p>{item?.sl}</p>
                     <p className='flex items-center'>
                       {credit ?
                         <span className='bg-primary-50 text-primary-400 p-0.5 rounded-full'>
@@ -87,14 +103,17 @@ function Wallet() {
                       }
                     </p>
                     <p>{item?.description}</p>
-                    <p>{item?.paymentMethod}</p>
+                    <p>{payment?.paymentMethod}</p>
                     <p className={clsx('font-semibold',credit ? 'text-primary-400' : 'text-red-400')}>
-                      <span className='me-1'
+                      <span className='inline-flex w-3'
                       >{credit ? '+' : '-'}</span>
                       <span className='content-before content-before:font-normal'
                       >{item?.amount}</span>
                     </p>
-                    <p>{dt}</p>
+                    <p className='space-x-1 flex items-center'>
+                      <span>{dt}</span>
+                      <span className='text-xs'>{time}</span>
+                    </p>
                   </li>
                 )
               })
@@ -105,6 +124,15 @@ function Wallet() {
         </div>
 
       </div>
+
+      {/* pagination */}
+      {totalPages > 1 && <div className='border-t border-gray-300 py-5 mt-5 flex justify-center'>
+        <AdminPagination
+          currentPage={currentPage} 
+          totalPages={totalPages}
+          setCurrentPage={setCurrentPage}
+        />
+      </div>}
 
       <AddFundModal
         isOpen={isModalOpen}

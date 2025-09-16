@@ -5,9 +5,8 @@ import { getBrands } from '../controllers/user/brandController.js';
 import { getProduct, getProductList, getRelatedItems } from '../controllers/user/productController.js';
 import { addToCart, emptyCart, getCart, removeFromCart } from '../controllers/user/cartController.js';
 import { addToWishlist, getWishlist, removeFromWishlist } from '../controllers/user/wishlistController.js';
-import { createRazorpayOrder, generatePaymentLink, verifyRazorpay } from '../controllers/user/paymentController.js';
 import { addNewAddress, getAddressList, makeAddressDefault } from '../controllers/user/addressController.js';
-import { cancelItem, cancelOrder, getOrder, getOrders, placeOrder } from '../controllers/user/orderController.js';
+import { getOrder, getOrders, placeOrder } from '../controllers/user/orderController.js';
 import { getOffers } from '../controllers/user/offerController.js';
 import { getWallet } from '../controllers/shared/walletController.js';
 
@@ -38,11 +37,6 @@ userRouter.get('/get-wishlist', authenticate, allowRoles(['user']), getWishlist)
 userRouter.post('/add-to-wishlist', authenticate, allowRoles(['user']), addToWishlist);
 userRouter.patch('/remove-from-wishlist', authenticate, allowRoles(['user']), removeFromWishlist);
 
-/* payment managment */
-userRouter.post('/generate-razorpay-link', authenticate, allowRoles(['user']), generatePaymentLink)
-userRouter.post('/create-razorpay-order', authenticate, allowRoles(['user']), createRazorpayOrder)
-userRouter.post('/verify-razorpay-payment', authenticate, allowRoles(['user']), verifyRazorpay)
-
 /* address management */
 userRouter.get('/get-address-list', authenticate, allowRoles(['user']), getAddressList)
 userRouter.post('/add-new-address', authenticate, allowRoles(['user']), addNewAddress)
@@ -52,8 +46,6 @@ userRouter.patch('/make-address-default', authenticate, allowRoles(['user']), ma
 userRouter.get('/get-orders-list', authenticate, allowRoles(['user']), getOrders)
 userRouter.get('/get-order', authenticate, allowRoles(['user']), getOrder)
 userRouter.post('/place-order', authenticate, allowRoles(['user']), placeOrder)
-userRouter.post('/cancel-item', authenticate, allowRoles(['user']), cancelItem)
-userRouter.post('/cancel-order', authenticate, allowRoles(['user']), cancelOrder)
 
 /* offer management */
 userRouter.get('/get-offers-list',getOffers)

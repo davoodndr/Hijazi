@@ -1,5 +1,6 @@
-import { removeItem } from "motion/react";
+
 import { Axios } from "../utils/AxiosSetup";
+import { loadRazorpay } from "../services/Payments";
 import ApiBucket from "./ApiBucket";
 
 
@@ -407,18 +408,28 @@ export const makeDefaultAddressAction = async(data) => {
 }
 
 // payment
-export const processRazorpayAction = async(order) => {
+export const createRazorpayOrder = async(amount, reciept_no) => {
+  
+  try {
 
-  /* setup for loading razorpay script */
-  const loadRazorpay = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
+    const response = await Axios({
+      ...ApiBucket.createRazorpayOrder,
+      data: {
+        amount,
+        receipt: reciept_no
+      }
+    })
+
+    return response
+    
+  } catch (error) {
+    console.log(error)
+    return error
+  }
+
+}
+
+export const processRazorpayAction = async(cash, prefill, reciept_no) => {
 
   const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
@@ -429,15 +440,9 @@ export const processRazorpayAction = async(order) => {
       throw new Error("Razorpay SDK failed to load");
     }
     
-    const orderResponse = await Axios({
-      ...ApiBucket.createRazorpayOrder,
-      data: {
-        amount: order.itemsPrice,
-        receipt: `order_${Date.now()}`
-      }
-    })
+    const orderResponse = await createRazorpayOrder(cash, reciept_no)
 
-    const {id: order_id, currency, amount } = orderResponse.data.order;
+    const {id: order_id, currency, amount } = orderResponse?.data?.order;
 
     const paymentResponse = await new Promise((resolve, reject) => {
 
@@ -445,16 +450,13 @@ export const processRazorpayAction = async(order) => {
         key: RAZORPAY_KEY_ID,
         amount,
         currency,
-        name: "Hijazi",
+        name: "Hijazi", // app name
         order_id,
         /* image: "logo", */
         handler: function(response) {
           resolve(response);
         },
-        prefill: {
-          name: order.billingAddress.name,
-          contact: order.billingAddress.mobile
-        },
+        prefill,
         theme: {
           color: '#4cc4bb'
         },
@@ -475,7 +477,7 @@ export const processRazorpayAction = async(order) => {
   } catch (error) {
 
     console.log(error)
-    throw new Error(error?.response?.data?.message);
+    throw new Error(error?.response?.data?.message || error.message);
   }
 
 }
@@ -579,13 +581,13 @@ export const cancelOrder = async(id, reason) => {
 }
 
 /* wallet */
-export const addFundAction = async(amount, description) => {
+export const addFundAction = async(data) => {
 
   try {
     
     const response = await Axios({
       ...ApiBucket.addFund,
-      data: {amount, description}
+      data
     })
 
     return response?.data?.updates;

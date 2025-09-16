@@ -7,6 +7,10 @@ import { GiWallet } from "react-icons/gi";
 import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import { addFundSync } from '../../store/slices/WalletSlice';
+import { processRazorpayAction, verifyRazorpayAction } from '../../services/ApiActions';
+import AxiosToast from '../../utils/AxiosToast';
+import { Axios } from '../../utils/AxiosSetup';
+import ApiBucket from '../../services/ApiBucket';
 
 function AddFundModalComponent({isOpen, onSubmit, onClose}) {
 
@@ -18,8 +22,38 @@ function AddFundModalComponent({isOpen, onSubmit, onClose}) {
   const handleAddFund = async() => {
     if(amount && description){
 
-      dispatch(addFundSync({amount, description}))
-      onClose();
+      setIsLoading(true);
+
+      try {
+
+        const prefill = {
+          name: "Test name",
+          contact: "+917012860026" //this is format is must
+        }
+        const paymentResponse = await processRazorpayAction(amount, prefill, `rcpt_${Date.now()}`);
+        const result = await verifyRazorpayAction(paymentResponse);
+
+        const data = {
+            amount, 
+            description,
+            paymentInfo: {
+              paymentMethod: "razor-pay",
+              paidAt: result?.paidAt,
+              detail: {
+                ...result?.paymentResult
+              }
+            }
+          }
+
+        await dispatch(addFundSync(data))
+        
+        onClose();
+
+      } catch (error) {
+        AxiosToast(error)
+      }finally{
+        setIsLoading(false);
+      }
 
     }else{
       toast.error(`Please enter a ${!amount ? 'valid amount' : 'short description'}!`,

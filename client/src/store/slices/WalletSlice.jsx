@@ -12,8 +12,8 @@ export const getWalletSync = createAsyncThunk(
 
 export const addFundSync = createAsyncThunk(
   'wallets/addFund',
-  async({amount, description},{rejectWithValue}) =>
-    await addFundAction(amount, description)
+  async(data,{rejectWithValue}) =>
+    await addFundAction(data)
     .then(response => response)
     .catch(error => rejectWithValue(error.messaege || "Failed to add fund"))
 )

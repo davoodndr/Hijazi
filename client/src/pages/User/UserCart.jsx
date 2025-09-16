@@ -125,6 +125,7 @@ function UserCart(){
         
         return {
           ...item,
+          tax: item?.price * item?.quantity * p?.tax,
           category: {
             name: p?.category?.name,
             slug: p?.category?.slug,

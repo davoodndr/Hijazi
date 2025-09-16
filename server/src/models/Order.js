@@ -21,14 +21,32 @@ const orderSchema = new mongoose.Schema({
     variant_id: String,
     sku: String,
     category: mongoose.Schema.Types.Mixed,
-    appliedOffer: mongoose.Schema.Types.Mixed,
+    appliedOffer: {
+      _id: String,
+      appliedAmount: Number,
+      status: String
+    },
     status: { type: String, default: 'pending' },
-    cancelledBy: {
+    tax: Number,
+    cancelSummery: {
+      _id: String,
       user_id: String,
       name: String,
       role: String,
       date: Date,
-      reason: String
+      reason: String,
+      refundAmount: Number,
+      refundStatus: String,
+      appliedCoupon: {
+        _id: String,
+        appliedAmount: Number,
+        status: String
+      },
+      cartOffer: {
+        _id: String,
+        appliedAmount: Number,
+        status: String
+      }
     }
   }],
   shippingAddress: {
@@ -63,19 +81,28 @@ const orderSchema = new mongoose.Schema({
   discount: { type: Number, default: 0 },
   roundOff: { type: Number, default: 0 },
   totalPrice: { type: Number, default: 0 },
-  appliedCoupon: mongoose.Schema.Types.Mixed,
-  cartOffer: mongoose.Schema.Types.Mixed,
+  appliedCoupon: {
+    _id: String,
+    appliedAmount: Number,
+    status: String
+  },
+  cartOffer: {
+    _id: String,
+    appliedAmount: Number,
+    status: String
+  },
   deliveryInfo: {
     isDelivered: { type: Boolean, default: false },
     deliveredAt: { type: Date },
   },
-  status: { type: String, default: 'pending' }, // Pending, Shipped, Delivered
-  cancelledBy: {
+  status: { type: String, default: 'pending' },
+  cancelSummery: {
     user_id: String,
     name: String,
     role: String,
     date: Date,
-    reason: String
+    reason: String,
+    refunded: Boolean
   }
 }, { timestamps: true });
 

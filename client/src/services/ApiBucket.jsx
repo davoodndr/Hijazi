@@ -1,7 +1,9 @@
 
 const ApiBucket = {
 
-  /* shared routes */
+  // -------------------- shared routes -----------------------//
+
+  /* user auth */
   uploadSingleImage:{
     url: '/api/admin/upload-single-image',
     method: 'post'
@@ -10,12 +12,38 @@ const ApiBucket = {
     url: '/api/update-user-role',
     method: 'patch'
   },
+
+  /* order */
+  cancelItem: {
+    url: '/api/order/cancel-item',
+    method: 'patch'
+  },
+  cancelOrder: {
+    url: '/api/orders/cancel-order',
+    method: 'post'
+  },
+
+  /* wallet */
   getWallet: {
     url: '/api/get-wallet',
     method: 'get'
   },
   addFund: {
     url: '/api/add-fund',
+    method: 'post'
+  },
+
+  /* payment */
+  generateRazorpayLink: {
+    url: '/api/generate-razorpay-link',
+    method: 'post'
+  },
+  createRazorpayOrder: {
+    url: '/api/create-razorpay-order',
+    method: 'post'
+  },
+  varifyRazorpay: {
+    url: '/api/verify-razorpay-payment',
     method: 'post'
   },
 
@@ -253,20 +281,6 @@ const ApiBucket = {
     method: 'patch'
   },
 
-  /* payment */
-  generateRazorpayLink: {
-    url: '/api/user/generate-razorpay-link',
-    method: 'post'
-  },
-  createRazorpayOrder: {
-    url: '/api/user/create-razorpay-order',
-    method: 'post'
-  },
-  varifyRazorpay: {
-    url: '/api/user/verify-razorpay-payment',
-    method: 'post'
-  },
-
   /* address */
   getAddressList: {
     url: '/api/user/get-address-list',
@@ -292,14 +306,6 @@ const ApiBucket = {
   },
   placeOrder: {
     url: '/api/user/place-order',
-    method: 'post'
-  },
-  cancelItem: {
-    url: '/api/user/cancel-item',
-    method: 'post'
-  },
-  cancelOrder: {
-    url: '/api/user/cancel-order',
     method: 'post'
   },
 
