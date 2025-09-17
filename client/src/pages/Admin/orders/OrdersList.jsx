@@ -49,7 +49,7 @@ function OrdersList() {
   const handleViewOrderClick = (order) => { 
     navigate(`view-order/${order?.order_no}`,
       {
-        state: {order}
+        state: {order, orders}
       }
     )
   }

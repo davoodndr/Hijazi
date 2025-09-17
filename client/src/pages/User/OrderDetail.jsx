@@ -37,7 +37,6 @@ function OrderDetail() {
   },[])
 
   useEffect(() => {
-
     const fetchOrder = async() => {
       try {
         
@@ -148,6 +147,17 @@ function OrderDetail() {
     }
   }
 
+  const resetDatas = () => {
+    setOrder(null)
+    setIsPaid(null)
+    setFormattedDate(null)
+    setItemsCount(0)
+    setCancelSummeries([])
+    setPaymentInfo(null)
+    setAppliedOffers([])
+    setOriginalTotals(null)
+  }
+
   /* handling cancel order */
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [cancelItem, setCancelItem] = useState(null);
@@ -202,8 +212,8 @@ function OrderDetail() {
                 onClick={() => {
                   const index = ordersList?.findIndex(el => el._id === order._id);
                   if(index > 0) {
+                    resetDatas();
                     const foundOrder = ordersList.find((_,i) => i === index - 1);
-                    setOrder(foundOrder)
                     navigate(`/my-order/${foundOrder.order_no}`, {
                       state: { order: foundOrder }
                     })
@@ -219,8 +229,8 @@ function OrderDetail() {
                 onClick={() => {
                   const index = ordersList?.findIndex(el => el._id === order._id);
                   if(index < ordersList.length - 1) {
+                    resetDatas();
                     const foundOrder = ordersList.find((_,i) => i === index + 1);
-                    setOrder(foundOrder)
                     navigate(`/my-order/${foundOrder.order_no}`, {
                       state: { order: foundOrder }
                     })

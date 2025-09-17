@@ -25,6 +25,7 @@ function ViewOrder() {
   const location = useLocation();
   const navigate = useNavigate();
   const currentOrder = location.state?.order;
+  const ordersList = location.state?.orders;
   const [order, setOrder] = useState(null);
   const [isPaid, setIsPaid] = useState(null);
   const [formattedDate, setFormattedDate] = useState(null);
@@ -33,7 +34,6 @@ function ViewOrder() {
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [appliedOffers, setAppliedOffers] = useState([]);
   const [originalTotals, setOriginalTotals] = useState(null);
-  const { ordersList } = useSelector(state => state.orders);
 
   useEffect(() => {
     if(!currentOrder) navigate("/admin/orders")
@@ -151,6 +151,17 @@ function ViewOrder() {
     }
   }
 
+  const resetDatas = () => {
+    setOrder(null)
+    setIsPaid(null)
+    setFormattedDate(null)
+    setItemsCount(0)
+    setCancelSummeries([])
+    setPaymentInfo(null)
+    setAppliedOffers([])
+    setOriginalTotals(null)
+  }
+
   /* handling cancel order */
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [cancelItem, setCancelItem] = useState(null);
@@ -234,11 +245,10 @@ function ViewOrder() {
                 onClick={() => {
                   const index = ordersList?.findIndex(el => el._id === order._id);
                   if(index > 0) {
+                    resetDatas()
                     const foundOrder = ordersList.find((_,i) => i === index - 1);
-                    console.log(foundOrder)
-                    setOrder(foundOrder)
-                    navigate(`/admin/orders/view-order/${foundOrder.order_no}`, {
-                      state: { order: foundOrder }
+                    navigate(`/admin/orders/view-order/${foundOrder?.order_no}`, {
+                      state: { order: foundOrder, orders: ordersList }
                     })
                   }else{
                     toast.error("No more order found!", { position: 'top-center'})
@@ -253,10 +263,10 @@ function ViewOrder() {
                 onClick={() => {
                   const index = ordersList?.findIndex(el => el._id === order._id);
                   if(index < ordersList.length - 1) {
+                    resetDatas()
                     const foundOrder = ordersList.find((_,i) => i === index + 1);
-                    setOrder(foundOrder)
-                    navigate(`/admin/orders/view-order/${foundOrder.order_no}`, {
-                      state: { order: foundOrder }
+                    navigate(`/admin/orders/view-order/${foundOrder?.order_no}`, {
+                      state: { order: foundOrder, orders: ordersList }
                     })
                   }else{
                     toast.error("No more order found!", { position: 'top-center'})
