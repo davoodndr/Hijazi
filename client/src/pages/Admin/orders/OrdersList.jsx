@@ -29,7 +29,7 @@ function OrdersList() {
       try {
         
         const response = await Axios({
-          ...ApiBucket.getOrders
+          ...ApiBucket.fetchOrders
         })
 
         if(response.data?.success){

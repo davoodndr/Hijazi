@@ -22,6 +22,14 @@ const ApiBucket = {
     url: '/api/orders/cancel-order',
     method: 'post'
   },
+  fetchOrder: {
+    url: '/api/get-order',
+    method: 'get'
+  },
+  fetchOrders: {
+    url: '/api/get-orders-list',
+    method: 'get'
+  },
 
   /* wallet */
   getWallet: {
@@ -192,14 +200,6 @@ const ApiBucket = {
   },
 
   /* orders */
-  getOrder: {
-    url: '/api/admin/get-order',
-    method: 'get'
-  },
-  getOrders: {
-    url: '/api/admin/get-orders',
-    method: 'get'
-  },
 
   /* offer */
   getOffers: {
@@ -296,14 +296,6 @@ const ApiBucket = {
   },
 
   /* orders */
-  fetchOrder: {
-    url: '/api/user/get-order',
-    method: 'get'
-  },
-  fetchOrders: {
-    url: '/api/user/get-orders-list',
-    method: 'get'
-  },
   placeOrder: {
     url: '/api/user/place-order',
     method: 'post'

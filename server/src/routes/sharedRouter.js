@@ -3,7 +3,7 @@ import { allowRoles, authenticate } from "../middleware/authMiddleware.js";
 import { updateUserRole } from "../controllers/shared/userController.js";
 import { addFund, getWallet } from "../controllers/shared/walletController.js";
 import { createRazorpayOrder, generatePaymentLink, verifyRazorpay } from "../controllers/shared/paymentController.js";
-import { cancelItem, cancelOrder } from "../controllers/shared/orderController.js";
+import { cancelItem, cancelOrder, getOrder, getOrders } from "../controllers/shared/orderController.js";
 
 const sharedRouter = express.Router();
 
@@ -11,6 +11,8 @@ const sharedRouter = express.Router();
 sharedRouter.patch('/update-user-role', authenticate, allowRoles(["user", "admin"]), updateUserRole);
 
 /* handle order */
+sharedRouter.get('/get-orders-list', authenticate, allowRoles(["user", "admin"]), getOrders)
+sharedRouter.get('/get-order', authenticate, allowRoles(["user", "admin"]), getOrder)
 sharedRouter.patch('/order/cancel-item', authenticate, allowRoles(["user", "admin"]), cancelItem)
 sharedRouter.post('/orders/cancel-order', authenticate, allowRoles(["user", "admin"]), cancelOrder)
 

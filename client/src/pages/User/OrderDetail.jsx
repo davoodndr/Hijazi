@@ -350,7 +350,6 @@ function OrderDetail() {
               />
             )}
             
-
             {/* payment summeries */}
             <div className="flex flex-col bg-white p-6 shade rounded-3xl space-y-6 divide-y divide-theme-divider">
 
@@ -373,26 +372,28 @@ function OrderDetail() {
                   <h3 className='text-lg mb-3'>Payment Summery</h3>
 
                   <div className="flex flex-col">
-                    <p className='flex items-center justify-between'>
-                      <span>Subtotal 
-                        <span className='text-gray-400'>
-                          {itemsCount} {itemsCount > 1 ? 'items' : 'item'}
+                    <div className='flex items-center justify-between'>
+                      <p>Subtotal
+                        <span className='ml-1 text-gray-400'>
+                          ({itemsCount} {itemsCount > 1 ? 'items' : 'item'})
                         </span>
-                      </span>
+                      </p>
                       <span className='font-bold price-before text-base'>
-                        {Number(order?.itemsPrice || 0).toFixed(2)}
+                        {Number(order?.subTotal || 0).toFixed(2)}
                       </span>
-                    </p>
+                    </div>
                     {/* <p className='flex items-center justify-between'>
                       <span>Delivery</span>
                       <span className='font-bold price-before text-base'>0</span>
                     </p> */}
+
                     <p className='flex items-center justify-between'>
                       <span>Tax <span className='text-gray-400'>(5% GST included)</span></span>
                       <span className='font-bold price-before text-base'>
                         {Number(order?.taxAmount || 0).toFixed(2)}
                       </span>
                     </p>
+
                     {order?.discount > 0 &&
                       <div className='flex items-center justify-between'>
                         <span>Discount</span>
@@ -401,12 +402,17 @@ function OrderDetail() {
                         </span></p>
                       </div>
                     }
+
                     {order?.roundOff > 0 &&
                       <div className='flex items-center justify-between'>
                         <span>Round off</span>
-                        <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{Number(order?.roundOff).toFixed(2)}</span></p>
+                        <p>- <span
+                          className='font-bold price-before price-before:text-red-300 text-base text-red-400'>
+                          {Number(order?.roundOff).toFixed(2)}</span>
+                        </p>
                       </div>
                     }
+                    
                     <span className='w-full border-b border-gray-200 my-4'></span>
                     <p className='flex items-center justify-between font-bold'>
                       <span className='text-base'>Net Payable Amount</span>

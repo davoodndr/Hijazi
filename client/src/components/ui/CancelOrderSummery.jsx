@@ -97,14 +97,9 @@ function CancelOrderSummeryComponent({
               >
                 <div className='flex items-center justify-between'>
                   <div className='inline-flex items-center leading-4'>
-                    <p 
-                      className='inline-flex items-center justify-center-safe w-4 h-4
-                      text-xs text-gray-500 bg-amber-300 mr-2 rounded-full'>
-                      {++i}
-                    </p>
-                    <div className='flex items-center'>
+                    <div className='flex items-center point-before point-before:me-4 text-sm'>
                       <span className='text-orange-400'>Cancelled:</span>
-                      <p className='inline-block max-w-45 truncate ml-2'>{item?.itemName}</p>
+                      <p className='inline-block max-w-45 truncate ml-2 capitalize'>{item?.itemName}</p>
                     </div>
                     <span className='text-gray-400/60 mx-1'>|</span>
                     <span>{item?.price} x {item?.quantity}</span>

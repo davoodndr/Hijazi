@@ -17,6 +17,8 @@ import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
 import CancelOrderModal from '../../../components/ui/CancelOrderModal';
 import toast from 'react-hot-toast';
+import { getOrder } from '../../../services/ApiActions';
+import CancelOrderSummery from '../../../components/ui/CancelOrderSummery';
 
 function ViewOrder() {
 
@@ -27,55 +29,37 @@ function ViewOrder() {
   const [isPaid, setIsPaid] = useState(null);
   const [formattedDate, setFormattedDate] = useState(null);
   const [itemsCount, setItemsCount] = useState(0);
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [appliedOffers, setAppliedOffers] = useState([]);
+  const [cancelSummeries, setCancelSummeries] = useState([]);
   const [paymentInfo, setPaymentInfo] = useState(null);
+  const [appliedOffers, setAppliedOffers] = useState([]);
+  const [originalTotals, setOriginalTotals] = useState(null);
   const { ordersList } = useSelector(state => state.orders);
 
   useEffect(() => {
-    if(currentOrder){
+    if(!currentOrder) navigate("/admin/orders")
+  },[])
 
-      const fetchOrder = async() => {
-        try {
-          
-          const response = await Axios({
-            ...ApiBucket.getOrder,
-            params: {
-              order_id: currentOrder?._id
-            }
-          });
+  useEffect(() => {
 
-          if(response.data?.success){
-            setupOrder(response.data?.order)
-          }
+    const fetchOrder = async() => {
+      try {
+        
+        const data = await getOrder(currentOrder._id);
 
-        } catch (error) {
-          console.log(error)
-        }
+        setupData(data)
+
+      } catch (error) {
+        console.log(error)
       }
-
-      fetchOrder();
     }
+
+    fetchOrder();
+
   },[currentOrder]);
 
-  const setupOrder = (data) => {
-    
+  const setupData = (data) => {
+
     const payment = data?.paymentInfo?.isPaid ? 'paid' : 'unpaid';
-    const dt = data ? 
-      format(new Date(
-        data?.status === 'cancelled' ? 
-          data?.cancelledBy?.date 
-          : (data?.paidAt || data?.createdAt)
-        ), "dd.MM.yyyy 'at' hh.mm a")
-      :
-      null
-    const count = data?.cartItems?.reduce((total, item) => {
-      return total + (item?.status === 'cancelled' ? 0 : item?.quantity)
-    }, 0);
-    const coupon = data?.appliedCoupon;
-    const offs = data?.cartItems?.map(item => item?.appliedOffer).filter(Boolean);
-    if(data?.cartOffer) offs.push(data?.cartOffer)
-    
     let payMethod = null;
     switch (data?.paymentInfo?.paymentMethod) {
       case 'cod':
@@ -93,13 +77,78 @@ function ViewOrder() {
       paymentMethod: payMethod
     }
 
+    const offs = [], cancelInfos = [];
+    let count = 0, oCount = 0, oSubTotal = 0, oTax = 0, oDisc = 0, oRawTotal = 0;
+    let cancelledTotal = 0, cancelledTax = 0, cancelledDisc = 0, cancelledCount = 0;
+    let dt = data && format(new Date(data?.createdAt), "dd.MM.yyyy 'at' hh.mm a");
+    let cancelled = false;
+    
+    if(data?.cartOffer) offs.push(data?.cartOffer);
+    if(data?.appliedCoupon) offs.push(data?.appliedCoupon);
+
+    for(const item of data?.cartItems){
+
+      // original count
+      oCount += item?.quantity;
+      oSubTotal += item?.price * item?.quantity;
+      oTax += item?.tax;
+      oDisc += item?.appliedOffer?.appliedAmount || 0;
+
+      if(item?.status === 'cancelled'){
+        cancelledCount += item?.quantity;
+        cancelledTax += item?.tax
+        cancelledDisc += item?.appliedOffer?.appliedAmount
+        cancelledTotal += item?.price * item?.quantity;
+        cancelled = true;
+
+        if(item?.cancelSummery){
+        
+          const c = item?.cancelSummery?.appliedCoupon;
+          const cartOff = item?.cancelSummery?.cartOffer;
+          
+          if(c) offs?.push(c);
+          if(cartOff) offs?.push(cartOff);
+          oDisc += ((c?.appliedAmount || 0) + (cartOff?.appliedAmount || 0));
+
+          const summ = {
+            ...item?.cancelSummery,
+            quantity: item?.quantity,
+            price: item?.price,
+            tax: item?.tax,
+            discount: item?.appliedOffer?.appliedAmount || 0,
+            itemName: item?.name
+          }
+          cancelInfos.push(summ)
+        }
+
+      }else{
+        count += item?.quantity;
+      }
+      if(item?.appliedOffer) offs?.push(item?.appliedOffer)
+      
+
+    }
+    
+    oRawTotal = oSubTotal + oTax - oDisc;
+    const originals = {
+      count: oCount,
+      subTotal: oSubTotal,
+      tax: oTax,
+      discount: oDisc,
+      roundOff: oRawTotal - Math.floor(oRawTotal),
+      total: Math.floor(oRawTotal)
+    }
+
     setOrder(data)
     setIsPaid(payment);
     setFormattedDate(dt);
     setItemsCount(count);
-    setAppliedCoupon(coupon);
     setAppliedOffers(offs)
-    setPaymentInfo(payInfo)
+    setPaymentInfo(payInfo);
+    if(cancelled){
+      setOriginalTotals(originals)
+      setCancelSummeries(cancelInfos);
+    }
   }
 
   /* handling cancel order */
@@ -186,6 +235,7 @@ function ViewOrder() {
                   const index = ordersList?.findIndex(el => el._id === order._id);
                   if(index > 0) {
                     const foundOrder = ordersList.find((_,i) => i === index - 1);
+                    console.log(foundOrder)
                     setOrder(foundOrder)
                     navigate(`/admin/orders/view-order/${foundOrder.order_no}`, {
                       state: { order: foundOrder }
@@ -326,6 +376,14 @@ function ViewOrder() {
                 )})}
             </ul>
 
+            {/* cancel summery */}
+            {originalTotals && (
+              <CancelOrderSummery
+                cancelSummeries={cancelSummeries}
+                originals={originalTotals}
+              />
+            )}
+
             {/* payment summery */}
             <div className='grid grid-cols-2 space-x-6 bg-white p-6 shade rounded-3xl'>
 
@@ -340,41 +398,61 @@ function ViewOrder() {
                 </div>
               </div>
               
-              {/* summery */}
+              {/* paymment summery */}
               <div className="flex flex-col">
-                <h3 className='text-lg mb-3'>Payment Summery</h3>
-                <div className="flex flex-col">
-                  <p className='flex items-center justify-between'>
-                    <span>Subtotal <span className='text-gray-400'>{itemsCount} {itemsCount > 1 ? 'items' : 'item'}</span></span>
-                    <span className='font-bold price-before text-base'>{Number(order?.itemsPrice).toFixed(2)}</span>
-                  </p>
-                  {/* <p className='flex items-center justify-between'>
-                    <span>Delivery</span>
-                    <span className='font-bold price-before text-base'>0</span>
-                  </p> */}
-                  <p className='flex items-center justify-between'>
-                    <span>Tax <span className='text-gray-400'>5% GST included</span></span>
-                    <span className='font-bold price-before text-base'>{Number(order?.taxAmount).toFixed(2)}</span>
-                  </p>
-                  {order?.discount > 0 &&
+                  <h3 className='text-lg mb-3'>Payment Summery</h3>
+
+                  <div className="flex flex-col">
                     <div className='flex items-center justify-between'>
-                      <span>Discount</span>
-                      <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{Number(order?.discount).toFixed(2)}</span></p>
+                      <p>Subtotal
+                        <span className='ml-1 text-gray-400'>
+                          ({itemsCount} {itemsCount > 1 ? 'items' : 'item'})
+                        </span>
+                      </p>
+                      <span className='font-bold price-before text-base'>
+                        {Number(order?.subTotal || 0).toFixed(2)}
+                      </span>
                     </div>
-                  }
-                  {order?.roundOff > 0 &&
-                    <div className='flex items-center justify-between'>
-                      <span>Round off</span>
-                      <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>{Number(order?.roundOff).toFixed(2)}</span></p>
-                    </div>
-                  }
-                  <span className='w-full border-b border-gray-200 my-4'></span>
-                  <p className='flex items-center justify-between font-bold'>
-                    <span className='text-base'>Total Amount</span>
-                    <span className='price-before text-lg'>{Number(order?.totalPrice).toFixed(2)}</span>
-                  </p>
+                    {/* <p className='flex items-center justify-between'>
+                      <span>Delivery</span>
+                      <span className='font-bold price-before text-base'>0</span>
+                    </p> */}
+
+                    <p className='flex items-center justify-between'>
+                      <span>Tax <span className='text-gray-400'>(5% GST included)</span></span>
+                      <span className='font-bold price-before text-base'>
+                        {Number(order?.taxAmount || 0).toFixed(2)}
+                      </span>
+                    </p>
+
+                    {order?.discount > 0 &&
+                      <div className='flex items-center justify-between'>
+                        <span>Discount</span>
+                        <p>- <span className='font-bold price-before price-before:text-red-300 text-base text-red-400'>
+                          {Number(order?.discount).toFixed(2)}
+                        </span></p>
+                      </div>
+                    }
+
+                    {order?.roundOff > 0 &&
+                      <div className='flex items-center justify-between'>
+                        <span>Round off</span>
+                        <p>- <span
+                          className='font-bold price-before price-before:text-red-300 text-base text-red-400'>
+                          {Number(order?.roundOff).toFixed(2)}</span>
+                        </p>
+                      </div>
+                    }
+                    
+                    <span className='w-full border-b border-gray-200 my-4'></span>
+                    <p className='flex items-center justify-between font-bold'>
+                      <span className='text-base'>Net Payable Amount</span>
+                      <span className='price-before text-lg'>
+                        {Number(order?.totalPrice || 0).toFixed(2)}
+                      </span>
+                    </p>
+                  </div>
                 </div>
-              </div>
             </div>
 
             {/* applied offers */}
@@ -385,16 +463,25 @@ function ViewOrder() {
                   border-gray-300 rounded-2xl p-4 gap-5">
                   
                   {appliedOffers?.length > 0 && 
-                    appliedOffers.map((offer, i) => {
+                    appliedOffers.map(offer => {
 
                       const cancelled = offer?.status === 'cancelled';
-
+                      
+                      if(offer?.type === 'coupon'){
+                        return (
+                          <CouponCardMedium
+                            key={offer?._id}
+                            coupon={offer}
+                          />
+                        )
+                      }
+                      
                       return (
-                        <div key={offer?._id || i} 
+                        <div key={offer?._id} 
                           className='inline-flex p-0.5 relative h-[88px] w-full overflow-hidden'
                         >
                           {cancelled && 
-                            <div className="absolute top-[10%] -left-[10%] text-[11px] z-2">
+                            <div className="absolute top-[10%] -left-[8%] text-[11px] z-2">
                               <p className='-rotate-45 bg-red-500 text-white leading-3 px-5 pb-0.5 shadow-md/20'
                               >Lost</p>
                             </div>
@@ -432,14 +519,10 @@ function ViewOrder() {
                             }
                           </div>
                         </div>
-                    )
-                  })}
-                  {appliedCoupon && (
-                    <CouponCardMedium 
-                      coupon={appliedCoupon}
-                    />
-                  )}                  
-                  {!appliedCoupon && !appliedOffers?.length && (
+                      )
+                    })
+                  }                  
+                  {!appliedOffers?.length > 0 && (
                     <span className="text-gray-400">No offers applied</span>
                   )}
                 </div>
