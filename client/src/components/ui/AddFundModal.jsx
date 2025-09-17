@@ -1,34 +1,52 @@
 import { AnimatePresence, motion } from 'motion/react';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Modal from './Modal';
 import LoadingButton from './LoadingButton';
 import { ClipLoader } from 'react-spinners';
 import { GiWallet } from "react-icons/gi";
 import toast from 'react-hot-toast';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addFundSync } from '../../store/slices/WalletSlice';
 import { processRazorpayAction, verifyRazorpayAction } from '../../services/ApiActions';
 import AxiosToast from '../../utils/AxiosToast';
-import { Axios } from '../../utils/AxiosSetup';
-import ApiBucket from '../../services/ApiBucket';
 
-function AddFundModalComponent({isOpen, onSubmit, onClose}) {
+function AddFundModalComponent({isOpen, autoFill, onSubmit, onClose}) {
 
   const dispatch = useDispatch();
+  const { user } = useSelector(state => state?.user);
   const [isLoading, setIsLoading] = useState(false);
-  const [amount, setAmount] = useState(0);
-  const [description, setDescription] = useState(null);
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+
+  useEffect(() => {
+    if(autoFill) {
+      setAmount(autoFill?.amount);
+      setDescription(autoFill?.description)
+    } else {
+      setAmount('');
+      setDescription('');
+    }
+  },[autoFill])
 
   const handleAddFund = async() => {
+
     if(amount && description){
 
-      setIsLoading(true);
+      if(!user?.mobile) {
+        toast.error("Please add contact number in your profile", { position: "top-center" });
+        return
+      }else if(user?.mobile?.slice(-10).length !== 10){
+        toast.error("Invlid contact number in your profile", { position: "top-center" });
+        return
+      }
 
+      setIsLoading(true);
+      
       try {
 
         const prefill = {
           name: "Test name",
-          contact: "+917012860026" //this is format is must
+          contact:`+91${user?.mobile?.slice(-10)}` //this is format is must
         }
         const paymentResponse = await processRazorpayAction(amount, prefill, `rcpt_${Date.now()}`);
         const result = await verifyRazorpayAction(paymentResponse);
@@ -46,6 +64,8 @@ function AddFundModalComponent({isOpen, onSubmit, onClose}) {
           }
 
         await dispatch(addFundSync(data))
+        setAmount("");
+        setDescription("")
         
         onClose();
 
@@ -64,6 +84,8 @@ function AddFundModalComponent({isOpen, onSubmit, onClose}) {
   }
 
   const handleclose = () => {
+    setAmount("");
+    setDescription("")
     onClose();
   }
 
@@ -83,6 +105,7 @@ function AddFundModalComponent({isOpen, onSubmit, onClose}) {
             <div className='flex flex-col mt-5 px-3'>
               <label htmlFor="">Amount</label>
               <input
+                value={amount ?? ""}
                 onChange={(e) => {
                   if(e.target.value > 0){
                     setAmount(e.target.value)
@@ -96,6 +119,7 @@ function AddFundModalComponent({isOpen, onSubmit, onClose}) {
             <div className='flex flex-col mt-5 px-3'>
               <label htmlFor="">Description</label>
               <input
+                value={description ?? ""}
                 onChange={(e) => {
                   if(e.target.value){
                     setDescription(e.target.value.trim())

@@ -22,6 +22,9 @@ import { placeOrderAction, processRazorpayAction, verifyRazorpayAction } from '.
 import { format } from 'date-fns'
 import clsx from 'clsx';
 import CouponCardMedium from '../../components/ui/CouponCardMedium';
+import { getWalletSync } from '../../store/slices/WalletSlice';
+import { GiCash } from "react-icons/gi";
+import AddFundModal from '../../components/ui/AddFundModal';
 
 
 function Checkout() {
@@ -31,6 +34,7 @@ function Checkout() {
   const { items, checkoutItems, appliedCoupon, appliedCartOffer } = useSelector(state => state.cart);
   const { addressList } = useSelector(state => state.address);
   const { offersList } = useSelector(state => state.offers);
+  const { balance } = useSelector(state => state.wallet);
   const cartCount = useSelector(getCartCount);
   const subTotal = useSelector(getItemsTotal);
   const cartTax = useSelector(getCartTax);
@@ -44,12 +48,19 @@ function Checkout() {
   const [cartTotal, setCartTotal] = useState(0);
   const [roundOff, setRoundOff] = useState(0);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isFundModalOpen, setIsFundModalOpen] = useState(false);
   const [addressType, setAddresType] = useState(null);
+  const [walletBalance, setWalletBalance] = useState(0);
 
   useEffect(() => {
     dispatch(fetchAddresses())
     dispatch(setLoading(false))
-  },[])
+    dispatch(getWalletSync())
+  },[]);
+
+  useEffect(() => {
+    setWalletBalance(balance);
+  },[balance])
 
   useEffect(() => {
     /* checkout items are set on cart redirect, won't effect on state update */
@@ -416,22 +427,43 @@ function Checkout() {
           <div className='flex flex-col p-5 space-y-4 border-b border-gray-200'>
             <div className='flex items-center justify-between'>
               <div className="flex items-center space-x-3">
-                <span className='inline-flex w-10 h-10 items-center justify-center bg-primary-25 rounded-full'>
-                  <IoWallet className='text-xl text-primary-300'/>
+                <span className='inline-flex w-10 h-10 items-center justify-center bg-primary-50 rounded-full'>
+                  <IoWallet className='text-xl text-primary-400'/>
                 </span>
                 <div className='inline-flex flex-col leading-4.5'>
-                  <h3>Use Credit for this purchase</h3>
-                  <p className='text-gray-400'>Available balance: 
-                    <span className='ms-1 price-before font-semibold text-primary-400'>500</span>
+                  <h3>Use my wallet</h3>
+                  <p className='text-gray-500'>Available balance: 
+                    <span className='ms-1 price-before font-semibold text-primary-400'>
+                      {Number(walletBalance).toFixed(2)}
+                    </span>
                   </p>
                 </div>
               </div>
               <ToggleSwitch />
             </div>
-            <p className='text-gray-400/70'>
-              Your wallet balance are not sufficient to pay the order, please select an additional payment method to cover the balance of 
-              <span className='ms-1 price-before price-before:text-red-300 text-red-400'>0</span>
-            </p>
+            <div className='text-gray-400'>
+              {walletBalance >= cartTotal ?
+                <p>
+                  Your wallet balance is sufficient to pay the full amount of the order. The total off
+                  <span className='mx-1 price-before price-before:text-green-600/50 text-green-600 font-bold'>{cartTotal}</span>
+                  will be deducted from your wallet automatically, and no additional payment method is required.
+                </p>
+                :
+                <p>
+                  Your wallet balance are not sufficient to pay the order, please add fund to cover the balance of
+                  <span className='ms-1 price-before price-before:text-red-300 text-red-400 font-bold'>{cartTotal - walletBalance}</span>
+                </p>
+              }
+            </div>
+
+            {/* add fund button */}
+            <div 
+              onClick={() => setIsFundModalOpen(true)}
+              className='button w-1/2 mx-auto inline-flex items-center space-x-1 rounded-2xl
+             bg-primary-300 border-primary-300 text-white smooth hover:bg-primary-400 hover:shadow-md'>
+              <GiCash className='text-xl' />
+              <span>Add fund</span>
+            </div>
           </div>
 
           {/* payment methods */}
@@ -635,6 +667,15 @@ function Checkout() {
         </div>
 
       </div>
+
+      <AddFundModal
+        autoFill={walletBalance < cartTotal ? {
+          amount: Math.abs(walletBalance - cartTotal),
+          description: "Wallet recharge"
+        } : null}
+        isOpen={isFundModalOpen}
+        onClose={() => setIsFundModalOpen(false)}
+      />
       
     </section>
   )
