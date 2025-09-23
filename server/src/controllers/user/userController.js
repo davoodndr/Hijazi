@@ -259,7 +259,7 @@ export const updateUserDetail = async(req, res) => {
       return responseMessage(res, 400, false, "Please fill username and email!")
     }
 
-    let avatar = {};
+    let avatar = null;
 
     if(files && files.length){
 
@@ -273,10 +273,14 @@ export const updateUserDetail = async(req, res) => {
     const user = await User.findByIdAndUpdate(user_id,
       { 
         ...req.body,
-        avatar
+        ...(avatar? {avatar} :  {})
       },
       {new: true}
     )
+    .populate({
+      path: "default_address",
+      select: "-user_id -updatedAt -createdAt -__v"
+    });
 
     return responseMessage(res, 200, true, "User updated successfully",{user});
     

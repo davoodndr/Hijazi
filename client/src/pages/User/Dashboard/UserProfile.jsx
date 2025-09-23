@@ -126,7 +126,7 @@ function UserProfile() {
               </defs>
               {avatarPreview && 
                 <>
-                  <rect width="100%" height="100%" fill="rgba(0,0,0,0.4)" mask="url(#hole)" />
+                  <rect width="100%" height="100%" fill="rgba(0,0,0,0.1)" mask="url(#hole)" />
                   <circle cx="50" cy="50" r="47" fill="none" stroke="white" strokeWidth="1" />
                 </>
               }
