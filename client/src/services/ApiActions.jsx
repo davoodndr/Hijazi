@@ -598,3 +598,20 @@ export const addFundAction = async(data) => {
   }
 
 }
+export const withdrawFundAction = async(data) => {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.withdrawFund,
+      data
+    })
+
+    return response?.data?.updates;
+
+  } catch (error) {
+    console.log(error)
+    throw new Error(error?.response?.data?.message)
+  }
+
+}

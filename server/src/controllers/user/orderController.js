@@ -6,14 +6,14 @@ import { responseMessage } from "../../utils/messages.js"
 import mongoose from "mongoose";
 import Cart from "../../models/Cart.js";
 import User from "../../models/User.js";
+import Wallet from "../../models/Wallet.js";
 
 
 // place new order
-/* ************ dont trust on front end calculations, need to recalculate ******** */
 export const placeOrder = async(req, res) => {
 
   const { user_id } = req;
-  const { cartItems, appliedCoupon, cartOffer } = req.body;
+  const { cartItems, appliedCoupon, cartOffer, paymentInfo } = req.body;
   const session = await mongoose.startSession();
 
   session.startTransaction();
@@ -66,7 +66,7 @@ export const placeOrder = async(req, res) => {
         return item
       }),
       appliedOffers?.map(async item => {
-        const off = await Offer.findById(item);
+        let off = await Offer.findById(item);
         if(off){
 
           const used = off.usedBy?.find(el => el.user === user_id);
@@ -94,6 +94,23 @@ export const placeOrder = async(req, res) => {
       order_no,
       ...req.body
     });
+
+    /* wallet update with latest data */
+    if(paymentInfo?.paymentMethod === 'wallet'){
+      const wallet = await Wallet.findOne({user: user_id});
+      wallet.transactions = wallet?.transactions?.map(el => {
+        if(el?._id?.toString() === paymentInfo?.transaction_id){
+          return {
+            ...(el.toObject()),
+            description: `${el?.description} - ${order_no}`,
+            relatedOrder: order?._id
+          }
+        }
+        return el
+      })
+
+      await wallet.save();
+    }
 
     order = order.toObject();
     order.cartItems = updatedItems;
@@ -136,7 +153,8 @@ async function getNextOrderNumber() {
 }
 
 const validateOrder = (data) => {
-  const { cartItems,shippingAddress,billingAddress,paymentMethod } = data;
+  const { cartItems,shippingAddress,billingAddress } = data;
+  const paymentMethod = data?.paymentInfo?.paymentMethod;
 
   if(!cartItems?.length){
     return "No items in cart";
@@ -149,12 +167,4 @@ const validateOrder = (data) => {
   }else{
     return null;
   }
-}
-
-const calculateDiscount = (item, price) => {
-  if (item?.discountType === 'percentage') {
-    const calculated = price * (item.discountValue / 100);
-    return item.maxDiscount ? Math.min(calculated, item.maxDiscount) : calculated;
-  }
-  return item?.discountValue || 0;
 }

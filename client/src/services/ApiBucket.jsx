@@ -40,6 +40,10 @@ const ApiBucket = {
     url: '/api/add-fund',
     method: 'post'
   },
+  withdrawFund: {
+    url: '/api/withdraw-fund',
+    method: 'post'
+  },
 
   /* payment */
   generateRazorpayLink: {

@@ -94,11 +94,11 @@ function Wallet() {
                     <p className='flex items-center'>
                       {credit ?
                         <span className='bg-primary-50 text-primary-400 p-0.5 rounded-full'>
-                          <IoMdArrowRoundUp />
+                          <IoMdArrowRoundDown />
                         </span>
                         :
                         <span className='bg-red-100 text-red-400 p-0.5 rounded-full'>
-                          <IoMdArrowRoundDown />
+                          <IoMdArrowRoundUp />
                         </span>
                       }
                     </p>

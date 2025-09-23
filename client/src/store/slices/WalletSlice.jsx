@@ -1,5 +1,5 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { addFundAction } from "../../services/ApiActions";
+import { createAsyncThunk, createSlice, isFulfilled, isRejected } from "@reduxjs/toolkit";
+import { addFundAction, withdrawFundAction } from "../../services/ApiActions";
 import { getWallet } from "../../services/FetchDatas";
 
 export const getWalletSync = createAsyncThunk(
@@ -18,6 +18,14 @@ export const addFundSync = createAsyncThunk(
     .catch(error => rejectWithValue(error.messaege || "Failed to add fund"))
 )
 
+export const withdrawFundSync = createAsyncThunk(
+  'wallets/withdrawFund',
+    async(data,{rejectWithValue}) =>
+      await withdrawFundAction(data)
+      .then(response => response)
+      .catch(error => rejectWithValue(error.messaege || "Failed to withdraw fund"))
+)
+
 const walletSlice = createSlice({
 
   name: 'wallet',
@@ -32,23 +40,19 @@ const walletSlice = createSlice({
       .addCase(getWalletSync.fulfilled, (state, action) => {
         const { balance, transactions } = action.payload;
         state.balance = balance;
-        state.transactions = transactions
+        state.transactions = transactions?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         state.error = null;
       })
       .addCase(getWalletSync.rejected, (state, action) => {
-        state.balance = 0;
-        state.transactions = [];
         state.error = action.payload;
       })
-      .addCase(addFundSync.fulfilled, (state, action) => {
+      .addMatcher(isFulfilled(addFundSync, withdrawFundSync), (state, action) => {
         const { balance, transaction } = action.payload;
         state.balance = balance;
         state?.transactions.push(transaction)
         state.error = null;
       })
-      .addCase(addFundSync.rejected, (state, action) => {
-        state.balance = 0;
-        state.transactions = [0];
+      .addMatcher(isRejected(addFundSync, withdrawFundSync), (state, action) => {
         state.error = action.payload;
       })
   }

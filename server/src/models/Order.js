@@ -70,6 +70,7 @@ const orderSchema = new mongoose.Schema({
     mobile: String,
   },
   paymentInfo: {
+    transaction_id: String,
     paymentMethod: { type: String },
     paymentResult: {type:mongoose.Schema.Types.Mixed, default: null},
     isPaid: { type: Boolean, default: false },

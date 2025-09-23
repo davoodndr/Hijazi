@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { clearCart, getCartCount, getCartTax, getItemsTotal, setAppliedCoupon } from '../../store/slices/CartSlice';
-import { IoWallet } from "react-icons/io5";
+import { IoWallet, IoWalletOutline } from "react-icons/io5";
 import ToggleSwitch  from '../../components/ui/ToggleSwitch'
 import { CiDeliveryTruck } from 'react-icons/ci';
 import { GoLocation } from "react-icons/go";
@@ -22,9 +22,11 @@ import { placeOrderAction, processRazorpayAction, verifyRazorpayAction } from '.
 import { format } from 'date-fns'
 import clsx from 'clsx';
 import CouponCardMedium from '../../components/ui/CouponCardMedium';
-import { getWalletSync } from '../../store/slices/WalletSlice';
+import { getWalletSync, withdrawFundSync } from '../../store/slices/WalletSlice';
 import { GiCash } from "react-icons/gi";
 import AddFundModal from '../../components/ui/AddFundModal';
+import { FaCirclePlus, FaPlus } from 'react-icons/fa6';
+import AxiosToast from '../../utils/AxiosToast';
 
 
 function Checkout() {
@@ -165,7 +167,7 @@ function Checkout() {
         shippingAddress: data.ship_address,
         billingAddress: data.bill_address,
         paymentInfo: {
-          paymentMethod: data.payment_method,
+          paymentMethod: data?.payment_method,
           isPaid: false
         },
         itemsPrice: Number(subTotal),
@@ -190,11 +192,13 @@ function Checkout() {
       try {
 
         const prefill = {
-              name: order.billingAddress.name,
-              contact: order.billingAddress.mobile
-            }
+          name: order.billingAddress.name,
+          contact: order.billingAddress.mobile
+        }
 
-        if(data?.paymentInfo?.payment_method === 'cod'){
+        const paymentMethod = order?.paymentInfo?.paymentMethod;
+
+        if(paymentMethod === 'cod'){
 
           const response = await placeOrderAction(order);
 
@@ -202,6 +206,40 @@ function Checkout() {
             dispatch(addToOrders(response.order));
             showAlert(response.order)
           }
+
+        }else if(paymentMethod === 'wallet'){
+
+          const walletData = {
+            amount: order?.totalPrice, 
+            description: "Purchase of order",
+            paymentInfo: {
+              paymentMethod: "wallet"
+            }
+          }
+
+          const paymentResponse = await dispatch(withdrawFundSync(walletData)); 
+          
+          if(paymentResponse?.meta?.requestStatus === 'fulfilled'){
+
+            const { transaction } = paymentResponse?.payload;
+
+            order = {
+              ...order,
+              paymentInfo: {
+                transaction_id: transaction?._id,
+                ...transaction?.paymentInfo,
+                isPaid: true,
+              },
+            }
+            
+            const response = await placeOrderAction(order);
+            if(response.success){
+              dispatch(addToOrders(response.order));
+              showAlert(response.order)
+            }
+
+          }
+
         }else{
 
           const paymentResponse = await processRazorpayAction(order?.itemsPrice, prefill, `rcpt_${Date.now()}`);
@@ -209,8 +247,8 @@ function Checkout() {
           order = {
             ...order,
             paymentInfo: {
-              ...paymentInfo,
-              paymentResult:result.paymentResult,
+              ...order?.paymentInfo,
+              paymentResult: result?.paymentResult,
               isPaid: true,
               paidAt: result.paidAt
             },
@@ -229,6 +267,7 @@ function Checkout() {
         dispatch(setLoading(false))
       }
     }
+    
   }
 
   const showAlert = (order) => {
@@ -426,6 +465,7 @@ function Checkout() {
           {/* wallet activation */}
           <div className='flex flex-col p-5 space-y-4 border-b border-gray-200'>
             <div className='flex items-center justify-between'>
+
               <div className="flex items-center space-x-3">
                 <span className='inline-flex w-10 h-10 items-center justify-center bg-primary-50 rounded-full'>
                   <IoWallet className='text-xl text-primary-400'/>
@@ -439,7 +479,23 @@ function Checkout() {
                   </p>
                 </div>
               </div>
-              <ToggleSwitch />
+              
+              {/* add fund button */}
+              <div 
+                onClick={() => setIsFundModalOpen(true)}
+                className='relative p-1.5 flex items-center space-x-1 cursor-pointer
+                smooth bg-primary-300 text-white hover:bg-primary-400 hover:shadow-md/30
+                rounded-xl'
+              >
+                <div className='relative w-6 h-6'>
+                  <IoWalletOutline className='text-2xl' />
+                  <span className='absolute -bottom-0.5 bg-white p-0.75 
+                    inline-flex size-3.5 rounded-full items-center justify-center'>
+                    <FaPlus className='text-primary-500' />
+                  </span>
+                </div>
+              </div>
+
             </div>
             <div className='text-gray-400'>
               {walletBalance >= cartTotal ?
@@ -454,15 +510,6 @@ function Checkout() {
                   <span className='ms-1 price-before price-before:text-red-300 text-red-400 font-bold'>{cartTotal - walletBalance}</span>
                 </p>
               }
-            </div>
-
-            {/* add fund button */}
-            <div 
-              onClick={() => setIsFundModalOpen(true)}
-              className='button w-1/2 mx-auto inline-flex items-center space-x-1 rounded-2xl
-             bg-primary-300 border-primary-300 text-white smooth hover:bg-primary-400 hover:shadow-md'>
-              <GiCash className='text-xl' />
-              <span>Add fund</span>
             </div>
           </div>
 
@@ -493,6 +540,18 @@ function Checkout() {
                   Cash on delivery
                 </label>
                 <input type="radio" name="payment-method" id="cod" />
+              </li>
+              <li className={clsx(`flex items-center justify-between px-4 border border-gray-200 rounded-2xl
+                smooth hover:bg-primary-50 hover:border-primary-300`,
+                walletBalance < cartTotal && 'disabled-el'
+              )}>
+                <label 
+                  htmlFor="wallet"
+                  className='text-base flex w-full cursor-pointer py-5 text-gray-500 font-bold'
+                >
+                  Wallet
+                </label>
+                <input type="radio" name="payment-method" id="wallet" />
               </li>
             </ul>
           </div>
