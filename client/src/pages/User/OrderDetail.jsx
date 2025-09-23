@@ -23,7 +23,6 @@ function OrderDetail() {
   const navigate = useNavigate();
   const currentOrder = location.state?.order;
   const [order, setOrder] = useState(null);
-  const [isPaid, setIsPaid] = useState(null);
   const [formattedDate, setFormattedDate] = useState(null);
   const [itemsCount, setItemsCount] = useState(0);
   const [cancelSummeries, setCancelSummeries] = useState([]);
@@ -55,7 +54,6 @@ function OrderDetail() {
 
   const setupData = (data) => {
 
-    const payment = data?.paymentInfo?.isPaid ? 'paid' : 'unpaid';
     let payMethod = null;
     switch (data?.paymentInfo?.paymentMethod) {
       case 'cod':
@@ -64,7 +62,7 @@ function OrderDetail() {
       case 'razor-pay':
         payMethod = 'Razorpay';
         break;
-      default: null
+      default: payMethod = 'Wallet'
         break;
     }
     
@@ -136,7 +134,6 @@ function OrderDetail() {
     }
 
     setOrder(data)
-    setIsPaid(payment);
     setFormattedDate(dt);
     setItemsCount(count);
     setAppliedOffers(offs)
@@ -188,10 +185,10 @@ function OrderDetail() {
             <p 
               className={clsx(`font-bold px-2 py-1 rounded-md text-sm 
               inline-flex leading-4`,
-              order?.isPaid ? 'bg-green-200 text-primary-400' 
+              order?.paymentInfo?.isPaid ? 'bg-green-200 text-primary-400' 
               : 'bg-gray-200 text-gray-400'
             )}
-            >{isPaid}</p>
+            >{order?.paymentInfo?.isPaid ? 'Paid' : 'Unpaid'}</p>
             <p 
               className={clsx(`px-2 py-1 rounded-md text-sm inline-flex leading-4`,
               order?.status === "pending" && 'bg-yellow-200 text-orange-500',
@@ -389,7 +386,7 @@ function OrderDetail() {
                         </span>
                       </p>
                       <span className='font-bold price-before text-base'>
-                        {Number(order?.subTotal || 0).toFixed(2)}
+                        {Number(order?.itemsPrice || 0).toFixed(2)}
                       </span>
                     </div>
                     {/* <p className='flex items-center justify-between'>
@@ -425,7 +422,7 @@ function OrderDetail() {
                     
                     <span className='w-full border-b border-gray-200 my-4'></span>
                     <p className='flex items-center justify-between font-bold'>
-                      <span className='text-base'>Net Payable Amount</span>
+                      <span className='text-base'>Net {paymentInfo?.isPaid ? 'Paid' : 'Payable'} Amount</span>
                       <span className='price-before text-lg'>
                         {Number(order?.totalPrice || 0).toFixed(2)}
                       </span>
