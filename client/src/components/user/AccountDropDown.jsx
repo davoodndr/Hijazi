@@ -47,17 +47,26 @@ const AccountDropDown = ({user}) => {
 
       <ul className='flex flex-col p-5 text-[13px] tracking-wide font-semibold text-neutral-400'>
         <li
+          onClick={() => navigate('/dashboard/wallet')}
+          className='cursor-pointer smooth hover:text-primary-500 hover:translate-x-0.5'>
+          Wallet
+        </li>
+        <li
           onClick={() => navigate('/dashboard/orders')}
           className='cursor-pointer smooth hover:text-primary-500 hover:translate-x-0.5'>
           Orders
         </li>
-        <li className='cursor-pointer smooth
+        <li 
+          onClick={() => navigate('/wishlist')}
+          className='cursor-pointer smooth
           hover:text-primary-500 hover:translate-x-0.5'>
           <div>Wishlist</div>
         </li>
-        <li className='cursor-pointer smooth
+        <li
+          onClick={() => navigate('/dashboard/address-list')}
+          className='cursor-pointer smooth
           hover:text-primary-500 hover:translate-x-0.5'>
-          <div>Contact</div>
+          <div>Address List</div>
         </li>
         {user &&
           <li className='inline-flex justify-end w-full'>

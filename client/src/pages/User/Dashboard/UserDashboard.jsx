@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
 import { Outlet, useLocation, useNavigate } from 'react-router'
 import { LuLogOut } from 'react-icons/lu';
@@ -10,8 +10,11 @@ function UserDashboard() {
   const { user } = useSelector(state => state.user);
   const location = useLocation();
   const currentUrl = location.pathname.split('/').pop();
-  const [selected, setSelected] = useState(currentUrl);
+  const [selected, setSelected] = useState(null);
 
+  useEffect(() => {
+    setSelected(currentUrl)
+  },[currentUrl])
 
   const links = [
     {label: 'My Profile', url: 'profile'},
