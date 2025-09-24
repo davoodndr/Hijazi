@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
 import { Outlet, useLocation, useNavigate } from 'react-router'
 import { LuLogOut } from 'react-icons/lu';
+import * as motion from "motion/react-client"
 
 function UserDashboard() {
 
@@ -43,7 +44,12 @@ function UserDashboard() {
               )}>
               <span className='capitalize'>{el.label}</span>
               {selected === el.url && 
-                <div className="bg-white w-5 h-5 absolute top-1/2 -translate-y-1/2 -right-2.5 rotate-45"></div>
+                <motion.div
+                  layoutId='selector'
+                  className="absolute top-1/2 -translate-y-1/2 -right-2.5 flex items-center"
+                >
+                  <span className='inline-flex bg-white w-5 h-5 rotate-45'></span>
+                </motion.div>
               }
               
             </div>
