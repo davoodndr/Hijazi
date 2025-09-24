@@ -407,6 +407,26 @@ export const makeDefaultAddressAction = async(data) => {
 
 }
 
+export const removeAddressAction = async(id) => {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.removeAddress,
+      data: {address_id: id}
+    })
+
+    console.log(response)
+
+    return response.data
+
+  } catch (error) {
+    console.log(error)
+    throw new Error(error?.response?.data?.message)
+  }
+
+}
+
 // payment
 export const createRazorpayOrder = async(amount, reciept_no) => {
   
@@ -598,6 +618,7 @@ export const addFundAction = async(data) => {
   }
 
 }
+
 export const withdrawFundAction = async(data) => {
 
   try {

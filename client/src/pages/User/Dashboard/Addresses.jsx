@@ -3,16 +3,24 @@ import { useDispatch, useSelector } from 'react-redux'
 import { MdOutlineAddLocationAlt } from "react-icons/md";
 import { FaCircleCheck } from "react-icons/fa6";
 import AxiosToast from '../../../utils/AxiosToast';
-import { makeAddressDefault } from '../../../store/slices/AddressSlice';
+import { clearError, makeAddressDefault, removeAddress } from '../../../store/slices/AddressSlice';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
 import { setUser } from '../../../store/slices/UsersSlice';
+import toast from 'react-hot-toast';
 
 function Addresses() {
 
   const dispatch = useDispatch();
-  const { addressList } = useSelector(state => state.address);
+  const { addressList, error } = useSelector(state => state.address);
   const { user } = useSelector(state => state.user);
+
+  useEffect(() => {
+    if(error){
+      toast.error(error, {position: 'top-center'});
+      dispatch(clearError());
+    }
+  },[error])
 
   const handleMakeAddressDefault = async(id) => {
 
@@ -42,6 +50,16 @@ function Addresses() {
     } catch (error) {
       AxiosToast(error);
     }
+  }
+
+  const handleRemoveAddress = async(id) => {
+
+    const response = await dispatch(removeAddress({id}));
+
+    if(response?.payload?.success){
+      toast.success(response?.payload?.message, { position: 'top-center' })
+    }
+
   }
 
   return (
@@ -89,14 +107,24 @@ function Addresses() {
                 </div>
 
                 {/* actions */}
-                <div className="w-full p-3 flex items-center text-xs">
+                <div className="w-full p-3 flex items-center text-xs space-x-2">
                   {!address.is_default && 
                     <span
                       onClick={() => handleMakeAddressDefault(address._id)}
                       className='cursor-pointer
                       smotth hover:text-primary-400 hover:underline'
-                    >Make default</span>
+                    >Default</span>
                   }
+                  <span
+                    /* onClick={() => handleMakeAddressDefault(address._id)} */
+                    className='cursor-pointer
+                    smotth hover:text-sky-500 hover:underline'
+                  >Edit</span>
+                  <span
+                    onClick={() => handleRemoveAddress(address._id)}
+                    className='cursor-pointer
+                    smotth hover:text-red-400 hover:underline'
+                  >Delete</span>
                 </div>
               </div>
             )

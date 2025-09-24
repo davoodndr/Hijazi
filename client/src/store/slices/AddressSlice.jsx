@@ -1,5 +1,5 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { addNewAddressAction } from "../../services/ApiActions";
+import { createAsyncThunk, createSlice, isRejected } from "@reduxjs/toolkit";
+import { addNewAddressAction, removeAddressAction } from "../../services/ApiActions";
 import { getAddressList } from "../../services/FetchDatas";
 import toast from "react-hot-toast";
 
@@ -17,6 +17,14 @@ export const newAddress = createAsyncThunk(
     await addNewAddressAction(data)
       .then(res => res)
       .catch(err => rejectWithValue(err.message || 'Failed to add new address'))
+)
+
+export const removeAddress = createAsyncThunk(
+  'address/remove',
+  async({id},{rejectWithValue}) => 
+    await removeAddressAction(id)
+      .then(res => res)
+      .catch(err => rejectWithValue(err.message || 'Failed to remove address'))
 )
 
 const addressSlice = createSlice({
@@ -38,8 +46,11 @@ const addressSlice = createSlice({
       })
       state.error = null;
     },
-    clearAddressList: (state, action) => {
+    clearAddressList: (state) => {
       state.addressList = []
+    },
+    clearError: (state) => {
+      state.error = null;
     }
   },
   extraReducers: (builder) => {
@@ -48,23 +59,37 @@ const addressSlice = createSlice({
         state.addressList = action.payload;
         state.error = null;
       })
-      .addCase(fetchAddresses.rejected, (state, action) => {
-        state.error = action.payload;
-        toast.error(state.error, {position: 'top-center'})
-      })
       .addCase(newAddress.fulfilled, (state, action) => {
         const { address, message } = action.payload;
         state.addressList.unshift(address);
         toast.success(message, {position: 'top-center'})
         state.error = null;
       })
-      .addCase(newAddress.rejected, (state, action) => {
+      .addCase(removeAddress.fulfilled, (state, action) => {
+        const { removed, newDefault } = action?.payload;
+        state.addressList = state.addressList.filter(el => el?._id?.toString() !== removed);
+        const newList = [];
+        for(const el of state.addressList){
+          if(el?._id?.toString() !== removed){
+            if(newDefault && el?._id?.toString() === newDefault){
+              newList.push({
+                ...el,
+                is_default: true
+              })
+            }else{
+              newList.push(el)
+            }
+          }
+        }
+        state.addressList = newList;
+        state.error = null;
+      })
+      .addMatcher(isRejected(fetchAddresses, newAddress, removeAddress), (state, action) => {
         state.error = action.payload;
-        toast.error(state.error, {position: 'top-center'})
       })
   }
 })
 
-export const { makeAddressDefault, clearAddressList } = addressSlice.actions;
+export const { makeAddressDefault, clearAddressList, clearError } = addressSlice.actions;
 
 export default addressSlice.reducer;

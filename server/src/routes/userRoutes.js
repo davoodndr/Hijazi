@@ -5,7 +5,7 @@ import { getBrands } from '../controllers/user/brandController.js';
 import { getProduct, getProductList, getRelatedItems } from '../controllers/user/productController.js';
 import { addToCart, emptyCart, getCart, removeFromCart } from '../controllers/user/cartController.js';
 import { addToWishlist, getWishlist, removeFromWishlist } from '../controllers/user/wishlistController.js';
-import { addNewAddress, getAddressList, makeAddressDefault } from '../controllers/user/addressController.js';
+import { addNewAddress, getAddressList, makeAddressDefault, removeAddress } from '../controllers/user/addressController.js';
 import { placeOrder } from '../controllers/user/orderController.js';
 import { getOffers } from '../controllers/user/offerController.js';
 
@@ -40,6 +40,7 @@ userRouter.patch('/remove-from-wishlist', authenticate, allowRoles(['user']), re
 userRouter.get('/get-address-list', authenticate, allowRoles(['user']), getAddressList)
 userRouter.post('/add-new-address', authenticate, allowRoles(['user']), addNewAddress)
 userRouter.patch('/make-address-default', authenticate, allowRoles(['user']), makeAddressDefault)
+userRouter.put('/remove-address', authenticate, allowRoles(['user']), removeAddress)
 
 /* order management */
 userRouter.post('/place-order', authenticate, allowRoles(['user']), placeOrder)

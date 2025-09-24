@@ -298,6 +298,10 @@ const ApiBucket = {
     url: '/api/user/make-address-default',
     method: 'patch'
   },
+  removeAddress: {
+    url: '/api/user/remove-address',
+    method: 'put'
+  },
 
   /* orders */
   placeOrder: {

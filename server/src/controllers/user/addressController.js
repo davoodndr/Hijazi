@@ -124,3 +124,53 @@ export const makeAddressDefault = async(req, res) => {
   }
 
 }
+
+export const removeAddress = async(req, res) => {
+
+  //const user_id = "680fcd85ccab7af6a4332392"
+  const { user_id } = req;
+  const { address_id } = req.body
+
+  try {
+
+    const user = await User.findById(user_id);
+    if(!user){
+      return responseMessage(res, 400, false, "Invalid user!");
+    }
+
+    const address = await Address.findById(address_id);
+
+    if(!address){
+      return responseMessage(res, 404, false, "Address not found!");
+    }
+
+    await Address.findByIdAndDelete(address_id);
+
+    /* setup if deleted is default */
+    
+    let newDefault;
+    
+    if(user?.default_address?._id.toString() === address?._id.toString()){
+      newDefault = await Address.findOneAndUpdate(
+        {},
+        {$set: { is_default: true }},
+        {
+          new: true,
+          /* projection: "-user_id -updatedAt -createdAt -__v" */
+        }
+      );
+      await User.findByIdAndUpdate(user_id,
+        { default_address: newDefault._id }
+      )
+    }
+
+    return responseMessage(res, 200, true, "Address deleted successfully", 
+      { removed: address_id, newDefault: newDefault?._id?.toString() }
+    )
+    
+  } catch (error) {
+    console.log('removeAddress',error)
+    return responseMessage(res, 500, false, error.message || error)
+  }
+
+}
