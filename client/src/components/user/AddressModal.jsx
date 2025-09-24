@@ -6,6 +6,7 @@ import CustomSelect from '../../components/ui/CustomSelect'
 import { states } from '../../constants/arrays'
 import LoadingButton from '../ui/LoadingButton'
 import { ClipLoader } from 'react-spinners'
+import { FaCircleCheck } from "react-icons/fa6";
 import clsx from 'clsx'
 import { IoIosArrowDown } from "react-icons/io";
 import { TbLocationPlus } from "react-icons/tb";
@@ -144,10 +145,15 @@ function AddressModalComponent({isOpen, onChange, onClose, showSelector = false}
                           return (
                             <label
                               key={address._id}
-                              className={clsx('w-40 shrink-0 p-3 border rounded-xl cursor-pointer',
+                              className={clsx('w-40 shrink-0 p-3 border rounded-xl cursor-pointer relative',
                                 selectedAddress === address._id ? 'border-primary-300 bg-primary-25' : 'border-gray-300'
                               )}
                             >
+                              {address?.is_default &&
+                                <div className='absolute top-0.5 right-0.5'>
+                                  <FaCircleCheck className='text-base text-green-600' />
+                                </div>
+                              }
                               <input 
                                 type="radio" 
                                 name="address" 

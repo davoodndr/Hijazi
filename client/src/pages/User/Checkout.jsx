@@ -25,7 +25,7 @@ import CouponCardMedium from '../../components/ui/CouponCardMedium';
 import { getWalletSync, withdrawFundSync } from '../../store/slices/WalletSlice';
 import { GiCash } from "react-icons/gi";
 import AddFundModal from '../../components/ui/AddFundModal';
-import { FaCirclePlus, FaPlus } from 'react-icons/fa6';
+import { FaCirclePlus, FaHandshakeSimple, FaPlus, FaRegHandshake } from 'react-icons/fa6';
 import AxiosToast from '../../utils/AxiosToast';
 
 
@@ -533,24 +533,27 @@ function Checkout() {
               </li>
               <li className='flex items-center justify-between px-4 border border-gray-200 rounded-2xl
                 smooth hover:bg-primary-50 hover:border-primary-300'>
-                <label 
+                <div 
                   htmlFor="cod"
-                  className='!text-base flex w-full cursor-pointer py-5 !text-gray-500 !font-bold'
+                  className='!text-base flex w-full items-center space-x-1 cursor-pointer py-5 !text-gray-500 !font-bold'
                 >
-                  Cash on delivery
-                </label>
+                  <span><FaHandshakeSimple className='text-xl text-sky-600' /></span>
+                  <span>Cash on delivery</span>
+                </div>
                 <input type="radio" name="payment-method" id="cod" />
               </li>
               <li className={clsx(`flex items-center justify-between px-4 border border-gray-200 rounded-2xl
                 smooth hover:bg-primary-50 hover:border-primary-300`,
                 walletBalance < cartTotal && 'disabled-el'
               )}>
-                <label 
+                <div 
                   htmlFor="wallet"
-                  className='text-base flex w-full cursor-pointer py-5 text-gray-500 font-bold'
+                  className='text-base flex w-full items-center space-x-1 cursor-pointer py-5 text-gray-500 font-bold'
                 >
-                  Wallet
-                </label>
+                  <span><IoWallet className='text-xl text-yellow-500' /></span>
+                  <span>Wallet</span>
+                  
+                </div>
                 <input type="radio" name="payment-method" id="wallet" />
               </li>
             </ul>
@@ -648,6 +651,7 @@ function Checkout() {
 
             <AddressModal
               isOpen={isAddOpen}
+              showSelector={true}
               onClose={() => {
                 setIsAddOpen(false);
                 setAddresType(null);

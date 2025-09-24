@@ -61,12 +61,6 @@ const userSlice = createSlice({
       state.user = null;
       state.isLoading = false;
     })
-    /* builder.addMatcher(
-      isAnyOf(fetchUser.fulfilled, fetchUser.rejected), (state, action) => {
-        state.user = action.payload;
-        state.isLoading = false;
-      }
-    ) */
   }
 })
 
