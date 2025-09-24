@@ -61,7 +61,11 @@ const addressSlice = createSlice({
       })
       .addCase(newAddress.fulfilled, (state, action) => {
         const { address, message } = action.payload;
-        state.addressList.unshift(address);
+        let newList = state.addressList;
+        if(address?.is_default){
+          newList = state.addressList.map(el => ({...el, is_default:false}));
+        }
+        state.addressList = [address, ...newList]
         toast.success(message, {position: 'top-center'})
         state.error = null;
       })

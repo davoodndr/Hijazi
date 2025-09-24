@@ -8,12 +8,15 @@ import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
 import { setUser } from '../../../store/slices/UsersSlice';
 import toast from 'react-hot-toast';
+import AddressModal from '../../../components/user/AddressModal';
+import Alert from '../../../components/ui/Alert';
 
 function Addresses() {
 
   const dispatch = useDispatch();
   const { addressList, error } = useSelector(state => state.address);
   const { user } = useSelector(state => state.user);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
     if(error){
@@ -21,6 +24,7 @@ function Addresses() {
       dispatch(clearError());
     }
   },[error])
+
 
   const handleMakeAddressDefault = async(id) => {
 
@@ -54,11 +58,27 @@ function Addresses() {
 
   const handleRemoveAddress = async(id) => {
 
-    const response = await dispatch(removeAddress({id}));
+    Alert({
+      title: 'Are you sure?',
+      icon: 'question',
+      html: '<span class="text-red-500">You cannot revert back this action</span>',
+      showCancelButton: true,
+      confirmButtonText: 'Ok, delete it',
+      iconColor: '!text-red-500',
+      customClass: {
+        confirmButton: '!bg-red-500',
+        title: '!text-red-500',
+        icon: '!text-red-500',
+      },
+    }).then(async(res) => {
+      if(res.isConfirmed){
+        const response = await dispatch(removeAddress({id}));
 
-    if(response?.payload?.success){
-      toast.success(response?.payload?.message, { position: 'top-center' })
-    }
+        if(response?.payload?.success){
+          toast.success(response?.payload?.message, { position: 'top-center' })
+        }
+      }
+    })
 
   }
 
@@ -78,15 +98,15 @@ function Addresses() {
         {addressList?.length > 0 &&
 
           addressList.map(address => {
-
+            
             return (
               <div
-                key={address._id}
+                key={`${address._id}-${address.is_default}`}
                 className='flex flex-col items-center justify-between min-h-40 relative
                 border border-gray-300 rounded-xl'>
                 
                 {/* default badge */}
-                {address.is_default && 
+                {address?.is_default && 
                   <div className='flex w-full justify-end pe-2'>
                     <div className='px-1.5 py-0.5 inline-flex items-center space-x-1 
                       bg-primary-300 rounded-xl rounded-t-none text-white'>
@@ -108,7 +128,7 @@ function Addresses() {
 
                 {/* actions */}
                 <div className="w-full p-3 flex items-center text-xs space-x-2">
-                  {!address.is_default && 
+                  {!address?.is_default && 
                     <span
                       onClick={() => handleMakeAddressDefault(address._id)}
                       className='cursor-pointer
@@ -131,7 +151,9 @@ function Addresses() {
           })
 
         }
-        <div className='flex items-center justify-center min-h-40 
+        <div 
+          onClick={() => setIsAddModalOpen(true)}
+          className='flex items-center justify-center min-h-40 
           border border-gray-300 rounded-xl cursor-pointer smooth
           hover:border-primary-300 hover:bg-primary-25 group'>
           <div className='inline-flex flex-col items-center group-hover:text-primary-400'>
@@ -141,6 +163,13 @@ function Addresses() {
         </div>
 
       </div>
+      <AddressModal
+        isOpen={isAddModalOpen}
+        onClose={() => {
+          setIsAddModalOpen(false);
+        }}
+        onChange={() => setIsAddModalOpen(false)}
+      />
     </div>
   )
 }

@@ -32,8 +32,7 @@ export const getAddressList = async(req, res) => {
 // add new address
 export const addNewAddress = async(req, res) => {
   const { user_id } = req;
-  //const { name, address_line, landmark, city, state, pincode, mobile, is_default } = req.body;
-
+  const { is_default } = req.body;
   try {
 
     const validate = Object.keys(req.body).filter(key => key !== 'is_default')
@@ -53,6 +52,19 @@ export const addNewAddress = async(req, res) => {
     delete address.createdAt;
     delete address.updatedAt;
     delete address.__v;
+
+    /* setup if deleted is default */
+    if(is_default){
+      await Promise.all([
+        User.findByIdAndUpdate(user_id,
+          { default_address: address._id }
+        ),
+        Address.updateOne(
+          {is_default: true},
+          {$set: { is_default: false }}
+        )
+      ])
+    }
     
     return responseMessage(res, 201, true, "New address created successfully",{address})
     
@@ -154,10 +166,7 @@ export const removeAddress = async(req, res) => {
       newDefault = await Address.findOneAndUpdate(
         {},
         {$set: { is_default: true }},
-        {
-          new: true,
-          /* projection: "-user_id -updatedAt -createdAt -__v" */
-        }
+        {new: true}
       );
       await User.findByIdAndUpdate(user_id,
         { default_address: newDefault._id }

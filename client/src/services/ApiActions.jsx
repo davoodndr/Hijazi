@@ -416,8 +416,6 @@ export const removeAddressAction = async(id) => {
       data: {address_id: id}
     })
 
-    console.log(response)
-
     return response.data
 
   } catch (error) {
