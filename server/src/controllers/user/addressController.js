@@ -139,7 +139,6 @@ export const makeAddressDefault = async(req, res) => {
 
 export const removeAddress = async(req, res) => {
 
-  //const user_id = "680fcd85ccab7af6a4332392"
   const { user_id } = req;
   const { address_id } = req.body
 

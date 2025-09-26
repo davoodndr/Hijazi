@@ -92,7 +92,8 @@ export const placeOrder = async(req, res) => {
     let order = await Order.create({
       user_id,
       order_no,
-      ...req.body
+      ...req.body,
+      ...(paymentInfo?.isPaid ? { status:'processing' } : {})
     });
 
     /* wallet update with latest data */

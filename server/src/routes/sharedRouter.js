@@ -16,7 +16,7 @@ sharedRouter.get('/get-order', authenticate, allowRoles(["user", "admin"]), getO
 sharedRouter.patch('/order/cancel-item', authenticate, allowRoles(["user", "admin"]), cancelItem)
 sharedRouter.post('/orders/cancel-order', authenticate, allowRoles(["user", "admin"]), cancelOrder)
 
-/* payment managment */
+/* handle payment */
 sharedRouter.post('/generate-razorpay-link', authenticate, allowRoles(["user", "admin"]), generatePaymentLink)
 sharedRouter.post('/create-razorpay-order', authenticate, allowRoles(["user", "admin"]), createRazorpayOrder)
 sharedRouter.post('/verify-razorpay-payment', authenticate, allowRoles(["user", "admin"]), verifyRazorpay)

@@ -30,6 +30,7 @@ function ViewOrder() {
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [appliedOffers, setAppliedOffers] = useState([]);
   const [originalTotals, setOriginalTotals] = useState(null);
+  const cancelledStatuses = ['cancelled', 'refunded', 'returned'];
 
   useEffect(() => {
     if(!currentOrder) navigate("/admin/orders")
@@ -89,7 +90,7 @@ function ViewOrder() {
       oTax += item?.tax;
       oDisc += item?.appliedOffer?.appliedAmount || 0;
 
-      if(item?.status === 'cancelled'){
+      if(cancelledStatuses.includes(item?.status)){
         cancelledCount += item?.quantity;
         cancelledTax += item?.tax
         cancelledDisc += item?.appliedOffer?.appliedAmount
@@ -161,7 +162,8 @@ function ViewOrder() {
   const [cancelItem, setCancelItem] = useState(null);
 
   const handleCancelOrderPop = (item) => {
-    if(order?.status === 'pending'){
+    const cancellableStatuses = ['pending', 'processing', 'on-hold'];
+    if(cancellableStatuses.includes(order?.status)){
       if(item) setCancelItem(item)
       setIsModalOpen(true);
     }else{
@@ -221,12 +223,14 @@ function ViewOrder() {
               className={clsx(`px-2 py-1 rounded-md text-sm inline-flex leading-4`,
               order?.status === "pending" && 'bg-yellow-200 text-orange-500',
               order?.isDelivered && 'bg-green-200 text-primary-400',
-              order?.status === "cancelled" && 'bg-red-200 text-red-500'
+              (order?.status === "cancelled" || order?.status === "returned") && 'bg-red-200 text-red-500',
+              order?.status === "refunded" && 'bg-pink-200 text-pink-500',
             )}
             >{order?.status}</p>
             <span className='border-r border-gray-200 w-px h-6'></span>
             <div className={clsx('inline-flex items-center space-x-1',
-              order?.status === 'cancelled' && 'text-red-400'
+              (order?.status === "cancelled" || order?.status === "returned") && 'text-red-400',
+              order?.status === 'refunded' && 'text-pink-400'
             )}>
               <CiCalendar className='text-xl' />
               <span>{formattedDate}</span>
@@ -302,13 +306,14 @@ function ViewOrder() {
               {order?.cartItems?.map((item, index) => {
                 const attributes = item?.attributes ? Object.entries(item?.attributes) : [];
                 const itemTotal = item?.quantity * item.price;
-                
+                const cancelledItem = cancelledStatuses.includes(item?.status) 
+
                 return (
                   <li 
                     key={`${item?.id}-${index}`} 
                     className='relative overflow-hidden'
                   >
-                    {item?.status === 'cancelled' &&
+                    {cancelledItem &&
                       <div className="absolute top-[12%] -left-[3%] text-xs z-2">
                         <p className='-rotate-45 bg-red-500 text-white leading-4 px-6 py-0.5 shadow-md/20'
                         >Cancelled</p>
@@ -316,7 +321,7 @@ function ViewOrder() {
                     }
                     <div
                       className={clsx('grid grid-cols-[2fr_1fr_1fr_0.5fr] p-5 not-last:border-b border-gray-200',
-                        item?.status === 'cancelled' && 'disabled-el'
+                        cancelledItem && 'disabled-el'
                       )}
                     >
                       <div className='inline-flex space-x-4'>
@@ -365,13 +370,11 @@ function ViewOrder() {
                       <div className='inline-flex items-center justify-end'>
                         <span
                           onClick={() => {
-                            if(item?.status !== 'cancelled'){
-                              handleCancelOrderPop(item)
-                            }
+                            handleCancelOrderPop(item)
                           }} 
                           className={clsx(`text-xs bg-gray-100 px-3 py-1 rounded-lg cursor-pointer
                             smooth hover:shadow-md hover:bg-red-300 hover:text-white`,
-                            item?.status === 'cancelled' && 'disabled-el'
+                            cancelledItem && 'disabled-el'
                           )}
                         >Cancel</span>
                       </div>
@@ -450,7 +453,11 @@ function ViewOrder() {
                     
                     <span className='w-full border-b border-gray-200 my-4'></span>
                     <p className='flex items-center justify-between font-bold'>
-                      <span className='text-base'>Net {paymentInfo?.isPaid ? 'Paid' : 'Payable'} Amount</span>
+                      <span className='text-base'>Net {
+                        paymentInfo?.isPaid ? 
+                          order?.status === 'refunded' ? 'Refunded' : 'Paid' 
+                        : 'Payable'
+                      } Amount</span>
                       <span className='price-before text-lg'>
                         {Number(order?.totalPrice || 0).toFixed(2)}
                       </span>

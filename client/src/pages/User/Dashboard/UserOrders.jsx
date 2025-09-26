@@ -5,7 +5,6 @@ import { format } from 'date-fns'
 import AdminPagination from '../../../components/ui/AdminPagination';
 import { useNavigate } from 'react-router';
 import * as motion from "motion/react-client"
-import { AnimatePresence } from "motion/react"
 
 function UserOrders() {
 
@@ -13,8 +12,10 @@ function UserOrders() {
   const { ordersList } = useSelector(state => state.orders);
   const [orders, setOrders] = useState([]);
   const [cancelldOrders, setCancelledOrders] = useState([]);
+  const [notShippedOrders, setNotShippedOrders] = useState([]);
   const [activeOrders, setActiveOrders] = useState([]);
   const [selected, setSelected] = useState(1);
+  const cancelledStatuses = ['cancelled', 'refunded', 'returned'];
 
   const tabs = [
     {id: 1, label: "All"},
@@ -26,10 +27,12 @@ function UserOrders() {
   
     if(ordersList.length){
       const sorted = [...ordersList].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
-      const cancelled = sorted?.filter(el => el?.status === 'cancelled')
+      const cancelled = sorted?.filter(el => el?.status === 'cancelled' || el?.status === 'refunded')
+      const notShipped = sorted?.filter(el => el?.status === 'pending' || el?.status === 'processing' || el?.status === 'on-hold')
       setOrders(sorted);
       setActiveOrders(sorted);
       setCancelledOrders(cancelled)
+      setNotShippedOrders(notShipped)
     }
 
   },[ordersList]);
@@ -88,7 +91,7 @@ function UserOrders() {
   const handleOrderTypeSelect = (id) => {
     setSelected(id);
     switch(id){
-      case 2 : setActiveOrders([]); break;
+      case 2 : setActiveOrders(notShippedOrders); break;
       case 3 : setActiveOrders(cancelldOrders); break;
       default: setActiveOrders(orders)
     }
@@ -109,7 +112,7 @@ function UserOrders() {
 
           const isSelected = selected === el?.id;
           let itemCount = 0;
-          if(el.id === 2) itemCount = 0
+          if(el.id === 2) itemCount = notShippedOrders?.length
             else if(el.id === 3) itemCount = cancelldOrders?.length
 
           return (
@@ -177,7 +180,7 @@ function UserOrders() {
 
             const isPaid = order?.isPaid ? 'Paid' : 'Unpaid';
             const payment = order?.paymentMethod === 'cod' ? 'cash on delivery' : order?.paymentMethod;
-            const cancelled = order?.status === 'cancelled';
+            const cancelled = cancelledStatuses.includes(order?.status);
 
             return (
               <div
@@ -187,8 +190,8 @@ function UserOrders() {
 
                 {cancelled &&
                   <div className="absolute top-[15%] -left-[3%] text-xs z-2">
-                    <p className='-rotate-45 bg-red-500 text-white leading-4 px-6 py-0.5 shadow-md/20'
-                    >Cancelled</p>
+                    <p className='-rotate-45 bg-red-500 text-white leading-4 px-6 py-0.5 shadow-md/20 capitalize'
+                    >{order?.status}</p>
                   </div>
                 }
 
@@ -216,7 +219,7 @@ function UserOrders() {
                   {/* total */}
                   <div className='inline-flex flex-col'>
                     <span className='text-xs text-gray-400'>Order Total</span>
-                    <span className='price-before'>{order?.totalPrice}</span>
+                    <span className='price-before'>{order?.cancelledTotal || order?.totalPrice}</span>
                   </div>
 
                   {/* paid by */}

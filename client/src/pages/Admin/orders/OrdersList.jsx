@@ -269,7 +269,7 @@ function OrdersList() {
 
                       const isPaid = order?.isPaid ? 'Paid' : 'Unpaid';
                       const payment = order?.paymentMethod === 'cod' ? 'cash on delivery' : order?.paymentMethod;
-
+                      
                       return (
                         <motion.div 
                           layout
@@ -328,9 +328,9 @@ function OrdersList() {
 
                             {/* amount */}
                             <div className='capitalize flex flex-col'>
-                              <span className='price-before font-semibold'>{order?.totalPrice}</span>
-                              <span className={clsx('badge',
-                                order?.isPaid ? 'bg-green-200 text-primary-400' : 'bg-amber-200 text-red-400'
+                              <span className='price-before font-semibold text-end inline-block w-[50%]'>{order?.cancelledTotal || order?.totalPrice}</span>
+                              <span className={clsx('text-xs text-end inline-block w-[50%]',
+                                order?.isPaid ? ' text-primary-400/70' : ' text-red-400/70'
                               )}>{isPaid}</span>
                             </div>
 

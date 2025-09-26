@@ -96,7 +96,11 @@ const orderSchema = new mongoose.Schema({
     isDelivered: { type: Boolean, default: false },
     deliveredAt: { type: Date },
   },
-  status: { type: String, default: 'pending' },
+  status: { 
+    type: String,
+    enum: ['pending', 'processing', 'shipped', 'out-for-del', 'cancelled', 'failed', 'returned', 'on-hold', 'refunded' ],
+    default: 'pending' 
+  },
   cancelSummery: {
     user_id: String,
     name: String,

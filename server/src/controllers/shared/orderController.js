@@ -99,34 +99,59 @@ export const getOrders = async(req, res) => {
   
   try {
 
+    const countItems = {
+      $sum: {
+        $map: {
+          input:{
+            $filter: {
+              input: "$cartItems",
+              as: "item",
+              cond: {$ne: ["$$item.status", "cancelled"]}
+            }
+          },
+          as: "item",
+          in: "$$item.quantity"
+        }
+      }
+    }
+
+    const cancelledTotal = {
+      $cond: {
+        if: {
+          $and: [
+            { $in: [ "$status", ["cancelled", "returned", "refunded"] ] },
+            { $eq: [ "$totalPrice", 0 ] }
+          ]
+        },
+        then: {
+          $sum: {
+            $map: {
+              input: "$cartItems",
+              as: "item",
+              in: { $multiply: [ "$$item.quantity", "$$item.price" ] }
+            }
+          }
+        },
+        else: null
+      }
+    }
+
     const orders = await Order.aggregate([
       {$match: { user_id } },
       {
         $project: {
           order_no: 1,
-          itemsCount: {
-            $sum: {
-              $map: {
-                input:{
-                  $filter: {
-                    input: "$cartItems",
-                    as: "item",
-                    cond: {$ne: ["$$item.status", "cancelled"]}
-                  }
-                },
-                as: "item",
-                in: "$$item.quantity"
-              }
-            }
-          },
-          totalPrice: 1,
-          paymentMethod: "$paymentInfo.paymentMethod",
+          itemsCount: countItems,
           image: { $arrayElemAt: ["$cartItems.image", 0] },
           name: { $arrayElemAt: ["$cartItems.name", 0] },
+          totalPrice: 1,
+          cancelledTotal,
+          paymentMethod: "$paymentInfo.paymentMethod",
+          isPaid: "$paymentInfo.isPaid",
+          paymentResult: "$paymentInfo.paymentResult",
           shippingAddress: 1,
           billingAddress: 1,
           status: 1,
-          isPaid: 1,
           createdAt: 1
         }
       }
@@ -156,6 +181,12 @@ export const cancelOrder = async(req, res) => {
     if(!user) return responseMessage(res, 400, false, "Unauthorized access denied");
 
     const order = await Order.findById(order_id);
+
+    const cancellableStatuses = ['pending', 'processing', 'on-hold'];
+    if (!cancellableStatuses.includes(order?.status)){
+      return responseMessage(res, 400, false, `Order cannot cancel on ${order?.status} state`);
+    }
+
     let appliedOffers = [];
     appliedOffers.push(order?.appliedCoupon?._id);
     appliedOffers.push(order?.cartOffer?._id);
@@ -219,12 +250,12 @@ export const cancelOrder = async(req, res) => {
       }
     })
 
-    await wallet.save();
+    if(order?.paymentInfo?.isPaid) await wallet.save();
 
     const cancelled = await Order.findByIdAndUpdate(
       order_id,
       {
-        status: "cancelled",
+        status: order?.paymentInfo?.isPaid ? "refunded" : "cancelled",
         cancelInfo: {
           user_id,
           name: user?.fullname || user?.username,
@@ -249,231 +280,6 @@ export const cancelOrder = async(req, res) => {
   }
 }
 
-export const cancelOrderItem = async(req, res) => {
-
-  const {user_id} = req;
-  const {order_id, item_id, reason} = req.body;
-
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-
-    const user = await User.findById(user_id);
-    if(!user) return responseMessage(res, 400, false, "Unauthorized acces denied");
-
-    let order = await Order.findById(order_id);
-    if(!order) return responseMessage(res, 400, false, "Order not found!");
-
-    const item = order?.cartItems?.find(el => el?._id.toString() === item_id);
-    if(!item) return responseMessage(res, 400, false, "Item not found!");
-
-    const product = await Product.findById(item?.product_id);
-    const taxRate = product?.tax || 0.05;
-    const itemTax = item?.price * item?.quantity * taxRate;
-    let itemsPrice = 0, rawTotal = 0, taxAmount = 0, discount = 0;
-    let cancelledDiscount = item?.appliedOffer?.appliedAmount || 0;
-
-    /* stock clearing */
-    if(item?.variant_id){
-      
-      product.variants = product?.variants?.map(el => {
-
-        if(el?._id?.toString() === item?.variant_id){
-          return {
-            ...(el?.toObject()),
-            stock: el?.stock + item?.quantity
-          }
-        }
-        return el;
-      })
-      
-    }else{
-      product.stock += item?.quantity
-    }
-
-    //await product.save();
-
-    /* removing item offer */
-
-    const off_id = item?.appliedOffer?._id;
-    let appliedOffer = off_id ? await Offer.findById(off_id) : null;
-    let offs = [order?.cartOffer?._id, order?.appliedCoupon?._id].filter(Boolean);
-
-    if(appliedOffer){
-      
-      const off = {
-        ...(appliedOffer.toObject()),
-        usageCount: appliedOffer?.usageCount > 0 ? appliedOffer?.usageCount - 1 : 0,
-        usedBy: appliedOffer?.usedBy?.map(o =>  {
-          return {
-            ...(o.toObject()), 
-            count: o?.count > 0 ? o?.count - 1 : 0,
-          }
-        })
-      }
-
-      //await Offer?.findByIdAndUpdate(off_id, off)
-    }
-    
-    /* update cart items */
-    const cartItems = await Promise.all(order?.cartItems?.map(async el => {
-
-      const itemOff = el?.appliedOffer ? await Offer.findById(el?.appliedOffer?._id) : null;
-
-      if(el?._id === item?._id){
-
-        const itemTotal = item?.price * item?.quantity;
-        const offerDiscount = item?.appliedOffer?.appliedAmount || 0;
-        
-        return {
-          ...(el.toObject()),
-          status: 'cancelled',
-          tax: itemTax,
-          cancelInfo: {
-            user_id,
-            name: user?.fullname || user?.username,
-            role: user?.activeRole,
-            date: new Date(),
-            reason,
-            amount: itemTotal + itemTax - offerDiscount,
-            refunded: true
-          },
-          appliedOffer: el?.appliedOffer ? {
-            ...(el.appliedOffer),
-            ...(itemOff?.toObject()),
-            status: 'cancelled'
-          } : null
-        }
-      }
-      
-      taxAmount += (el?.price * taxRate * el?.quantity);
-      itemsPrice += (el?.price * el?.quantity);
-      
-      /* recalculate item offer */
-      
-      if(itemOff){
-        const offAmount = calculateDiscount(itemOff, el?.price);
-        discount += offAmount * el?.quantity;
-        return {
-          ...(el.toObject()),
-          tax: itemTax,
-          appliedOffer: {
-            ...el?.appliedOffer,
-            ...(itemOff.toObject()),
-            appliedAmount: offAmount * el?.quantity
-          }
-        }
-      }
-      return {
-        ...(el.toObject()),
-        tax: itemTax
-      }
-    }));
-
-
-
-    /* recalculate cart related discount */
-    let cartOffer = null;
-    let appliedCoupon = null;
-
-    await Promise.all(offs?.map(async id => {
-      const off = await Offer.findById(id);
-      const isEligible = itemsPrice >= off?.minPurchase;
-
-      const applyOffer = () => {
-        const discountValue = calculateDiscount(off, itemsPrice);
-        const appliedAmount = Math.floor(discountValue);
-        discount += discountValue;
-
-        const offerData = { _id: off._id, appliedAmount };
-
-        if (off.type === 'coupon') {
-          appliedCoupon = offerData;
-        } else if (off.type === 'cart') {
-          cartOffer = offerData;
-        }
-      };
-
-      const cancelOffer = () => {
-        const cancelled = { status: 'cancelled' };
-        if (off.type === 'coupon') {
-          cancelledDiscount += order?.appliedCoupon?.appliedAmount;
-          appliedCoupon = {
-            ...(off.toObject()),
-            ...order?.appliedCoupon,
-            ...cancelled 
-          };
-        } else if (off.type === 'cart') {
-          cancelledDiscount += order?.cartOffer?.appliedAmount;
-          cartOffer = {
-            ...(off.toObject()),
-            ...order?.cartOffer, 
-            ...cancelled
-          };
-        }
-      };
-
-      if (isEligible) {
-        applyOffer();
-      } else {
-        cancelOffer();
-      }
-
-    }));
-
-    offs = offs.filter(Boolean);
-    
-    discount = Math.floor(discount);
-    rawTotal = itemsPrice + taxAmount - discount;
-
-    /* recreate order data */
-    order = {
-      ...(order.toObject()),
-      cartItems,
-      itemsPrice,
-      totalPrice: Math.floor(rawTotal),
-      roundOff: rawTotal - Math.floor(rawTotal),
-      appliedCoupon,
-      cartOffer,
-      discount,
-      taxAmount
-    }
-
-    const cancelledPrice = item?.price * item?.quantity + itemTax;
-    const refundAmount = cancelledPrice - cancelledDiscount;
-
-    /* refund handling */
-    const wallet = await Wallet.findOne({user: user_id});
-    wallet.balance += refundAmount;
-    wallet.transactions.push({
-      type: 'credit',
-      amount: refundAmount,
-      description: `Refund of ${item?.name}`,
-      paymentInfo: {
-        paymentMethod: 'wallet'
-      }
-    })
-
-    console.log(cancelledPrice, cancelledDiscount, refundAmount)
-
-    //await wallet.save();
-  
-    //await Order.findByIdAndUpdate(order?._id, order);
-    
-    await session.commitTransaction();
-    //return responseMessage(res, 200, true, "Item cancelled successfully", {order})
-
-  } catch (error) {
-    console.log('cancelItem',error)
-    await session.abortTransaction();
-    return responseMessage(res, 500, false, error.message || error);
-  }finally{
-    session.endSession();
-  }
-
-}
-
 export const cancelItem = async(req, res) => {
 
   const {user_id} = req;
@@ -489,8 +295,9 @@ export const cancelItem = async(req, res) => {
 
     let order = await Order.findById(order_id);
     if(!order) return responseMessage(res, 400, false, "Order not found!");
-    if(order?.status !== 'pending'){
-      return responseMessage(res, 400, false, "You can cancel order only on pending state");
+    const cancellableStatuses = ['pending', 'processing', 'on-hold'];
+    if (!cancellableStatuses.includes(order?.status)){
+      return responseMessage(res, 400, false, `Order can't cancel on ${order?.status} state`);
     }
 
     const item = order?.cartItems?.find(el => el?._id.toString() === item_id);
@@ -664,6 +471,11 @@ export const cancelItem = async(req, res) => {
     discount = Math.floor(discount);
     rawTotal = itemsPrice + taxAmount - discount;
 
+    const cancelledItemsCount = cartItems?.reduce((count, item) => item?.status === 'cancelled' ? ++count : count, 0);
+    const orderStatus = cancelledItemsCount === cartItems.length ? 
+      order?.paymentInfo?.isPaid ? "refunded" : "cancelled" 
+      : order?.status;
+
     /* recreate order data */
     order = {
       ...(order.toObject()),
@@ -674,7 +486,8 @@ export const cancelItem = async(req, res) => {
       appliedCoupon,
       cartOffer,
       discount,
-      taxAmount
+      taxAmount,
+      status: orderStatus
     }
 
     /* refund handling */
@@ -684,10 +497,11 @@ export const cancelItem = async(req, res) => {
     wallet.transactions.push({
       type: 'credit',
       amount: refundAmount,
-      description: `Refund of ${item?.name}`,
+      description: `Refund on - ${item?.name}`,
       paymentInfo: {
         paymentMethod: 'wallet'
-      }
+      },
+      relatedOrder: order?._id
     })
 
     await Promise.all([
