@@ -2,7 +2,7 @@ import React from 'react'
 import { createPortal } from "react-dom";
 import { motion } from 'motion/react'
 
-const Modal = ({ isOpen, children, modalContentClass }) => {
+const Modal = ({ isOpen, children, modalContentClass = "" }) => {
   
   if (!isOpen) return null;
   

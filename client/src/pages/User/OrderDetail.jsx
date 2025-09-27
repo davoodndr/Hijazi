@@ -16,6 +16,7 @@ import CouponCardMedium from '../../components/ui/CouponCardMedium';
 import { getOrder } from '../../services/ApiActions';
 import CancelOrderModal from '../../components/ui/CancelOrderModal';
 import CancelOrderSummery from '../../components/ui/CancelOrderSummery';
+import SaleInvoice from '../../components/ui/SaleInvoice';
 
 function OrderDetail() {
 
@@ -147,7 +148,6 @@ function OrderDetail() {
 
   const resetDatas = () => {
     setOrder(null)
-    setIsPaid(null)
     setFormattedDate(null)
     setItemsCount(0)
     setCancelSummeries([])
@@ -169,6 +169,9 @@ function OrderDetail() {
       toast.error(`Order can't cancel on ${order?.status} state`, {position: "top-center"})
     }
   }
+
+  /* handle invoice download */
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   return (
     <section className='flex-grow w-full flex flex-col items-center py-15 bg-primary-25'>
@@ -257,7 +260,16 @@ function OrderDetail() {
               <TbCancel className='text-xl' />
               <span>Cancel</span>
             </div>
-            <button className='inline-flex items-center !px-5 !space-x-2'>
+            <button 
+              onClick={() => {
+                if(order?.status !== 'cancelled'){
+                  setIsInvoiceModalOpen(true)
+                }
+              }}
+              className={clsx('inline-flex items-center !px-5 !space-x-2',
+                order?.status === 'cancelled' && 'pointer-events-none disabled-el !bg-gray-400'
+              )}
+            >
               <VscCloudDownload className='text-xl' />
               <span>Invoice</span>
             </button>
@@ -600,6 +612,12 @@ function OrderDetail() {
           onClose={() => {
             setIsModalOpen(false);
           }}
+        />
+
+        <SaleInvoice
+          isOpen={isInvoiceModalOpen}
+          onClose={() => setIsInvoiceModalOpen(false)}
+          orderId={order?._id}
         />
       </div>
     </section>

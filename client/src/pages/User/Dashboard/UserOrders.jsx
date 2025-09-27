@@ -1,21 +1,18 @@
 import clsx from 'clsx';
 import React, { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux';
-import { format } from 'date-fns'
 import AdminPagination from '../../../components/ui/AdminPagination';
-import { useNavigate } from 'react-router';
 import * as motion from "motion/react-client"
+import OrdersListItem from '../../../components/user/OrdersListItem';
 
 function UserOrders() {
 
-  const navigate = useNavigate();
   const { ordersList } = useSelector(state => state.orders);
   const [orders, setOrders] = useState([]);
   const [cancelldOrders, setCancelledOrders] = useState([]);
   const [notShippedOrders, setNotShippedOrders] = useState([]);
   const [activeOrders, setActiveOrders] = useState([]);
   const [selected, setSelected] = useState(1);
-  const cancelledStatuses = ['cancelled', 'refunded', 'returned'];
 
   const tabs = [
     {id: 1, label: "All"},
@@ -173,89 +170,14 @@ function UserOrders() {
       {/* contentes */}
       <div className="flex flex-col space-y-2">
         {paginatedOrders?.length > 0 ?
-          paginatedOrders?.map(order => {
+          paginatedOrders?.map(order => 
 
-            const title = order?.itemsCount > 1 ? `${order?.itemsCount} items includes` 
-              : order?.name;
+            <OrdersListItem 
+              key={order?._id} 
+              order={order}
+            />
 
-            const isPaid = order?.isPaid ? 'Paid' : 'Unpaid';
-            const payment = order?.paymentMethod === 'cod' ? 'cash on delivery' : order?.paymentMethod;
-            const cancelled = cancelledStatuses.includes(order?.status);
-
-            return (
-              <div
-                key={order?._id}
-                className=' relative overflow-hidden'
-              >
-
-                {cancelled &&
-                  <div className="absolute top-[15%] -left-[3%] text-xs z-2">
-                    <p className='-rotate-45 bg-red-500 text-white leading-4 px-6 py-0.5 shadow-md/20 capitalize'
-                    >{order?.status}</p>
-                  </div>
-                }
-
-                <div
-                  className={clsx(`grid grid-cols-[100px_1fr_0.5fr_0.75fr_180px_0.5fr]
-                    items-center space-x-3 p-2 border border-gray-300 rounded-3xl`,
-                    cancelled ? 'disabled-el pointer-events-auto cursor-auto' : ' bg-white' 
-                )}>
-
-                  {/* thumb */}
-                  <div className='w-20 rounded-2xl overflow-hidden'>
-                    <img src={order?.image} alt={order?.name} />
-                  </div>
-
-                  {/* title */}
-                  <div className='inline-flex flex-col'>
-                    <p className='text-xs'><span className='text-gray-400'>Order </span>#{order?.order_no}</p>
-                    <p className='capitalize font-semibold'>{title}</p>
-                    <p className='capitalize text-xs'>
-                      <span className='text-gray-400'>Date: </span>
-                      <span>{format(new Date(order?.createdAt), 'MMM dd, yyyy')}</span>
-                    </p>
-                  </div>
-
-                  {/* total */}
-                  <div className='inline-flex flex-col'>
-                    <span className='text-xs text-gray-400'>Order Total</span>
-                    <span className='price-before'>{order?.cancelledTotal || order?.totalPrice}</span>
-                  </div>
-
-                  {/* paid by */}
-                  <div className='inline-flex flex-col'>
-                    <span className='text-xs text-gray-400'>Payment</span>
-                    <span className='capitalize'>{payment}</span>
-                  </div>
-
-                  {/* ship to */}
-                  <div className='inline-flex flex-col px-2'>
-                    <span className='text-xs text-gray-400'>Ship to</span>
-                    <span className='truncate capitalize'>{Object.values(order?.shippingAddress).join(', ')}</span>
-                  </div>
-
-                  {/* order id */}
-                  <div className='inline-flex flex-col justify-between text-xs space-y-1 capitalize'>
-                    <span 
-                      onClick={() => {
-                        navigate(`/my-order/${order?.order_no}`,{
-                          state: { order }
-                        })
-                      }}
-                      className='underline text-primary-400 cursor-pointer'
-                    >View Order</span>
-                    <span className='underline text-primary-400 cursor-pointer'>Invoice</span>
-                    <span className='underline text-primary-400 cursor-pointer'>rate product</span>
-                  </div>
-
-                  {/* action button */}
-                  {/* <div className='w-full'>
-                    <button className='w-full text-xs'>Buy Again</button>
-                  </div> */}
-                </div>
-              </div>
-            )
-          })
+          )
           :
           (
             <div className='border border-gray-300 rounded-2xl px-5 py-3 w-[35%] text-gray-400 font-bold'>

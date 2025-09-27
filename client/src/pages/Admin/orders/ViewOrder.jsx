@@ -16,6 +16,7 @@ import CancelOrderModal from '../../../components/ui/CancelOrderModal';
 import toast from 'react-hot-toast';
 import { getOrder } from '../../../services/ApiActions';
 import CancelOrderSummery from '../../../components/ui/CancelOrderSummery';
+import SaleInvoice from '../../../components/ui/SaleInvoice';
 
 function ViewOrder() {
 
@@ -148,7 +149,6 @@ function ViewOrder() {
 
   const resetDatas = () => {
     setOrder(null)
-    setIsPaid(null)
     setFormattedDate(null)
     setItemsCount(0)
     setCancelSummeries([])
@@ -170,6 +170,9 @@ function ViewOrder() {
       toast.error("You can cancel order only on pending state", {position: "top-center"})
     }
   }
+
+  /* handle invoice download */
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   return (
     <section className='flex flex-col p-6'>
@@ -288,7 +291,16 @@ function ViewOrder() {
               <TbCancel className='text-xl' />
               <span>Cancel</span>
             </div>
-            <button className='inline-flex items-center !px-5 !space-x-2'>
+            <button 
+              onClick={() => {
+                if(order?.status !== 'cancelled'){
+                  setIsInvoiceModalOpen(true)
+                }
+              }}
+              className={clsx('inline-flex items-center !px-5 !space-x-2',
+                order?.status === 'cancelled' && 'pointer-events-none disabled-el !bg-gray-400'
+              )}
+            >
               <VscCloudDownload className='text-xl' />
               <span>Invoice</span>
             </button>
@@ -624,6 +636,12 @@ function ViewOrder() {
           onClose={() => {
             setIsModalOpen(false);
           }}
+        />
+
+        <SaleInvoice
+          isOpen={isInvoiceModalOpen}
+          onClose={() => setIsInvoiceModalOpen(false)}
+          orderId={order?._id}
         />
       </div>
 
