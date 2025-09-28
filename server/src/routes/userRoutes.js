@@ -8,6 +8,7 @@ import { addToWishlist, getWishlist, removeFromWishlist } from '../controllers/u
 import { addNewAddress, getAddressList, makeAddressDefault, removeAddress } from '../controllers/user/addressController.js';
 import { placeOrder } from '../controllers/user/orderController.js';
 import { getOffers } from '../controllers/user/offerController.js';
+import { createReview, updateReview } from '../controllers/user/reviewController.js';
 
 const userRouter = express.Router();
 
@@ -46,7 +47,11 @@ userRouter.put('/remove-address', authenticate, allowRoles(['user']), removeAddr
 userRouter.post('/place-order', authenticate, allowRoles(['user']), placeOrder)
 
 /* offer management */
-userRouter.get('/get-offers-list',getOffers)
+userRouter.get('/get-offers-list', getOffers)
+
+/* product review */
+userRouter.post('/create-review', authenticate, allowRoles(['user']), createReview)
+userRouter.put('/update-review', authenticate, allowRoles(['user']), updateReview)
 
 
 export default userRouter;

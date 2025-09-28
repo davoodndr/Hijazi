@@ -634,3 +634,38 @@ export const withdrawFundAction = async(data) => {
   }
 
 }
+
+/* review */
+export const createReviewAction = async(data) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.createReview,
+      data
+    })
+
+    return response?.data?.review;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const updateReviewAction = async(data) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.updateReview,
+      data
+    })
+
+    return response?.data?.updated;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}

@@ -314,6 +314,16 @@ const ApiBucket = {
     url: '/api/user/get-offers-list',
     method: 'get'
   },
+
+  /* reviews */
+  createReview: {
+    url: '/api/user/create-review',
+    method: 'post'
+  },
+  updateReview: {
+    url: '/api/user/update-review',
+    method: 'put'
+  },
 }
 
 

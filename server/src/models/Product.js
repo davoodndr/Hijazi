@@ -54,7 +54,6 @@ const productSchema = new mongoose.Schema({
       }
     }
   ],
-  reviews: [reviewSchema],
 }, { timestamps: true });
 
 export default mongoose.model("Product", productSchema);
