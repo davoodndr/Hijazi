@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { FaRegEye, FaStar } from "react-icons/fa";
 import { MdSimCardDownload } from "react-icons/md";
 import SaleInvoice from '../ui/SaleInvoice';
+import RateProductModal from '../ui/RateProductModal';
 
 function OrdersListItemComponent({order}) {
 
@@ -17,7 +18,8 @@ function OrdersListItemComponent({order}) {
   const isPaid = order?.isPaid ? 'Paid' : 'Unpaid';
   const payment = order?.paymentMethod === 'cod' ? 'cash on delivery' : order?.paymentMethod;
   const cancelled = cancelledStatuses.includes(order?.status);
-  const [isModalOpen, setIsModalOpen] = useState(false);  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
   return (
     <div
@@ -94,8 +96,18 @@ function OrdersListItemComponent({order}) {
             <span><FaRegEye className='text-base' /></span>
             <span>View Order</span>
           </div>
-          <div className='smooth hover:underline hover:text-primary-400
-            cursor-pointer inline-flex items-center space-x-1'
+
+          {/* rate product */}
+          <div 
+            onClick={() => {
+              if(order?.status === 'delivered'){
+                setIsRatingModalOpen(true);
+              }
+            }}
+            className={clsx(`smooth hover:underline hover:text-primary-400
+              cursor-pointer inline-flex items-center space-x-1`,
+              order?.status !== 'delivered' && 'disabled-el bg-transparent' 
+            )}
           >
             <span><FaStar className='text-base' /></span>
             <span>rate product</span>
@@ -129,6 +141,13 @@ function OrdersListItemComponent({order}) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         orderId={order?._id}
+      />
+
+      <RateProductModal
+        isOpen={isRatingModalOpen}
+        onClose={() => {
+          setIsRatingModalOpen(false)
+        }}
       />
     </div>
   )

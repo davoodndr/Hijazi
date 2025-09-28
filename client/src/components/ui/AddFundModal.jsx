@@ -152,7 +152,7 @@ function AddFundModalComponent({isOpen, autoFill, onSubmit, onClose}) {
             />
           </div>
         </div>
-        </Modal>
+      </Modal>
       }
     </AnimatePresence>
   )
