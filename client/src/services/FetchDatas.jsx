@@ -39,6 +39,23 @@ export const getWallet = async() => {
 
 }
 
+export const getUserReviews = async(product_id) => {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getReviews,
+      params: { product_id }
+    })
+
+    return response?.data?.reviews
+
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
 
 /* ------ user side -------- */
 

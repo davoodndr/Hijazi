@@ -15,7 +15,6 @@ import { uploadCategoryImage } from '../../../services/ApiActions';
 import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
 import DynamicInputList from '../../ui/DynamicInputList';
-import { useEffect } from 'react';
 
 function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
 

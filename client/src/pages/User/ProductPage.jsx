@@ -4,7 +4,6 @@ import StarRating from '../../components/user/StarRating'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io'
 import { FaRegHeart } from 'react-icons/fa'
-import user_placeholder from '../../assets/user_placeholder.jpg'
 import { IoArrowUndoOutline } from "react-icons/io5";
 import MulticardSlider from '../../components/user/MulticardSlider'
 import ProductCardMed from '../../components/user/ProductCardMed'
@@ -18,7 +17,7 @@ import { addToCart, getCartItem, syncCartitem } from '../../store/slices/CartSli
 import { setLoading } from '../../store/slices/CommonSlices'
 import toast from 'react-hot-toast'
 import { addToList, syncWishlistItem } from '../../store/slices/WishlistSlice'
-import { getSingleProduct } from '../../services/FetchDatas'
+import { getSingleProduct, getUserReviews } from '../../services/FetchDatas'
 import { MdDiscount } from "react-icons/md";
 import { RiCoupon3Line } from "react-icons/ri";
 import { MdOutlineCopyAll } from "react-icons/md";
@@ -26,6 +25,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { containerVariants, rowVariants } from '../../utils/Anim'
 import { BsTags } from "react-icons/bs";
 import { filterDiscountOffers, findBestCouponValue, findBestOffer } from '../../utils/Utils'
+import ReviewItem from '../../components/user/ReviewItem'
+import RatingDistribution from '../../components/user/RatingDistribution'
 
 function ProductPageComponent() {
 
@@ -42,7 +43,9 @@ function ProductPageComponent() {
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [attributes, setAttributes] = useState(null);
   const [productQty, setProductQty] = useState(1);
-  const cartItem = useSelector(state => getCartItem(state, activeVariant?._id || product?._id))
+  const cartItem = useSelector(state => getCartItem(state, activeVariant?._id || product?._id));
+  const [userReviews, setUserReviews] = useState([]);
+  
 
   /* function to re-arrange attributes */
   const getAttributeMap = (variants) => {
@@ -64,12 +67,16 @@ function ProductPageComponent() {
 
   // inital product fetch
   useEffect(() => {
+
+    /* syncing product */
     const product_slug = path.split('/').pop();
+    
     const fetchProduct = async() => {
-      const p = await getSingleProduct(product_slug);
+     const p = await getSingleProduct(product_slug);
       setProduct(p);
     }
     fetchProduct();
+
   },[])
 
   useEffect(() => {
@@ -101,6 +108,14 @@ function ProductPageComponent() {
 
       setProduct(product);
 
+      /* syncing reviews */
+      const fetchReviews = async() => {
+        const reviewData = await getUserReviews(product?._id);
+        setUserReviews(reviewData);
+      }
+
+      fetchReviews();
+
       const getRealtedItems = async(product) => {
         try {
 
@@ -125,7 +140,7 @@ function ProductPageComponent() {
 
       getRealtedItems(product);
 
-      window.scrollTo(0, 0);
+      //window.scrollTo(0, 0);
     }
 
   },[product])
@@ -315,8 +330,19 @@ function ProductPageComponent() {
               <span> Brand: <Link className='ms-3'>{product?.brand.name}</Link></span>
             </div>
             <div className="inline-flex text-end">
-              <StarRating starClass='text-xl' />
-              <span className="ml-5 text-gray-400"> (25 reviews)</span>
+              <StarRating 
+                value={product?.averageRating}
+                starClass='text-xl' 
+              />
+              <span className="ml-3 text-gray-400">({
+                userReviews?.length > 0 ?
+                  userReviews?.length > 1 ? 
+                    `${userReviews?.length} reviews`
+                    :
+                    '1 review'
+                :
+                'Fresh Product'
+              })</span>
             </div>
           </div>
 
@@ -706,93 +732,25 @@ function ProductPageComponent() {
         </ul>
 
         {/* reviews and percentage */}
-        <h2 className='lined-header-small text-2xl mb-10'>Reviews (3)</h2>
+        <h2 className='lined-header-small text-2xl mb-10'>
+          Reviews <span className='!text-xl'>(
+            {userReviews?.length > 0 ? 
+            `${userReviews?.length}` : 
+              <span className='text-lg text-gray-500'>Fresh Product</span>
+            }
+          )</span>
+        </h2>
         <div className="flex mb-15">
 
           {/* reviews */}
           <div className="flex-grow inline-flex flex-col space-y-5 divide-y divide-gray-200">
-
-            <div className="flex space-x-5 pb-3">
-
-              {/* avatar */}
-              <div className="w-[12%] inline-flex flex-col items-center overflow-hidden">
-                <div className='w-17 rounded-full overflow-hidden mb-1'>
-                  <img src={user_placeholder} alt="" />
-                </div>
-                <p className='w-full font-semibold text-center truncate leading-4 tracking-wide mb-0.5'>Jacky Chan johnsdkjasjdjasdasdi</p>
-                <p className="text-xs">Since 2012</p>
-              </div>
-              {/* review */}
-              <div className="flex-grow inline-flex flex-col space-y-1">
-                <div className="product-rate d-inline-block">
-                  <StarRating />
-                </div>
-                <p className='text-base'>Thank you very fast shipping from Poland only 3 days.</p>
-                <div className="flex flex-col">
-                  <p className="text-sm text-gray-400 mb-2">December 4, 2020 at 3:12 pm </p>
-                  <div className="inline-flex items-center space-x-2 cursor-pointer
-                    smooth hover:text-primary-400 hover:translate-x-2 w-fit">
-                    <IoArrowUndoOutline className='text-xl' />
-                    <span>Reply</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-            <div className="flex space-x-5 pb-3">
-
-              {/* avatar */}
-              <div className="inline-flex flex-col items-center">
-                <div className='w-17 rounded-full overflow-hidden'>
-                  <img src={user_placeholder} alt="" />
-                </div>
-                <p className='font-semibold tracking-wide'>Jacky Chan</p>
-                <p className="text-xs">Since 2012</p>
-              </div>
-              {/* review */}
-              <div className="inline-flex flex-col space-y-1">
-                <div className="product-rate d-inline-block">
-                  <StarRating />
-                </div>
-                <p className='text-base'>Thank you very fast shipping from Poland only 3 days.</p>
-                <div className="flex flex-col">
-                  <p className="text-sm text-gray-400 mb-2">December 4, 2020 at 3:12 pm </p>
-                  <div className="inline-flex items-center space-x-2 cursor-pointer
-                    smooth hover:text-primary-400 hover:translate-x-2">
-                    <IoArrowUndoOutline className='text-xl' />
-                    <span>Reply</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-            <div className="flex space-x-5 pb-3">
-
-              {/* avatar */}
-              <div className="inline-flex flex-col items-center">
-                <div className='w-17 rounded-full overflow-hidden'>
-                  <img src={user_placeholder} alt="" />
-                </div>
-                <p className='font-semibold tracking-wide'>Jacky Chan</p>
-                <p className="text-xs">Since 2012</p>
-              </div>
-              {/* review */}
-              <div className="inline-flex flex-col space-y-1">
-                <div className="product-rate d-inline-block">
-                  <StarRating />
-                </div>
-                <p className='text-base'>Thank you very fast shipping from Poland only 3 days.</p>
-                <div className="flex flex-col">
-                  <p className="text-sm text-gray-400 mb-2">December 4, 2020 at 3:12 pm </p>
-                  <div className="inline-flex items-center space-x-2 cursor-pointer
-                    smooth hover:text-primary-400 hover:translate-x-2">
-                    <IoArrowUndoOutline className='text-xl' />
-                    <span>Reply</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
+            
+            {userReviews?.map(review => 
+              <ReviewItem
+                key={review?._id}
+                review={review}
+              />
+            )}
             
           </div>
 
@@ -800,41 +758,14 @@ function ProductPageComponent() {
           <div className='w-[35%] p-3 inline-flex flex-col h-fit space-y-5'>
             <h2 className='text-lg'>Customer reviews</h2>
             <div className='flex space-x-3'>
-              <StarRating />
-              <h6>4.8 out of 5</h6>
+              <StarRating 
+                value={product?.averageRating}
+              />
+              <h6>{product?.averageRating} out of 5</h6>
             </div>
-            <div className='flex flex-col space-y-3 h-fit'>
-              <div className="flex space-x-3 leading-5">
-                <span>5 star</span>
-                <div className={`review-progress before:w-[50%]`} >
-                    <span className='px-3 z-5'>50%</span>
-                </div>
-              </div>
-              <div className="flex space-x-3 leading-5">
-                <span>4 star</span>
-                <div className={`review-progress before:w-[25%]`} >
-                    <span className='px-3 z-5'>25%</span>
-                </div>
-              </div>
-              <div className="flex space-x-3 leading-5">
-                <span>3 star</span>
-                <div className={`review-progress before:w-[45%]`} >
-                    <span className='px-3 z-5'>45%</span>
-                </div>
-              </div>
-              <div className="flex space-x-3 leading-5">
-                <span>2 star</span>
-                <div className={`review-progress before:w-[65%]`} >
-                    <span className='px-3 z-5'>65%</span>
-                </div>
-              </div>
-              <div className="flex space-x-3 leading-5">
-                <span>1 star</span>
-                <div className={`review-progress before:w-[85%]`} >
-                    <span className='px-3 z-5'>85%</span>
-                </div>
-              </div>
-            </div>
+            
+            <RatingDistribution reviewData={userReviews} />
+
           </div>
 
         </div>
@@ -854,6 +785,7 @@ function ProductPageComponent() {
                   key={item?._id} 
                   index={i} 
                   product={item}
+                  offers={offersList}
                   onClick={() => handleSingleProductClick(item)}
                 />
               )

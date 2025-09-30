@@ -4,6 +4,7 @@ import { updateUserRole } from "../controllers/shared/userController.js";
 import { addFund, getWallet, withdrawFund } from "../controllers/shared/walletController.js";
 import { createRazorpayOrder, generatePaymentLink, verifyRazorpay } from "../controllers/shared/paymentController.js";
 import { cancelItem, cancelOrder, getOrder, getOrders } from "../controllers/shared/orderController.js";
+import { getReviews } from "../controllers/shared/reviewController.js";
 
 const sharedRouter = express.Router();
 
@@ -25,5 +26,8 @@ sharedRouter.post('/verify-razorpay-payment', authenticate, allowRoles(["user", 
 sharedRouter.get('/get-wallet', authenticate, allowRoles(["user", "admin"]), getWallet)
 sharedRouter.post('/add-fund', authenticate, allowRoles(["user", "admin"]), addFund)
 sharedRouter.post('/withdraw-fund', authenticate, allowRoles(["user", "admin"]), withdrawFund)
+
+/* handle reviews */
+sharedRouter.get('/get-product-reviews', /* authenticate, allowRoles(["user", "admin"]), */ getReviews)
 
 export default sharedRouter;

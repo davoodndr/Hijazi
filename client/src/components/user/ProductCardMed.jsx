@@ -172,7 +172,12 @@ function ProducCardMedComponent({product, offers = [], onClick}) {
           <p className='text-sm !font-bold capitalize'>{product?.name}</p>
           <div className="py-0.25 mb-2">
             <span className='text-xl'>
-              <StarRating starClass='text-sm' />
+              <StarRating
+                value={product?.averageRating}
+                showValue={true}
+                starSize={3}
+                starClass='text-sm'
+              />
             </span>
           </div>
           <div className='flex flex-col leading-3'>

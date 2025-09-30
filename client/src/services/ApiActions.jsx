@@ -645,7 +645,7 @@ export const createReviewAction = async(data) => {
       data
     })
 
-    return response?.data?.review;
+    return response?.data;
     
   } catch (error) {
     throw new Error(error?.response?.data?.message || error?.message)

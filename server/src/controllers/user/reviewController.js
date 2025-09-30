@@ -76,14 +76,12 @@ export const updateReview = async(req, res) => {
 }
 
 const validateReview = (data) => {
-  const { product_id, rating, comment } = data;
+  const { product_id, rating } = data;
 
   if(!product_id) 
     return "Product must be specified";
   else if(!rating || typeof rating !== 'number' || rating < 1 || rating > 5)
     return "Invalid rating"
-  else if(!comment || typeof comment !== 'string' || comment.trim() === "")
-    return "Invalid comment"
   else
     return null
 }

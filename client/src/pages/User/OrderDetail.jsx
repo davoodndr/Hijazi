@@ -17,6 +17,8 @@ import { getOrder } from '../../services/ApiActions';
 import CancelOrderModal from '../../components/ui/CancelOrderModal';
 import CancelOrderSummery from '../../components/ui/CancelOrderSummery';
 import SaleInvoice from '../../components/ui/SaleInvoice';
+import RateProductModal from '../../components/ui/RateProductModal';
+import { FaStar } from 'react-icons/fa';
 
 function OrderDetail() {
 
@@ -172,6 +174,10 @@ function OrderDetail() {
 
   /* handle invoice download */
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+
+  /* handle product rating */
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [currentRatingProduct, setCurrentRatingProduct] = useState(null);
 
   return (
     <section className='flex-grow w-full flex flex-col items-center py-15 bg-primary-25'>
@@ -349,15 +355,33 @@ function OrderDetail() {
                         <h3 className='price-before price-before:font-normal price-before:text-sm text-lg items-start'>{itemTotal}</h3>
                       </div>
                       <div className='inline-flex items-center justify-end'>
-                        <span
-                          onClick={() => {
-                            handleCancelOrderPop(item)
-                          }} 
-                          className={clsx(`text-xs bg-gray-100 px-3 py-1 rounded-lg cursor-pointer
-                            smooth hover:shadow-md hover:bg-red-300 hover:text-white`,
-                            cancelledItem && 'disabled-el'
-                          )}
-                        >Cancel</span>
+                        <div className="flex flex-col items-center space-y-2">
+                          {/* cancel order action */}
+                          <span
+                            onClick={() => {
+                              handleCancelOrderPop(item)
+                            }} 
+                            className={clsx(`text-xs bg-gray-100 px-3 py-1 rounded-lg cursor-pointer
+                              smooth hover:shadow-md hover:bg-red-300 hover:text-white`,
+                              cancelledItem && 'disabled-el'
+                            )}
+                          >Cancel</span>
+
+                          {/* rate product action */}
+                          {order?.status === 'delivered' &&
+                            <div 
+                              onClick={() => {
+                                setIsRatingModalOpen(true)
+                                setCurrentRatingProduct(item?.product_id)
+                              }}
+                              className="flex items-center rounded-xl cursor-pointer
+                              px-1 py-0.5 smooth hover:text-amber-500">
+                              <FaStar />
+                              <FaStar />
+                              <FaStar />
+                            </div>
+                          }
+                        </div>
                       </div>
                     </div>
                   </li>
@@ -619,6 +643,15 @@ function OrderDetail() {
           onClose={() => setIsInvoiceModalOpen(false)}
           orderId={order?._id}
         />
+
+        <RateProductModal
+          productId={currentRatingProduct}
+          isOpen={isRatingModalOpen}
+          onClose={() => {
+            setIsRatingModalOpen(false)
+          }}
+        />
+
       </div>
     </section>
   )

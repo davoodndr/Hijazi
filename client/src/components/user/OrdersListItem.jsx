@@ -2,10 +2,9 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router';
 import { format } from 'date-fns'
 import clsx from 'clsx';
-import { FaRegEye, FaStar } from "react-icons/fa";
+import { FaRegEye } from "react-icons/fa";
 import { MdSimCardDownload } from "react-icons/md";
 import SaleInvoice from '../ui/SaleInvoice';
-import RateProductModal from '../ui/RateProductModal';
 
 function OrdersListItemComponent({order}) {
 
@@ -19,7 +18,6 @@ function OrdersListItemComponent({order}) {
   const payment = order?.paymentMethod === 'cod' ? 'cash on delivery' : order?.paymentMethod;
   const cancelled = cancelledStatuses.includes(order?.status);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
   return (
     <div
@@ -97,22 +95,6 @@ function OrdersListItemComponent({order}) {
             <span>View Order</span>
           </div>
 
-          {/* rate product */}
-          <div 
-            onClick={() => {
-              if(order?.status === 'delivered'){
-                setIsRatingModalOpen(true);
-              }
-            }}
-            className={clsx(`smooth hover:underline hover:text-primary-400
-              cursor-pointer inline-flex items-center space-x-1`,
-              order?.status !== 'delivered' && 'disabled-el bg-transparent' 
-            )}
-          >
-            <span><FaStar className='text-base' /></span>
-            <span>rate product</span>
-          </div>
-
           {/* invoice */}
           <div 
             onClick={() => {
@@ -130,11 +112,6 @@ function OrdersListItemComponent({order}) {
           </div>
 
         </div>
-
-        {/* action button */}
-        {/* <div className='w-full'>
-          <button className='w-full text-xs'>Buy Again</button>
-        </div> */}
       </div>
 
       <SaleInvoice
@@ -143,12 +120,6 @@ function OrdersListItemComponent({order}) {
         orderId={order?._id}
       />
 
-      <RateProductModal
-        isOpen={isRatingModalOpen}
-        onClose={() => {
-          setIsRatingModalOpen(false)
-        }}
-      />
     </div>
   )
 }

@@ -6,13 +6,64 @@ import { ClipLoader } from 'react-spinners'
 import { useState } from 'react'
 import { FaStar } from 'react-icons/fa'
 import StarRating from '../user/StarRating'
+import { toast } from 'react-hot-toast'
+import { createReviewAction } from '../../services/ApiActions'
+import AxiosToast from '../../utils/AxiosToast'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateProduct } from '../../store/slices/ProductSlices'
 
-function RateProductModalComponent({ isOpen, onClose, onSubmit}) {
+function RateProductModalComponent({ isOpen, onClose, productId}) {
 
+  const dispatch = useDispatch();
+  const { items: products } = useSelector(state => state.products);
   const [isLoading, setIsLoading] = useState(false);
   const [rating, setRating] = useState(0);
+  const [title, setTitle] = useState(null);
+  const [review, setReview] = useState(null);
+
+  const handleSubmitRating = async() => {
+
+    if(!rating || rating < 1 || rating > 5){
+      toast.error("Invalid rating",{ position: 'top-center'});
+    }else{
+
+      try {
+        setIsLoading(true)
+        const response = await createReviewAction({rating, title, review, product_id: productId})
+
+        if(response?.success){
+          toast.success(response.message, { position: 'top-center'})
+
+          const p = products?.find(el => el?._id === productId);
+          if(p){
+            dispatch(updateProduct({
+              ...p,
+              ...(response?.product ? response?.product : {})
+            }))
+
+            resetFields()
+            onClose();
+          }
+        }
+
+      } catch (error) {
+        AxiosToast(error);
+      }finally{
+        setIsLoading(false);
+      }
+
+    }
+
+  }
+
+  const resetFields = () => {
+    setRating(0);
+    setTitle(null);
+    setReview(null)
+  }
 
   const handleClose = () => {
+    resetFields();
     onClose();
   }
 
@@ -36,6 +87,7 @@ function RateProductModalComponent({ isOpen, onClose, onSubmit}) {
                 <label htmlFor="">Title</label>
                 <input 
                   type="text"
+                  onChange={(e) => setTitle(e.target.value)}
                   placeholder='@ex: Excellent product'
                 />
               </div>
@@ -55,6 +107,7 @@ function RateProductModalComponent({ isOpen, onClose, onSubmit}) {
             <div>
               <label htmlFor="">Review</label>
               <textarea name="" id="" rows={4}
+                onChange={(e) => setReview(e.target.value)}
                 placeholder='Enter your review here'
                 className='!h-auto'
               />
@@ -75,7 +128,7 @@ function RateProductModalComponent({ isOpen, onClose, onSubmit}) {
 
             <LoadingButton
               loading={isLoading}
-              /* onClick={handleAddFund} */
+              onClick={handleSubmitRating}
               text='Submit'
               loadingText='Processing . . . . .'
               icon={<ClipLoader color="white" size={23} />}

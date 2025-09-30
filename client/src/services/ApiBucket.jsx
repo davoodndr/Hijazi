@@ -58,6 +58,12 @@ const ApiBucket = {
     url: '/api/verify-razorpay-payment',
     method: 'post'
   },
+  
+  /* reviews */
+  getReviews: {
+    url: '/api/get-product-reviews',
+    method: 'get'
+  },
 
   /* auth */
   register: {

@@ -331,3 +331,31 @@ export const findBestCouponValue = (coupons, price) => {
     return currentValue > max ? currentValue : max;
   }, 0);
 }
+
+export const getRatingDistribution = (reviews) =>{
+  
+  const total = reviews.length;
+  const counts = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+  };
+
+  reviews.forEach((review) => {
+    const r = Math.round(review.rating);
+    if (r >= 1 && r <= 5) {
+      counts[r]++;
+    }
+  });
+
+  const percentages = Object.fromEntries(
+    Object.entries(counts).map(([star, count]) => [
+      star,
+      total ? parseFloat(((count / total) * 100).toFixed(2)) : 0,
+    ])
+  );
+
+  return percentages;
+}
