@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import toast from "react-hot-toast";
 import { getOrdersList } from "../../services/FetchDatas";
 
 export const fetchOrders = createAsyncThunk(
@@ -44,7 +43,6 @@ const orderSlice = createSlice({
       })
       .addCase(fetchOrders.rejected, (state, action) => {
         state.error = action.payload;
-        toast.error(state.error,{position: 'top-center'})
       })
   }
 })

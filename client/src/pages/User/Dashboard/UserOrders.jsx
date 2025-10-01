@@ -1,12 +1,14 @@
 import clsx from 'clsx';
 import React, { useEffect, useMemo, useState } from 'react'
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import AdminPagination from '../../../components/ui/AdminPagination';
 import * as motion from "motion/react-client"
 import OrdersListItem from '../../../components/user/OrdersListItem';
+import { fetchOrders } from '../../../store/slices/OrderSlice'
 
 function UserOrders() {
 
+  const dispatch = useDispatch();
   const { ordersList } = useSelector(state => state.orders);
   const [orders, setOrders] = useState([]);
   const [cancelldOrders, setCancelledOrders] = useState([]);
@@ -19,6 +21,10 @@ function UserOrders() {
     {id: 2, label: "Not Yet Shipped"},
     {id: 3, label: "Cancelled"},
   ];
+
+  useEffect(() => {
+    dispatch(fetchOrders())
+  },[])
 
   useEffect(() => {
   

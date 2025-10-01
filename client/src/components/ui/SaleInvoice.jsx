@@ -30,7 +30,6 @@ function SaleInvoiceComponent({isOpen, onClose, orderId}) {
         console.log(error)
       }
     }
-
     
     if(isOpen) fetchOrder()
 
@@ -85,6 +84,9 @@ function SaleInvoiceComponent({isOpen, onClose, orderId}) {
     const rawTotal = subTotal + taxes - discounts;
     invoiceData = {
       items,
+      shipTo: data?.shippingAddress,
+      billTo: data?.billingAddress,
+      invoiceDate: new Date(),
       totals: {
         subTotal,
         taxes,

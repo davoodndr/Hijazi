@@ -28,6 +28,6 @@ sharedRouter.post('/add-fund', authenticate, allowRoles(["user", "admin"]), addF
 sharedRouter.post('/withdraw-fund', authenticate, allowRoles(["user", "admin"]), withdrawFund)
 
 /* handle reviews */
-sharedRouter.get('/get-product-reviews', /* authenticate, allowRoles(["user", "admin"]), */ getReviews)
+sharedRouter.get('/get-product-reviews', getReviews)
 
 export default sharedRouter;

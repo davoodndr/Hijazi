@@ -14,8 +14,6 @@ Axios.interceptors.request.use(
     
     const accesstoken = localStorage.getItem('accessToken');
 
-    if(!typeof accesstoken === 'string') return Promise.reject(error);
-    
     if(accesstoken){
       config.headers.Authorization = `Bearer ${accesstoken}`
     }

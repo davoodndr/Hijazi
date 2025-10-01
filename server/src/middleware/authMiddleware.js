@@ -6,8 +6,7 @@ export const authenticate = (req, res, next) => {
 
   try {
     
-    const token = req.cookies.accessToken || req?.headers?.authorization?.split(" ")[1];
-
+    const token = req?.cookies?.accessToken || req?.headers?.authorization?.split(" ")[1];
 
     if(!token){
       return responseMessage(res, 401, false, "Token not found");
@@ -22,9 +21,9 @@ export const authenticate = (req, res, next) => {
       const user = await User.findById(decode.id)
 
       if(!user) return responseMessage(res, 400, false, "User does not exists");
-      if(user.status === 'blocked') return responseMessage(res, 403, false, "This account is blocked");
+      if(user?.status === 'blocked') return responseMessage(res, 403, false, "This account is blocked");
 
-      req.user_id = user._id;
+      req.user_id = user?._id;
       req.user = user
       next();
 

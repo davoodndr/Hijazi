@@ -85,7 +85,7 @@ function UserProfile() {
         })
 
         if(response.data.success){
-          dispatch(setUser({user: response.data.user}));
+          dispatch(setUser({user: response?.data?.user}));
           AxiosToast(response, false)
         }
 

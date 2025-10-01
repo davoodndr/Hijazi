@@ -12,7 +12,7 @@ export const getUserDetail = async() => {
       ...ApiBucket.fatchUser
     })
     
-    return response.data.user;
+    return response?.data?.user;
 
   } catch (error) {
     //console.log(error.response.data)
@@ -104,11 +104,11 @@ export const getSingleProduct = async(slug) => {
       }
     })
 
-    return response.data.product;
+    return response?.data?.product;
 
   } catch (error) {
-    console.log(error.response.data)
-    return error.response.data
+    //console.log(error)
+    return error;
   }
 }
 
@@ -139,7 +139,7 @@ export const getCart = async() => {
     return response.data.cart.items;
 
   } catch (error) {
-    console.log(error.response.data)
+    //console.log(error.response.data)
     throw new Error(error?.response?.data?.message)
   }
 }
@@ -156,7 +156,7 @@ export const getWishlist = async() => {
     return response.data.wishlist.list;
 
   } catch (error) {
-    console.log(error.response.data)
+    //console.log(error.response.data)
     throw new Error(error?.response?.data?.message)
   }
 }
@@ -169,10 +169,10 @@ export const getAddressList = async() => {
       ...ApiBucket.getAddressList,
     })
 
-    return response.data.addressList;
+    return response?.data?.addressList;
 
   } catch (error) {
-    console.log(error.response.data)
+    //console.log(error.response.data)
     throw new Error(error?.response?.data?.message)
   }
 }
@@ -185,10 +185,10 @@ export const getOrdersList = async() => {
       ...ApiBucket.fetchOrders,
     })
 
-    return response.data.orders;
+    return response?.data?.orders;
 
   } catch (error) {
-    console.log(error.response.data)
+    //console.log(error.response.data)
     throw new Error(error?.response?.data?.message)
   }
 }
@@ -205,7 +205,7 @@ export const getOffers = async() => {
     return response.data.offers;
 
   } catch (error) {
-    console.log(error.response.data)
+    //console.log(error.response.data)
     throw new Error(error?.response?.data?.message)
   }
 }

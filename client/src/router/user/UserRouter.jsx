@@ -8,9 +8,12 @@ import LoadingFallOff from '../../components/ui/LoadingFallOff'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchCart } from '../../store/slices/CartSlice'
 import { fetchWishlist } from '../../store/slices/WishlistSlice'
-import { fetchOrders } from '../../store/slices/OrderSlice'
+import { fetchOffers } from '../../store/slices/OfferSlice'
 import { fetchAddresses } from '../../store/slices/AddressSlice'
 import { updateRole } from '../../store/slices/UsersSlice'
+import { fetchProducts } from '../../store/slices/ProductSlices'
+import { fetchCategories } from '../../store/slices/CategorySlices'
+import { fetchBrands } from '../../store/slices/BrandSlice'
 
 const Register = React.lazy(() => import("../../pages/User/Auth/Register"))
 const Login = React.lazy(() => import("../../pages/User/Auth/Login"))
@@ -36,27 +39,36 @@ const UserRouter = () => {
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      
+      // for capturing the role and switching datas after login
       if (document.visibilityState === "visible") {
         dispatch(updateRole('user'))
         dispatch(fetchCart())
         dispatch(fetchWishlist())
-        dispatch(fetchOrders())
         dispatch(fetchAddresses())
       }
     };
 
-    dispatch(updateRole('user'))
-    dispatch(fetchCart())
-    dispatch(fetchWishlist())
-    dispatch(fetchOrders())
-    dispatch(fetchAddresses())
+    const getAccessUserRole = async() => {
+      const response = await dispatch(updateRole('user'));
+      if(response?.meta?.requestStatus === 'fulfilled'){
+        dispatch(fetchCart())
+        dispatch(fetchWishlist())
+        dispatch(fetchAddresses())
+      }
+    }
+    
+    getAccessUserRole();
+    dispatch(fetchCategories())
+    dispatch(fetchProducts())
+    dispatch(fetchOffers())
+    dispatch(fetchBrands())
+    
     
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [dispatch]);
 
   return (
     <>

@@ -111,7 +111,7 @@ function ProductPageComponent() {
       /* syncing reviews */
       const fetchReviews = async() => {
         const reviewData = await getUserReviews(product?._id);
-        setUserReviews(reviewData);
+        if(reviewData) setUserReviews(reviewData);
       }
 
       fetchReviews();
@@ -122,8 +122,8 @@ function ProductPageComponent() {
           const response = await Axios({
             ...ApiBucket.getRelatedProducts,
             params:{
-              product_id: product._id,
-              category: product.category._id
+              product_id: product?._id,
+              category: product?.category?._id
             }
           })
 
@@ -132,7 +132,6 @@ function ProductPageComponent() {
           }
 
         } catch (error) {
-          console.log(error)
           AxiosToast(error)
         }
 
@@ -327,7 +326,7 @@ function ProductPageComponent() {
           {/* brand rating */}
           <div className="flex items-center justify-between py-3 capitalize">
             <div>
-              <span> Brand: <Link className='ms-3'>{product?.brand.name}</Link></span>
+              <span> Brand: <Link className='ms-3'>{product?.brand?.name}</Link></span>
             </div>
             <div className="inline-flex text-end">
               <StarRating 
@@ -751,6 +750,12 @@ function ProductPageComponent() {
                 review={review}
               />
             )}
+
+            <div className="flex justify-center">
+              <div className="button px-8">
+                <span>Write a review for this product</span>
+              </div>
+            </div>
             
           </div>
 
