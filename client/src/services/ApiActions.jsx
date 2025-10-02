@@ -637,12 +637,12 @@ export const withdrawFundAction = async(data) => {
 }
 
 /* review */
-export const createReviewAction = async(data) => {
+export const addReviewAction = async(data) => {
 
   try {
 
     const response = await Axios({
-      ...ApiBucket.createReview,
+      ...ApiBucket.addReview,
       data
     })
 

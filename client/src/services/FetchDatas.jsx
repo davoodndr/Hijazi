@@ -56,6 +56,23 @@ export const getUserReviews = async(product_id) => {
 
 }
 
+export const getCanRateProduct = async(user_id, product_id) => {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getCanRate,
+      params: { user_id, product_id}
+    })
+
+    return response?.data?.canRate
+
+  } catch (error) {
+    return error
+  }
+
+}
+
 
 /* ------ user side -------- */
 

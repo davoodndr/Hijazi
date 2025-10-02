@@ -31,6 +31,7 @@ const UserProfile = React.lazy(() => import("../../pages/User/Dashboard/UserProf
 const UserOrders = React.lazy(() => import("../../pages/User/Dashboard/UserOrders"))
 const Addresses = React.lazy(() => import("../../pages/User/Dashboard/Addresses"))
 const Wallet = React.lazy(() => import("../../pages/User/Dashboard/Wallet"))
+const ProductReviews = React.lazy(() => import("../../pages/User/ProductReviews"))
 
 const UserRouter = () => {
 
@@ -88,6 +89,7 @@ const UserRouter = () => {
 
           {/* product view */}
           <Route path="collections/:category/:subcategory/:product" element={<ProductPage />} />
+          <Route path='collections/:category/:subcategory/:product/product-reviews' element={<ProductReviews />} />
           <Route path="cart" element={<UserCart />} />
           
           {/* protected routes */}

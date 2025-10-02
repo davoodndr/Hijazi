@@ -3,7 +3,7 @@ import Review from '../../models/Review.js'
 import Product from "../../models/Product.js";
 
 
-export const createReview = async(req, res) => {
+export const addReview = async(req, res) => {
 
   const { user_id } = req;
   const { product_id } = req.body;
@@ -20,56 +20,43 @@ export const createReview = async(req, res) => {
       return responseMessage(res, 400, false, invalidMessage);
     }
 
+    let review, status = 200, product;
+
     const existingReview = await Review.findOne({ product_id, user_id });
+
     if (existingReview) {
-      return responseMessage(res, 400, false, "You already reviewed this product")
+
+      review = await Review.findOneAndUpdate(
+        { product_id, user_id },
+        { ...req.body },
+        { new: true }
+      )
+      .populate([
+        {
+          path : 'user_id',
+          select: 'fullname username createdAt avatar'
+        }
+      ])
+      product = await updateAverageRating(product_id, 'update');
+    }else{
+
+      status = 201;
+      review = await Review.create({user_id, ...req.body})
+      
+      review = await review.populate([
+        {
+          path : 'user_id',
+          select: 'fullname username createdAt avatar'
+        }
+      ]);
+
+      product = await updateAverageRating(product_id);
     }
 
-    const review = await Review.create({user_id, ...req.body});
-    
-    const product = await updateAverageRating(product_id);
-
-    return responseMessage(res, 201, true, "Review added succsessfully!", { review, product})
+    return responseMessage(res, status, true, "Review added succsessfully!", { review, product })
     
   } catch (error) {
     console.log('createReview:',error);
-    return responseMessage(res, 500,false, error.message || error);
-  }
-
-}
-
-
-export const updateReview = async(req, res) => {
-
-  //const user_id = '680fcd85ccab7af6a4332392';
-  const { user_id } = req;
-  const { product_id } = req.body;
-
-  try {
-
-    if(!user_id){
-      return responseMessage(res, 400, false, "Unauthorized access!")
-    }
-
-    const invalidMessage = validateReview(req.body);
-
-    if(invalidMessage){
-      return responseMessage(res, 400, false, invalidMessage);
-    }
-
-    const existingReview = await Review.findOne({ product_id, user_id });
-    if (!existingReview) {
-      return responseMessage(res, 400, false, "Review not found!")
-    }
-
-    const updated = await Review.findOneAndUpdate({ product_id, user_id }, req.body, { new: true });
-
-    const product = await updateAverageRating(product_id, 'update');
-
-    return responseMessage(res, 201, true, "Review added succsessfully!", { updated, product })
-    
-  } catch (error) {
-    console.log('updateReview:',error);
     return responseMessage(res, 500,false, error.message || error);
   }
 

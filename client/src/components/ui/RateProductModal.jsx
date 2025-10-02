@@ -1,5 +1,5 @@
 import { AnimatePresence } from 'motion/react'
-import React from 'react'
+import React, { useEffect } from 'react'
 import Modal from './Modal'
 import LoadingButton from './LoadingButton'
 import { ClipLoader } from 'react-spinners'
@@ -7,19 +7,34 @@ import { useState } from 'react'
 import { FaStar } from 'react-icons/fa'
 import StarRating from '../user/StarRating'
 import { toast } from 'react-hot-toast'
-import { createReviewAction } from '../../services/ApiActions'
+import { addReviewAction } from '../../services/ApiActions'
 import AxiosToast from '../../utils/AxiosToast'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateProduct } from '../../store/slices/ProductSlices'
 
-function RateProductModalComponent({ isOpen, onClose, productId}) {
+function RateProductModalComponent({ productId, isOpen, onClose, onSubmit = ()=> {}}) {
 
   const dispatch = useDispatch();
-  const { items: products } = useSelector(state => state.products);
+  const { user } = useSelector(state => state.user);
+  const { items: products, reviews } = useSelector(state => state.products);
   const [isLoading, setIsLoading] = useState(false);
   const [rating, setRating] = useState(0);
   const [title, setTitle] = useState(null);
   const [review, setReview] = useState(null);
+  const [existingRating, setExistingRating] = useState(0);
+
+  useEffect(()=> {
+    
+    if(isOpen && reviews?.length){
+      const existing = reviews?.find(el => {
+        return el?.user_id?._id === user?._id &&  el?.product_id === productId
+      })
+      
+      setExistingRating(existing?.rating);
+      setTitle(existing?.title)
+      setReview(existing?.review)
+    }
+  },[isOpen, reviews, productId, user])
 
   const handleSubmitRating = async() => {
 
@@ -29,18 +44,22 @@ function RateProductModalComponent({ isOpen, onClose, productId}) {
 
       try {
         setIsLoading(true)
-        const response = await createReviewAction({rating, title, review, product_id: productId})
+        const response = await addReviewAction({rating, title, review, product_id: productId})
 
         if(response?.success){
           toast.success(response.message, { position: 'top-center'})
 
           const p = products?.find(el => el?._id === productId);
           if(p){
-            dispatch(updateProduct({
+
+            const updated = {
               ...p,
               ...(response?.product ? response?.product : {})
-            }))
+            }
+            
+            dispatch(updateProduct(updated))
 
+            onSubmit(response?.review, updated);
             resetFields()
             onClose();
           }
@@ -87,6 +106,7 @@ function RateProductModalComponent({ isOpen, onClose, productId}) {
                 <label htmlFor="">Title</label>
                 <input 
                   type="text"
+                  value={title ?? ''}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder='@ex: Excellent product'
                 />
@@ -97,9 +117,11 @@ function RateProductModalComponent({ isOpen, onClose, productId}) {
                 <label htmlFor="">Star Rating</label>
                 <span className='h-[40px] border border-neutral-300 rounded-input-border flex justify-center'>
                   <StarRating
+                    value={existingRating}
                     onClick={(rating) => setRating(rating)}
                     showPercentage={true}
-                    starClass='text-2xl' 
+                    starClass='text-2xl'
+                    editable={true}
                   />
                 </span>
               </div>
@@ -107,6 +129,7 @@ function RateProductModalComponent({ isOpen, onClose, productId}) {
             <div>
               <label htmlFor="">Review</label>
               <textarea name="" id="" rows={4}
+                value={review ?? ''}
                 onChange={(e) => setReview(e.target.value)}
                 placeholder='Enter your review here'
                 className='!h-auto'

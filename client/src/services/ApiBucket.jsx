@@ -64,6 +64,10 @@ const ApiBucket = {
     url: '/api/get-product-reviews',
     method: 'get'
   },
+  getCanRate: {
+    url: '/api/get-can-review',
+    method: 'get'
+  },
 
   /* auth */
   register: {
@@ -322,14 +326,10 @@ const ApiBucket = {
   },
 
   /* reviews */
-  createReview: {
-    url: '/api/user/create-review',
+  addReview: {
+    url: '/api/user/add-review',
     method: 'post'
-  },
-  updateReview: {
-    url: '/api/user/update-review',
-    method: 'put'
-  },
+  }
 }
 
 

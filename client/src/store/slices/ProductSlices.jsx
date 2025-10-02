@@ -14,6 +14,8 @@ const productSlice = createSlice({
   initialState: {
     items: [],
     productsLoading: false,
+    activeProduct: null,
+    reviews: [],
     error: null,
   },
   reducers: {
@@ -25,6 +27,20 @@ const productSlice = createSlice({
       const updated = action.payload;
       state.items = state.items.map(el => el._id === updated._id ? updated : el);
       state.error = null;
+    },
+    setActiveProduct: (state, action) => {
+      state.activeProduct = action?.payload;
+      state.error = null;
+    },
+    setReviews: (state, action) => {
+      state.reviews = action?.payload;
+      state.error = null;
+    },
+    clearActiveProduct: (state) => {
+      state.activeProduct = null;
+    },
+    clearReviews: (state) => {
+      state.reviews = [];
     },
   },
   extraReducers: (builder) => {
@@ -43,6 +59,12 @@ const productSlice = createSlice({
   }
 })
 
-export const { addProduct, updateProduct } = productSlice.actions;
+export const { addProduct,
+  updateProduct,
+  setActiveProduct,
+  setReviews,
+  clearActiveProduct,
+  clearReviews
+} = productSlice.actions;
 
 export default productSlice.reducer

@@ -4,7 +4,7 @@ import StarRating from '../../components/user/StarRating'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io'
 import { FaRegHeart } from 'react-icons/fa'
-import { IoArrowUndoOutline } from "react-icons/io5";
+import { RiArrowDownDoubleFill } from "react-icons/ri";
 import MulticardSlider from '../../components/user/MulticardSlider'
 import ProductCardMed from '../../components/user/ProductCardMed'
 import clsx from 'clsx'
@@ -17,7 +17,7 @@ import { addToCart, getCartItem, syncCartitem } from '../../store/slices/CartSli
 import { setLoading } from '../../store/slices/CommonSlices'
 import toast from 'react-hot-toast'
 import { addToList, syncWishlistItem } from '../../store/slices/WishlistSlice'
-import { getSingleProduct, getUserReviews } from '../../services/FetchDatas'
+import { getCanRateProduct, getSingleProduct, getUserReviews } from '../../services/FetchDatas'
 import { MdDiscount } from "react-icons/md";
 import { RiCoupon3Line } from "react-icons/ri";
 import { MdOutlineCopyAll } from "react-icons/md";
@@ -27,6 +27,8 @@ import { BsTags } from "react-icons/bs";
 import { filterDiscountOffers, findBestCouponValue, findBestOffer } from '../../utils/Utils'
 import ReviewItem from '../../components/user/ReviewItem'
 import RatingDistribution from '../../components/user/RatingDistribution'
+import { setActiveProduct, setReviews } from '../../store/slices/ProductSlices'
+import RateProductModal from '../../components/ui/RateProductModal'
 
 function ProductPageComponent() {
 
@@ -35,6 +37,7 @@ function ProductPageComponent() {
   const dispatch = useDispatch();
   const { user } = useSelector(state => state.user);
   const path = location.pathname;
+  const reviewContainerRef = useRef(null);
 
   const [product, setProduct] = useState(null);
   const [variants, setVariants] = useState([]);
@@ -44,7 +47,10 @@ function ProductPageComponent() {
   const [attributes, setAttributes] = useState(null);
   const [productQty, setProductQty] = useState(1);
   const cartItem = useSelector(state => getCartItem(state, activeVariant?._id || product?._id));
+  const { items:products, reviews } = useSelector(state => state.products);
   const [userReviews, setUserReviews] = useState([]);
+  const [showMoreReviews, setShowMoreReviews] = useState(false);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   
 
   /* function to re-arrange attributes */
@@ -72,12 +78,31 @@ function ProductPageComponent() {
     const product_slug = path.split('/').pop();
     
     const fetchProduct = async() => {
-     const p = await getSingleProduct(product_slug);
-      setProduct(p);
+
+      let p = products?.find(el => el?.slug === product_slug);
+      
+      if(!p){
+        p = await getSingleProduct(product_slug);
+      }
+
+      if(user && p){
+        const checkCanRate = async() => {
+          const canRate = await getCanRateProduct(user?._id, p?._id);
+          p = {
+            ...p,
+            canRate: canRate || false
+          };
+          setProduct(p);
+        }
+
+        checkCanRate();
+      }else{
+        setProduct(p);
+      }
     }
     fetchProduct();
 
-  },[])
+  },[user, products])
 
   useEffect(() => {
     if(cartItem) setProductQty(cartItem?.quantity)
@@ -89,6 +114,15 @@ function ProductPageComponent() {
     dispatch(setLoading(false))
 
     if(product){
+      
+      let activeProductData = {
+        name: product?.name,
+        numReviews: product?.numReviews,
+        averageRating: product?.averageRating,
+        brand: product?.brand?.name,
+        canRate: product?.canRate
+      }
+
       if(product?.variants?.length) {
         setVariants(product?.variants)
         setAttributes(getAttributeMap(product.variants))
@@ -102,16 +136,24 @@ function ProductPageComponent() {
           }
         },null)
 
+        activeProductData = {
+          ...minPricedVariant,
+          ...activeProductData,
+          _id:product?._id
+        }
+
         setActiveVariant(minPricedVariant);
         setSelectedAttributes(minPricedVariant?.attributes)
       }
 
-      setProduct(product);
-
+      dispatch(setActiveProduct(activeProductData))
+      
       /* syncing reviews */
       const fetchReviews = async() => {
         const reviewData = await getUserReviews(product?._id);
-        if(reviewData) setUserReviews(reviewData);
+        if(reviewData) {
+          dispatch(setReviews(reviewData));
+        }
       }
 
       fetchReviews();
@@ -143,6 +185,19 @@ function ProductPageComponent() {
     }
 
   },[product])
+
+  useEffect(() => {
+    /* handle review container height */
+    const containerHeight = reviewContainerRef.current?.offsetHeight;
+    if (containerHeight !== undefined) {
+      setShowMoreReviews(containerHeight >= 400);
+    }
+
+    if(reviews?.length){
+      setUserReviews(reviews)
+    }
+
+  },[reviews])
   
   // hndling user select attributes
   const handleAttributeSelect = (key, value) => {
@@ -193,7 +248,7 @@ function ProductPageComponent() {
     navigate(
       `/collections/${parent.slug}/${product.category.slug}/${product.slug}`,
         {state : {
-          productData: product
+          activeProductData: product
         }}
     )
   }
@@ -301,6 +356,21 @@ function ProductPageComponent() {
       toast.error("Failed to copy offer code")
     })
     setIsListExpanded(false)
+  }
+
+  const handleOnSubmitReview = (review) => {
+    if(review){
+      const exists = userReviews?.find(el => el?._id === review?._id);
+      
+      if(exists){
+        const updatedReviews = userReviews?.map(el =>
+          el?._id === review?._id ? review : el
+        )
+        dispatch(setReviews(updatedReviews))
+      }else{
+        dispatch(setReviews([review, ...userReviews]))
+      }
+    }
   }
 
   return (
@@ -731,36 +801,65 @@ function ProductPageComponent() {
         </ul>
 
         {/* reviews and percentage */}
-        <h2 className='lined-header-small text-2xl mb-10'>
-          Reviews <span className='!text-xl'>(
-            {userReviews?.length > 0 ? 
-            `${userReviews?.length}` : 
-              <span className='text-lg text-gray-500'>Fresh Product</span>
-            }
-          )</span>
-        </h2>
-        <div className="flex mb-15">
+        <div className="flex w-full items-center justify-between space-x-5">
+          <h2 className='lined-header-small text-2xl mb-10 flex-grow'>
+            Reviews <span className='!text-xl'>(
+              {userReviews?.length > 0 ? 
+              `${userReviews?.length}` : 
+                <span className='text-lg text-gray-500'>Fresh Product</span>
+              }
+            )</span>
+          </h2>
+            
+          <div 
+            onClick={() => {
+              if(product?.canRate){
+                setIsRatingModalOpen(true);
+              }
+            }}
+            className={clsx(`button px-3 py-1 h-fit smooth hover:shadow-lg
+              hover:!border-primary-400 hover:text-primary-400`,
+              product?.canRate ? '' : 'disabled-el'
+            )}
+          >Write a review for this product</div>
+        </div>
+        
+
+        <div className="flex space-x-5 mb-15">
 
           {/* reviews */}
-          <div className="flex-grow inline-flex flex-col space-y-5 divide-y divide-gray-200">
+          <div className="flex-grow flex flex-col relative">
+            <div 
+              ref={reviewContainerRef}
+              className="inline-flex flex-col space-y-5 divide-y divide-gray-200 min-h-40 max-h-100 overflow-y-hidden">
             
-            {userReviews?.map(review => 
-              <ReviewItem
-                key={review?._id}
-                review={review}
-              />
-            )}
-
-            <div className="flex justify-center">
-              <div className="button px-8">
-                <span>Write a review for this product</span>
-              </div>
+              {userReviews?.map(review =>
+                <ReviewItem
+                  key={review?._id}
+                  review={review}
+                  profileContainerClass='w-[12%]'
+                />
+              )}
             </div>
-            
+
+            {showMoreReviews && (
+              <div className="flex justify-center items-end pt-10 absolute bottom-0 right-0 left-0">
+                <div className='absolute inset-0 bg-gradient-to-b from-white/60 to-white'></div>
+                <div className='flex justify-center z-10'>
+                  <Link
+                    to="product-reviews"
+                    className='inline-flex flex-col items-center z-10 smooth hover:underline hover:text-primary-400'
+                  >
+                    <span className='leading-4 text-shadow-lg'>See more reviews...</span>
+                    <RiArrowDownDoubleFill className='text-xl' />
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* start percentages */}
-          <div className='w-[35%] p-3 inline-flex flex-col h-fit space-y-5'>
+          <div className='w-[30%] shrink-0 inline-flex flex-col h-fit space-y-5'>
             <h2 className='text-lg'>Customer reviews</h2>
             <div className='flex space-x-3'>
               <StarRating 
@@ -799,6 +898,15 @@ function ProductPageComponent() {
 
         </div>)
       }
+
+      <RateProductModal
+        productId={product?._id}
+        onSubmit={(review) => handleOnSubmitReview(review)}
+        isOpen={isRatingModalOpen}
+        onClose={() => {
+          setIsRatingModalOpen(false)
+        }}
+      />
       
     </section>
   )

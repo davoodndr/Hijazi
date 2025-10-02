@@ -334,7 +334,7 @@ export const findBestCouponValue = (coupons, price) => {
 
 export const getRatingDistribution = (reviews) =>{
   
-  const total = reviews.length;
+  const total = reviews?.length;
   const counts = {
     1: 0,
     2: 0,
@@ -343,7 +343,7 @@ export const getRatingDistribution = (reviews) =>{
     5: 0,
   };
 
-  reviews.forEach((review) => {
+  reviews?.forEach((review) => {
     const r = Math.round(review.rating);
     if (r >= 1 && r <= 5) {
       counts[r]++;
