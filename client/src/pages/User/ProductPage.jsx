@@ -27,7 +27,7 @@ import { BsTags } from "react-icons/bs";
 import { filterDiscountOffers, findBestCouponValue, findBestOffer } from '../../utils/Utils'
 import ReviewItem from '../../components/user/ReviewItem'
 import RatingDistribution from '../../components/user/RatingDistribution'
-import { setActiveProduct, setReviews } from '../../store/slices/ProductSlices'
+import { clearReviews, setActiveProduct, setReviews } from '../../store/slices/ProductSlices'
 import RateProductModal from '../../components/ui/RateProductModal'
 
 function ProductPageComponent() {
@@ -52,6 +52,11 @@ function ProductPageComponent() {
   const [showMoreReviews, setShowMoreReviews] = useState(false);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   
+  useEffect(() => {
+    return () => {
+      dispatch(clearReviews())
+    }
+  },[])
 
   /* function to re-arrange attributes */
   const getAttributeMap = (variants) => {

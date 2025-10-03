@@ -203,7 +203,7 @@ function OrderDetail() {
             <p 
               className={clsx(`px-2 py-1 rounded-md text-sm inline-flex leading-4`,
               order?.status === "pending" && 'bg-yellow-200 text-orange-500',
-              order?.isDelivered && 'bg-green-200 text-primary-400',
+              order?.deliveryInfo?.isDelivered && 'bg-green-200 text-primary-400',
               (order?.status === "cancelled" || order?.status === "returned") && 'bg-red-200 text-red-500',
               order?.status === "refunded" && 'bg-pink-200 text-pink-500',
             )}
