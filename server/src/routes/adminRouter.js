@@ -16,7 +16,7 @@ import { addBrand, deleteBrand, getBrands, updateBrand, uploadBrandLogo } from "
 import { addProduct, changeProductStatus, getProducts, updateProduct, uploadProductImages } from "../controllers/admin/productController.js";
 import { addOffer, changeOfferStatus, getOffers, updateOffer } from "../controllers/admin/offerController.js";
 import { cancelItem, cancelOrder } from "../controllers/admin/orderController.js";
-import { getReviews } from "../controllers/admin/reviewController.js";
+import { changeReviewStatus, getReviews } from "../controllers/admin/reviewController.js";
 
 
 const adminRouter = express.Router();
@@ -66,5 +66,6 @@ adminRouter.patch('/change-offer-status', authenticate, allowRoles(['admin']), c
 
 /* review management */
 adminRouter.get('/get-reviews', authenticate, allowRoles(['admin']), getReviews)
+adminRouter.patch('/change-review-status', authenticate, allowRoles(['admin']), changeReviewStatus)
 
 export default adminRouter;

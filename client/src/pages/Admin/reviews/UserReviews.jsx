@@ -19,9 +19,14 @@ import ContextMenu from '../../../components/ui/ContextMenu';
 import { FaRegCircleXmark } from 'react-icons/fa6';
 import ToggleSwitch from '../../../components/ui/ToggleSwitch';
 import { BsFillMenuButtonFill } from "react-icons/bs";
+import { setLoading } from '../../../store/slices/CommonSlices';
+import Alert from '../../../components/ui/Alert';
+import AxiosToast from '../../../utils/AxiosToast';
+import { useDispatch } from 'react-redux';
 
 function UserReviewsComponent() {
 
+  const dispatch = useDispatch();
   const [reviews, setReviews] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -52,6 +57,75 @@ function UserReviewsComponent() {
     }
 
   };
+
+  /* handle status */
+  const handleStatusChange = async(id, status) => {
+
+    let data = {};
+    let statusChange = null;
+
+    switch(status){
+      case 'approved' : 
+        data = {
+          text: 'Yes, hide now', 
+          msg: 'Hidden review won\'t visible publicly',
+          color: '!bg-red-500 hover:!bg-red-600'
+        };
+        statusChange = 'hidden'
+        break;
+      case 'pending':
+      case 'hidden':
+        data = {
+          text: 'Yes, approve now', 
+          msg: 'This review will be visible to the public.',
+          color: ''
+        };
+        statusChange = 'approved'
+        break;
+
+      default : null;
+    }
+
+    Alert({
+      icon: 'question',
+      title: "Are you sure?",
+      text: data?.msg,
+      showCancelButton: true,
+      confirmButtonText: data?.text,
+      customClass: {
+        popup: '!w-[400px]',
+        confirmButton: data?.color
+      },
+    }).then(async result => {
+      
+      if(result.isConfirmed){
+        dispatch(setLoading(true));
+        
+        try {
+
+          const response = await Axios({
+            ...ApiBucket.changeReviewStatus,
+            data: {
+              review_id: id,
+              status: statusChange,
+            }
+          })
+
+          if(response?.data?.success){
+            const updated = response?.data?.review;
+            setReviews(prev => prev.map(review => review?._id === updated?._id ? updated : review));
+            AxiosToast(response, false);
+          }
+          
+        } catch (error) {
+          AxiosToast(error)
+        }finally{
+          dispatch(setLoading(false))
+        }
+      }
+    })
+
+  }
 
   /* debouncer */
   const [query, setQuery] = useState('');
@@ -345,12 +419,6 @@ function UserReviewsComponent() {
                                               }
                                             />
                                     },
-                                    /* { id: 'delete', 
-                                      icon: <HiOutlineTrash className='text-xl' />,
-                                      text: <span className='capitalize'> delete </span>,
-                                      onClick: () => handledelete(offer._id) ,
-                                      itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
-                                    }, */
                                   ]}
                                 />
                               </>

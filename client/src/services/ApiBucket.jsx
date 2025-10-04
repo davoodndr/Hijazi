@@ -238,6 +238,10 @@ const ApiBucket = {
     url: '/api/admin/get-reviews',
     method: 'get'
   },
+  changeReviewStatus: {
+    url: '/api/admin/change-review-status',
+    method: 'patch'
+  },
   
 
   // ----------- user side -------------//

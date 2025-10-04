@@ -560,10 +560,12 @@ const OffersList = () => {
                                   >
                                     <IoMdMore size={20} />
                                   </MenuButton>
+                                  
                                   <ContextMenu 
                                     open={open}
                                     items={[
-                                      { id: 'active', 
+                                      ...(offer?.status === 'active' || offer?.status === 'inactive' ?
+                                      [{ id: 'active', 
                                         icon: offer?.status === 'active' ? 
                                         <IoMdCheckmarkCircleOutline className='text-xl text-primary-400' />
                                         : <FaRegCircleXmark className='text-xl' />,
@@ -576,7 +578,7 @@ const OffersList = () => {
                                                   handleStatusChange(offer?._id, offer?.status)
                                                 }
                                               />
-                                      },
+                                      }]: []),
                                       { id: 'delete', 
                                         icon: <HiOutlineTrash className='text-xl' />,
                                         text: <span className={`capitalize`}> delete </span>,
