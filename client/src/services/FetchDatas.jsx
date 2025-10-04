@@ -44,7 +44,7 @@ export const getUserReviews = async(product_id) => {
   try {
     
     const response = await Axios({
-      ...ApiBucket.getReviews,
+      ...ApiBucket.getProductReviews,
       params: { product_id }
     })
 

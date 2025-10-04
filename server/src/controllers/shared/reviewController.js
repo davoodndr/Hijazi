@@ -3,7 +3,7 @@ import Review from "../../models/Review.js";
 import { responseMessage } from "../../utils/messages.js";
 
 
-export const getReviews = async(req, res) => {
+export const getProductReviews = async(req, res) => {
 
   const { product_id } = req.query
 

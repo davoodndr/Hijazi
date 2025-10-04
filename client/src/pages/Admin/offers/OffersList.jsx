@@ -267,7 +267,7 @@ const OffersList = () => {
   );
 
   return (
-    <section className='flex flex-col p-6 '>
+    <section className='flex flex-col p-6'>
     
       {/* page title & add offer button */}
       <div className="mb-5 flex justify-between items-start">
@@ -425,7 +425,7 @@ const OffersList = () => {
 
                 <AnimatePresence exitBeforeEnter>
 
-                  {/* paginatedOffers.length > 0 ? */
+                  {
                     ( paginatedOffers.map((offer, index) => {
 
                     const statusColors = () => {
@@ -554,7 +554,7 @@ const OffersList = () => {
                             <Menu as="div" className='relative'>
                               {({ open }) => (
                                 <>
-                                  <MenuButton
+                                  <MenuButton as='div'
                                     className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
                                     border border-gray-300 !text-gray-900 cursor-pointer"
                                   >

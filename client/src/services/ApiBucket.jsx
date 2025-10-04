@@ -60,7 +60,7 @@ const ApiBucket = {
   },
   
   /* reviews */
-  getReviews: {
+  getProductReviews: {
     url: '/api/get-product-reviews',
     method: 'get'
   },
@@ -233,6 +233,11 @@ const ApiBucket = {
     method: 'put'
   },
 
+  /* reviews */
+  getReviews: {
+    url: '/api/admin/get-reviews',
+    method: 'get'
+  },
   
 
   // ----------- user side -------------//
