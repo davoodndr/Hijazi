@@ -7,7 +7,21 @@ import { responseMessage } from "../../utils/messages.js";
 export const getProducts = async(req, res) => {
   try {
 
-    const products = await Product.find().populate('category brand');
+    const products = await Product.find({})
+    .populate([
+      {
+        path: 'category',
+        select: 'name',
+        populate: {
+          path: 'parentId',
+          select: 'name'
+        }
+      },
+      {
+        path: 'brand',
+        select: 'name'
+      }
+    ]);
 
     return responseMessage(res, 200, true, "",{products});
     

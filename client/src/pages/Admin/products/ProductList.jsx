@@ -26,36 +26,45 @@ import { BsSortDown, BsSortDownAlt } from "react-icons/bs";
 import DropdownButton from '../../../components/ui/DropdownButton';
 import { sortProductsByPrice } from '../../../utils/Utils';
 import { containerVariants, rowVariants } from '../../../utils/Anim';
+import clsx from 'clsx';
+import StarRating from '../../../components/ui/StarRating';
 
 const ProductList = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const { items:productList } = useSelector(state => state.products);
-  const { categoryList } = useSelector(state => state.categories);
-  const { brandList } = useSelector(state => state.brands);
   
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   /* initial data loader */
   useEffect(() => {
-    if(productList?.length){
-      const sortedProducts = [...productList].sort((a,b) => b.createdAt.localeCompare(a.createdAt))
-      setProducts(sortedProducts);
+    fetchProducts();
+  },[])
+
+  const fetchProducts = async() => {
+
+    setIsLoading(true);
+
+    try {
+        
+      const response = await Axios({
+        ...ApiBucket.getProducts
+      })
+      
+      if(response?.data?.success){
+        const productList = response?.data?.products;  
+        const sortedProducts = [...productList].sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+        setProducts(sortedProducts);
+      }
+
+    } catch (error) {
+      console.log(error)
+    }finally{
+      setIsLoading(false)
     }
-    if(categoryList?.length){
-      const sortedCategories = [...categoryList].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
-      setCategories(sortedCategories);
-    }
-    if(brandList?.length){
-      const sortedBrands = [...brandList].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
-      setBrands(sortedBrands);
-    }
-  },[productList, categoryList, brandList]);
+
+  };
   
   /* debouncer */
   const [query, setQuery] = useState('');
@@ -352,7 +361,7 @@ const ProductList = () => {
           <span className='sub-title'>Add, edit and delete products</span>
         </div>
         <button 
-          onClick={() => navigate('/admin/products/add-product',{state:{categories, brands}})}
+          onClick={() => navigate('/admin/products/add-product')}
           className='px-4! inline-flex items-center gap-2 text-white'>
           <LuPackagePlus size={20} />
           <span>Add Product</span>
@@ -455,14 +464,14 @@ const ProductList = () => {
         {/* Header */}
         <div className="text-gray-400 uppercase font-semibold tracking-wider
           border-b border-theme-divider px-4.5 py-3.5 bg-gray-50 rounded-t-3xl">
-          <div className="grid grid-cols-[40px_2fr_1fr_1fr_1fr_1fr_1fr_88px] items-center w-full">
+          <div className="grid grid-cols-[40px_2fr_1.5fr_1fr_0.75fr_0.75fr_0.75fr_88px] items-center w-full">
             <span><input type="checkbox" /></span>
             <span>Product</span>
             <span>Category</span>
             <span>Price</span>
-            <span>Stock</span>
-            <span>status</span>
-            <span>visible</span>
+            <span className='text-center'>Stock</span>
+            <span className='text-center'>status</span>
+            <span className='text-center'>visible</span>
             <span className="text-center">Actions</span>
           </div>
         </div>
@@ -505,20 +514,22 @@ const ProductList = () => {
                     }
                     
                     const variants = product.variants;
-                    let price, stock = 0, variantLen = variants.length;
+                    let minPrice = 0, maxPrice = 0, stock = 0, variantLen = variants.length;
                   
                     if(variants.length){
                       const prices = variants.map(item => {
                         stock += item.stock;
                         return item.price
                       })
-                      const min = Math.min(...prices);
-                      const max = Math.max(...prices);
-                      price = `${min === max ? min : `${min} - ${max}`}`
+                      minPrice = Math.min(...prices);
+                      maxPrice = Math.max(...prices);
                     } else {
-                      price = product.price;
+                      minPrice = product.price;
                       stock = product.stock;
                     }
+
+                    const category = product?.category?.name;
+                    const parentCategory = product?.category?.parentId?.name;
 
                     return(
                       <React.Fragment key={product._id}>
@@ -535,11 +546,11 @@ const ProductList = () => {
                             backgroundColor: product.archived ? '' : '#efffeb',
                             transition: { duration: 0.3 }
                           }}
-                          className={`${product.archived ? 'cursor-not-allowed pointer-events-none bg-gray-100 grayscale-100 !opacity-50' : 'bg-white'}`}
+                          className={clsx(product.archived ? 'disabled-el bg-gray-100 grayscale-100 !opacity-50' : 'bg-white')}
                         >
 
                           <div
-                            className={`grid grid-cols-[40px_2fr_1fr_1fr_1fr_1fr_1fr_88px] 
+                            className={`grid grid-cols-[40px_2fr_1.5fr_1fr_0.75fr_0.75fr_0.75fr_88px] 
                               items-center w-full px-4 py-2`}
                           >
                             {/* Checkbox */}
@@ -575,26 +586,44 @@ const ProductList = () => {
 
                             {/* category */}
                             <div className='capitalize flex flex-col'>
-                              <span>{product.category.name}</span>
-                              {product.category.parentId && 
-                                <span className='text-[11px] text-gray-400'> 
-                                  <span className='me-1'>in</span>
-                                  {categories?.find(cat => cat._id === product.category?.parentId)?.name}
-                                </span>
+                              <span>{category}</span>
+                              {parentCategory && 
+                                <p className='text-[11px] text-gray-400'> 
+                                  <span className='me-1'>in -</span>
+                                  <span>{parentCategory}</span>
+                                </p>
                               }
                             </div>
                             
                             {/* price */}
                             <div className='capitalize flex flex-col'>
-                              <span className='price-before'>{price}</span>
-                              <span className='text-xs'>Rating</span>
+                              {minPrice < maxPrice ? 
+                                (
+                                  <div className='font-semibold'>
+                                    <span className='price-before font-semibold'>{minPrice}</span>
+                                    <span className='mx-1'>-</span>
+                                    <span className='price-before font-semibold'>{maxPrice}</span>
+                                  </div>
+                                )
+                                :
+                                (
+                                  <span className='price-before font-semibold'>{minPrice}</span>
+                                )
+                              }
+                              <div>
+                                <StarRating
+                                  value={product?.averageRating}
+                                  starSize={3}
+                                  showValue={true}
+                                />
+                              </div>
                             </div>
 
                             {/* stock */}
-                            <div className='capitalize'>{stock}</div>
+                            <div className='capitalize text-center'>{stock}</div>
 
                             {/* Status */}
-                            <div>
+                            <div className='text-center'>
                               <span className={`w-fit px-2 py-1 text-xs font-semibold rounded-full capitalize
                                 ${statusColors()}`}>
                                 {product.archived ? 'archived' : product?.status}
@@ -602,7 +631,7 @@ const ProductList = () => {
                             </div>
 
                             {/* visible */}
-                            <div className='ps-3'>
+                            <div className='flex justify-center'>
                               <ToggleSwitch 
                                 size={4}
                                 value={product.visible}
@@ -611,10 +640,10 @@ const ProductList = () => {
                             </div>
 
                             {/* Actions */}
-                            <div className="flex items-center justify-center gap-3 z-50">
+                            <div className="flex items-center justify-center space-x-1 z-50">
                               <div 
                                 onClick={() => navigate(`/admin/products/${product?.slug}/edit`,
-                                  {state: {categories, brands, currentProduct:product}})
+                                  {state: {currentProduct:product}})
                                 }
                                 
                                 className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
@@ -680,59 +709,74 @@ const ProductList = () => {
                         </motion.div>
 
                         {/* variant items */}
-                         <AnimatePresence>
-                          {expanded[product._id] && product.variants?.length > 0 && 
-                            product.variants.map((variant, i) =>
-                              <motion.div
-                                key={variant._id}
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: "auto", opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="overflow-hidden border-b-gray-200"
-                              >
-                                <div
-                                  key={variant.sku}
-                                  className='grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full px-4 py-1
-                                  bg-gray-100/60 smooth hover:bg-primary-50/50 group group:-z-1'>
-
-                                  <div><input type="checkbox" /></div>
-                                  <div className="flex gap-2 items-center relative ms-2">
+                        <motion.div
+                          key='expanding-box'
+                          className='grid grid-cols-4 ps-13.5 pr-2 bg-gray-100 gap-2'
+                          style={{ '--temp-border': 'rgba(76, 196, 187, 0.3)' }}
+                          animate={{
+                            paddingTop: expanded[product._id] ? 8 : 0,
+                            paddingBottom: expanded[product._id] ? 8 : 0,
+                            borderBottomWidth: expanded[product._id] ? 1 : 0,
+                            borderBottomColor: expanded[product._id] ? 'rgba(76, 196, 187, 0.3)' : "rgba(0, 0, 0, 0)",
+                          }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <AnimatePresence>
+                            {expanded[product._id] && product.variants?.length > 0 && 
+                              product.variants.map((variant, i) =>
+                                <motion.div
+                                  key={variant._id}
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="overflow-hidden"
+                                >
+                                  <div className="flex space-x-2 items-center relative border border-gray-200 p-2 rounded-2xl bg-white">
                                     {variant.image?.thumb ? 
                                       (<PreviewImage src={variant.image?.thumb} alt={product?.name} zoom="80%"
-                                      thumbClass="rounded-xl border border-gray-300 w-10 h-10"
+                                      thumbClass="rounded-xl border border-gray-300 w-12 h-12"
                                       />)
                                       :
                                       (<ImagePlaceHolder
                                         size={18}
-                                        className="rounded-xl border border-gray-300 bg-white text-gray-500/60 w-10 h-10"
+                                        className="rounded-xl border border-gray-300 bg-gray-100 text-gray-500/60 w-12 h-12"
                                         />)
                                     }
                                     
-                                    <div className="inline-flex flex-col capitalize">
-                                      <p className="text-xs">SKU: {variant.sku}</p>
+                                    <div className='flex flex-col columns-2 flex-wrap space-x-3 text-xs h-12'>
+
+                                      <div className='space-x-1 capitalize'>
+                                        <span className='text-gray-400'>Price:</span>
+                                        <span className='price-before font-semibold'>{variant?.price}</span>
+                                      </div>
+                                      <div className='space-x-1 capitalize'>
+                                        <span className='text-gray-400'>Stock:</span>
+                                        <span>{variant?.stock}</span>
+                                      </div>
+
+                                      {Object.keys(variant?.attributes).map((key, i) => 
+                                        <div key={i} className='space-x-1 capitalize'>
+                                          <span className='text-gray-400'>{key}:</span>
+                                          <span
+                                            style={{ '--dynamic': variant?.attributes['color'] || variant?.attributes['colour'] }}
+                                            className={clsx((key === 'color' || key === 'colour') &&
+                                              'point-before point-before:p-1.25 point-before:bg-(--dynamic) point-before:!rounded-sm'
+                                            )}
+                                          >{(key !== 'color' && key !== 'colour') && variant.attributes[key]}</span>
+                                        </div>
+                                      )}
+
                                     </div>
                                   </div>
-                                  <div className='flex flex-col uppercase text-xs'>
-                                    {Object.keys(variant.attributes).map((key, i) => 
-                                      <div key={i}>
-                                        <span className='text-gray-400'>{key}:</span>
-                                        <span>{variant.attributes[key]}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                  {/* price */}
-                                  <div className='capitalize flex flex-col'>
-                                    <span className='price-before'>{variant.price}</span>
-                                    <span className='text-xs'>Rating</span>
-                                  </div>
-                                  {/* stock */}
-                                  <div className='capitalize'>{variant.stock}</div>
-                                </div>
-                              </motion.div>
-                            )
-                          }
-                        </AnimatePresence>
+                                  
+                                </motion.div>
+                              )
+                            }
+                          </AnimatePresence>
+                          
+                        </motion.div>
+
                       </React.Fragment>                    
                     )}))
                     :

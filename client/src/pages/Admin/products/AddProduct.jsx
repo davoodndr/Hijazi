@@ -25,17 +25,68 @@ const EditProduct = () => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { state } = useLocation()
-  const { categories, brands } = state || {};
+  const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [brand, setBrand] = useState(null);
+  const [brands, setBrands] = useState([]);
   const [category, setCategory] = useState(null);
+  const [categories, setCategories] = useState([]);
   const [attributes, setAttributes] = useState([]);
   const [customAttributes, setCustomAttributes] = useState([]);
   const [finalAttributes, setFinalAttributes] = useState([]);
   const [variants, setVariants] = useState([])
   const productImageDimen = {width:1200, height: 1200}
   const productThumbDimen = {width:450, height: 450}
+
+  /* initital data */
+  useEffect(()=> {
+    fetchCategories();
+    fetchBrands();
+  },[])
+
+  const fetchCategories = async()=> {
+    setIsLoading(true);
+
+    try {
+        
+      const response = await Axios({
+        ...ApiBucket.getCategories
+      })
+      
+      if(response?.data?.success){
+        const categoryList = response?.data?.categories;  
+        const sortedCategories = [...categoryList].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+        setCategories(sortedCategories);
+      }
+
+    } catch (error) {
+      console.log(error)
+    }finally{
+      setIsLoading(false)
+    }
+  }
+
+  const fetchBrands = async()=> {
+    setIsLoading(true);
+
+    try {
+        
+      const response = await Axios({
+        ...ApiBucket.getBrands
+      })
+      
+      if(response?.data?.success){
+        const brandList = response?.data?.brands;  
+        const sortedBrands = [...brandList].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+        setBrands(sortedBrands);
+      }
+
+    } catch (error) {
+      console.log(error)
+    }finally{
+      setIsLoading(false)
+    }
+  }
 
   /* input handling */
   const [data, setData] = useState({

@@ -27,10 +27,13 @@ const EditProduct = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { state } = useLocation();
-  const { categories, brands, currentProduct } = state || {};
+  const { currentProduct } = state || {};
+  const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [brand, setBrand] = useState(null);
+  const [brands, setBrands] = useState([]);
   const [category, setCategory] = useState(null);
+  const [categories, setCategories] = useState([]);
   const [attributes, setAttributes] = useState([]);
   const [customAttributes, setCustomAttributes] = useState([]);
   const [finalAttributes, setFinalAttributes] = useState([]);
@@ -52,11 +55,15 @@ const EditProduct = () => {
     brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: [], customAttributes: []
   })
 
+  useEffect(() => {
+    fetchCategories();
+    fetchBrands();
+  },[])
+
   /* initial data from item */
   useEffect(() => {
     
     if(currentProduct){
-
       /* setting general datas */
       setData(prev => ({
         ...prev,
@@ -76,8 +83,8 @@ const EditProduct = () => {
 
       /* setting dropdown items */
       handleChangeCategory({
-        id:currentProduct.category._id,
-        label:currentProduct.category.name,
+        id:currentProduct?.category?._id,
+        label:currentProduct?.category?.name,
       })
       setBrand({id:currentProduct?.brand?._id, label:currentProduct?.brand?.name})
       setStatus({value: currentProduct?.status, label:currentProduct?.status})
@@ -86,9 +93,9 @@ const EditProduct = () => {
         })
       )
 
-      if(currentProduct?.customAttributes.length){
-        setCustomAttributes(currentProduct.customAttributes)
-        setFinalAttributes(prev => [...prev, ...currentProduct.customAttributes])
+      if(currentProduct?.customAttributes?.length){
+        setCustomAttributes(currentProduct?.customAttributes)
+        setFinalAttributes(prev => [...prev, ...currentProduct?.customAttributes])
       }
       
       if(currentProduct?.variants?.length){
@@ -104,7 +111,51 @@ const EditProduct = () => {
       }
     }
 
-  },[])
+  },[currentProduct, categories, brands])
+
+  const fetchCategories = async()=> {
+    setIsLoading(true);
+
+    try {
+        
+      const response = await Axios({
+        ...ApiBucket.getCategories
+      })
+      
+      if(response?.data?.success){
+        const categoryList = response?.data?.categories;  
+        const sortedCategories = [...categoryList].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+        setCategories(sortedCategories);
+      }
+
+    } catch (error) {
+      console.log(error)
+    }finally{
+      setIsLoading(false)
+    }
+  }
+
+  const fetchBrands = async()=> {
+    setIsLoading(true);
+
+    try {
+        
+      const response = await Axios({
+        ...ApiBucket.getBrands
+      })
+      
+      if(response?.data?.success){
+        const brandList = response?.data?.brands;  
+        const sortedBrands = [...brandList].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+        setBrands(sortedBrands);
+      }
+
+    } catch (error) {
+      console.log(error)
+    }finally{
+      setIsLoading(false)
+    }
+  }
 
   /* limits image on maximum */
   useEffect(() => {
@@ -133,10 +184,19 @@ const EditProduct = () => {
     setCategory(val);
     setVariants([])
     setVariantImages([])
-    setData(prev => ({...prev, category: val.id}))
-    const cat = categories.find(item => item._id === val.id);
-    setAttributes([...cat?.parentId?.attributes, ...cat?.attributes].filter(Boolean));
-    setFinalAttributes([...cat?.parentId?.attributes,...cat?.attributes,...customAttributes].filter(Boolean));
+    setData(prev => ({...prev, category: val?.id}))
+    const cat = categories.find(item => item._id === val?.id);
+
+    setAttributes([
+      ...(cat?.parentId?.attributes || []),
+      ...(cat?.attributes || [])
+    ].filter(Boolean));
+
+    setFinalAttributes([
+      ...(cat?.parentId?.attributes || []),
+      ...(cat?.attributes || []),
+      ...customAttributes
+    ].filter(Boolean));
 
   }
 
