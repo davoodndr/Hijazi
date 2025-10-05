@@ -19,9 +19,10 @@ import { Menu, MenuButton } from '@headlessui/react';
 import Skeleton from '../../../components/ui/Skeleton';
 import DropdownButton from '../../../components/ui/DropdownButton';
 import { FaSort } from 'react-icons/fa6';
-import { BsSortDown, BsSortDownAlt } from 'react-icons/bs';
+import { BsFillMenuButtonFill, BsSortDown, BsSortDownAlt } from 'react-icons/bs';
 import { CiFilter } from 'react-icons/ci';
 import { containerVariants, rowVariants } from '../../../utils/Anim';
+import { format } from 'date-fns'
 
 const UsersList = () => {
 
@@ -43,15 +44,15 @@ const UsersList = () => {
         ...ApiBucket.getUsers
       })
 
-      if(response.data.success){
+      if(response?.data?.success){
         
-        const sorted = response.data.users.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+        const sorted = response?.data?.users.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
     
         setUsers(sorted);
       }
 
     } catch (error) {
-      console.log(error.response.data.message)
+      console.log(error?.response?.data?.message)
     }finally{
       setLoading(false)
     }
@@ -257,13 +258,17 @@ const UsersList = () => {
         {/* Header */}
         <div className="text-gray-400 uppercase font-semibold tracking-wider
           border-b border-theme-divider px-4.5 py-3.5 bg-gray-50 rounded-t-3xl">
-          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] items-center w-full">
+          <div className="grid grid-cols-[30px_1.75fr_0.75fr_1fr_0.75fr_0.5fr_0.75fr_0.75fr] items-center w-full">
             <span><input type="checkbox" /></span>
             <span>User</span>
             <span>Roles</span>
             <span>Contact</span>
-            <span>Status</span>
-            <span className="text-center">Actions</span>
+            <span>Orders</span>
+            <span className='text-center'>Reviews</span>
+            <span className='text-center'>Status</span>
+            <span className="flex items-center justify-center">
+              <BsFillMenuButtonFill className='text-xl' />
+            </span>
           </div>
         </div>
 
@@ -275,7 +280,7 @@ const UsersList = () => {
           className="flex flex-col w-full h-full text-sm text-gray-700">
 
             {/* Rows */}
-            {loading || paginatedUsers.length <= 0 ? 
+            {loading || paginatedUsers?.length <= 0 ? 
               <>
                 <li className="rounded px-6 py-4 space-y-3">
                   <Skeleton height="h-10" width="w-full" />
@@ -303,6 +308,12 @@ const UsersList = () => {
                         }
                       }
 
+                      const lastLogin = user?.last_login ? 
+                        format(new Date(user?.last_login), 'dd/MM/yy, hh:mm a')
+                          .replace('AM','am')
+                          .replace('PM','pm') : null;
+                      const { orders, pendings, cancelled } = user?.orderDetails;
+
                       return(
                         
                         <motion.div
@@ -319,7 +330,7 @@ const UsersList = () => {
                           }}
                         >
                       
-                          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr] 
+                          <div className="grid grid-cols-[30px_1.75fr_0.75fr_1fr_0.75fr_0.5fr_0.75fr_0.75fr] 
                             items-center w-full px-4 py-2 bg-white"
                           >
                             {/* Checkbox */}
@@ -328,11 +339,15 @@ const UsersList = () => {
                             {/* User Info */}
                             <div className="flex gap-2 items-center">
                               <div className="w-12 h-12 rounded-full overflow-hidden">
-                                <img src={user?.avatar || place_holder} alt="avatar" className="object-cover w-full h-full" />
+                                <img src={user?.avatar?.url || place_holder} alt="avatar" className="object-cover w-full h-full" />
                               </div>
                               <div className="inline-flex flex-col">
                                 <p className="capitalize">{user?.username}</p>
                                 <p className="text-xs text-gray-500">{user?.email}</p>
+                                <p className="text-xs text-gray-400">
+                                  <span>{lastLogin ? 'Logined: ' : 'Not logined'}</span>
+                                  <span>{lastLogin}</span>
+                                </p>
                               </div>
                             </div>
 
@@ -346,8 +361,45 @@ const UsersList = () => {
                             {/* Contact */}
                             <div>{user.mobile || <span className="text-gray-400">Not added</span>}</div>
 
+                            {/* orders */}
+                            <div className='text-[13px]'>
+                              {orders > 0 ?
+                                (
+                                  <>
+                                    <p>
+                                      <span className='text-gray-500'>Total: </span>
+                                      <span className='font-semibold'>{orders}</span>
+                                    </p>
+                                    {pendings > 0 &&
+                                      (
+                                        <p>
+                                          <span className='text-gray-500'>Pendings: </span>
+                                          <span className='font-semibold'>{pendings}</span>
+                                        </p>
+                                      )
+                                    }
+                                    {cancelled > 0 &&
+                                      (
+                                        <p>
+                                          <span className='text-gray-500'>Cancelled: </span>
+                                          <span className='font-semibold'>{cancelled}</span>
+                                        </p>
+                                      )
+                                    }
+                                  </>
+                                )
+                                :
+                                (
+                                  <span className='text-gray-400'>No orders made</span>
+                                )
+                              }
+                            </div>
+
+                            {/* reviews */}
+                            <div className='text-center'>{user?.reviews}</div>
+
                             {/* Status */}
-                            <div>
+                            <div className='text-center'>
                               <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
                                 ${statusColors()}`}>
                                 {user.status}
@@ -355,7 +407,7 @@ const UsersList = () => {
                             </div>
 
                             {/* Actions */}
-                            <div className="flex items-center justify-center gap-3 z-50">
+                            <div className="flex items-center justify-center space-x-1 z-50">
                               <div 
                                 onClick={() => navigate('/admin/users/edit-user',{state: {user}})}
                                 className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 

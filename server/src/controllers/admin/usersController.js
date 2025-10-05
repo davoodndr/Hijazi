@@ -4,15 +4,48 @@ import User from "../../models/User.js";
 import { responseMessage } from "../../utils/messages.js";
 import { deleteImageFromCloudinary, uploadImagesToCloudinary } from '../../utils/coudinaryActions.js'
 import Wallet from "../../models/Wallet.js";
+import Order from "../../models/Order.js";
+import Review from "../../models/Review.js";
 
 // fetch users
 export const getUsers = async(req, res) => {
 
   try {
 
-    const users = await User.find({_id: {$ne: req.user_id}}).select('-refresh_token -password');
+    const users = await User.find({_id: {$ne: req.user_id}})
+      .select('-refresh_token -password').lean();
 
-    return responseMessage(res, 200, true, "", {users});
+    let updatedUsers = [];
+
+    for(let user of users){
+
+      let orders = 0, cancelled = 0, pendings = 0;
+      const userOrders = await Order.find({user_id: user?._id});
+      const reviews = await Review.find({user_id: user?._id});
+
+      for(const o of userOrders){
+        if(o){
+          orders++;
+          if(o?.status === 'pending'){
+            pendings++;
+          }else if(o?.status === 'cancelled'){
+            cancelled++;
+          }
+        }
+      }
+      user = {
+        ...user,
+        orderDetails: {
+          orders,
+          pendings,
+          cancelled
+        },
+        reviews: reviews?.length
+      }
+      updatedUsers.push(user);
+    }
+    
+    return responseMessage(res, 200, true, "", {users: updatedUsers});
     
   } catch (error) {
     console.log('getUsers', error);

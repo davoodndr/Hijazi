@@ -44,10 +44,6 @@ const userSchema = new mongoose.Schema(
 		},
 		roles: { type: [String], default: ["user"] },
 		activeRole: { type: String, default: "user" },
-		/* wallet: {
-			_id: {type: mongoose.Schema.Types.ObjectId, ref: "Wallet"},
-			balance: {type: Number, default: 0 },
-		} */
 	},
 	{ timestamps: true }
 );

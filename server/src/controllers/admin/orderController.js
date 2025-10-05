@@ -6,6 +6,76 @@ import { responseMessage } from "../../utils/messages.js";
 import { calculateDiscount } from "../../services/misc.js"
 import Product from "../../models/Product.js";
 
+export const getOrders = async(req, res) => {
+
+  try {
+
+    const countItems = {
+      $sum: {
+        $map: {
+          input:{
+            $filter: {
+              input: "$cartItems",
+              as: "item",
+              cond: {$ne: ["$$item.status", "cancelled"]}
+            }
+          },
+          as: "item",
+          in: "$$item.quantity"
+        }
+      }
+    }
+
+    const cancelledTotal = {
+      $cond: {
+        if: {
+          $and: [
+            { $in: [ "$status", ["cancelled", "returned", "refunded"] ] },
+            { $eq: [ "$totalPrice", 0 ] }
+          ]
+        },
+        then: {
+          $sum: {
+            $map: {
+              input: "$cartItems",
+              as: "item",
+              in: { $multiply: [ "$$item.quantity", "$$item.price" ] }
+            }
+          }
+        },
+        else: null
+      }
+    }
+
+    const orders = await Order.aggregate([
+      {
+        $project: {
+          order_no: 1,
+          itemsCount: countItems,
+          image: { $arrayElemAt: ["$cartItems.image", 0] },
+          name: { $arrayElemAt: ["$cartItems.name", 0] },
+          totalPrice: 1,
+          cancelledTotal,
+          paymentMethod: "$paymentInfo.paymentMethod",
+          isPaid: "$paymentInfo.isPaid",
+          paymentResult: "$paymentInfo.paymentResult",
+          shippingAddress: 1,
+          billingAddress: 1,
+          status: 1,
+          createdAt: 1
+        }
+      }
+    ]);
+
+    return responseMessage(res, 200, true, "", { orders });
+    
+  } catch (error) {
+    console.log('getOrders', error);
+    return responseMessage(res, 500, false, error.message || error);
+  }
+
+}
+
 /* cancel order */
 export const cancelOrder = async(req, res) => {
   

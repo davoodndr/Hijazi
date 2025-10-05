@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router';
 import Skeleton from '../../../components/ui/Skeleton';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
+import { BsFillMenuButtonFill } from 'react-icons/bs';
 
 function OrdersList() {
 
@@ -25,26 +26,26 @@ function OrdersList() {
 
   useEffect(() => {
 
-    const fetchOrders = async() => {
-      try {
-        
-        const response = await Axios({
-          ...ApiBucket.fetchOrders
-        })
-
-        if(response.data?.success){
-          const sorted = [...response.data?.orders].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
-          setOrders(sorted);
-        }
-
-      } catch (error) {
-        console.log(error)
-      }
-    }
-
     fetchOrders();
 
   },[]);
+
+  const fetchOrders = async() => {
+    try {
+      
+      const response = await Axios({
+        ...ApiBucket.getOrders
+      })
+
+      if(response?.data?.success){
+        const sorted = [...response?.data?.orders].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+        setOrders(sorted);
+      }
+
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   const handleViewOrderClick = (order) => { 
     navigate(`view-order/${order?.order_no}`,
@@ -217,15 +218,17 @@ function OrdersList() {
         {/* Header */}
         <div className="text-gray-400 uppercase font-semibold tracking-wider
           border-b border-theme-divider px-4.5 py-3.5 bg-gray-50 rounded-t-3xl">
-          <div className="grid grid-cols-[40px_2fr_1fr_1fr_1fr_1fr_1fr_88px] items-center w-full">
+          <div className="grid grid-cols-[30px_1.5fr_1fr_0.5fr_1fr_0.75fr_0.75fr_0.25fr] items-center w-full">
             <span><input type="checkbox" /></span>
             <span>Product</span>
             <span>Customer</span>
             <span>Date</span>
-            <span>Amount</span>
+            <span className="text-center">Amount</span>
             <span>payment</span>
-            <span>status</span>
-            <span className="text-center">Actions</span>
+            <span className="text-center">status</span>
+            <span className="flex items-center justify-center">
+              <BsFillMenuButtonFill className='text-xl' />
+            </span>
           </div>
         </div>
         <motion.ul 
@@ -287,7 +290,7 @@ function OrdersList() {
                         >
 
                           <div
-                            className={`grid grid-cols-[40px_2fr_1fr_1fr_1fr_1fr_1fr_88px] 
+                            className={`grid grid-cols-[30px_1.5fr_1fr_0.5fr_1fr_0.75fr_0.75fr_0.25fr] 
                               items-center w-full px-4 py-2`}
                           >
 
@@ -308,16 +311,17 @@ function OrdersList() {
 
                               <div className="inline-flex flex-col capitalize">
                                 <p className="font-semibold">{title}</p>
-                                <p className="text-gray-400 text-xs">
-                                  <span>ID: </span>
+                                <p className="text-gray-500/90 text-xs">
+                                  <span>No: </span>
                                   <span>{order?.order_no} </span>
                                 </p>
                               </div>
                             </div>
 
                             {/* customer name */}
-                            <div className='capitalize flex flex-col'>
-                              <span className='text-xs font-semibold'>{order?.billingAddress.name}</span>
+                            <div className='capitalize flex flex-col text-xs'>
+                              <span className='font-semibold'>{order?.billingAddress?.name}</span>
+                              <span className='text-gray-500/90'>{order?.billingAddress?.city}</span>
                             </div>
 
                             {/* order date */}
@@ -327,11 +331,13 @@ function OrdersList() {
                             </div>
 
                             {/* amount */}
-                            <div className='capitalize flex flex-col'>
-                              <span className='price-before font-semibold text-end inline-block w-[50%]'>{order?.cancelledTotal || order?.totalPrice}</span>
-                              <span className={clsx('text-xs text-end inline-block w-[50%]',
-                                order?.isPaid ? ' text-primary-400/70' : ' text-red-400/70'
-                              )}>{isPaid}</span>
+                            <div className='flex'>
+                              <div className='capitalize flex flex-col items-end w-[60%]'>
+                                <span className='price-before font-semibold inline-block'>{order?.cancelledTotal || order?.totalPrice}</span>
+                                <span className={clsx('text-xs inline-block',
+                                  order?.isPaid ? ' text-primary-400/70' : ' text-red-400/70'
+                                )}>{isPaid}</span>
+                              </div>
                             </div>
 
                             {/* payment method */}
@@ -344,7 +350,7 @@ function OrdersList() {
                             </div>
 
                             {/* status */}
-                            <div className='capitalize flex flex-col'>
+                            <div className='capitalize flex flex-col items-center'>
                               <span className={clsx('badge',
                                 order?.status === 'pending' && 'bg-amber-100 text-amber-500',
                                 order?.status === 'processing' && 'bg-gray-100 text-gray-500',

@@ -214,6 +214,10 @@ const ApiBucket = {
   },
 
   /* orders */
+  getOrders: {
+    url: '/api/admin/get-orders',
+    method: 'get'
+  },
 
   /* offer */
   getOffers: {
