@@ -56,13 +56,13 @@ export const getUserReviews = async(product_id) => {
 
 }
 
-export const getCanRateProduct = async(user_id, product_id) => {
+export const getCanRateProduct = async(user_id, product_id, variant_id) => {
 
   try {
     
     const response = await Axios({
       ...ApiBucket.getCanRate,
-      params: { user_id, product_id}
+      params: { user_id, product_id, variant_id }
     })
 
     return response?.data?.canRate
@@ -144,6 +144,26 @@ export const getProductList = async() => {
   }
 }
 
+export const fetchRealtedItems = async(product) => {
+  
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.getRelatedProducts,
+      params:{
+        product_id: product?._id,
+        category: product?.category?._id
+      }
+    })
+
+    return response?.data?.items
+
+  } catch (error) {
+    console.log(error)
+  }
+
+}
+
 /* cart */
 export const getCart = async() => {
   
@@ -170,7 +190,7 @@ export const getWishlist = async() => {
       ...ApiBucket.getWishlist,
     })
 
-    return response.data.wishlist.list;
+    return response.data.wishlist;
 
   } catch (error) {
     //console.log(error.response.data)

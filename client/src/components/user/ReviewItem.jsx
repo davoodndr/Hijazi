@@ -1,6 +1,6 @@
 import React from 'react'
 import { IoArrowUndoOutline } from 'react-icons/io5';
-import StarRating from './StarRating';
+import StarRating from '../ui/StarRating';
 import user_placeholder from '../../assets/user_placeholder.jpg'
 import { format } from 'date-fns'
 

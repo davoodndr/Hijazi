@@ -52,7 +52,7 @@ const UsersList = () => {
       }
 
     } catch (error) {
-      console.log(error?.response?.data?.message)
+      console.log(error?.response?.data?.message || error?.message)
     }finally{
       setLoading(false)
     }
@@ -73,14 +73,14 @@ const UsersList = () => {
 
   /* search filter */
   const filteredUsers = useMemo(() => {
-    return users.filter(user =>{
+    return users?.filter(user =>{
 
       const fields = ['username','email','role','status','mobile']
 
       return fields.some(field => {
 
-        if(user[field]){
-          return user[field].includes(searchQuery)
+        if(user && user[field]){
+          return user[field]?.includes(searchQuery)
         }
         return false
 
@@ -107,10 +107,12 @@ const UsersList = () => {
         
         const response = await blockUserAction(user?._id, mode);
 
-        if(response.data.success){
+        if(response?.data?.success){
+          const newStatus = response?.data?.updates;
 
-          const updatedUser = response.data.user;
-          setUsers(prev => prev.map(u => u._id === updatedUser._id ? updatedUser : u))
+          const updatedUsers = users?.map(u => u._id === user?._id ? {...u, status: newStatus} : u)
+
+          setUsers(updatedUsers)
           AxiosToast(response, false);
 
         }else{
@@ -312,6 +314,7 @@ const UsersList = () => {
                         format(new Date(user?.last_login), 'dd/MM/yy, hh:mm a')
                           .replace('AM','am')
                           .replace('PM','pm') : null;
+                      
                       const { orders, pendings, cancelled } = user?.orderDetails;
 
                       return(
@@ -353,13 +356,13 @@ const UsersList = () => {
 
                             {/* Roles */}
                             <div className="flex flex-col text-[13px]">
-                              {user.roles.map((role, n) => (
+                              {user?.roles.map((role, n) => (
                                 <span key={n} className="capitalize">{role}</span>
                               ))}
                             </div>
 
                             {/* Contact */}
-                            <div>{user.mobile || <span className="text-gray-400">Not added</span>}</div>
+                            <div>{user?.mobile || <span className="text-gray-400">Not added</span>}</div>
 
                             {/* orders */}
                             <div className='text-[13px]'>
@@ -431,7 +434,12 @@ const UsersList = () => {
                                         { id: 'view user', 
                                           icon: <LuEye className='text-xl' />,
                                           text: <span className={`capitalize`}> view user </span>,
-                                          onClick: () => navigate('/admin/users/view-user',{state: user}) 
+                                          onClick: () => 
+                                            navigate('/admin/users/view-user',
+                                            { state: 
+                                              { user: user?._id }
+                                            }
+                                          ) 
                                         },
                                         { id: 'block', 
                                           icon: user?.status === 'blocked' ? 

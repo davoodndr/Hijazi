@@ -13,7 +13,8 @@ export const getUsers = async(req, res) => {
   try {
 
     const users = await User.find({_id: {$ne: req.user_id}})
-      .select('-refresh_token -password').lean();
+      .select('username fullname email mobile avatar last_login roles status createdAt')
+      .lean();
 
     let updatedUsers = [];
 
@@ -44,13 +45,71 @@ export const getUsers = async(req, res) => {
       }
       updatedUsers.push(user);
     }
-    
+
     return responseMessage(res, 200, true, "", {users: updatedUsers});
     
   } catch (error) {
     console.log('getUsers', error);
     return responseMessage(res, 500, false, error.message || error);
   }
+}
+
+export const getUserInfo = async(req, res) => {
+
+  const { user_id } = req.query;
+
+  try {
+
+    let user = await User.findOne({_id: user_id})
+      .select("-activeRole -forgot_password_expiry -forgot_password_otp -refresh_token -googleId -password -__v")
+      .populate("default_address")
+      .lean();
+
+    let orders = 0, cancelled = 0, pendings = 0, processing = 0, 
+      shipped = 0, delivered = 0, returned = 0, on_hold = 0, refunded = 0;
+    const userOrders = await Order.find({user_id: user?._id});
+    const reviews = await Review.find({user_id: user?._id});
+
+    for(const o of userOrders){
+      if(o){
+        orders++;
+        
+        switch(o?.status){
+          case 'pending' : pendings++; break;
+          case 'processing' : processing++; break;
+          case 'shipped' : shipped++; break;
+          case 'returned' : returned++; break;
+          case 'on-hold' : on_hold++; break;
+          case 'cancelled' : cancelled++; break;
+          case 'delivered' : delivered++; break;
+          case 'refunded' : refunded++; break;
+          default: 0
+        }
+      }
+    }
+    user = {
+      ...user,
+      orderDetails: {
+        orders,
+        pendings,
+        processing,
+        shipped,
+        delivered,
+        returned,
+        on_hold,
+        refunded,
+        cancelled
+      },
+      reviews: reviews?.length
+    } 
+
+    return responseMessage(res, 200, true, "", { user });
+    
+  } catch (error) {
+    console.log('getUserInfo', error);
+    return responseMessage(res, 500, false, error.message || error);
+  }
+
 }
 
 // register user
@@ -213,10 +272,7 @@ export const blockUser = async(req, res) => {
       { new: true }
     )
 
-    delete {...updated}._doc.password;
-    delete {...updated}._doc.refresh_token;
-
-    return responseMessage(res, 200, true, "Blocked the user successfully",{user: updated});
+    return responseMessage(res, 200, true, "Blocked the user successfully", {updates: updated?.status});
     
   } catch (error) {
     console.log('blockUser', error);
@@ -242,10 +298,8 @@ export const unblockUser = async(req, res) => {
       { new: true }
     )
 
-    delete {...updated}._doc.password;
-    delete {...updated}._doc.refresh_token;
 
-    return responseMessage(res, 200, true, "User unblocked successfully",{user: updated});
+    return responseMessage(res, 200, true, "User unblocked successfully",{updates: updated?.status});
     
   } catch (error) {
     console.log('unblockUser', error);

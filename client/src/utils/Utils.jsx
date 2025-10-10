@@ -359,3 +359,10 @@ export const getRatingDistribution = (reviews) =>{
 
   return percentages;
 }
+
+export const getMinPricedVariant = (variants) => {
+  return variants?.reduce((min, current) =>
+    !min || current?.price < min?.price ? current : min,
+    null
+  );
+};

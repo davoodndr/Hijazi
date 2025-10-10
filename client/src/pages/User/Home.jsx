@@ -36,7 +36,7 @@ import { MdOutlineKeyboardDoubleArrowRight } from "react-icons/md";
 import { useDispatch, useSelector } from 'react-redux'
 import { useEffect } from 'react'
 import { setLoading } from '../../store/slices/CommonSlices.jsx'
-import StarRating from '../../components/user/StarRating.jsx'
+import StarRating from '../../components/ui/StarRating.jsx'
 import { fetchProducts } from '../../store/slices/ProductSlices.jsx'
 
 function HomeComponent(){

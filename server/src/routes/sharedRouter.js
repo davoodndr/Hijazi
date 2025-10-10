@@ -5,11 +5,19 @@ import { addFund, getWallet, withdrawFund } from "../controllers/shared/walletCo
 import { createRazorpayOrder, generatePaymentLink, verifyRazorpay } from "../controllers/shared/paymentController.js";
 import { cancelItem, cancelOrder, getOrder, getOrders } from "../controllers/shared/orderController.js";
 import { checkRatingEligiblity, getProductReviews } from "../controllers/shared/reviewController.js";
+import { getCart } from "../controllers/shared/cartController.js";
+import { getWishlist } from "../controllers/shared/wishlistController.js";
 
 const sharedRouter = express.Router();
 
 /* handle user */
 sharedRouter.patch('/update-user-role', authenticate, allowRoles(["user", "admin"]), updateUserRole);
+
+/* handle wishlist */
+sharedRouter.get('/get-wishlist', authenticate, allowRoles(["user", "admin"]), getWishlist);
+
+/* handle cart */
+sharedRouter.get('/get-cart', authenticate, allowRoles(["user", "admin"]), getCart);
 
 /* handle order */
 sharedRouter.get('/get-orders-list', authenticate, allowRoles(["user", "admin"]), getOrders)

@@ -30,6 +30,45 @@ export const getReviews = async(req, res) => {
 
 }
 
+export const getUserReviews = async(req, res) => {
+
+  const { user_id } = req?.query
+
+  try {
+
+    let reviews = await Review.find({user_id})
+      .populate([
+        {
+          path: 'product_id',
+          select: 'name images',
+          populate:{
+            path: 'category',
+            'select': 'name'
+          }
+        }
+      ]).lean()
+    
+    reviews = reviews?.map(el => {
+      const product = el?.product_id;
+      
+      return {
+        ...el,
+        product_id: {
+          ...el?.product_id,
+          images: product?.images[0]?.thumb || product?.images[0]?.url
+        }
+      }
+    })
+
+    return responseMessage(res, 200, true, "", { reviews })
+    
+  } catch (error) {
+    console.log('getUserReviews:',error);
+    return responseMessage(res, 500,false, error.message || error);
+  }
+
+}
+
 export const changeReviewStatus = async(req, res) => {
 
   const { review_id, status } = req.body;

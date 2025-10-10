@@ -8,6 +8,8 @@ import Product from "../../models/Product.js";
 
 export const getOrders = async(req, res) => {
 
+  const { user_id } = req.query;
+
   try {
 
     const countItems = {
@@ -47,10 +49,14 @@ export const getOrders = async(req, res) => {
       }
     }
 
+    const user = user_id ? new mongoose.Types.ObjectId(`${user_id}`) : null;
+
     const orders = await Order.aggregate([
+      ...(user ? [{$match: { user_id: user } }] : []),
       {
         $project: {
           order_no: 1,
+          user_id: 1,
           itemsCount: countItems,
           image: { $arrayElemAt: ["$cartItems.image", 0] },
           name: { $arrayElemAt: ["$cartItems.name", 0] },

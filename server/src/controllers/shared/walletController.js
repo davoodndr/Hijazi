@@ -4,7 +4,7 @@ import { responseMessage } from "../../utils/messages.js";
 
 export const getWallet = async(req, res) => {
   
-  const { user_id } = req;
+  const user_id = req?.query?.user_id ?? req?.user_id
 
   try {
 

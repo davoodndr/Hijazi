@@ -1,6 +1,6 @@
 import React from 'react';
 
-import StarRating from './StarRating'
+import StarRating from '../ui/StarRating'
 import { TbHeart, TbShoppingBagPlus } from "react-icons/tb";
 import { useState } from 'react';
 import MyFadeLoader from '../ui/MyFadeLoader';

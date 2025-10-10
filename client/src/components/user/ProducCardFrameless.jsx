@@ -1,5 +1,5 @@
 import React from 'react'
-import StarRating from './StarRating'
+import StarRating from '../ui/StarRating'
 import { TbHeart, TbShoppingBagPlus } from "react-icons/tb";
 import { FaRegEye } from 'react-icons/fa';
 import ProductCardBadge from './ProductCardBadge';

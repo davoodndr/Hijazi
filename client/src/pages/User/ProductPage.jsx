@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ProductImageViewer from '../../components/ui/ProductImageViewer'
-import StarRating from '../../components/user/StarRating'
+import StarRating from '../../components/ui/StarRating'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io'
 import { FaRegHeart } from 'react-icons/fa'
@@ -17,14 +17,14 @@ import { addToCart, getCartItem, syncCartitem } from '../../store/slices/CartSli
 import { setLoading } from '../../store/slices/CommonSlices'
 import toast from 'react-hot-toast'
 import { addToList, syncWishlistItem } from '../../store/slices/WishlistSlice'
-import { getCanRateProduct, getSingleProduct, getUserReviews } from '../../services/FetchDatas'
+import { fetchRealtedItems, getCanRateProduct, getSingleProduct, getUserReviews } from '../../services/FetchDatas'
 import { MdDiscount } from "react-icons/md";
 import { RiCoupon3Line } from "react-icons/ri";
 import { MdOutlineCopyAll } from "react-icons/md";
 import { AnimatePresence, motion } from 'motion/react'
 import { containerVariants, rowVariants } from '../../utils/Anim'
 import { BsTags } from "react-icons/bs";
-import { filterDiscountOffers, findBestCouponValue, findBestOffer } from '../../utils/Utils'
+import { filterDiscountOffers, findBestCouponValue, findBestOffer, getMinPricedVariant } from '../../utils/Utils'
 import ReviewItem from '../../components/user/ReviewItem'
 import RatingDistribution from '../../components/user/RatingDistribution'
 import { clearReviews, setActiveProduct, setReviews } from '../../store/slices/ProductSlices'
@@ -58,30 +58,10 @@ function ProductPageComponent() {
     }
   },[])
 
-  /* function to re-arrange attributes */
-  const getAttributeMap = (variants) => {
-    const attrs = {}
-    variants.forEach(v => {
-      Object.entries(v.attributes).forEach(([key, value]) => {
-        if (!attrs[key]) attrs[key] = new Set();
-        attrs[key].add(value);
-      });
-    })
+  useEffect(()=> {
 
-    // convert set to array
-    Object.keys(attrs).forEach(key => {
-      attrs[key] = Array.from(attrs[key]);
-    });
-
-    return attrs
-  }
-
-  // inital product fetch
-  useEffect(() => {
-
-    /* syncing product */
     const product_slug = path.split('/').pop();
-    
+
     const fetchProduct = async() => {
 
       let p = products?.find(el => el?.slug === product_slug);
@@ -90,106 +70,48 @@ function ProductPageComponent() {
         p = await getSingleProduct(product_slug);
       }
 
-      if(user && p){
-        const checkCanRate = async() => {
-          const canRate = await getCanRateProduct(user?._id, p?._id);
-          p = {
-            ...p,
-            canRate: canRate || false
-          };
-          setProduct(p);
-        }
+      dispatch(setLoading(false));
 
-        checkCanRate();
-      }else{
-        setProduct(p);
-      }
-    }
-    fetchProduct();
-
-  },[user, products])
-
-  useEffect(() => {
-    if(cartItem) setProductQty(cartItem?.quantity)
-  },[cartItem])
-
-  // initially setting the variant and select attributes
-  useEffect(()=> {
-    
-    dispatch(setLoading(false))
-
-    if(product){
+      let minPricedVariant, activeProductData;
       
-      let activeProductData = {
-        name: product?.name,
-        numReviews: product?.numReviews,
-        averageRating: product?.averageRating,
-        brand: product?.brand?.name,
-        canRate: product?.canRate
-      }
+      if(p?.variants?.length){
 
-      if(product?.variants?.length) {
-        setVariants(product?.variants)
-        setAttributes(getAttributeMap(product.variants))
+        setVariants(p?.variants);
+        setAttributes(getAttributeMap(p?.variants))
 
-        const minPricedVariant = product.variants.reduce((minVariant, current) => {
-          
-          if(!minVariant || current?.price < minVariant?.price){
-            return current;
-          }else{
-            return minVariant;
-          }
-        },null)
-
-        activeProductData = {
-          ...minPricedVariant,
-          ...activeProductData,
-          _id:product?._id
-        }
+        minPricedVariant = getMinPricedVariant(p?.variants)
 
         setActiveVariant(minPricedVariant);
         setSelectedAttributes(minPricedVariant?.attributes)
       }
-
-      dispatch(setActiveProduct(activeProductData))
       
-      /* syncing reviews */
-      const fetchReviews = async() => {
-        const reviewData = await getUserReviews(product?._id);
-        if(reviewData) {
-          dispatch(setReviews(reviewData));
-        }
+      activeProductData = prepareActiveProductData(product, minPricedVariant);
+      dispatch(setActiveProduct(activeProductData));
+
+      if (user && p?._id) {
+        const canRate = await getCanRateProduct(user?._id, p?._id, minPricedVariant?._id);
+        p = { ...p, canRate: canRate || false };
       }
 
-      fetchReviews();
-
-      const getRealtedItems = async(product) => {
-        try {
-
-          const response = await Axios({
-            ...ApiBucket.getRelatedProducts,
-            params:{
-              product_id: product?._id,
-              category: product?.category?._id
-            }
-          })
-
-          if(response?.data?.success){
-            setRelatedItems(response?.data?.items);
-          }
-
-        } catch (error) {
-          AxiosToast(error)
-        }
-
+      const reviewData = await getUserReviews(p?._id);
+      if(reviewData) {
+        dispatch(setReviews(reviewData));
       }
 
-      getRealtedItems(product);
+      const relatedItems = await fetchRealtedItems(p);
 
-      //window.scrollTo(0, 0);
+      setProduct(p)
+      setRelatedItems(relatedItems);
+
     }
 
-  },[product])
+    fetchProduct()
+
+  },[user, products, path])
+
+  useEffect(() => {
+    if(cartItem) setProductQty(cartItem?.quantity)
+  },[cartItem])
 
   useEffect(() => {
     /* handle review container height */
@@ -232,7 +154,7 @@ function ProductPageComponent() {
 
   // checking the current attibutes value availble for other attrs
   const isOptionAvailable = (attrName, value) => {
-    return product.variants.some(variant => {
+    return product?.variants?.some(variant => {
       
       if (variant.attributes[attrName] !== value) return false;
 
@@ -915,6 +837,34 @@ function ProductPageComponent() {
       
     </section>
   )
+}
+
+const prepareActiveProductData = (product, minVariant) => ({
+  name: product?.name,
+  numReviews: product?.numReviews,
+  averageRating: product?.averageRating,
+  brand: product?.brand?.name,
+  canRate: product?.canRate || false,
+  ...(minVariant ? minVariant : {}),
+  _id: product?._id,
+});
+
+/* function to re-arrange attributes */
+const getAttributeMap = (variants) => {
+  const attrs = {}
+  variants.forEach(v => {
+    Object.entries(v.attributes).forEach(([key, value]) => {
+      if (!attrs[key]) attrs[key] = new Set();
+      attrs[key].add(value);
+    });
+  })
+
+  // convert set to array
+  Object.keys(attrs).forEach(key => {
+    attrs[key] = Array.from(attrs[key]);
+  });
+
+  return attrs
 }
 
 const ProductPage = React.memo(ProductPageComponent)

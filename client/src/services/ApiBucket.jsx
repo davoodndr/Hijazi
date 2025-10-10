@@ -31,6 +31,18 @@ const ApiBucket = {
     method: 'get'
   },
 
+  /* cart */
+  getCart: {
+    url: '/api/get-cart',
+    method: 'get'
+  },
+
+  /* wishlist */
+  getWishlist: {
+    url: '/api/get-wishlist',
+    method: 'get'
+  },
+
   /* wallet */
   getWallet: {
     url: '/api/get-wallet',
@@ -120,6 +132,10 @@ const ApiBucket = {
   /* users */
   getUsers: {
     url: '/api/admin/get-users',
+    method: 'get'
+  },
+  getUserInfo: {
+    url: '/api/admin/get-user-info',
     method: 'get'
   },
   addUser: {
@@ -242,6 +258,10 @@ const ApiBucket = {
     url: '/api/admin/get-reviews',
     method: 'get'
   },
+  getUserReviews: {
+    url: '/api/admin/get-user-reviews',
+    method: 'get'
+  },
   changeReviewStatus: {
     url: '/api/admin/change-review-status',
     method: 'patch'
@@ -277,10 +297,7 @@ const ApiBucket = {
   },
 
   /* cart */
-  getCart: {
-    url: '/api/user/get-cart',
-    method: 'get'
-  },
+
   addToCart: {
     url: '/api/user/add-to-cart',
     method: 'post'
@@ -295,10 +312,7 @@ const ApiBucket = {
   },
 
   /* wishlist */
-  getWishlist: {
-    url: '/api/user/get-wishlist',
-    method: 'get'
-  },
+
   addToWishlist: {
     url: '/api/user/add-to-wishlist',
     method: 'post'

@@ -6,6 +6,7 @@ import {
   addUser, 
   blockUser, 
   deleteUser, 
+  getUserInfo, 
   getUsers, 
   unblockUser, 
   updateUser, 
@@ -16,7 +17,7 @@ import { addBrand, deleteBrand, getBrands, updateBrand, uploadBrandLogo } from "
 import { addProduct, changeProductStatus, getProducts, updateProduct, uploadProductImages } from "../controllers/admin/productController.js";
 import { addOffer, changeOfferStatus, getOffers, updateOffer } from "../controllers/admin/offerController.js";
 import { cancelItem, cancelOrder, getOrders } from "../controllers/admin/orderController.js";
-import { changeReviewStatus, getReviews } from "../controllers/admin/reviewController.js";
+import { changeReviewStatus, getReviews, getUserReviews } from "../controllers/admin/reviewController.js";
 
 
 const adminRouter = express.Router();
@@ -26,6 +27,7 @@ adminRouter.post('/upload-upload-image',authenticate, allowRoles(['admin']), upl
 
 /* users management */
 adminRouter.get('/get-users',authenticate, allowRoles(['admin']), getUsers);
+adminRouter.get('/get-user-info', /* authenticate, allowRoles(['admin']), */ getUserInfo);
 adminRouter.post('/add-user',authenticate, allowRoles(['admin']),addUser);
 adminRouter.post('/upload-avatar',authenticate, allowRoles(['admin']), upload, uploadAvatar);
 adminRouter.patch('/update-user',authenticate, allowRoles(['admin']),updateUser);
@@ -55,7 +57,7 @@ adminRouter.patch('/update-product', authenticate, allowRoles(['admin']), update
 adminRouter.patch('/change-product-status', authenticate, allowRoles(['admin']), changeProductStatus)
 
 /* order management */
-adminRouter.get('/get-orders', authenticate, allowRoles(['admin']), getOrders)
+adminRouter.get('/get-orders', /* authenticate, allowRoles(['admin']), */ getOrders)
 adminRouter.post('/cancel-item', authenticate, allowRoles(['admin']), cancelItem)
 adminRouter.post('/cancel-order', authenticate, allowRoles(['admin']), cancelOrder)
 
@@ -67,6 +69,7 @@ adminRouter.patch('/change-offer-status', authenticate, allowRoles(['admin']), c
 
 /* review management */
 adminRouter.get('/get-reviews', authenticate, allowRoles(['admin']), getReviews)
+adminRouter.get('/get-user-reviews', authenticate, allowRoles(['admin']), getUserReviews)
 adminRouter.patch('/change-review-status', authenticate, allowRoles(['admin']), changeReviewStatus)
 
 export default adminRouter;
