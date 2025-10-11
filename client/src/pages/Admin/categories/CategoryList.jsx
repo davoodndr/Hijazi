@@ -24,6 +24,8 @@ import { BsSortDown, BsSortDownAlt } from 'react-icons/bs';
 import { CiFilter } from 'react-icons/ci';
 import { containerVariants, rowVariants } from '../../../utils/Anim';
 import ImagePlaceHolder from '../../../components/ui/ImagePlaceHolder';
+import SearchBar from '../../../components/ui/Searchbar';
+import SkeltoList from '../../../components/ui/SkeltoList';
 
 const CategoryList = () => {
 
@@ -206,12 +208,14 @@ const CategoryList = () => {
 
       {/* search */}
       <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center relative w-3/10">
-          <LuSearch size={20} className='absolute left-3'/>
-          <input type="text" value={query} onChange={e => setQuery(e.target.value)}
-            placeholder='Search users'
-            className='pl-10! rounded-xl! bg-white' />
-        </div>
+
+        <SearchBar
+          onSearch={(value) => setSearchQuery(value)}
+          placeholder='Search users'
+          className='w-3/10'
+          inputClass="!pl-10 rounded-xl bg-white peer"
+          iconClass='left-3 smooth peer-focus:text-primary-400'
+        />
 
         {/* filter sort */}
         <div className='flex items-center h-full gap-x-2'>
@@ -281,7 +285,7 @@ const CategoryList = () => {
         {/* Header */}
         <div className="text-gray-400 uppercase font-semibold tracking-wider
           border-b border-theme-divider px-4.5 py-3.5 bg-gray-50 rounded-t-3xl">
-          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full">
+          <div className="grid grid-cols-[30px_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center w-full">
             <span><input type="checkbox" /></span>
             <span>Name</span>
             <span>Slug</span>
@@ -291,6 +295,7 @@ const CategoryList = () => {
             <span className="text-center">Actions</span>
           </div>
         </div>
+
         <motion.ul
           key={currentPage} 
           layout
@@ -301,174 +306,180 @@ const CategoryList = () => {
           className="flex flex-col w-full h-full text-sm text-gray-700">
 
             {/* Rows */}
-            {isLoading || paginatedCategories.length <= 0 ? 
-              <>
-                <li className="rounded px-6 py-4 space-y-3">
-                  <Skeleton height="h-10" width="w-full" />
-                </li>
-                <li className="rounded px-6 py-4 space-y-3">
-                  <Skeleton height="h-10" width="w-full" />
-                </li>
-                <li className="rounded px-6 py-4 space-y-3">
-                  <Skeleton height="h-10" width="w-full" />
-                </li>
-              </>
-              :
+            {isLoading ? (
+              <SkeltoList />
+            )  :
 
-              <motion.li layout className="divide-y divide-theme-divider">
-
+              paginatedCategories?.length > 0 ? (
                 <AnimatePresence exitBeforeEnter>
+                  <motion.li
+                    key="list-container"
+                    layout 
+                    className="divide-y divide-theme-divider"
+                  >
+                    {paginatedCategories?.map((category, index) => {
 
-                  {/* paginatedCategories.length > 0 ? */
-                    ( paginatedCategories.map((category, index) => {
+                        const statusColors = () => {
+                          switch(category.status){
+                            case 'active': return 'bg-green-500/40 text-teal-800'
+                            case 'blocked': return 'bg-red-100 text-red-500'
+                            default : return 'bg-gray-200 text-gray-400'
+                          }
+                        }
 
-                    const statusColors = () => {
-                      switch(category.status){
-                        case 'active': return 'bg-green-500/40 text-teal-800'
-                        case 'blocked': return 'bg-red-100 text-red-500'
-                        default : return 'bg-gray-200 text-gray-400'
-                      }
-                    }
+                        const parent = category.parentId;
 
-                    const parent = category.parentId;
+                        return(
+                        
+                          <motion.div
+                            layout
+                            key={category._id}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            variants={rowVariants}
+                            whileHover={{
+                              backgroundColor: '#efffeb',
+                              transition: { duration: 0.3 }
+                            }}
+                          >
+                        
+                            <div className="grid grid-cols-[30px_1.5fr_1fr_1fr_1fr_1fr_1fr] 
+                              items-center w-full px-4 py-2 bg-white"
+                            >
+                              {/* Checkbox */}
+                              <div><input type="checkbox" /></div>
 
-                    return(
-                    
-                      <motion.div
-                        layout
-                        key={category._id}
-                        custom={index}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        variants={rowVariants}
-                        whileHover={{
-                          backgroundColor: '#efffeb',
-                          transition: { duration: 0.3 }
-                        }}
-                      >
-                    
-                        <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1fr_1fr_1fr] 
-                          items-center w-full px-4 py-2 bg-white"
-                        >
-                          {/* Checkbox */}
-                          <div><input type="checkbox" /></div>
+                              {/* Category Info */}
+                              <div className="flex gap-2 items-center">
+                                {category?.thumb?.url ? 
+                                  (<PreviewImage src={category?.thumb?.url} alt={category?.name} size="40" zoom="120%" 
+                                    thumbClass="rounded-xl border border-gray-300 w-12 h-12"
+                                  />)
+                                  :
+                                  (<ImagePlaceHolder
+                                    size={22}
+                                    className="rounded-xl border border-gray-300 bg-white text-gray-500/60 w-12 h-12"
+                                    />)
+                                }
+                                
+                                <div className="inline-flex flex-col capitalize">
+                                  <p className="font-semibold">{category?.name}</p>
+                                  <p className="text-xs">000 products</p>
+                                  {category?.featured && 
+                                    <p className="text-xs text-featured-500 inline-flex items-center w-fit rounded-xl
+                                      before:bg-featured-300 before:content[''] before:p-0.75 before:me-1
+                                      before:inline-flex before:items-center before:rounded-full"
+                                    >Featured</p>
+                                  }
+                                </div>
+                              </div>
 
-                          {/* Category Info */}
-                          <div className="flex gap-2 items-center">
-                            {category?.thumb?.url ? 
-                              (<PreviewImage src={category?.thumb?.url} alt={category?.name} size="40" zoom="120%" 
-                                thumbClass="rounded-xl border border-gray-300 w-12 h-12"
-                              />)
-                              :
-                              (<ImagePlaceHolder
-                                size={22}
-                                className="rounded-xl border border-gray-300 bg-white text-gray-500/60 w-12 h-12"
-                                />)
-                            }
-                            
-                            <div className="inline-flex flex-col capitalize">
-                              <p className="font-semibold">{category?.name}</p>
-                              <p className="text-xs">000 products</p>
-                              {category?.featured && 
-                                <p className="text-xs text-featured-500 inline-flex items-center w-fit rounded-xl
-                                  before:bg-featured-300 before:content[''] before:p-0.75 before:me-1
-                                  before:inline-flex before:items-center before:rounded-full"
-                                >Featured</p>
-                              }
-                            </div>
-                          </div>
-
-                          {/* Slug */}
-                          <div>/{category.slug || <span className="text-gray-400">Not added</span>}</div>
-                          
-                          {/* parent name */}
-                          <div className='capitalize'>{parent?.name || <span className="text-gray-400">Nil</span>}</div>
-
-                          {/* Status */}
-                          <div>
-                            <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
-                              ${statusColors()}`}>
-                              {category?.status}
-                            </span>
-                          </div>
-                          
-                          {/* visibility */}
-                          <div className='capitalize'>
-                            {category?.visible ? 'visible' : <span className="text-gray-400">Invisible</span>}
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex items-center justify-center gap-3 z-50">
-                            <div 
-                              onClick={() => {
-                                setIsEditOpen(true);
-                                setEditingCategory(category)
-                              }}
-                              className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
-                              border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
-                              <TbUserEdit size={20} />
-                            </div>
-
-                            
-                            <Menu as="div" className='relative'>
-                              {({ open }) => (
-                                <>
-                                  <MenuButton
-                                    className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                                    border border-gray-300 !text-gray-900 cursor-pointer"
-                                  >
-                                    <IoMdMore size={20} />
-                                  </MenuButton>
-                                  <ContextMenu 
-                                    open={open}
-                                    items={[
-                                      /* { label: 'view category', icon: IoEyeOutline, onClick: () => {} }, */
-                                      { id: 'delete', 
-                                        icon: <HiOutlineTrash className='text-xl' />,
-                                        text: <span className={`capitalize`}> delete </span>,
-                                        onClick: () => handledelete(category._id) ,
-                                        itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
-                                      }
-                                    ]}
-                                  />
-                                </>
-                              )}
+                              {/* Slug */}
+                              <div>/{category.slug || <span className="text-gray-400">Not added</span>}</div>
                               
-                            </Menu>
-                            
-                          </div>
-                        </div>
-                      </motion.div>
-                                            
-                    )}))
-                    /* :
-                    (<div className="flex items-center justify-center h-20 text-primary-400
-                      text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl">
-                      No categories
-                    </div> ) */
-                  }
+                              {/* parent name */}
+                              <div className='capitalize'>{parent?.name || <span className="text-gray-400">Nil</span>}</div>
 
+                              {/* Status */}
+                              <div>
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
+                                  ${statusColors()}`}>
+                                  {category?.status}
+                                </span>
+                              </div>
+                              
+                              {/* visibility */}
+                              <div className='capitalize'>
+                                {category?.visible ? 'visible' : <span className="text-gray-400">Invisible</span>}
+                              </div>
+
+                              {/* Actions */}
+                              <div className="flex items-center justify-center gap-3 z-50">
+                                <div 
+                                  onClick={() => {
+                                    setIsEditOpen(true);
+                                    setEditingCategory(category)
+                                  }}
+                                  className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
+                                  border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
+                                  <TbUserEdit size={20} />
+                                </div>
+
+                                
+                                <Menu as="div" className='relative'>
+                                  {({ open }) => (
+                                    <>
+                                      <MenuButton
+                                        className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                        border border-gray-300 !text-gray-900 cursor-pointer"
+                                      >
+                                        <IoMdMore size={20} />
+                                      </MenuButton>
+                                      <ContextMenu 
+                                        open={open}
+                                        items={[
+                                          /* { label: 'view category', icon: IoEyeOutline, onClick: () => {} }, */
+                                          { id: 'delete', 
+                                            icon: <HiOutlineTrash className='text-xl' />,
+                                            text: <span className={`capitalize`}> delete </span>,
+                                            onClick: () => handledelete(category._id) ,
+                                            itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
+                                          }
+                                        ]}
+                                      />
+                                    </>
+                                  )}
+                                  
+                                </Menu>
+                                
+                              </div>
+                            </div>
+                          </motion.div>
+                                                
+                    )})}
+
+                  </motion.li>
                 </AnimatePresence>
-
-              </motion.li>
+              ) : (
+                !searchQuery?.trim() ? (
+                  <SkeltoList />
+                ):(
+                  <AnimatePresence>
+                    <motion.li
+                      key="not-found"
+                      layout
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      variants={rowVariants}
+                      className="flex items-center"
+                    >
+                      <span
+                        className="w-full h-full text-center py-6 text-primary-400
+                        text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
+                      >No category found</span>
+                    </motion.li>
+                  </AnimatePresence>
+                )
+              )
             }
 
           {/* Pagination */}
-          {paginatedCategories.length > 0 && <motion.li
-            layout
-            key="pagination"
-            custom={filteredCategories.length + 1}
-            className="px-4 py-5"
-          >
-            
-            <AdminPagination 
-              currentPage={currentPage} 
-              totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
-            />
+          {paginatedCategories?.length > 0 && 
+            <motion.li
+              layout
+              key="pagination"
+              className="px-4 py-5"
+            >
+              
+              <AdminPagination 
+                currentPage={currentPage} 
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+              />
 
-          </motion.li>
+            </motion.li>
           }
         </motion.ul>
       </div>

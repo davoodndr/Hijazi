@@ -16,13 +16,14 @@ import { blockUserAction, deleteUserAction } from '../../../services/ApiActions'
 import AxiosToast from '../../../utils/AxiosToast';
 import Alert from '../../../components/ui/Alert'
 import { Menu, MenuButton } from '@headlessui/react';
-import Skeleton from '../../../components/ui/Skeleton';
 import DropdownButton from '../../../components/ui/DropdownButton';
 import { FaSort } from 'react-icons/fa6';
 import { BsFillMenuButtonFill, BsSortDown, BsSortDownAlt } from 'react-icons/bs';
 import { CiFilter } from 'react-icons/ci';
 import { containerVariants, rowVariants } from '../../../utils/Anim';
 import { format } from 'date-fns'
+import SearchBar from '../../../components/ui/Searchbar';
+import SkeltoList from '../../../components/ui/SkeltoList';
 
 const UsersList = () => {
 
@@ -59,23 +60,12 @@ const UsersList = () => {
     
   }
 
-  /* debouncer */
-  const [query, setQuery] = useState('');
-  const [searchQuery, setSearchQuery] = useState(query);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchQuery(query)
-    }, 300);
-
-    return () => clearTimeout(timer);
-
-  },[query])
-
   /* search filter */
+  const [searchQuery, setSearchQuery] = useState(null);
+  const fields = ['username','email','role','status','mobile']
+
   const filteredUsers = useMemo(() => {
     return users?.filter(user =>{
-
-      const fields = ['username','email','role','status','mobile']
 
       return fields.some(field => {
 
@@ -153,7 +143,7 @@ const UsersList = () => {
   const itemsPerPage = 5;
   const totalPages = Math.ceil(users.length / itemsPerPage);
 
-  const paginatedUsers = filteredUsers.slice(
+  const paginatedUsers = filteredUsers?.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -186,12 +176,14 @@ const UsersList = () => {
 
       {/* search */}
       <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center relative w-3/10">
-          <LuSearch size={20} className='absolute left-3'/>
-          <input type="text" value={query} onChange={e => setQuery(e.target.value)}
-           placeholder='Search users'
-            className='pl-10! rounded-xl! bg-white' />
-        </div>
+        
+        <SearchBar
+          onSearch={(value) => setSearchQuery(value)}
+          placeholder='Search users'
+          className='w-3/10'
+          inputClass="!pl-10 rounded-xl bg-white peer"
+          iconClass='left-3 smooth peer-focus:text-primary-400'
+        />
 
         {/* filter sort */}
         <div className='flex items-center h-full gap-x-2'>
@@ -283,223 +275,234 @@ const UsersList = () => {
           className="flex flex-col w-full h-full text-sm text-gray-700">
 
             {/* Rows */}
-            {loading || paginatedUsers?.length <= 0 ? 
-              <>
-                <li className="rounded px-6 py-4 space-y-3">
-                  <Skeleton height="h-10" width="w-full" />
-                </li>
-                <li className="rounded px-6 py-4 space-y-3">
-                  <Skeleton height="h-10" width="w-full" />
-                </li>
-                <li className="rounded px-6 py-4 space-y-3">
-                  <Skeleton height="h-10" width="w-full" />
-                </li>
-              </>
-              :
+            {loading ? (
+              <SkeltoList />
+            )  : (
 
-              <motion.li layout className="divide-y divide-theme-divider">
+              paginatedUsers?.length > 0 ? (
 
                 <AnimatePresence exitBeforeEnter>
-                  {/* paginatedUsers.length > 0 ? */ 
-                    (paginatedUsers.map((user, index) => {
+                  <motion.li
+                    key="list-container"
+                    layout 
+                    className="divide-y divide-theme-divider"
+                  >
+                    {paginatedUsers.map((user, index) => {
 
-                      const statusColors = () => {
-                        switch(user.status){
-                          case 'active': return 'bg-green-500/40 text-teal-800'
-                          case 'blocked': return 'bg-red-100 text-red-500'
-                          default : return 'bg-gray-200 text-gray-400'
+                        const statusColors = () => {
+                          switch(user.status){
+                            case 'active': return 'bg-green-500/40 text-teal-800'
+                            case 'blocked': return 'bg-red-100 text-red-500'
+                            default : return 'bg-gray-200 text-gray-400'
+                          }
                         }
-                      }
 
-                      const lastLogin = user?.last_login ? 
-                        format(new Date(user?.last_login), 'dd/MM/yy, hh:mm a')
-                          .replace('AM','am')
-                          .replace('PM','pm') : null;
-                      
-                      const { orders, pendings, cancelled } = user?.orderDetails;
-
-                      return(
+                        const lastLogin = user?.last_login ? 
+                          format(new Date(user?.last_login), 'dd/MM/yy, hh:mm a')
+                            .replace('AM','am')
+                            .replace('PM','pm') : null;
                         
-                        <motion.div
-                          layout
-                          key={user._id}
-                          custom={index}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          variants={rowVariants}
-                          whileHover={{
-                            backgroundColor: '#efffeb',
-                            transition: { duration: 0.3 }
-                          }}
-                        >
-                      
-                          <div className="grid grid-cols-[30px_1.75fr_0.75fr_1fr_0.75fr_0.5fr_0.75fr_0.75fr] 
-                            items-center w-full px-4 py-2 bg-white"
+                        const { orders, pendings, cancelled } = user?.orderDetails;
+
+                        return(
+                          
+                          <motion.div
+                            layout
+                            key={user._id}
+                            custom={index}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            variants={rowVariants}
+                            whileHover={{
+                              backgroundColor: '#efffeb',
+                              transition: { duration: 0.3 }
+                            }}
                           >
-                            {/* Checkbox */}
-                            <div><input type="checkbox" /></div>
-
-                            {/* User Info */}
-                            <div className="flex gap-2 items-center">
-                              <div className="w-12 h-12 rounded-full overflow-hidden">
-                                <img src={user?.avatar?.url || place_holder} alt="avatar" className="object-cover w-full h-full" />
-                              </div>
-                              <div className="inline-flex flex-col">
-                                <p className="capitalize">{user?.username}</p>
-                                <p className="text-xs text-gray-500">{user?.email}</p>
-                                <p className="text-xs text-gray-400">
-                                  <span>{lastLogin ? 'Logined: ' : 'Not logined'}</span>
-                                  <span>{lastLogin}</span>
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Roles */}
-                            <div className="flex flex-col text-[13px]">
-                              {user?.roles.map((role, n) => (
-                                <span key={n} className="capitalize">{role}</span>
-                              ))}
-                            </div>
-
-                            {/* Contact */}
-                            <div>{user?.mobile || <span className="text-gray-400">Not added</span>}</div>
-
-                            {/* orders */}
-                            <div className='text-[13px]'>
-                              {orders > 0 ?
-                                (
-                                  <>
-                                    <p>
-                                      <span className='text-gray-500'>Total: </span>
-                                      <span className='font-semibold'>{orders}</span>
-                                    </p>
-                                    {pendings > 0 &&
-                                      (
-                                        <p>
-                                          <span className='text-gray-500'>Pendings: </span>
-                                          <span className='font-semibold'>{pendings}</span>
-                                        </p>
-                                      )
-                                    }
-                                    {cancelled > 0 &&
-                                      (
-                                        <p>
-                                          <span className='text-gray-500'>Cancelled: </span>
-                                          <span className='font-semibold'>{cancelled}</span>
-                                        </p>
-                                      )
-                                    }
-                                  </>
-                                )
-                                :
-                                (
-                                  <span className='text-gray-400'>No orders made</span>
-                                )
-                              }
-                            </div>
-
-                            {/* reviews */}
-                            <div className='text-center'>{user?.reviews}</div>
-
-                            {/* Status */}
-                            <div className='text-center'>
-                              <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
-                                ${statusColors()}`}>
-                                {user.status}
-                              </span>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex items-center justify-center space-x-1 z-50">
-                              <div 
-                                onClick={() => navigate('/admin/users/edit-user',{state: {user}})}
-                                className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
-                                border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
-                                <TbUserEdit size={20} />
-                              </div>
-
-                              
-                              <Menu as="div" className='relative'>
-                                {({ open }) => (
-                                  <>
-                                    <MenuButton
-                                      className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                                      border border-gray-300 !text-gray-900 cursor-pointer"
-                                    >
-                                      <IoMdMore size={20} />
-                                    </MenuButton>
-                                    <ContextMenu 
-                                      open={open}
-                                      items={[
-                                        { id: 'view user', 
-                                          icon: <LuEye className='text-xl' />,
-                                          text: <span className={`capitalize`}> view user </span>,
-                                          onClick: () => 
-                                            navigate('/admin/users/view-user',
-                                            { state: 
-                                              { user: user?._id }
-                                            }
-                                          ) 
-                                        },
-                                        { id: 'block', 
-                                          icon: user?.status === 'blocked' ? 
-                                          <CgUnblock className='text-xl' /> : 
-                                          <MdBlock className='text-xl' />,
-                                          text: <span className={`capitalize`}> 
-                                            {user?.status === 'blocked' ? 'unblock' : 'block'} 
-                                          </span>,
-                                          onClick: ()=> handleUserBlock(user) 
-                                        },
-                                        
-                                        { id: 'delete', 
-                                          icon: <HiOutlineTrash className='text-xl' />,
-                                          text: <span className={`capitalize`}> delete </span>,
-                                          onClick: () => handleUserDelete(user) ,
-                                          itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
-                                        }
-                                      ]}
-                                    />
-                                  </>
-                                )}
-                                
-                              </Menu>
-                              
-                            </div>
-                          </div>
                         
-                        </motion.div>
-                      )
-                    }))
-                  /* :
-                  (<div className="flex items-center justify-center h-20 text-primary-400
-                    text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl">
-                    No Users
-                  </div> ) */
-                  }
+                            <div className="grid grid-cols-[30px_1.75fr_0.75fr_1fr_0.75fr_0.5fr_0.75fr_0.75fr] 
+                              items-center w-full px-4 py-2 bg-white"
+                            >
+                              {/* Checkbox */}
+                              <div><input type="checkbox" /></div>
 
+                              {/* User Info */}
+                              <div className="flex gap-2 items-center">
+                                <div className="w-12 h-12 rounded-full overflow-hidden">
+                                  <img src={user?.avatar?.url || place_holder} alt="avatar" className="object-cover w-full h-full" />
+                                </div>
+                                <div className="inline-flex flex-col">
+                                  <p className="capitalize">{user?.username}</p>
+                                  <p className="text-xs text-gray-500">{user?.email}</p>
+                                  <p className="text-xs text-gray-400">
+                                    <span>{lastLogin ? 'Logined: ' : 'Not logined'}</span>
+                                    <span>{lastLogin}</span>
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Roles */}
+                              <div className="flex flex-col text-[13px]">
+                                {user?.roles.map((role, n) => (
+                                  <span key={n} className="capitalize">{role}</span>
+                                ))}
+                              </div>
+
+                              {/* Contact */}
+                              <div>{user?.mobile || <span className="text-gray-400">Not added</span>}</div>
+
+                              {/* orders */}
+                              <div className='text-[13px]'>
+                                {orders > 0 ?
+                                  (
+                                    <>
+                                      <p>
+                                        <span className='text-gray-500'>Total: </span>
+                                        <span className='font-semibold'>{orders}</span>
+                                      </p>
+                                      {pendings > 0 &&
+                                        (
+                                          <p>
+                                            <span className='text-gray-500'>Pendings: </span>
+                                            <span className='font-semibold'>{pendings}</span>
+                                          </p>
+                                        )
+                                      }
+                                      {cancelled > 0 &&
+                                        (
+                                          <p>
+                                            <span className='text-gray-500'>Cancelled: </span>
+                                            <span className='font-semibold'>{cancelled}</span>
+                                          </p>
+                                        )
+                                      }
+                                    </>
+                                  )
+                                  :
+                                  (
+                                    <span className='text-gray-400'>No orders made</span>
+                                  )
+                                }
+                              </div>
+
+                              {/* reviews */}
+                              <div className='text-center'>{user?.reviews}</div>
+
+                              {/* Status */}
+                              <div className='text-center'>
+                                <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
+                                  ${statusColors()}`}>
+                                  {user.status}
+                                </span>
+                              </div>
+
+                              {/* Actions */}
+                              <div className="flex items-center justify-center space-x-1 z-50">
+                                <div 
+                                  onClick={() => navigate('/admin/users/edit-user',{state: {user}})}
+                                  className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
+                                  border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
+                                  <TbUserEdit size={20} />
+                                </div>
+
+                                
+                                <Menu as="div" className='relative'>
+                                  {({ open }) => (
+                                    <>
+                                      <MenuButton
+                                        className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                        border border-gray-300 !text-gray-900 cursor-pointer"
+                                      >
+                                        <IoMdMore size={20} />
+                                      </MenuButton>
+                                      <ContextMenu 
+                                        open={open}
+                                        items={[
+                                          { id: 'view user', 
+                                            icon: <LuEye className='text-xl' />,
+                                            text: <span className={`capitalize`}> view user </span>,
+                                            onClick: () => 
+                                              navigate('/admin/users/view-user',
+                                              { state: 
+                                                { user: user?._id }
+                                              }
+                                            ) 
+                                          },
+                                          { id: 'block', 
+                                            icon: user?.status === 'blocked' ? 
+                                            <CgUnblock className='text-xl' /> : 
+                                            <MdBlock className='text-xl' />,
+                                            text: <span className={`capitalize`}> 
+                                              {user?.status === 'blocked' ? 'unblock' : 'block'} 
+                                            </span>,
+                                            onClick: ()=> handleUserBlock(user) 
+                                          },
+                                          
+                                          { id: 'delete', 
+                                            icon: <HiOutlineTrash className='text-xl' />,
+                                            text: <span className={`capitalize`}> delete </span>,
+                                            onClick: () => handleUserDelete(user) ,
+                                            itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
+                                          }
+                                        ]}
+                                      />
+                                    </>
+                                  )}
+                                  
+                                </Menu>
+                                
+                              </div>
+                            </div>
+                          
+                          </motion.div>
+                        )
+                      })
+                    }
+
+                  </motion.li>
                 </AnimatePresence>
 
-              </motion.li>
-            }
+              ) : (
+                !searchQuery?.trim() ? (
+                  <SkeltoList />
+                ):(
+                  <AnimatePresence>
+                    <motion.li
+                      key="not-found"
+                      layout
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      variants={rowVariants}
+                      className="flex items-center"
+                    >
+                      <span
+                        className="w-full h-full text-center py-6 text-primary-400
+                        text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
+                      >No users found</span>
+                    </motion.li>
+                  </AnimatePresence>
+                )
+              )
+            )}
 
           
 
           {/* Pagination */}
-          {paginatedUsers.length > 0 && <motion.li
-            layout
-            key="pagination"
-            custom={filteredUsers.length + 1}
-            className="px-4 py-5"
-          >
-            
-            <AdminPagination 
-              currentPage={currentPage} 
-              totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
-            />
+          {paginatedUsers?.length > 0 && 
+            <motion.li
+              layout
+              key="pagination"
+              className="px-4 py-5"
+            >
+              
+              <AdminPagination 
+                currentPage={currentPage} 
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+              />
 
-          </motion.li>
+            </motion.li>
           }
         </motion.ul>
       </div>

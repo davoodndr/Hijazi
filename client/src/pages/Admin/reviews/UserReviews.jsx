@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { HiHome } from 'react-icons/hi2';
 import { IoIosArrowDown, IoIosArrowForward, IoIosArrowUp, IoMdCheckmarkCircleOutline, IoMdMore } from 'react-icons/io';
 import { LuSearch } from 'react-icons/lu';
@@ -23,6 +23,8 @@ import { setLoading } from '../../../store/slices/CommonSlices';
 import Alert from '../../../components/ui/Alert';
 import AxiosToast from '../../../utils/AxiosToast';
 import { useDispatch } from 'react-redux';
+import SearchBar from '../../../components/ui/Searchbar';
+import SkeltoList from '../../../components/ui/SkeltoList';
 
 function UserReviewsComponent() {
 
@@ -127,18 +129,25 @@ function UserReviewsComponent() {
 
   }
 
-  /* debouncer */
-  const [query, setQuery] = useState('');
-  const [searchQuery, setSearchQuery] = useState(query);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchQuery(query)
-    }, 300);
+  const [searchQuery, setSearchQuery] = useState(null);
+  const fields = ['username','email','role','status','mobile']
 
-    return () => clearTimeout(timer);
+  const filteredReviews = useMemo(() => {
+    return reviews?.filter(user =>{
 
-  },[query])
+      return fields.some(field => {
+
+        if(user && user[field]){
+          return user[field]?.includes(searchQuery)
+        }
+        return false
+
+      })
+
+    });
+
+  },[searchQuery, reviews])
 
   /* sort */
   const [sortedReviews, setSortedOffers] = useState([]);
@@ -152,9 +161,9 @@ function UserReviewsComponent() {
   /* paingation logic */
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  const totalPages = Math.ceil(sortedReviews.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredReviews.length / itemsPerPage);
 
-  const paginatedReviews = sortedReviews.slice(
+  const paginatedReviews = filteredReviews.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -189,12 +198,14 @@ function UserReviewsComponent() {
 
       {/* search */}
       <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center relative w-3/10">
-          <LuSearch size={20} className='absolute left-3'/>
-          <input type="text" value={query} onChange={e => setQuery(e.target.value)}
-            placeholder='Search offers'
-            className='pl-10! rounded-xl! bg-white' />
-        </div>
+        
+        <SearchBar
+          onSearch={(value) => setSearchQuery(value)}
+          placeholder='Search users'
+          className='w-3/10'
+          inputClass="!pl-10 rounded-xl bg-white peer"
+          iconClass='left-3 smooth peer-focus:text-primary-400'
+        />
 
         {/* filter sort */}
         <div className='flex items-center h-full gap-x-2'>
@@ -307,143 +318,160 @@ function UserReviewsComponent() {
           exit="exit"
           className="flex flex-col w-full h-full text-sm text-gray-700">
 
-          {isLoading || reviews.length <= 0 ? 
-            <>
-              <li className="rounded px-6 py-4 space-y-3">
-                <Skeleton height="h-10" width="w-full" />
-              </li>
-              <li className="rounded px-6 py-4 space-y-3">
-                <Skeleton height="h-10" width="w-full" />
-              </li>
-              <li className="rounded px-6 py-4 space-y-3">
-                <Skeleton height="h-10" width="w-full" />
-              </li>
-            </>
-            :
+          {isLoading  ? (
+            <SkeltoList />
+          ) : (
+            paginatedReviews?.length > 0 ? (
 
-            <motion.li layout className="divide-y divide-theme-divider">
-            
               <AnimatePresence exitBeforeEnter>
-                {reviews?.map((review, index) => {
+                <motion.li
+                  key="list-container"
+                  layout 
+                  className="divide-y divide-theme-divider"
+                >
+              
+                  {reviews?.map((review, index) => {
 
-                  const reviewUser = review?.user_id;
-                  const reviewProduct = review?.product_id;
-                  const dt = format(new Date(review?.createdAt), 'dd MMM y')
+                    const reviewUser = review?.user_id;
+                    const reviewProduct = review?.product_id;
+                    const dt = format(new Date(review?.createdAt), 'dd MMM y')
 
-                  return (
-                    <motion.div
-                      layout
-                      key={review?._id}
-                      custom={index}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      variants={rowVariants}
-                      whileHover={{
-                        backgroundColor: '#efffeb',
-                        transition: { duration: 0.3 }
-                      }}
-                    >
-                  
-                      <ul className="grid grid-cols-[30px_1fr_1.25fr_0.75fr_1fr_1.25fr_0.75fr_0.25fr] 
-                        items-center w-full px-4 py-2 bg-white"
+                    return (
+                      <motion.div
+                        layout
+                        key={review?._id}
+                        custom={index}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={rowVariants}
+                        whileHover={{
+                          backgroundColor: '#efffeb',
+                          transition: { duration: 0.3 }
+                        }}
                       >
-                        {/* Checkbox */}
-                        <li><input type="checkbox" /></li>
+                    
+                        <ul className="grid grid-cols-[30px_1fr_1.25fr_0.75fr_1fr_1.25fr_0.75fr_0.25fr] 
+                          items-center w-full px-4 py-2 bg-white"
+                        >
+                          {/* Checkbox */}
+                          <li><input type="checkbox" /></li>
 
-                        {/* user */}
-                        <li>
-                          <p className='capitalize truncate'>{reviewUser?.fullname || reviewUser?.username}</p>
-                          <p className='text-xs text-gray-500/80'>{dt}</p>
-                        </li>
+                          {/* user */}
+                          <li>
+                            <p className='capitalize truncate'>{reviewUser?.fullname || reviewUser?.username}</p>
+                            <p className='text-xs text-gray-500/80'>{dt}</p>
+                          </li>
 
-                        {/* product */}
-                        <li className='capitalize truncate'>
-                          <p>{reviewProduct?.name}</p>
-                          <p className='text-xs text-gray-500/80'>{reviewProduct?.category?.name}</p>
-                        </li>
+                          {/* product */}
+                          <li className='capitalize truncate'>
+                            <p>{reviewProduct?.name}</p>
+                            <p className='text-xs text-gray-500/80'>{reviewProduct?.category?.name}</p>
+                          </li>
 
-                        {/* rating */}
-                        <li>
-                          <StarRating
-                            value={review?.rating}
-                            starSize={4}
-                          />
-                        </li>
+                          {/* rating */}
+                          <li>
+                            <StarRating
+                              value={review?.rating}
+                              starSize={4}
+                            />
+                          </li>
 
-                        {/* title */}
-                        <li className='capitalize truncate font-bold text-sm'>{review?.title}</li>
+                          {/* title */}
+                          <li className='capitalize truncate font-bold text-sm'>{review?.title}</li>
 
-                        {/* review */}
-                        <li className='truncate'>{review?.review}</li>
+                          {/* review */}
+                          <li className='truncate'>{review?.review}</li>
 
-                        {/* status */}
-                        <li className='capitalize text-xs text-center'>
-                          <span className={clsx('badge py-1 px-2',
-                            review?.status === 'pending' && 'bg-amber-100 text-amber-500',
-                            review?.status === 'approved' && 'bg-green-100 text-green-600',
-                            review?.status === 'hidden' && 'bg-gray-100 text-gray-500',
-                          )}>
+                          {/* status */}
+                          <li className='capitalize text-xs text-center'>
+                            <span className={clsx('badge py-1 px-2',
+                              review?.status === 'pending' && 'bg-amber-100 text-amber-500',
+                              review?.status === 'approved' && 'bg-green-100 text-green-600',
+                              review?.status === 'hidden' && 'bg-gray-100 text-gray-500',
+                            )}>
 
-                          {review?.status}
+                            {review?.status}
 
-                          </span>
-                        </li>
+                            </span>
+                          </li>
 
-                        {/* Actions */}
-                        <li className="flex items-center justify-center z-50">
-                          <Menu as="div" className='relative'>
-                            {({ open }) => (
-                              <>
-                                <MenuButton as='div'
-                                  className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                                  border border-gray-300 !text-gray-900 cursor-pointer"
-                                >
-                                  <IoMdMore size={20} />
-                                </MenuButton>
-                                <ContextMenu 
-                                  open={open}
-                                  items={[
-                                    { id: 'approved', 
-                                      icon: review?.status === 'approved' ? 
-                                      <IoMdCheckmarkCircleOutline className='text-xl text-primary-400' />
-                                      : <FaRegCircleXmark className='text-xl' />,
-                                      text: <span className='capitalize'> {
-                                        review?.status === 'approved' ? 'approved' : 'approve'
-                                      } </span>,
-                                      onClick: () => {},
-                                      tail: <ToggleSwitch 
-                                              size={4}
-                                              value={review?.status === 'approved'}
-                                              onChange={() => 
-                                                handleStatusChange(review?._id, review?.status)
-                                              }
-                                            />
-                                    },
-                                  ]}
-                                />
-                              </>
-                            )}
-                            
-                          </Menu>
-                        </li>
+                          {/* Actions */}
+                          <li className="flex items-center justify-center z-50">
+                            <Menu as="div" className='relative'>
+                              {({ open }) => (
+                                <>
+                                  <MenuButton as='div'
+                                    className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                    border border-gray-300 !text-gray-900 cursor-pointer"
+                                  >
+                                    <IoMdMore size={20} />
+                                  </MenuButton>
+                                  <ContextMenu 
+                                    open={open}
+                                    items={[
+                                      { id: 'approved', 
+                                        icon: review?.status === 'approved' ? 
+                                        <IoMdCheckmarkCircleOutline className='text-xl text-primary-400' />
+                                        : <FaRegCircleXmark className='text-xl' />,
+                                        text: <span className='capitalize'> {
+                                          review?.status === 'approved' ? 'approved' : 'approve'
+                                        } </span>,
+                                        onClick: () => {},
+                                        tail: <ToggleSwitch 
+                                                size={4}
+                                                value={review?.status === 'approved'}
+                                                onChange={() => 
+                                                  handleStatusChange(review?._id, review?.status)
+                                                }
+                                              />
+                                      },
+                                    ]}
+                                  />
+                                </>
+                              )}
+                              
+                            </Menu>
+                          </li>
 
-                      </ul>
+                        </ul>
 
-                    </motion.div>
-                  )
-                })}
+                      </motion.div>
+                    )
+                  })}
+
+                </motion.li>
               </AnimatePresence>
-
-            </motion.li>
-
-          }
+              
+            ) : (
+              !searchQuery?.trim() ? (
+                <SkeltoList />
+              ):(
+                <AnimatePresence>
+                  <motion.li
+                    key="not-found"
+                    layout
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    variants={rowVariants}
+                    className="flex items-center"
+                  >
+                    <span
+                      className="w-full h-full text-center py-6 text-primary-400
+                      text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
+                    >No reviews found</span>
+                  </motion.li>
+                </AnimatePresence>
+              )
+            )
+          )}
 
           {/* Pagination */}
-          {reviews.length > 0 && <motion.li
+          {paginatedReviews.length > 0 && <motion.li
             layout
             key="pagination"
-            /* custom={filteredOffers.length + 1} */
+            custom={filteredReviews?.length + 1}
             className="px-4 py-5"
           >
             

@@ -28,6 +28,8 @@ import { sortProductsByPrice } from '../../../utils/Utils';
 import { containerVariants, rowVariants } from '../../../utils/Anim';
 import clsx from 'clsx';
 import StarRating from '../../../components/ui/StarRating';
+import SearchBar from '../../../components/ui/Searchbar';
+import SkeltoList from '../../../components/ui/SkeltoList';
 
 const ProductList = () => {
 
@@ -67,30 +69,18 @@ const ProductList = () => {
   };
   
   /* debouncer */
-  const [query, setQuery] = useState('');
-  const [searchQuery, setSearchQuery] = useState(query);
+  const [searchQuery, setSearchQuery] = useState(null);
   const [filter, setFilter] = useState({})
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchQuery(query)
-    }, 300);
-
-    return () => clearTimeout(timer);
-
-  },[query])
+  const fields = ['name','slug']
 
   /* search filter */
   const filteredProducts = useMemo(() => {
-    return products.filter(product =>{
+    return products?.filter(product =>{
 
       if(searchQuery){
-        const fields = ['name','slug']
-
-        return fields.some(field => {
-
+        return fields?.some(field => {
           if(product[field]){
-            return product[field].includes(searchQuery)
+            return product[field].toLowerCase().includes(searchQuery)
           }
           return false
 
@@ -379,12 +369,13 @@ const ProductList = () => {
 
       {/* search sort filter*/}
       <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center relative w-3/10">
-          <LuSearch size={20} className='absolute left-3'/>
-          <input type="text" value={query} onChange={e => setQuery(e.target.value)}
-            placeholder='Search users'
-            className='pl-10! rounded-xl! bg-white' />
-        </div>
+        <SearchBar
+          onSearch={(value) => setSearchQuery(value)}
+          placeholder='Search products'
+          className='w-3/10'
+          inputClass="!pl-10 rounded-xl bg-white peer"
+          iconClass='left-3 smooth peer-focus:text-primary-400'
+        />
 
         {/* filter sort */}
         <div className='flex items-center h-full gap-x-2'>
@@ -475,36 +466,31 @@ const ProductList = () => {
             <span className="text-center">Actions</span>
           </div>
         </div>
+
         <motion.ul 
-          key={currentPage}
           layout
+          key={currentPage}
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          exit="exit"
           className="flex flex-col w-full h-full text-sm text-gray-700">
-          
 
-            {/* Rows */}
-            {isLoading ? 
-              <>
-                <li className="rounded px-6 py-4 space-y-3">
-                  <Skeleton height="h-10" width="w-full" />
-                </li>
-                <li className="rounded px-6 py-4 space-y-3">
-                  <Skeleton height="h-10" width="w-full" />
-                </li>
-                <li className="rounded px-6 py-4 space-y-3">
-                  <Skeleton height="h-10" width="w-full" />
-                </li>
-              </>
-              :
-              <motion.li layout className="divide-y divide-theme-divider">
+          {/* Rows */}
+          {isLoading ? (
+            <SkeltoList />
+          ) : (
 
-                <AnimatePresence exitBeforeEnter>
-                  
-                  {paginatedProducts.length > 0 ?
-                    ( paginatedProducts.map((product, index) => {
+            paginatedProducts?.length > 0 ? (
+
+              <AnimatePresence exitBeforeEnter>
+                <motion.li
+                  key="list-container"
+                  layout 
+                  className="divide-y divide-theme-divider"
+                >
+
+                {
+                  paginatedProducts?.map((product, index) => {
 
                     const statusColors = () => {
                       switch(product.status){
@@ -538,7 +524,6 @@ const ProductList = () => {
                         <motion.div 
                           layout
                           key={product._id}
-                          custom={index}
                           initial="hidden"
                           animate="visible"
                           exit="exit"
@@ -779,35 +764,56 @@ const ProductList = () => {
                         </motion.div>
 
                       </React.Fragment>                    
-                    )}))
-                    :
-                    (<div className="flex items-center justify-center h-20 text-primary-400
-                      text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl">
-                      No products
-                    </div> )
-                  }
+                    )}
+                )}
 
+                </motion.li>
+              </AnimatePresence>
+
+            ) : (
+              !searchQuery?.trim() ? (
+                <SkeltoList />
+              ):(
+                <AnimatePresence>
+                  <motion.li
+                    key="not-found"
+                    layout
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    variants={rowVariants}
+                    className="flex items-center"
+                  >
+                    <span
+                      className="w-full h-full text-center py-6 text-primary-400
+                      text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
+                    >No users found</span>
+                  </motion.li>
                 </AnimatePresence>
+              )
+            )
 
-              </motion.li>
-            }
-
+          )}
+          
           {/* Pagination */}
-          {paginatedProducts.length > 0 && <li
-            key="pagination"
-            custom={filteredProducts.length + 1}
-            className="px-4 py-5"
-          >
-            
-            <AdminPagination 
-              currentPage={currentPage} 
-              totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
-            />
+          {paginatedProducts?.length > 0 && 
+            <motion.li
+              layout
+              key="pagination"
+              className="px-4 py-5"
+            >
+              
+              <AdminPagination 
+                currentPage={currentPage} 
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+              />
 
-          </li>
+            </motion.li>
           }
+
         </motion.ul>
+
       </div>
 
     </section>
