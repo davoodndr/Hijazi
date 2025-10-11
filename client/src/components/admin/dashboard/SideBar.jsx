@@ -4,6 +4,8 @@ import { Link, useLocation } from "react-router";
 import logo from '../../../assets/logo.svg'
 import { FaChevronLeft } from "react-icons/fa6";
 import { IoMenu } from "react-icons/io5";
+import clsx from "clsx";
+import { AnimatePresence, motion } from 'motion/react'
 
 export const Sidebar = ({menuItems}) => {
 
@@ -21,29 +23,88 @@ export const Sidebar = ({menuItems}) => {
 
   return (
     <aside className={`h-screen bg-white border-r border-gray-200 
-      transition-all duration-300 ease-in-out ${ collapsed ? "w-16" : "w-64" }`}>
+      smooth ease-in-out ${ collapsed ? "w-16" : "w-64" }`}>
 
-      <div className="flex items-center justify-between p-2 h-20 border-b border-gray-200">
-        {!collapsed && 
-          <div className="mx-3 w-24">
-            <img src={logo} alt="logo" className="object-contain" />
-          </div>
-        }
+      <div className={clsx("flex items-center h-20 border-b border-gray-200 smooth relative",
+        collapsed ? 'justify-center' : 'justify-between pr-2'
+      )}>
+        <div
+          className={clsx('smooth absolute inset-0 top-1/2 -translate-y-1/2 w-22',collapsed ? 'scale-0 mx-0' : "mx-5 scale-100")}
+        >
+          <img src={logo} alt="logo" className="object-contain" />
+        </div>
 
-        <div onClick={() => setCollapsed(!collapsed)}
-          className="rounded-lg hover:bg-primary-50 transition-colors duration-300 cursor-pointer p-3">
-          {collapsed ? <IoMenu size={28} /> : <FaChevronLeft size={15} />}
+        <div 
+          onClick={() => setCollapsed(!collapsed)}
+          className={clsx("rounded-lg hover:bg-primary-50 smooth cursor-pointer w-10 h-10 relative",
+            !collapsed && "ml-auto"
+          )}
+        >
+          <AnimatePresence>
+            {collapsed ?
+              (<motion.span
+                key="menu-icon"
+                initial={{ opacity: 0, rotate: 90 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                exit={{ opacity: 0, rotate: 90 }}
+                transition={{ duration: 0.4, ease: 'easeInOut' }}
+                className="absolute inset-0 flex items-center justify-center origin-center"
+              >
+                <IoMenu size={28} className="origin-center" />
+              </motion.span>)
+              :
+              (<motion.span
+                key="chevron-icon"
+                initial={{ opacity: 0, rotate: -135 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                exit={{ opacity: 0, rotate: -135 }}
+                transition={{ duration: 0.5, ease: 'easeInOut' }}
+                className="absolute inset-0 flex items-center justify-center origin-center"
+              >
+                <FaChevronLeft size={15} className="origin-center" />
+              </motion.span>)
+            }
+          </AnimatePresence>
         </div>
       </div>
-      <nav className="p-2 space-y-1">
+      <nav className="bg-primary-50 h-full">
+        
         {
           menuItems.map(item => (
-            <div key={item.label} onClick={() => handleSelect(item)}>
-              <Link to={item.href} className={`flex items-center px-3 py-2 text-gray-700 hover:bg-primary-50
-                transition-all duration-300 ${item === selected ? "bg-primary-300/20 text-primary-400" : ''}`}>
+            <div
+              onClick={() => handleSelect(item)}
+              key={item.label}
+              className="relative"
+            >
+              {item === selected && (
+                <motion.div
+                  layoutId="highlightArrow"
+                  className={clsx("absolute -right-2.75 top-1/2 -translate-y-1/2 flex items-center",
+                    collapsed && '-right-3.5'
+                  )}
+                >
+                  <span className="w-5 h-5 rotate-45 bg-white inline-flex"></span>
+                </motion.div>
+              )}
+              <Link to={item.href} 
+                className={clsx(`flex items-center px-5.5 text-gray-700 h-11 smooth`,
+                item === selected ? "bg-primary-300/20 text-primary-400" : 'hover:px-8 hover:bg-primary-25 hover:text-primary-400'
+              )}>
 
                 <span>{<item.icon size={20} />}</span>
-                {!collapsed && <span className="ml-3">{item.label}</span>}
+                <AnimatePresence>
+                  {!collapsed && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2, delay: 0.1 }}
+                      className="ml-3 whitespace-nowrap"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
 
               </Link>
               <span></span>

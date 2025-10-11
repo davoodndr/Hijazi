@@ -291,7 +291,8 @@ const CategoryList = () => {
             <span className="text-center">Actions</span>
           </div>
         </div>
-        <motion.ul 
+        <motion.ul
+          key={currentPage} 
           layout
           variants={containerVariants}
           initial="hidden"

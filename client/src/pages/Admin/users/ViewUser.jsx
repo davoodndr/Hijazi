@@ -646,7 +646,7 @@ function ViewUser() {
 
                     <div className='flex-grow flex-col'>
                       <div className="inline-flex items-center space-x-2">
-                        <p className='capitalize font-bold text-black'>{review?.title}</p>
+                        <p className='capitalize font-bold text-black text-xs'>{review?.title}</p>
                         <StarRating 
                           value={review?.rating}
                           starSize={3}

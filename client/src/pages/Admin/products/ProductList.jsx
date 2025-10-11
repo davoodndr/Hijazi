@@ -476,6 +476,7 @@ const ProductList = () => {
           </div>
         </div>
         <motion.ul 
+          key={currentPage}
           layout
           variants={containerVariants}
           initial="hidden"
@@ -498,7 +499,7 @@ const ProductList = () => {
                 </li>
               </>
               :
-              <li className="divide-y divide-theme-divider">
+              <motion.li layout className="divide-y divide-theme-divider">
 
                 <AnimatePresence exitBeforeEnter>
                   
@@ -788,7 +789,7 @@ const ProductList = () => {
 
                 </AnimatePresence>
 
-              </li>
+              </motion.li>
             }
 
           {/* Pagination */}

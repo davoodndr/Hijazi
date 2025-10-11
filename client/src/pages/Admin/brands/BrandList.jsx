@@ -279,7 +279,8 @@ function BrandList() {
         
       </div>
 
-      <motion.ul 
+      <motion.ul
+        key={currentPage} 
         layout="position"
         variants={containerVariants}
         initial="hidden"

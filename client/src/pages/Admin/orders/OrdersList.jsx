@@ -231,7 +231,8 @@ function OrdersList() {
             </span>
           </div>
         </div>
-        <motion.ul 
+        <motion.ul
+          key={currentPage}
           layout
           variants={containerVariants}
           initial="hidden"

@@ -29,7 +29,7 @@ const AdminLayout = () => {
   return (
     <div className='flex w-screen h-screen overflow-hidden relative'>
       <Sidebar menuItems={menuItems} />
-      <main className='flex-1 flex flex-col overflow-y-auto bg-primary-25 scroll-basic'>
+      <main className='flex-1 flex flex-col overflow-y-auto bg-white scroll-basic'>
         <Header />
         <Outlet />
       </main>

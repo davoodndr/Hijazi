@@ -398,7 +398,8 @@ const OffersList = () => {
         </div>
 
         {/* rows */}
-        <motion.ul 
+        <motion.ul
+          key={currentPage} 
           layout
           variants={containerVariants}
           initial="hidden"

@@ -276,6 +276,7 @@ const UsersList = () => {
 
         <motion.ul 
           layout
+          key={currentPage}
           variants={containerVariants}
           initial="hidden"
           animate="visible"
