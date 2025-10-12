@@ -13,7 +13,6 @@ import clsx from 'clsx';
 import { Menu, MenuButton } from '@headlessui/react';
 import ContextMenu from '../../../components/ui/ContextMenu';
 import { useNavigate } from 'react-router';
-import Skeleton from '../../../components/ui/Skeleton';
 import { Axios } from '../../../utils/AxiosSetup';
 import ApiBucket from '../../../services/ApiBucket';
 import { BsFillMenuButtonFill } from 'react-icons/bs';
@@ -23,31 +22,15 @@ import SearchBar from '../../../components/ui/Searchbar';
 function OrdersList() {
 
   const navigate = useNavigate();
+  const { ordersList } = useSelector(state => state.orders);
   const [orders, setOrders] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
 
-    fetchOrders();
+    const sorted = [...ordersList].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+    setOrders(sorted);
 
-  },[]);
-
-  const fetchOrders = async() => {
-    try {
-      
-      const response = await Axios({
-        ...ApiBucket.getOrders
-      })
-
-      if(response?.data?.success){
-        const sorted = [...response?.data?.orders].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
-        setOrders(sorted);
-      }
-
-    } catch (error) {
-      console.log(error)
-    }
-  }
+  },[ordersList]);
 
   const handleViewOrderClick = (order) => { 
     navigate(`view-order/${order?.order_no}`,
@@ -232,193 +215,190 @@ function OrdersList() {
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="flex flex-col w-full h-full text-sm text-gray-700">
+          className="flex flex-col w-full h-full text-sm text-gray-700"
+        >
 
           {/* Rows */}
-          {isLoading  ? (
-            <SkeltoList />
-          ) : (
-            paginatedOrders?.length > 0 ? (
+          {paginatedOrders?.length > 0 ? (
 
-              <AnimatePresence exitBeforeEnter>
-                <motion.li
-                  key="list-container"
-                  layout 
-                  className="divide-y divide-theme-divider"
-                >
-              
-                  {paginatedOrders?.map((order, index) => {
+            <AnimatePresence exitBeforeEnter>
+              <motion.li
+                key="list-container"
+                layout 
+                className="divide-y divide-theme-divider"
+              >
+            
+                {paginatedOrders?.map((order, index) => {
 
-                    const title = order?.itemsCount > 1 ? `${order?.itemsCount} items includes` 
-                      : order?.name;
+                  const title = order?.itemsCount > 1 ? `${order?.itemsCount} items includes` 
+                    : order?.name;
 
-                    const count = Math.min(order?.itemsCount || 0, 3);
+                  const count = Math.min(order?.itemsCount || 0, 3);
 
-                    /* const images = Array.from({ length: count }, (_, i) => ({
-                      name: "",
-                      image: order?.image || ''
-                    })); */
+                  /* const images = Array.from({ length: count }, (_, i) => ({
+                    name: "",
+                    image: order?.image || ''
+                  })); */
 
-                    const isPaid = order?.isPaid ? 'Paid' : 'Unpaid';
-                    const payment = order?.paymentMethod === 'cod' ? 'cash on delivery' : order?.paymentMethod;
-                    
-                    return (
-                      <motion.div 
-                        layout
-                        key={order._id}
-                        custom={index}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        variants={rowVariants}
-                        whileHover={{
-                          backgroundColor: '#efffeb',
-                          transition: { duration: 0.3 }
-                        }}
-                        className={`bg-white`}
+                  const isPaid = order?.isPaid ? 'Paid' : 'Unpaid';
+                  const payment = order?.paymentMethod === 'cod' ? 'cash on delivery' : order?.paymentMethod;
+                  
+                  return (
+                    <motion.div 
+                      layout
+                      key={order._id}
+                      custom={index}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      variants={rowVariants}
+                      whileHover={{
+                        backgroundColor: '#efffeb',
+                        transition: { duration: 0.3 }
+                      }}
+                      className={`bg-white`}
+                    >
+
+                      <div
+                        className={`grid grid-cols-[30px_1.5fr_1fr_0.5fr_1fr_0.75fr_0.75fr_0.25fr] 
+                          items-center w-full px-4 py-2`}
                       >
 
-                        <div
-                          className={`grid grid-cols-[30px_1.5fr_1fr_0.5fr_1fr_0.75fr_0.75fr_0.25fr] 
-                            items-center w-full px-4 py-2`}
-                        >
+                        {/* Checkbox */}
+                        <div><input type="checkbox" /></div>
+                        
+                        {/* product Info & thumbnail */}
+                        <div className="flex gap-2 items-center relative">
 
-                          {/* Checkbox */}
-                          <div><input type="checkbox" /></div>
-                          
-                          {/* product Info & thumbnail */}
-                          <div className="flex gap-2 items-center relative">
-
-                            <div className="inline-flex">
-                              {/* <AvatarGroup
-                                images={images}
-                                avatarClass={`w-12 rounded-md overflow-hidden border-2 border-gray-300`}
-                                className='flex w-full -space-x-11 items-end'
-                              /> */}
-                              <img src={order?.image} className='rounded-xl border border-gray-300 w-12 h-12' alt="" />
-                            </div>
-
-                            <div className="inline-flex flex-col capitalize">
-                              <p className="font-semibold">{title}</p>
-                              <p className="text-gray-500/90 text-xs">
-                                <span>No: </span>
-                                <span>{order?.order_no} </span>
-                              </p>
-                            </div>
+                          <div className="inline-flex">
+                            {/* <AvatarGroup
+                              images={images}
+                              avatarClass={`w-12 rounded-md overflow-hidden border-2 border-gray-300`}
+                              className='flex w-full -space-x-11 items-end'
+                            /> */}
+                            <img src={order?.image} className='rounded-xl border border-gray-300 w-12 h-12' alt="" />
                           </div>
 
-                          {/* customer name */}
-                          <div className='capitalize flex flex-col text-xs'>
-                            <span className='font-semibold'>{order?.billingAddress?.name}</span>
-                            <span className='text-gray-500/90'>{order?.billingAddress?.city}</span>
+                          <div className="inline-flex flex-col capitalize">
+                            <p className="font-semibold">{title}</p>
+                            <p className="text-gray-500/90 text-xs">
+                              <span>No: </span>
+                              <span>{order?.order_no} </span>
+                            </p>
                           </div>
+                        </div>
 
-                          {/* order date */}
-                          <div className='capitalize flex flex-col'>
-                            <span className='text-xs font-semibold'>{format(new Date(order?.createdAt), "dd-MM-yyy")}</span>
-                            <span className='text-xs text-gray-400'>{format(new Date(order?.createdAt), "hh:mm a")}</span>
+                        {/* customer name */}
+                        <div className='capitalize flex flex-col text-xs'>
+                          <span className='font-semibold'>{order?.billingAddress?.name}</span>
+                          <span className='text-gray-500/90'>{order?.billingAddress?.city}</span>
+                        </div>
+
+                        {/* order date */}
+                        <div className='capitalize flex flex-col'>
+                          <span className='text-xs font-semibold'>{format(new Date(order?.createdAt), "dd-MM-yyy")}</span>
+                          <span className='text-xs text-gray-400'>{format(new Date(order?.createdAt), "hh:mm a")}</span>
+                        </div>
+
+                        {/* amount */}
+                        <div className='flex'>
+                          <div className='capitalize flex flex-col items-end w-[60%]'>
+                            <span className='price-before font-semibold inline-block'>{order?.cancelledTotal || order?.totalPrice}</span>
+                            <span className={clsx('text-xs inline-block',
+                              order?.isPaid ? ' text-primary-400/70' : ' text-red-400/70'
+                            )}>{isPaid}</span>
                           </div>
+                        </div>
 
-                          {/* amount */}
-                          <div className='flex'>
-                            <div className='capitalize flex flex-col items-end w-[60%]'>
-                              <span className='price-before font-semibold inline-block'>{order?.cancelledTotal || order?.totalPrice}</span>
-                              <span className={clsx('text-xs inline-block',
-                                order?.isPaid ? ' text-primary-400/70' : ' text-red-400/70'
-                              )}>{isPaid}</span>
-                            </div>
-                          </div>
+                        {/* payment method */}
+                        <div className='capitalize flex flex-col'>
+                          <span className='text-xs font-semibold'>{payment}</span>
+                          {order?.paymentMethod === 'razor-pay' && 
+                            <span className='text-xs text-gray-400'>
+                              {order?.paymentResult?.razorpay_payment_id}
+                            </span>}
+                        </div>
 
-                          {/* payment method */}
-                          <div className='capitalize flex flex-col'>
-                            <span className='text-xs font-semibold'>{payment}</span>
-                            {order?.paymentMethod === 'razor-pay' && 
-                              <span className='text-xs text-gray-400'>
-                                {order?.paymentResult?.razorpay_payment_id}
-                              </span>}
-                          </div>
+                        {/* status */}
+                        <div className='capitalize flex flex-col items-center'>
+                          <span className={clsx('badge',
+                            order?.status === 'pending' && 'bg-amber-100 text-amber-500',
+                            order?.status === 'processing' && 'bg-gray-100 text-gray-500',
+                            order?.status === 'shipped' && 'bg-violet-100 text-violet-500',
+                            order?.status === 'delivered' && 'bg-green-100 text-primary-400',
+                            order?.status === 'cancelled' && 'bg-red-100 text-red-500',
+                          )}>{order?.status}</span>
+                        </div>
 
-                          {/* status */}
-                          <div className='capitalize flex flex-col items-center'>
-                            <span className={clsx('badge',
-                              order?.status === 'pending' && 'bg-amber-100 text-amber-500',
-                              order?.status === 'processing' && 'bg-gray-100 text-gray-500',
-                              order?.status === 'shipped' && 'bg-violet-100 text-violet-500',
-                              order?.status === 'delivered' && 'bg-green-100 text-primary-400',
-                              order?.status === 'cancelled' && 'bg-red-100 text-red-500',
-                            )}>{order?.status}</span>
-                          </div>
+                        {/* Actions */}
+                        <div className="flex items-center justify-center gap-3 z-50">
+                          <Menu as="div" className='relative'>
+                            {({open}) => (
+                              <>
+                                <MenuButton as="div"
+                                  className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                  border border-gray-300 !text-gray-900 cursor-pointer"
+                                >
+                                  <IoMdMore size={20} />
+                                </MenuButton>
+                                <ContextMenu
+                                  open={open}
+                                  items={useMemo(() => [
+                                    { id: 'view', 
+                                      icon: <LuEye className='text-xl'/>,
+                                      text: <span className={`capitalize`}>view order</span>,
+                                      onClick: () => handleViewOrderClick(order)
+                                    },
+                                    { id: 'shipped', 
+                                      icon: <LuEye className='text-xl'/>,
+                                      text: <span className={`capitalize`}>shipped</span>,
+                                      onClick: () => {}
+                                    },
+                                    { id: 'delivered', 
+                                      icon: <LuEye className='text-xl'/>,
+                                      text: <span className={`capitalize`}>delivered</span>,
+                                      onClick: () => {}
+                                    },
+                                  ],[])}
 
-                          {/* Actions */}
-                          <div className="flex items-center justify-center gap-3 z-50">
-                            <Menu as="div" className='relative'>
-                              {({open}) => (
-                                <>
-                                  <MenuButton as="div"
-                                    className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                                    border border-gray-300 !text-gray-900 cursor-pointer"
-                                  >
-                                    <IoMdMore size={20} />
-                                  </MenuButton>
-                                  <ContextMenu
-                                    open={open}
-                                    items={useMemo(() => [
-                                      { id: 'view', 
-                                        icon: <LuEye className='text-xl'/>,
-                                        text: <span className={`capitalize`}>view order</span>,
-                                        onClick: () => handleViewOrderClick(order)
-                                      },
-                                      { id: 'shipped', 
-                                        icon: <LuEye className='text-xl'/>,
-                                        text: <span className={`capitalize`}>shipped</span>,
-                                        onClick: () => {}
-                                      },
-                                      { id: 'delivered', 
-                                        icon: <LuEye className='text-xl'/>,
-                                        text: <span className={`capitalize`}>delivered</span>,
-                                        onClick: () => {}
-                                      },
-                                    ],[])}
-
-                                  />
-                                </>
-                              )}
-                            </Menu>
-
-                          </div>
+                                />
+                              </>
+                            )}
+                          </Menu>
 
                         </div>
 
-                      </motion.div>
-                    )
-                  })}
+                      </div>
 
+                    </motion.div>
+                  )
+                })}
+
+              </motion.li>
+            </AnimatePresence>
+          ) : (
+            !searchQuery?.trim() ? (
+              <SkeltoList />
+            ):(
+              <AnimatePresence>
+                <motion.li
+                  key="not-found"
+                  layout
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={rowVariants}
+                  className="flex items-center"
+                >
+                  <span
+                    className="w-full h-full text-center py-6 text-primary-400
+                    text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
+                  >No orders found</span>
                 </motion.li>
               </AnimatePresence>
-            ) : (
-              !searchQuery?.trim() ? (
-                <SkeltoList />
-              ):(
-                <AnimatePresence>
-                  <motion.li
-                    key="not-found"
-                    layout
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={rowVariants}
-                    className="flex items-center"
-                  >
-                    <span
-                      className="w-full h-full text-center py-6 text-primary-400
-                      text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
-                    >No orders found</span>
-                  </motion.li>
-                </AnimatePresence>
-              )
             )
           )}
-
+          
           {/* Pagination */}
           {paginatedOrders.length > 0 && 
             <motion.li

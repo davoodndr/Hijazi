@@ -16,7 +16,12 @@ const categorySlice = createSlice({
     categoryLoading: false,
     error: null
   },
-  reducers: {},
+  reducers: {
+    fetchAllCategories: (state, action) => {
+      state.categoryList = action?.payload;
+      state.error = null;
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchCategories.pending, (state) => {
@@ -33,5 +38,7 @@ const categorySlice = createSlice({
       })
   }
 })
+
+export const { fetchAllCategories } = categorySlice.actions;
 
 export default categorySlice.reducer;

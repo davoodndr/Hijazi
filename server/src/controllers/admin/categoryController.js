@@ -1,4 +1,5 @@
 import Category from "../../models/Category.js";
+import Product from "../../models/Product.js";
 import { deleteImageFromCloudinary, uploadImagesToCloudinary } from "../../utils/coudinaryActions.js";
 import { responseMessage } from "../../utils/messages.js"
 

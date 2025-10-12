@@ -74,6 +74,131 @@ export const getCanRateProduct = async(user_id, product_id, variant_id) => {
 }
 
 
+/* ------ admin side -------- */
+
+/* users */
+export const fetchAllUsersAction = async() => {
+  
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getUsers
+    })
+
+    return response?.data?.users
+
+  } catch (error) {
+    console.log(error?.response?.data?.message || error?.message)
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+  
+}
+
+/* products */
+export const fetchAllProductsAction = async() => {
+
+  try {
+      
+    const response = await Axios({
+      ...ApiBucket.getProducts
+    })
+    
+    return response?.data?.products
+
+  } catch (error) {
+    console.log(error)
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+};
+
+/* orders */
+export const fetchAllOrdersAction = async() => {
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getOrders
+    })
+
+    return response?.data?.orders;
+
+  } catch (error) {
+    console.log(error)
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+}
+
+/* reviews */
+export const fetchAllReviewsAction = async() => {
+
+  try {
+      
+    const response = await Axios({
+      ...ApiBucket.getReviews
+    })
+    
+    return response?.data?.reviews;
+
+  } catch (error) {
+    console.log(error)
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+};
+
+/* offers */
+export const fetchAllOffersAction = async() => {
+
+  try {
+      
+    const response = await Axios({
+      ...ApiBucket.getOffers
+    })
+
+    return response?.data?.offers;
+
+  } catch (error) {
+    console.log(error)
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+};
+
+/* categories */
+export const fetchAllCategoriesAction = async() => {
+  
+  try {
+      
+    const response = await Axios({
+      ...ApiBucket.getCategories
+    })
+
+    return response?.data?.categories;
+
+  } catch (error) {
+    console.log(error)
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+};
+
+/* brands */
+export const fetchAllBrandsAction = async() => {
+    
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getBrands
+    })
+
+    return response?.data?.brands;
+
+  } catch (error) {
+    console.log(error)
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+  
+}
+
 /* ------ user side -------- */
 
 /* category */

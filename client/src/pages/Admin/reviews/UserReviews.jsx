@@ -22,43 +22,21 @@ import { BsFillMenuButtonFill } from "react-icons/bs";
 import { setLoading } from '../../../store/slices/CommonSlices';
 import Alert from '../../../components/ui/Alert';
 import AxiosToast from '../../../utils/AxiosToast';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import SearchBar from '../../../components/ui/Searchbar';
 import SkeltoList from '../../../components/ui/SkeltoList';
 
 function UserReviewsComponent() {
 
   const dispatch = useDispatch();
+  const { reviews: reviewList } = useSelector(state => state.reviews);
   const [reviews, setReviews] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   /* initial data loader */
   useEffect(() => {
-    fetchReviews();
-  },[])
-
-  const fetchReviews = async() => {
-
-    setIsLoading(true);
-
-    try {
-        
-      const response = await Axios({
-        ...ApiBucket.getReviews
-      })
-      
-      if(response?.data?.success){    
-        setReviews(response?.data?.reviews);
-        setCurrentSort({ field: "createdAt", ascending: false })
-      }
-
-    } catch (error) {
-      console.log(error)
-    }finally{
-      setIsLoading(false)
-    }
-
-  };
+    setReviews(reviewList);
+    setCurrentSort({ field: "createdAt", ascending: false })
+  },[reviewList])
 
   /* handle status */
   const handleStatusChange = async(id, status) => {
@@ -128,7 +106,6 @@ function UserReviewsComponent() {
     })
 
   }
-
 
   const [searchQuery, setSearchQuery] = useState(null);
   const fields = ['username','email','role','status','mobile']
@@ -316,156 +293,154 @@ function UserReviewsComponent() {
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="flex flex-col w-full h-full text-sm text-gray-700">
+          className="flex flex-col w-full h-full text-sm text-gray-700"
+        >
 
-          {isLoading  ? (
-            <SkeltoList />
-          ) : (
-            paginatedReviews?.length > 0 ? (
+          {paginatedReviews?.length > 0 ? (
 
-              <AnimatePresence exitBeforeEnter>
-                <motion.li
-                  key="list-container"
-                  layout 
-                  className="divide-y divide-theme-divider"
-                >
-              
-                  {reviews?.map((review, index) => {
+            <AnimatePresence exitBeforeEnter>
+              <motion.li
+                key="list-container"
+                layout 
+                className="divide-y divide-theme-divider"
+              >
+            
+                {reviews?.map((review, index) => {
 
-                    const reviewUser = review?.user_id;
-                    const reviewProduct = review?.product_id;
-                    const dt = format(new Date(review?.createdAt), 'dd MMM y')
+                  const reviewUser = review?.user_id;
+                  const reviewProduct = review?.product_id;
+                  const dt = format(new Date(review?.createdAt), 'dd MMM y')
 
-                    return (
-                      <motion.div
-                        layout
-                        key={review?._id}
-                        custom={index}
-                        initial="hidden"
-                        animate="visible"
-                        exit="exit"
-                        variants={rowVariants}
-                        whileHover={{
-                          backgroundColor: '#efffeb',
-                          transition: { duration: 0.3 }
-                        }}
+                  return (
+                    <motion.div
+                      layout
+                      key={review?._id}
+                      custom={index}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
+                      variants={rowVariants}
+                      whileHover={{
+                        backgroundColor: '#efffeb',
+                        transition: { duration: 0.3 }
+                      }}
+                    >
+                  
+                      <ul className="grid grid-cols-[30px_1fr_1.25fr_0.75fr_1fr_1.25fr_0.75fr_0.25fr] 
+                        items-center w-full px-4 py-2 bg-white"
                       >
-                    
-                        <ul className="grid grid-cols-[30px_1fr_1.25fr_0.75fr_1fr_1.25fr_0.75fr_0.25fr] 
-                          items-center w-full px-4 py-2 bg-white"
-                        >
-                          {/* Checkbox */}
-                          <li><input type="checkbox" /></li>
+                        {/* Checkbox */}
+                        <li><input type="checkbox" /></li>
 
-                          {/* user */}
-                          <li>
-                            <p className='capitalize truncate'>{reviewUser?.fullname || reviewUser?.username}</p>
-                            <p className='text-xs text-gray-500/80'>{dt}</p>
-                          </li>
+                        {/* user */}
+                        <li>
+                          <p className='capitalize truncate'>{reviewUser?.fullname || reviewUser?.username}</p>
+                          <p className='text-xs text-gray-500/80'>{dt}</p>
+                        </li>
 
-                          {/* product */}
-                          <li className='capitalize truncate'>
-                            <p>{reviewProduct?.name}</p>
-                            <p className='text-xs text-gray-500/80'>{reviewProduct?.category?.name}</p>
-                          </li>
+                        {/* product */}
+                        <li className='capitalize truncate'>
+                          <p>{reviewProduct?.name}</p>
+                          <p className='text-xs text-gray-500/80'>{reviewProduct?.category?.name}</p>
+                        </li>
 
-                          {/* rating */}
-                          <li>
-                            <StarRating
-                              value={review?.rating}
-                              starSize={4}
-                            />
-                          </li>
+                        {/* rating */}
+                        <li>
+                          <StarRating
+                            value={review?.rating}
+                            starSize={4}
+                          />
+                        </li>
 
-                          {/* title */}
-                          <li className='capitalize truncate font-bold text-sm'>{review?.title}</li>
+                        {/* title */}
+                        <li className='capitalize truncate font-bold text-sm'>{review?.title}</li>
 
-                          {/* review */}
-                          <li className='truncate'>{review?.review}</li>
+                        {/* review */}
+                        <li className='truncate'>{review?.review}</li>
 
-                          {/* status */}
-                          <li className='capitalize text-xs text-center'>
-                            <span className={clsx('badge py-1 px-2',
-                              review?.status === 'pending' && 'bg-amber-100 text-amber-500',
-                              review?.status === 'approved' && 'bg-green-100 text-green-600',
-                              review?.status === 'hidden' && 'bg-gray-100 text-gray-500',
-                            )}>
+                        {/* status */}
+                        <li className='capitalize text-xs text-center'>
+                          <span className={clsx('badge py-1 px-2',
+                            review?.status === 'pending' && 'bg-amber-100 text-amber-500',
+                            review?.status === 'approved' && 'bg-green-100 text-green-600',
+                            review?.status === 'hidden' && 'bg-gray-100 text-gray-500',
+                          )}>
 
-                            {review?.status}
+                          {review?.status}
 
-                            </span>
-                          </li>
+                          </span>
+                        </li>
 
-                          {/* Actions */}
-                          <li className="flex items-center justify-center z-50">
-                            <Menu as="div" className='relative'>
-                              {({ open }) => (
-                                <>
-                                  <MenuButton as='div'
-                                    className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                                    border border-gray-300 !text-gray-900 cursor-pointer"
-                                  >
-                                    <IoMdMore size={20} />
-                                  </MenuButton>
-                                  <ContextMenu 
-                                    open={open}
-                                    items={[
-                                      { id: 'approved', 
-                                        icon: review?.status === 'approved' ? 
-                                        <IoMdCheckmarkCircleOutline className='text-xl text-primary-400' />
-                                        : <FaRegCircleXmark className='text-xl' />,
-                                        text: <span className='capitalize'> {
-                                          review?.status === 'approved' ? 'approved' : 'approve'
-                                        } </span>,
-                                        onClick: () => {},
-                                        tail: <ToggleSwitch 
-                                                size={4}
-                                                value={review?.status === 'approved'}
-                                                onChange={() => 
-                                                  handleStatusChange(review?._id, review?.status)
-                                                }
-                                              />
-                                      },
-                                    ]}
-                                  />
-                                </>
-                              )}
-                              
-                            </Menu>
-                          </li>
+                        {/* Actions */}
+                        <li className="flex items-center justify-center z-50">
+                          <Menu as="div" className='relative'>
+                            {({ open }) => (
+                              <>
+                                <MenuButton as='div'
+                                  className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                  border border-gray-300 !text-gray-900 cursor-pointer"
+                                >
+                                  <IoMdMore size={20} />
+                                </MenuButton>
+                                <ContextMenu 
+                                  open={open}
+                                  items={[
+                                    { id: 'approved', 
+                                      icon: review?.status === 'approved' ? 
+                                      <IoMdCheckmarkCircleOutline className='text-xl text-primary-400' />
+                                      : <FaRegCircleXmark className='text-xl' />,
+                                      text: <span className='capitalize'> {
+                                        review?.status === 'approved' ? 'approved' : 'approve'
+                                      } </span>,
+                                      onClick: () => {},
+                                      tail: <ToggleSwitch 
+                                              size={4}
+                                              value={review?.status === 'approved'}
+                                              onChange={() => 
+                                                handleStatusChange(review?._id, review?.status)
+                                              }
+                                            />
+                                    },
+                                  ]}
+                                />
+                              </>
+                            )}
+                            
+                          </Menu>
+                        </li>
 
-                        </ul>
+                      </ul>
 
-                      </motion.div>
-                    )
-                  })}
+                    </motion.div>
+                  )
+                })}
 
+              </motion.li>
+            </AnimatePresence>
+            
+          ) : (
+            !searchQuery?.trim() ? (
+              <SkeltoList />
+            ):(
+              <AnimatePresence>
+                <motion.li
+                  key="not-found"
+                  layout
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={rowVariants}
+                  className="flex items-center"
+                >
+                  <span
+                    className="w-full h-full text-center py-6 text-primary-400
+                    text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
+                  >No reviews found</span>
                 </motion.li>
               </AnimatePresence>
-              
-            ) : (
-              !searchQuery?.trim() ? (
-                <SkeltoList />
-              ):(
-                <AnimatePresence>
-                  <motion.li
-                    key="not-found"
-                    layout
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={rowVariants}
-                    className="flex items-center"
-                  >
-                    <span
-                      className="w-full h-full text-center py-6 text-primary-400
-                      text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
-                    >No reviews found</span>
-                  </motion.li>
-                </AnimatePresence>
-              )
             )
           )}
+          
 
           {/* Pagination */}
           {paginatedReviews.length > 0 && <motion.li

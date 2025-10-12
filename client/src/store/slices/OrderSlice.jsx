@@ -16,6 +16,9 @@ const orderSlice = createSlice({
     error: null,
   },
   reducers: {
+    fetchAllOrders: (state, action) => {
+      state.ordersList = action?.payload;
+    },
     addToOrders: (state, action) => {
       state.ordersList.unshift(action.payload);
     },
@@ -31,7 +34,7 @@ const orderSlice = createSlice({
         return el
       })
     },
-    clearOrders: (state, action) => {
+    clearOrders: (state) => {
       state.ordersList = []
     }
   },
@@ -51,6 +54,6 @@ export const getOrder = (state, order_no) => {
   return state.orders.ordersList.find(order => order.order_no === order_no);
 }
 
-export const { addToOrders, updateOrder, clearOrders } = orderSlice.actions;
+export const { fetchAllOrders, addToOrders, updateOrder, clearOrders } = orderSlice.actions;
 
 export default orderSlice.reducer;

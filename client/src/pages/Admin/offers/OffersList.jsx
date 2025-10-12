@@ -15,7 +15,7 @@ import { deleteCategoryAction } from '../../../services/ApiActions';
 import PreviewImage from '../../../components/ui/PreviewImage'
 import AxiosToast from '../../../utils/AxiosToast';
 import { setLoading } from '../../../store/slices/CommonSlices'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import DropdownButton from '../../../components/ui/DropdownButton';
 import { FaRegCircleXmark, FaSort } from 'react-icons/fa6';
 import { BsSortDown, BsSortDownAlt } from 'react-icons/bs';
@@ -35,37 +35,15 @@ const OffersList = () => {
 
   const dispatch = useDispatch();
 
+  const { offersList } = useSelector(state => state.offers);
   const [offers, setOffers] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [currentSort, setCurrentSort] = useState(null)
 
   /* initial data loader */
   useEffect(() => {
-    fetchOffers();
-  },[])
-
-  const fetchOffers = async() => {
-
-    setIsLoading(true);
-
-    try {
-        
-      const response = await Axios({
-        ...ApiBucket.getOffers
-      })
-
-      if(response.data.success){    
-        setOffers(response?.data?.offers);
-        setCurrentSort({field: "createdAt", ascending: false})
-      }
-
-    } catch (error) {
-      console.log(error.response.data.message)
-    }finally{
-      setIsLoading(false)
-    }
-
-  };
+    setOffers(offersList);
+    setCurrentSort({field: "createdAt", ascending: false})
+  },[offersList])
   
   /* debouncer */
   const [searchQuery, setSearchQuery] = useState(null);
@@ -95,7 +73,7 @@ const OffersList = () => {
     {title: 'offer',field: 'title', ascending: true},
     {title: 'discount',field: 'discountValue', ascending: true},
     {title: 'validity',field: 'startDate', ascending: true},
-    {title: 'on purchase',field: 'minPurchase', ascending: true},
+    {title: 'min. purchase',field: 'minPurchase', ascending: true},
     {title: 'limit',field: 'usageLimit', ascending: true},
   ])
   
@@ -360,7 +338,7 @@ const OffersList = () => {
         {/* Header */}
         <div className="text-gray-400 uppercase font-semibold tracking-wider
           border-b border-theme-divider px-4.5 py-3.5 bg-gray-50 rounded-t-3xl">
-          <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1.2fr_1fr_1fr_1fr] items-center w-full">
+          <div className="grid grid-cols-[30px_1.5fr_1fr_1fr_1.25fr_1fr_1fr_1fr] items-center w-full">
             <span><input type="checkbox" /></span>
             {
               sortOptions.map((item, index) => 
@@ -373,10 +351,10 @@ const OffersList = () => {
                   sortIcon={
                     <>
                       <IoIosArrowUp className={clsx(
-                        currentSort?.field === item.field && !currentSort?.ascending && 'text-primary-400'
+                        currentSort?.field === item.field && !currentSort?.ascending && 'text-red-500'
                       )} />
                       <IoIosArrowDown className={clsx(
-                        currentSort?.field === item.field && currentSort?.ascending && 'text-primary-400'
+                        currentSort?.field === item.field && currentSort?.ascending && 'text-red-500'
                       )} />
                     </>
                   }
@@ -389,225 +367,220 @@ const OffersList = () => {
         </div>
 
         {/* rows */}
-        <ul
+        <motion.ul
           key={currentPage} 
           layout
           variants={containerVariants}
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="flex flex-col w-full h-full text-sm text-gray-700">
+          className="flex flex-col w-full h-full text-sm text-gray-700"
+        >
 
-            {/* Rows */}
-            {isLoading ? (
-              <SkeltoList />
-            ) : (
+          {/* Rows */}
+          {paginatedOffers?.length > 0 ? (
+            <AnimatePresence>
+              <motion.li
+                key="list-container"
+                layout 
+                className="divide-y divide-theme-divider"
+              >
 
-              paginatedOffers?.length > 0 ? (
-                <AnimatePresence>
-                  <motion.li
-                    key="list-container"
-                    layout 
-                    className="divide-y divide-theme-divider"
-                  >
+                  {paginatedOffers?.map((offer) => {
 
-                      {paginatedOffers?.map((offer) => {
+                    const statusColors = () => {
+                      switch(offer.status){
+                        case 'active': return 'bg-green-500/40 text-teal-800'
+                        case 'expired': return 'bg-red-100 text-red-500'
+                        default : return 'bg-gray-200 text-gray-400'
+                      }
+                    }
 
-                        const statusColors = () => {
-                          switch(offer.status){
-                            case 'active': return 'bg-green-500/40 text-teal-800'
-                            case 'expired': return 'bg-red-100 text-red-500'
-                            default : return 'bg-gray-200 text-gray-400'
-                          }
-                        }
+                    return(
+                    
+                      <motion.div
+                        layout
+                        key={offer._id}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={rowVariants}
+                        whileHover={{
+                          backgroundColor: '#efffeb',
+                          transition: { duration: 0.3 }
+                        }}
+                      >
+                    
+                        <div className="grid grid-cols-[30px_1.5fr_1fr_1fr_1.25fr_1fr_1fr_1fr] 
+                          items-center w-full px-4 py-2 bg-white"
+                        >
+                          {/* Checkbox */}
+                          <div><input type="checkbox" /></div>
 
-                        return(
-                        
-                          <motion.div
-                            layout
-                            key={offer._id}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            variants={rowVariants}
-                            whileHover={{
-                              backgroundColor: '#efffeb',
-                              transition: { duration: 0.3 }
-                            }}
-                          >
-                        
-                            <div className="grid grid-cols-[40px_1.5fr_1fr_1fr_1.2fr_1fr_1fr_1fr] 
-                              items-center w-full px-4 py-2 bg-white"
-                            >
-                              {/* Checkbox */}
-                              <div><input type="checkbox" /></div>
+                          {/* Caoupon Info */}
+                          <div>
+                            <p className="text-sm font-semibold capitalize">{offer?.title}</p>
+                            <p className="text-xs text-gray-500 capitalize">
+                              {offer?.type === 'coupon' ? 
+                                (<span>{offer?.type} | {offer?.couponCode}</span>)
+                                :
+                                (<span>Offer | {offer?.type} level</span>)
+                              }
+                            </p>
+                          </div>
 
-                              {/* Caoupon Info */}
-                              <div>
-                                <p className="text-sm font-semibold capitalize">{offer?.title}</p>
-                                <p className="text-xs text-gray-500 capitalize">
-                                  {offer?.type === 'coupon' ? 
-                                    (<span>{offer?.type} | {offer?.couponCode}</span>)
-                                    :
-                                    (<span>Offer | {offer?.type} level</span>)
-                                  }
-                                </p>
-                              </div>
-
-                              {/* discount */}
-                              <div className='flex flex-col text-sm'>
-                                <p className='tracking-tight space-x-1'>
-                                  <span className='text-gray-400'>Value:</span>
-                                  <span className={clsx(
-                                    offer?.discountType === 'fixed' ? 'price-before' :
-                                    'content-after content-after:content-["%"]'
-                                  )}>
-                                    {offer.discountValue}
-                                  </span>
-                                </p>
-                                {offer?.discountType === 'percentage' &&
-                                  <p className='tracking-tight space-x-1'>
-                                    <span className='text-gray-400'>Max:</span>
-                                    {offer?.maxDiscount > 0 ? 
-                                      (<span className='price-before'>{offer?.maxDiscount}</span>)
-                                      :
-                                      <span>Unlimited</span>
-                                    }
-                                  </p>
-                                }
-                              </div>
-
-                              {/* validity */}
-                              <div className='flex flex-col text-sm'>
-                                <p className='tracking-tight space-x-1'>
-                                  <span className='text-gray-400'>Start:</span>
-                                  <span>{format(new Date(offer?.startDate), "dd-MM-yy")}</span>
-                                </p>
-                                <p className='tracking-tight space-x-1'>
-                                  <span className='text-gray-400'>End:</span>
-                                  {offer?.endDate ? 
-                                    (<span>{format(new Date(offer?.endDate), 'dd-MM-yy')}</span>)
-                                    :
-                                    <span>Unlimited</span>
-                                  }
-                                </p>
-                              </div>
-
-                              {/* min puschase value */}
-                              <div className='text-sm'>
-                                {offer?.minPurchase ?
-                                  (<span className='price-before'>{offer?.minPurchase}</span>)
+                          {/* discount */}
+                          <div className='flex flex-col text-sm'>
+                            <p className='tracking-tight space-x-1'>
+                              <span className='text-gray-400'>Value:</span>
+                              <span className={clsx(
+                                offer?.discountType === 'fixed' ? 'price-before' :
+                                'content-after content-after:content-["%"]'
+                              )}>
+                                {offer.discountValue}
+                              </span>
+                            </p>
+                            {offer?.discountType === 'percentage' &&
+                              <p className='tracking-tight space-x-1'>
+                                <span className='text-gray-400'>Max:</span>
+                                {offer?.maxDiscount > 0 ? 
+                                  (<span className='price-before'>{offer?.maxDiscount}</span>)
                                   :
-                                  (<span>All Purchase</span>)
+                                  <span>Unlimited</span>
                                 }
-                              </div>
+                              </p>
+                            }
+                          </div>
 
-                              {/* usage limit */}
-                              <div className='flex flex-col'>
-                                <div className="inline-flex space-x-1 text-sm">
-                                  <span className="text-gray-400">Total:</span>
-                                  <span>{offer?.usageLimit ?? 'No limit'}</span>
-                                </div>
-                                <div className="inline-flex text-sm">
-                                  <span>{offer?.usagePerUser ?? 'No limit'}</span>
-                                  <span className="text-gray-400"> /per user</span>
-                                </div>
-                              </div>
+                          {/* validity */}
+                          <div className='flex flex-col text-sm'>
+                            <p className='tracking-tight space-x-1'>
+                              <span className='text-gray-400'>Start:</span>
+                              <span>{format(new Date(offer?.startDate), "dd-MM-yy")}</span>
+                            </p>
+                            <p className='tracking-tight space-x-1'>
+                              <span className='text-gray-400'>End:</span>
+                              {offer?.endDate ? 
+                                (<span>{format(new Date(offer?.endDate), 'dd-MM-yy')}</span>)
+                                :
+                                <span>Unlimited</span>
+                              }
+                            </p>
+                          </div>
 
-                              {/* Status */}
-                              <div className='flex justify-center'>
-                                <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
-                                  ${statusColors()}`}>
-                                  {offer?.status}
-                                </span>
-                              </div>
-                              
-                              {/* Actions */}
-                              <div className="flex items-center justify-center gap-3 z-50">
-                                <div 
-                                  onClick={() => {
-                                    setIsEditOpen(true);
-                                    setEditingOffer(offer)
-                                  }}
-                                  className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
-                                  border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
-                                  <TbUserEdit size={20} />
-                                </div>
+                          {/* min puschase value */}
+                          <div className='text-sm w-[50%] text-end'>
+                            {offer?.minPurchase ?
+                              (<span className='price-before'>{offer?.minPurchase}</span>)
+                              :
+                              (<span>All Purchase</span>)
+                            }
+                          </div>
 
-                                
-                                <Menu as="div" className='relative'>
-                                  {({ open }) => (
-                                    <>
-                                      <MenuButton as='div'
-                                        className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                                        border border-gray-300 !text-gray-900 cursor-pointer"
-                                      >
-                                        <IoMdMore size={20} />
-                                      </MenuButton>
-                                      
-                                      <ContextMenu 
-                                        open={open}
-                                        items={[
-                                          ...(offer?.status === 'active' || offer?.status === 'inactive' ?
-                                          [{ id: 'active', 
-                                            icon: offer?.status === 'active' ? 
-                                            <IoMdCheckmarkCircleOutline className='text-xl text-primary-400' />
-                                            : <FaRegCircleXmark className='text-xl' />,
-                                            text: <span className={`capitalize`}> {offer?.status} </span>,
-                                            onClick: () => {},
-                                            tail: <ToggleSwitch 
-                                                    size={4}
-                                                    value={offer?.status === 'active'}
-                                                    onChange={() => 
-                                                      handleStatusChange(offer?._id, offer?.status)
-                                                    }
-                                                  />
-                                          }]: []),
-                                          { id: 'delete', 
-                                            icon: <HiOutlineTrash className='text-xl' />,
-                                            text: <span className={`capitalize`}> delete </span>,
-                                            onClick: () => handledelete(offer._id) ,
-                                            itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
-                                          },
-                                        ]}
-                                      />
-                                    </>
-                                  )}
-                                  
-                                </Menu>
-                                
-                              </div>
+                          {/* usage limit */}
+                          <div className='flex flex-col'>
+                            <div className="inline-flex space-x-1 text-sm">
+                              <span className="text-gray-400">Total:</span>
+                              <span>{offer?.usageLimit ?? 'No limit'}</span>
                             </div>
-                          </motion.div>
-                                                
-                      )})}
-                  
-                  </motion.li>
-                </AnimatePresence>
-              ) : (
-                !searchQuery?.trim() ? (
-                  <SkeltoList />
-                ):(
-                  <AnimatePresence>
-                    <motion.li
-                      key="not-found"
-                      layout
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      variants={rowVariants}
-                      className="flex items-center"
-                    >
-                      <span
-                        className="w-full h-full text-center py-6 text-primary-400
-                        text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
-                      >No offers found</span>
-                    </motion.li>
-                  </AnimatePresence>
-                )
-              )
+                            <div className="inline-flex text-sm">
+                              <span>{offer?.usagePerUser ?? 'No limit'}</span>
+                              <span className="text-gray-400"> /per user</span>
+                            </div>
+                          </div>
+
+                          {/* Status */}
+                          <div className='flex justify-center'>
+                            <span className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
+                              ${statusColors()}`}>
+                              {offer?.status}
+                            </span>
+                          </div>
+                          
+                          {/* Actions */}
+                          <div className="flex items-center justify-center gap-3 z-50">
+                            <div 
+                              onClick={() => {
+                                setIsEditOpen(true);
+                                setEditingOffer(offer)
+                              }}
+                              className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
+                              border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
+                              <TbUserEdit size={20} />
+                            </div>
+
+                            
+                            <Menu as="div" className='relative'>
+                              {({ open }) => (
+                                <>
+                                  <MenuButton as='div'
+                                    className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                    border border-gray-300 !text-gray-900 cursor-pointer"
+                                  >
+                                    <IoMdMore size={20} />
+                                  </MenuButton>
+                                  
+                                  <ContextMenu 
+                                    open={open}
+                                    items={[
+                                      ...(offer?.status === 'active' || offer?.status === 'inactive' ?
+                                      [{ id: 'active', 
+                                        icon: offer?.status === 'active' ? 
+                                        <IoMdCheckmarkCircleOutline className='text-xl text-primary-400' />
+                                        : <FaRegCircleXmark className='text-xl' />,
+                                        text: <span className={`capitalize`}> {offer?.status} </span>,
+                                        onClick: () => {},
+                                        tail: <ToggleSwitch 
+                                                size={4}
+                                                value={offer?.status === 'active'}
+                                                onChange={() => 
+                                                  handleStatusChange(offer?._id, offer?.status)
+                                                }
+                                              />
+                                      }]: []),
+                                      { id: 'delete', 
+                                        icon: <HiOutlineTrash className='text-xl' />,
+                                        text: <span className={`capitalize`}> delete </span>,
+                                        onClick: () => handledelete(offer._id) ,
+                                        itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
+                                      },
+                                    ]}
+                                  />
+                                </>
+                              )}
+                              
+                            </Menu>
+                            
+                          </div>
+                        </div>
+                      </motion.div>
+                                            
+                  )})}
               
-            )}
+              </motion.li>
+            </AnimatePresence>
+          ) : (
+            !searchQuery?.trim() ? (
+              <SkeltoList />
+            ):(
+              <AnimatePresence>
+                <motion.li
+                  key="not-found"
+                  layout
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={rowVariants}
+                  className="flex items-center"
+                >
+                  <span
+                    className="w-full h-full text-center py-6 text-primary-400
+                    text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
+                  >No offers found</span>
+                </motion.li>
+              </AnimatePresence>
+            )
+          )}
 
           {/* Pagination */}
           {paginatedOffers.length > 0 && <motion.li
@@ -624,7 +597,7 @@ const OffersList = () => {
             />
 
           </motion.li>}
-        </ul>
+        </motion.ul>
       </div>
 
       <AddOfferModal

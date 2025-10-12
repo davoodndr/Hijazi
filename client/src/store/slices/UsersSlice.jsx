@@ -1,4 +1,4 @@
-import { createAction, createAsyncThunk, createSlice, isAnyOf } from "@reduxjs/toolkit";
+import { createAction, createAsyncThunk, createSlice, isFulfilled, isPending, isRejected } from "@reduxjs/toolkit";
 import { getUserDetail } from "../../services/FetchDatas";
 import { updateUserRole } from "../../services/ApiActions";
 
@@ -24,8 +24,10 @@ const userSlice = createSlice({
   name: 'user',
   initialState: {
     user: null,
+    users: [],
     activeRole: 'user',
-    isLoading: true
+    isLoading: false,
+    error: null
   },
   reducers: {
     setUser: (state, action) => {
@@ -36,34 +38,31 @@ const userSlice = createSlice({
       state.activeRole = action.payload;
       state.isLoading = false;
     },
+    fetchAllUsers: (state, action) => {
+      state.users = action?.payload;
+      state.error = null
+    }
   },
   extraReducers: (builder) => {
-    builder.addCase(fetchUser.pending, (state) => {
+    builder
+    .addCase(logoutUser, (state) => {
+      state.user = null;
+      state.isLoading = false;
+    })
+    .addMatcher(isPending(fetchUser, updateRole), (state) => {
       state.isLoading = true;
-    }),
-    builder.addCase(fetchUser.fulfilled, (state, action) => {
-      state.user = action.payload;
+    })
+    .addMatcher(isFulfilled(fetchUser, updateRole), (state, action) => {
+      state.user = action?.payload;
       state.isLoading = false;
-    }),
-    builder.addCase(fetchUser.rejected, (state, action) => {
-      state.user = null;
-      state.isLoading = false;
-    }),
-    builder.addCase(logoutUser, (state) => {
-      state.user = null;
-      state.isLoading = false;
-    }),
-    builder.addCase(updateRole.fulfilled, (state, action) => {
-      state.user = action.payload;
-      state.isLoading = false;
-    }),
-    builder.addCase(updateRole.rejected, (state) => {
-      state.user = null;
-      state.isLoading = false;
+    })
+    .addMatcher(isRejected(fetchUser, updateRole),(state, action) => {
+      state.error = action?.payload;
+      state.isLoading = false
     })
   }
 })
 
-export const { setUser, setActiveRole } = userSlice.actions;
+export const { setUser, setActiveRole, fetchAllUsers } = userSlice.actions;
 
 export default  userSlice.reducer

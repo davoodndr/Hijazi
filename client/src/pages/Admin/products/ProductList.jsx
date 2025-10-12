@@ -10,7 +10,6 @@ import Alert from '../../../components/ui/Alert';
 import ApiBucket from '../../../services/ApiBucket';
 import { Axios } from '../../../utils/AxiosSetup';
 import AdminPagination from '../../../components/ui/AdminPagination';
-import Skeleton from '../../../components/ui/Skeleton';
 import ImagePlaceHolder from '../../../components/ui/ImagePlaceHolder';
 import { CiFilter } from "react-icons/ci";
 import PreviewImage from '../../../components/ui/PreviewImage'
@@ -36,38 +35,15 @@ const ProductList = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
+  const { items } = useSelector(state => state.products)
   const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   /* initial data loader */
-  useEffect(() => {
-    fetchProducts();
-  },[])
+  useEffect(() => {  
+    const sortedProducts = [...items].sort((a,b) => b.createdAt.localeCompare(a.createdAt));
+    setProducts(sortedProducts)
+  },[items])
 
-  const fetchProducts = async() => {
-
-    setIsLoading(true);
-
-    try {
-        
-      const response = await Axios({
-        ...ApiBucket.getProducts
-      })
-      
-      if(response?.data?.success){
-        const productList = response?.data?.products;  
-        const sortedProducts = [...productList].sort((a,b) => b.createdAt.localeCompare(a.createdAt))
-        setProducts(sortedProducts);
-      }
-
-    } catch (error) {
-      console.log(error)
-    }finally{
-      setIsLoading(false)
-    }
-
-  };
-  
   /* debouncer */
   const [searchQuery, setSearchQuery] = useState(null);
   const [filter, setFilter] = useState({})
@@ -80,7 +56,7 @@ const ProductList = () => {
       if(searchQuery){
         return fields?.some(field => {
           if(product[field]){
-            return product[field].toLowerCase().includes(searchQuery)
+            return product[field].toLowerCase().includes(searchQuery?.toLowerCase())
           }
           return false
 
@@ -473,326 +449,321 @@ const ProductList = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="flex flex-col w-full h-full text-sm text-gray-700">
+          className="flex flex-col w-full h-full text-sm text-gray-700"
+        >
 
           {/* Rows */}
-          {isLoading ? (
-            <SkeltoList />
-          ) : (
+          {paginatedProducts?.length > 0 ? (
 
-            paginatedProducts?.length > 0 ? (
+            <AnimatePresence>
+              <motion.li
+                key="list-container"
+                layout 
+                className="divide-y divide-theme-divider"
+              >
 
-              <AnimatePresence exitBeforeEnter>
-                <motion.li
-                  key="list-container"
-                  layout 
-                  className="divide-y divide-theme-divider"
-                >
+              {
+                paginatedProducts?.map((product, index) => {
 
-                {
-                  paginatedProducts?.map((product, index) => {
-
-                    const statusColors = () => {
-                      switch(product.status){
-                        case 'active': return 'bg-green-500/40 text-teal-800'
-                        case 'blocked': return 'bg-red-100 text-red-500'
-                        default : return 'bg-gray-200 text-gray-400'
-                      }
+                  const statusColors = () => {
+                    switch(product.status){
+                      case 'active': return 'bg-green-500/40 text-teal-800'
+                      case 'blocked': return 'bg-red-100 text-red-500'
+                      default : return 'bg-gray-200 text-gray-400'
                     }
-                    
-                    const variants = product.variants;
-                    let minPrice = 0, maxPrice = 0, stock = 0, variantLen = variants.length;
+                  }
                   
-                    if(variants.length){
-                      const prices = variants.map(item => {
-                        stock += item.stock;
-                        return item.price
-                      })
-                      minPrice = Math.min(...prices);
-                      maxPrice = Math.max(...prices);
-                    } else {
-                      minPrice = product.price;
-                      stock = product.stock;
-                    }
+                  const variants = product.variants;
+                  let minPrice = 0, maxPrice = 0, stock = 0, variantLen = variants.length;
+                
+                  if(variants.length){
+                    const prices = variants.map(item => {
+                      stock += item.stock;
+                      return item.price
+                    })
+                    minPrice = Math.min(...prices);
+                    maxPrice = Math.max(...prices);
+                  } else {
+                    minPrice = product.price;
+                    stock = product.stock;
+                  }
 
-                    const category = product?.category?.name;
-                    const parentCategory = product?.category?.parentId?.name;
+                  const category = product?.category?.name;
+                  const parentCategory = product?.category?.parentId?.name;
 
-                    return(
-                      <React.Fragment key={product._id}>
+                  return(
+                    <React.Fragment key={product._id}>
 
-                        <motion.div 
-                          layout
-                          key={product._id}
-                          initial="hidden"
-                          animate="visible"
-                          exit="exit"
-                          variants={rowVariants}
-                          whileHover={{
-                            backgroundColor: product.archived ? '' : '#efffeb',
-                            transition: { duration: 0.3 }
-                          }}
-                          className={clsx(product.archived ? 'disabled-el bg-gray-100 grayscale-100 !opacity-50' : 'bg-white')}
+                      <motion.div 
+                        layout
+                        key={product._id}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={rowVariants}
+                        whileHover={{
+                          backgroundColor: product.archived ? '' : '#efffeb',
+                          transition: { duration: 0.3 }
+                        }}
+                        className={clsx(product.archived ? 'disabled-el bg-gray-100 grayscale-100 !opacity-50' : 'bg-white')}
+                      >
+
+                        <div
+                          className={`grid grid-cols-[40px_2fr_1.5fr_1fr_0.75fr_0.75fr_0.75fr_88px] 
+                            items-center w-full px-4 py-2`}
                         >
+                          {/* Checkbox */}
+                          <div><input type="checkbox" /></div>
 
-                          <div
-                            className={`grid grid-cols-[40px_2fr_1.5fr_1fr_0.75fr_0.75fr_0.75fr_88px] 
-                              items-center w-full px-4 py-2`}
-                          >
-                            {/* Checkbox */}
-                            <div><input type="checkbox" /></div>
+                          {/* product Info & thumbnail */}
+                          <div className="flex gap-2 items-center relative">
 
-                            {/* product Info & thumbnail */}
-                            <div className="flex gap-2 items-center relative">
-
-                              {/* varinats expand arrow */}
-                              <div 
-                                onClick={() => toggleExpand(product._id)}
-                                className={`absolute top-1/2 -left-5 -translate-y-1/2 cursor-pointer smooth
-                                  hover:text-featured-500
-                                  ${product.variants?.length ? 
-                                    'text-gray-800' : 
-                                    'text-gray-300 pointer-events-none cursor-not-allowed'}`}>
-                                <IoIosArrowDown />
-                              </div>
-
-                              <PreviewImage src={product?.images[0]?.thumb} alt={product?.name} size="40" zoom="120%"
-                                thumbClass="rounded-xl border border-gray-300 w-12 h-12"
-                              />
-                              
-                              <div className="inline-flex flex-col capitalize">
-                                <p className="font-semibold">{product?.name}</p>
-                                <p className="text-xs">
-                                  {variantLen ? variantLen + ` Variant${variantLen > 1 ? 's': ''}` : product.sku}
-                                </p>
-                                {product?.featured &&  <p className="point-before">Featured</p>
-                                }
-                              </div>
+                            {/* varinats expand arrow */}
+                            <div 
+                              onClick={() => toggleExpand(product._id)}
+                              className={`absolute top-1/2 -left-5 -translate-y-1/2 cursor-pointer smooth
+                                hover:text-featured-500
+                                ${product.variants?.length ? 
+                                  'text-gray-800' : 
+                                  'text-gray-300 pointer-events-none cursor-not-allowed'}`}>
+                              <IoIosArrowDown />
                             </div>
 
-                            {/* category */}
-                            <div className='capitalize flex flex-col'>
-                              <span>{category}</span>
-                              {parentCategory && 
-                                <p className='text-[11px] text-gray-400'> 
-                                  <span className='me-1'>in -</span>
-                                  <span>{parentCategory}</span>
-                                </p>
-                              }
-                            </div>
+                            <PreviewImage src={product?.images[0]?.thumb} alt={product?.name} size="40" zoom="120%"
+                              thumbClass="rounded-xl border border-gray-300 w-12 h-12"
+                            />
                             
-                            {/* price */}
-                            <div className='capitalize flex flex-col'>
-                              {minPrice < maxPrice ? 
-                                (
-                                  <div className='font-semibold'>
-                                    <span className='price-before font-semibold'>{minPrice}</span>
-                                    <span className='mx-1'>-</span>
-                                    <span className='price-before font-semibold'>{maxPrice}</span>
-                                  </div>
-                                )
-                                :
-                                (
-                                  <span className='price-before font-semibold'>{minPrice}</span>
-                                )
+                            <div className="inline-flex flex-col capitalize">
+                              <p className="font-semibold">{product?.name}</p>
+                              <p className="text-xs">
+                                {variantLen ? variantLen + ` Variant${variantLen > 1 ? 's': ''}` : product.sku}
+                              </p>
+                              {product?.featured &&  <p className="point-before">Featured</p>
                               }
-                              <div>
-                                <StarRating
-                                  value={product?.averageRating}
-                                  starSize={3}
-                                  showValue={true}
-                                />
-                              </div>
-                            </div>
-
-                            {/* stock */}
-                            <div className='capitalize text-center'>{stock}</div>
-
-                            {/* Status */}
-                            <div className='text-center'>
-                              <span className={`w-fit px-2 py-1 text-xs font-semibold rounded-full capitalize
-                                ${statusColors()}`}>
-                                {product.archived ? 'archived' : product?.status}
-                              </span>
-                            </div>
-
-                            {/* visible */}
-                            <div className='flex justify-center'>
-                              <ToggleSwitch 
-                                size={4}
-                                value={product.visible}
-                                onChange={() => handleVisibility(product)}
-                              />
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex items-center justify-center space-x-1 z-50">
-                              <div 
-                                onClick={() => navigate(`/admin/products/${product?.slug}/edit`,
-                                  {state: {currentProduct:product}})
-                                }
-                                
-                                className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
-                                border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
-                                <TbUserEdit size={20} />
-                              </div>
-
-                              
-                              <Menu as="div" className='relative'>
-                                {({ open }) => (
-                                  <>
-                                    <MenuButton as="div"
-                                      className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                                      border border-gray-300 !text-gray-900 cursor-pointer"
-                                    >
-                                      <IoMdMore size={20} />
-                                    </MenuButton>
-                                    <ContextMenu 
-                                      open={open}
-                                      items={useMemo(() => [
-                                        { id: 'view', 
-                                          icon: <LuEye className='text-xl'/>,
-                                          text: <span className={`capitalize`}> view </span>,
-                                          onclick: () => {}
-                                        },
-                                        { id: 'status', 
-                                          icon: product.status === 'active' ? 
-                                          <IoMdCheckmarkCircleOutline className='text-xl text-primary-400' />
-                                          : <FaRegCircleXmark className='text-xl' />,
-                                          text: <span className={`capitalize`}> {product.status} </span>,
-                                          tail: <ToggleSwitch 
-                                                  size={4}
-                                                  value={product.status === 'active'}
-                                                  onChange={() => 
-                                                    handleStatusChange(product._id, product.status)
-                                                  }
-                                                />
-                                        },
-                                        { id: 'archive', 
-                                          icon: product.archived ? <MdOutlineArchive className='text-xl'/>
-                                            : <MdOutlineUnarchive className='text-xl' />,
-                                          text: <span className={`capitalize`}> {
-                                            product.archived ? 'unarchive' : 'archive'
-                                          } </span>, 
-                                          onClick: () => handleMakeArchive(product) 
-                                        },
-                                        { id: 'delete', 
-                                          icon: <HiOutlineTrash className='text-xl' />,
-                                          text: <span className={`capitalize`}> delete </span>,
-                                          onClick: () => handledelete(product._id) ,
-                                          itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
-                                        }
-                                      ],[])}
-                                    />
-                                  </>
-                                )}
-                                
-                              </Menu>
-                              
                             </div>
                           </div>
 
-                        </motion.div>
-
-                        {/* variant items */}
-                        <motion.div
-                          key='expanding-box'
-                          className='grid grid-cols-4 ps-13.5 pr-2 bg-gray-100 gap-2'
-                          style={{ '--temp-border': 'rgba(76, 196, 187, 0.3)' }}
-                          animate={{
-                            paddingTop: expanded[product._id] ? 8 : 0,
-                            paddingBottom: expanded[product._id] ? 8 : 0,
-                            borderBottomWidth: expanded[product._id] ? 1 : 0,
-                            borderBottomColor: expanded[product._id] ? 'rgba(76, 196, 187, 0.3)' : "rgba(0, 0, 0, 0)",
-                          }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <AnimatePresence>
-                            {expanded[product._id] && product.variants?.length > 0 && 
-                              product.variants.map((variant, i) =>
-                                <motion.div
-                                  key={variant._id}
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: "auto", opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  transition={{ duration: 0.3 }}
-                                  className="overflow-hidden"
-                                >
-                                  <div className="flex space-x-2 items-center relative border border-gray-200 p-2 rounded-2xl bg-white">
-                                    {variant.image?.thumb ? 
-                                      (<PreviewImage src={variant.image?.thumb} alt={product?.name} zoom="80%"
-                                      thumbClass="rounded-xl border border-gray-300 w-12 h-12"
-                                      />)
-                                      :
-                                      (<ImagePlaceHolder
-                                        size={18}
-                                        className="rounded-xl border border-gray-300 bg-gray-100 text-gray-500/60 w-12 h-12"
-                                        />)
-                                    }
-                                    
-                                    <div className='flex flex-col columns-2 flex-wrap space-x-3 text-xs h-12'>
-
-                                      <div className='space-x-1 capitalize'>
-                                        <span className='text-gray-400'>Price:</span>
-                                        <span className='price-before font-semibold'>{variant?.price}</span>
-                                      </div>
-                                      <div className='space-x-1 capitalize'>
-                                        <span className='text-gray-400'>Stock:</span>
-                                        <span>{variant?.stock}</span>
-                                      </div>
-
-                                      {Object.keys(variant?.attributes).map((key, i) => 
-                                        <div key={i} className='space-x-1 capitalize'>
-                                          <span className='text-gray-400'>{key}:</span>
-                                          <span
-                                            style={{ '--dynamic': variant?.attributes['color'] || variant?.attributes['colour'] }}
-                                            className={clsx((key === 'color' || key === 'colour') &&
-                                              'point-before point-before:p-1.25 point-before:bg-(--dynamic) point-before:!rounded-sm'
-                                            )}
-                                          >{(key !== 'color' && key !== 'colour') && variant.attributes[key]}</span>
-                                        </div>
-                                      )}
-
-                                    </div>
-                                  </div>
-                                  
-                                </motion.div>
+                          {/* category */}
+                          <div className='capitalize flex flex-col'>
+                            <span>{category}</span>
+                            {parentCategory && 
+                              <p className='text-[11px] text-gray-400'> 
+                                <span className='me-1'>in -</span>
+                                <span>{parentCategory}</span>
+                              </p>
+                            }
+                          </div>
+                          
+                          {/* price */}
+                          <div className='capitalize flex flex-col'>
+                            {minPrice < maxPrice ? 
+                              (
+                                <div className='font-semibold'>
+                                  <span className='price-before font-semibold'>{minPrice}</span>
+                                  <span className='mx-1'>-</span>
+                                  <span className='price-before font-semibold'>{maxPrice}</span>
+                                </div>
+                              )
+                              :
+                              (
+                                <span className='price-before font-semibold'>{minPrice}</span>
                               )
                             }
-                          </AnimatePresence>
-                          
-                        </motion.div>
+                            <div>
+                              <StarRating
+                                value={product?.averageRating}
+                                starSize={3}
+                                showValue={true}
+                              />
+                            </div>
+                          </div>
 
-                      </React.Fragment>                    
-                    )}
-                )}
+                          {/* stock */}
+                          <div className='capitalize text-center'>{stock}</div>
 
+                          {/* Status */}
+                          <div className='text-center'>
+                            <span className={`w-fit px-2 py-1 text-xs font-semibold rounded-full capitalize
+                              ${statusColors()}`}>
+                              {product.archived ? 'archived' : product?.status}
+                            </span>
+                          </div>
+
+                          {/* visible */}
+                          <div className='flex justify-center'>
+                            <ToggleSwitch 
+                              size={4}
+                              value={product.visible}
+                              onChange={() => handleVisibility(product)}
+                            />
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center justify-center space-x-1 z-50">
+                            <div 
+                              onClick={() => navigate(`/admin/products/${product?.slug}/edit`,
+                                {state: {currentProduct:product}})
+                              }
+                              
+                              className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
+                              border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer">
+                              <TbUserEdit size={20} />
+                            </div>
+
+                            
+                            <Menu as="div" className='relative'>
+                              {({ open }) => (
+                                <>
+                                  <MenuButton as="div"
+                                    className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+                                    border border-gray-300 !text-gray-900 cursor-pointer"
+                                  >
+                                    <IoMdMore size={20} />
+                                  </MenuButton>
+                                  <ContextMenu 
+                                    open={open}
+                                    items={useMemo(() => [
+                                      { id: 'view', 
+                                        icon: <LuEye className='text-xl'/>,
+                                        text: <span className={`capitalize`}> view </span>,
+                                        onclick: () => {}
+                                      },
+                                      { id: 'status', 
+                                        icon: product.status === 'active' ? 
+                                        <IoMdCheckmarkCircleOutline className='text-xl text-primary-400' />
+                                        : <FaRegCircleXmark className='text-xl' />,
+                                        text: <span className={`capitalize`}> {product.status} </span>,
+                                        tail: <ToggleSwitch 
+                                                size={4}
+                                                value={product.status === 'active'}
+                                                onChange={() => 
+                                                  handleStatusChange(product._id, product.status)
+                                                }
+                                              />
+                                      },
+                                      { id: 'archive', 
+                                        icon: product.archived ? <MdOutlineArchive className='text-xl'/>
+                                          : <MdOutlineUnarchive className='text-xl' />,
+                                        text: <span className={`capitalize`}> {
+                                          product.archived ? 'unarchive' : 'archive'
+                                        } </span>, 
+                                        onClick: () => handleMakeArchive(product) 
+                                      },
+                                      { id: 'delete', 
+                                        icon: <HiOutlineTrash className='text-xl' />,
+                                        text: <span className={`capitalize`}> delete </span>,
+                                        onClick: () => handledelete(product._id) ,
+                                        itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
+                                      }
+                                    ],[])}
+                                  />
+                                </>
+                              )}
+                              
+                            </Menu>
+                            
+                          </div>
+                        </div>
+
+                      </motion.div>
+
+                      {/* variant items */}
+                      <motion.div
+                        key='expanding-box'
+                        className='grid grid-cols-4 ps-13.5 pr-2 bg-gray-100 gap-2'
+                        style={{ '--temp-border': 'rgba(76, 196, 187, 0.3)' }}
+                        animate={{
+                          paddingTop: expanded[product._id] ? 8 : 0,
+                          paddingBottom: expanded[product._id] ? 8 : 0,
+                          borderBottomWidth: expanded[product._id] ? 1 : 0,
+                          borderBottomColor: expanded[product._id] ? 'rgba(76, 196, 187, 0.3)' : "rgba(0, 0, 0, 0)",
+                        }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <AnimatePresence>
+                          {expanded[product._id] && product.variants?.length > 0 && 
+                            product.variants.map((variant, i) =>
+                              <motion.div
+                                key={variant._id}
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="overflow-hidden"
+                              >
+                                <div className="flex space-x-2 items-center relative border border-gray-200 p-2 rounded-2xl bg-white">
+                                  {variant.image?.thumb ? 
+                                    (<PreviewImage src={variant.image?.thumb} alt={product?.name} zoom="80%"
+                                    thumbClass="rounded-xl border border-gray-300 w-12 h-12"
+                                    />)
+                                    :
+                                    (<ImagePlaceHolder
+                                      size={18}
+                                      className="rounded-xl border border-gray-300 bg-gray-100 text-gray-500/60 w-12 h-12"
+                                      />)
+                                  }
+                                  
+                                  <div className='flex flex-col columns-2 flex-wrap space-x-3 text-xs h-12'>
+
+                                    <div className='space-x-1 capitalize'>
+                                      <span className='text-gray-400'>Price:</span>
+                                      <span className='price-before font-semibold'>{variant?.price}</span>
+                                    </div>
+                                    <div className='space-x-1 capitalize'>
+                                      <span className='text-gray-400'>Stock:</span>
+                                      <span>{variant?.stock}</span>
+                                    </div>
+
+                                    {Object.keys(variant?.attributes).map((key, i) => 
+                                      <div key={i} className='space-x-1 capitalize'>
+                                        <span className='text-gray-400'>{key}:</span>
+                                        <span
+                                          style={{ '--dynamic': variant?.attributes['color'] || variant?.attributes['colour'] }}
+                                          className={clsx((key === 'color' || key === 'colour') &&
+                                            'point-before point-before:p-1.25 point-before:bg-(--dynamic) point-before:!rounded-sm'
+                                          )}
+                                        >{(key !== 'color' && key !== 'colour') && variant.attributes[key]}</span>
+                                      </div>
+                                    )}
+
+                                  </div>
+                                </div>
+                                
+                              </motion.div>
+                            )
+                          }
+                        </AnimatePresence>
+                        
+                      </motion.div>
+
+                    </React.Fragment>                    
+                  )}
+              )}
+
+              </motion.li>
+            </AnimatePresence>
+
+          ) : (
+            !searchQuery?.trim() ? (
+              <SkeltoList />
+            ):(
+              <AnimatePresence>
+                <motion.li
+                  key="not-found"
+                  layout
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={rowVariants}
+                  className="flex items-center"
+                >
+                  <span
+                    className="w-full h-full text-center py-6 text-primary-400
+                    text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
+                  >No users found</span>
                 </motion.li>
               </AnimatePresence>
-
-            ) : (
-              !searchQuery?.trim() ? (
-                <SkeltoList />
-              ):(
-                <AnimatePresence>
-                  <motion.li
-                    key="not-found"
-                    layout
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    variants={rowVariants}
-                    className="flex items-center"
-                  >
-                    <span
-                      className="w-full h-full text-center py-6 text-primary-400
-                      text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
-                    >No users found</span>
-                  </motion.li>
-                </AnimatePresence>
-              )
             )
-
           )}
           
           {/* Pagination */}

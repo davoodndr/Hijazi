@@ -12,7 +12,12 @@ const brandSlice = createSlice({
     brandLoading: false,
     error: null
   },
-  reducers: {},
+  reducers: {
+    fetchAllBrands: (state, action) => {
+      state.brandList = action?.payload;
+      state.error = null;
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchBrands.pending, (state) => {
@@ -28,5 +33,7 @@ const brandSlice = createSlice({
       })
   }
 })
+
+export const { fetchAllBrands } = brandSlice.actions;
 
 export default brandSlice.reducer

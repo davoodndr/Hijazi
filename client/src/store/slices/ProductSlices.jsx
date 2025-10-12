@@ -19,6 +19,10 @@ const productSlice = createSlice({
     error: null,
   },
   reducers: {
+    fetchAllProducts: (state, action) => {
+      state.items = action?.payload
+      state.error = null;
+    },
     addProduct: (state, action) => {
       state.items = state.items.unshift(action.payload);
       state.error = null;
@@ -59,7 +63,9 @@ const productSlice = createSlice({
   }
 })
 
-export const { addProduct,
+export const {
+  fetchAllProducts,
+  addProduct,
   updateProduct,
   setActiveProduct,
   setReviews,

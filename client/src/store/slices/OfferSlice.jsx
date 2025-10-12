@@ -17,6 +17,10 @@ const couponSlice = createSlice({
     error: null
   },
   reducers: {
+    fetchAllOffers: (state, action) => {
+      state.offersList = action?.payload;
+      state.error = null;
+    },
     addOffer: (state, action) => {
       state.offersList = state.offersList.unshift(action.payload);
       state.error = null;
@@ -38,6 +42,6 @@ const couponSlice = createSlice({
   }
 })
 
-export const { addOffer, clearOffers } = couponSlice.actions;
+export const { fetchAllOffers, addOffer, clearOffers } = couponSlice.actions;
 
 export default couponSlice.reducer;

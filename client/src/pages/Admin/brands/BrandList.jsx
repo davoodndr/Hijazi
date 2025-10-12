@@ -9,7 +9,7 @@ import { HiHome, HiOutlineTrash } from "react-icons/hi2";
 import { IoIosArrowForward, IoMdMore } from "react-icons/io";
 import ContextMenu from '../../../components/ui/ContextMenu';
 import AdminPagination from '../../../components/ui/AdminPagination';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { deleteBrandAction } from '../../../services/ApiActions';
 import AxiosToast from '../../../utils/AxiosToast';
 import Alert from '../../../components/ui/Alert'
@@ -23,41 +23,47 @@ import DropdownButton from "../../../components/ui/DropdownButton";
 import { FaSort } from "react-icons/fa6";
 import { BsSortDown, BsSortDownAlt } from "react-icons/bs";
 import { CiFilter } from "react-icons/ci";
+import SearchBar from "../../../components/ui/Searchbar";
+import clsx from "clsx";
 
 
 function BrandList() {
 
   const dispatch = useDispatch();
   
+  const { brandList } = useSelector(state => state.brands);
+  const { items: products } = useSelector(state => state.products);
   const [brands, setBrands] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
 
   /* initial data loader */
   useEffect(() => {
-    fetchBrands()
-  },[])
-  
-  const fetchBrands = async() => {
-    setIsLoading(true)
-    try {
-      
-      const response = await Axios({
-        ...ApiBucket.getBrands
-      })
 
-      if(response.data.success){
-        
-        const sorted = response.data.brands.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
-    
-        setBrands(sorted);
+    const sorted = [...brandList]?.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
+    const updatedList = getCountedList(sorted);
+
+    setBrands(updatedList);
+
+  },[brandList, products])
+
+  /* counts products and brands in each category */
+  const getCountedList = (list) => {
+    return list?.map(brand => {
+      const pList = [], cList = [];
+      for(const p of products){
+        if(brand?._id === p?.brand?._id  && !pList.includes(p?._id)){
+
+          pList.push(p?._id);
+
+          if(!cList?.includes(p?.category?._id)) cList.push(p?.category?._id)
+          
+        }
       }
-
-    } catch (error) {
-      console.log(error.response.data.message)
-    }finally{
-      setIsLoading(false)
-    }
-    
+      return {
+        ...brand,
+        products: pList?.length,
+        categories: cList?.length
+      }
+    })
   }
   
   /* debouncer */
@@ -170,9 +176,35 @@ function BrandList() {
     },
   };
 
+  const noDataVariants = {
+    hidden: { opacity: 0, height:0 },
+    visible: {
+      opacity: 1,
+      height:'auto',
+      transition: {
+        duration: 0.5,
+        ease: 'easeOut',
+        type: 'spring',
+        stiffness: 100,
+        damping: 10,
+      },
+    },
+    exit: {
+      opacity: 0,
+      height: 0,
+      transition: {
+        duration: 0.2,
+        ease: 'easeOut',
+        type: 'spring',
+        stiffness: 100,
+        damping: 15,
+      },
+    },
+  };
+
   /* paingation logic */
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
   const totalPages = Math.ceil(brands.length / itemsPerPage);
 
   const paginatedBrands = filteredBrands.slice(
@@ -209,12 +241,14 @@ function BrandList() {
 
       {/* search */}
       <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center relative w-3/10">
-          <LuSearch size={20} className='absolute left-3'/>
-          <input type="text" value={query} onChange={e => setQuery(e.target.value)}
-            placeholder='Search brands'
-            className='pl-10! rounded-xl! bg-white' />
-        </div>
+
+        <SearchBar
+          onSearch={(value) => setSearchQuery(value)}
+          placeholder='Search users'
+          className='w-3/10'
+          inputClass="!pl-10 rounded-xl bg-white peer"
+          iconClass='left-3 smooth peer-focus:text-primary-400'
+        />
 
         {/* filter sort */}
         <div className='flex items-center h-full gap-x-2'>
@@ -285,11 +319,97 @@ function BrandList() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="w-full flex flex-col">
+        className="w-full flex flex-col"
+      >
 
-          {isLoading ?
+          
+        {paginatedBrands.length > 0 ? (
+          <AnimatePresence>
+            <li className={clsx(`w-full`,
+                paginatedBrands.length > 0 && 'grid grid-cols-5 gap-6 h-50'
+              )}
+            >
+              {paginatedBrands.map((brand) => 
+
+                /* brand item */
+                <motion.div 
+                  layout="position"
+                  key={brand._id}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={rowVariants}
+                  className='w-full border border-gray-300 bg-gray-50 space-y-1 rounded-4xl overflow-hidden shadow-lg'>
+
+                  {/* brand logo and menu */}
+                  <div className="flex h-30 w-full">
+                    <div className="flex relative w-full overflow-hidden bg-white border-b border-gray-300">
+                      <Menu as="div" className="absolute right-3 top-3 overflow-hidden w-2 inline-flex justify-center">
+                        {({open}) => (
+                          <>
+                            <MenuButton className="!bg-transparent !text-gray-500 !p-0 !shadow-none">
+                              <IoMdMore size={25} />
+                            </MenuButton>
+
+                            <ContextMenu
+                              open={open}
+                              items={[
+                                { id: 'edit',
+                                  icon: <MdOutlineEdit className='text-xl'/>, 
+                                  text: <span className={`capitalize`}> edit </span>,
+                                  onClick: ()=> {
+                                    setIsEditOpen(true);
+                                    setEditingBrand(brand);
+                                  }
+                                },
+                                { id: 'delete', 
+                                  icon: <HiOutlineTrash className='text-xl' />,
+                                  text: <span className={`capitalize`}> delete </span>,
+                                  onClick: () => handledelete(brand._id) ,
+                                  itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
+                                }
+                              ]}
+                            />
+                          </>
+                        )}
+
+                      </Menu>
+                      <img src={brand?.logo} className="w-full object-contain" alt="brand-logo" />
+                    </div>
+                  </div>
+
+                  {/* detail */}
+                  <div className="px-3 mb-2 flex space-y-0.5 flex-col justify-end">
+                    <div className="flex items-center justify-between">
+                      <span className='text-sm font-semibold capitalize'>{brand.name}</span>
+                      {brand?.featured && 
+                        <p className="text-xs text-featured-500 inline-flex items-center w-fit rounded-xl
+                        after:bg-featured-300 after:content[''] after:p-0.75 after:ms-1
+                        after:inline-flex after:items-center after:rounded-full"
+                        >Featured</p>
+                      }
+                    </div>
+                    <p className="text-xs">
+                      <span>{brand?.products} {brand?.products > 1 ? 'products' : 'product'}</span>
+                      <span className='text-gray-300 mx-1'>|</span>
+                      <span>{brand?.categories} {brand?.categories > 1 ? 'categories' : 'category'}</span>
+                    </p>
+                    <div className="flex items-center capitalize space-x-2">
+                      <span className='text-xs'>{brand.visible ? 'Visible' : 'Invisible'}</span>
+                      <div className="w-[1.5px] h-3 bg-gray-300"></div>
+                      <span className='text-xs'>{brand?.status}</span>
+                    </div>
+                    
+                  </div>
+                </motion.div>
+              )}
+            </li>
+              
+          </AnimatePresence>
+        ) : (
+          !searchQuery?.trim() ? (
+            
             <li className='w-full grid grid-cols-5 gap-6'>
-
               {
                 [...Array(5)].map((_,i) => (
                   <div key={i} className='border border-gray-300 bg-white overflow-hidden rounded-4xl shadow-md/4'>
@@ -304,101 +424,39 @@ function BrandList() {
                   </div>
                 ))
               }
-              
             </li>
-            :
-            <li className={`w-full ${ paginatedBrands.length > 0 ? 
-            'grid grid-cols-5 gap-6 h-50' : ''}`}>
-              <AnimatePresence exitBeforeEnter>
-                {paginatedBrands.length > 0 ?
-                  (paginatedBrands.map((brand, index) => 
 
-                    /* brand item */
-                    <motion.div 
-                      layout="position"
-                      key={brand._id}
-                      custom={index}
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      variants={rowVariants}
-                      className='w-full border border-gray-300 bg-gray-50 space-y-1 rounded-4xl overflow-hidden shadow-lg'>
+          ):(
 
-                      {/* brand logo and menu */}
-                      <div className="flex h-30 w-full">
-                        <div className="flex relative w-full overflow-hidden bg-white border-b border-gray-300">
-                          <Menu as="div" className="absolute right-3 top-3 overflow-hidden w-2 inline-flex justify-center">
-                            {({open}) => (
-                              <>
-                                <MenuButton className="!bg-transparent !text-gray-500 !p-0 !shadow-none">
-                                  <IoMdMore size={25} />
-                                </MenuButton>
+            <AnimatePresence>
+              <motion.li
+                key="not-found"
+                layout
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={noDataVariants}
+                className="flex items-center"
+              >
+                <span
+                  className="w-full h-full text-center py-10 text-primary-400
+                  text-xl bg-primary-50 border border-primary-300/50 rounded-3xl"
+                >No users found</span>
+              </motion.li>
+            </AnimatePresence>
 
-                                <ContextMenu
-                                  open={open}
-                                  items={[
-                                    { id: 'edit',
-                                      icon: <MdOutlineEdit className='text-xl'/>, 
-                                      text: <span className={`capitalize`}> edit </span>,
-                                      onClick: ()=> {
-                                        setIsEditOpen(true);
-                                        setEditingBrand(brand);
-                                      }
-                                    },
-                                    { id: 'delete', 
-                                      icon: <HiOutlineTrash className='text-xl' />,
-                                      text: <span className={`capitalize`}> delete </span>,
-                                      onClick: () => handledelete(brand._id) ,
-                                      itemClass: 'bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100'
-                                    }
-                                  ]}
-                                />
-                              </>
-                            )}
-
-                          </Menu>
-                          <img src={brand?.logo} className="w-full object-contain" alt="brand-logo" />
-                        </div>
-                      </div>
-
-                      {/* detail */}
-                      <div className="px-3 mb-2 flex space-y-0.5 flex-col justify-end">
-                        <div className="flex items-center justify-between">
-                          <span className='text-sm font-semibold capitalize'>{brand.name}</span>
-                          {brand?.featured && 
-                            <p className="text-xs text-featured-500 inline-flex items-center w-fit rounded-xl
-                            after:bg-featured-300 after:content[''] after:p-0.75 after:ms-1
-                            after:inline-flex after:items-center after:rounded-full"
-                            >Featured</p>
-                          }
-                        </div>
-                        <p className="text-xs">Products: 000</p>
-                        <div className="flex items-center capitalize space-x-2">
-                          <span className='text-xs'>{brand.visible ? 'Visible' : 'Invisible'}</span>
-                          <div className="w-[1.5px] h-3 bg-gray-300"></div>
-                          <span className='text-xs'>{brand?.status}</span>
-                        </div>
-                        
-                      </div>
-                    </motion.div>
-                  ))
-                  :
-                  (<div className="flex items-center justify-center h-30 text-primary-400
-                    text-xl bg-primary-50 border border-primary-300/50 rounded-3xl">
-                    No products
-                  </div> )
-                }
-              </AnimatePresence>
-            </li>  
-          }
+          )
+        )}
+          
+          
 
         {/* Pagination */}
-        {paginatedBrands.length > 0 && <motion.li
+        {paginatedBrands.length > 0 && 
+          <motion.li
             key="pagination"
-            custom={filteredBrands.length + 1}
+            layout
             className="py-5"
           >
-            
             <AdminPagination 
               currentPage={currentPage} 
               totalPages={totalPages}
