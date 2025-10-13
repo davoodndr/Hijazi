@@ -369,27 +369,49 @@ export const getMinPricedVariant = (variants) => {
 };
 
 export const filterData = (searchQuery = null, filter = null, list = [], fields = []) => {
-  
-  return useMemo(()=> {
-    return list?.filter(item =>{
+  return list?.filter(item =>{
 
-      if(searchQuery){
-        return fields.some(field => {
+    if(searchQuery){
+      return fields.some(field => {
 
-          if(item && item[field]){
-            return item[field]?.includes(searchQuery?.toLowerCase())
-          }
-          return false
+        if(item && item[field]){
+          return item[field]?.includes(searchQuery?.toLowerCase())
+        }
+        return false
 
-        })
-      }else{
+      })
+    }else{
 
-        if(!filter || !Object.keys(filter).length) return item;
-        const [[key, value]] = Object.entries(filter)
+      if(!filter || !Object.keys(filter).length) return item;
+      const [[key, value]] = Object.entries(filter)
 
-        return item[key]?.includes(value)
-      }
+      return item[key]?.includes(value)
+    }
 
-    });
-  },[searchQuery, filter, list])
+  });
+}
+
+export const sortData = (currentSort = null, list)=> {
+
+  const field = currentSort?.field;
+
+  if (!list || !field) return;
+
+  return [...list]?.sort((a, b) => {
+    const aVal = field?.includes('.') ? field.split('.').reduce((acc, key) => acc?.[key], a) :  a[field];
+    const bVal = field?.includes('.') ? field.split('.').reduce((acc, key) => acc?.[key], b) : b[field];
+
+    if(typeof aVal === 'string'){
+      return currentSort?.ascending ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    }
+
+    const res = currentSort?.ascending ? 
+        (aVal > bVal ? 1 : aVal < bVal ? -1 : 0)
+      : (aVal < bVal ? 1 : aVal > bVal ? -1 : 0);
+
+
+    return res
+
+  })
+        
 }

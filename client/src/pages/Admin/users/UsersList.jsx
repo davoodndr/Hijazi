@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { LuEye, LuSearch, LuUserRoundPlus } from "react-icons/lu";
+import { LuArrowUpDown, LuEye, LuSearch, LuUserRoundPlus } from "react-icons/lu";
 import place_holder from '../../../assets/user_placeholder.jpg'
 import { TbUserEdit } from "react-icons/tb";
 import { HiHome, HiOutlineTrash } from "react-icons/hi2";
@@ -15,7 +15,7 @@ import Alert from '../../../components/ui/Alert'
 import { Menu, MenuButton } from '@headlessui/react';
 import DropdownButton from '../../../components/ui/DropdownButton';
 import { FaCheck, FaSort } from 'react-icons/fa6';
-import { BsFillMenuButtonFill, BsSortDown, BsSortDownAlt } from 'react-icons/bs';
+import { BsFillMenuButtonFill, BsSortDown, BsSortDownAlt, BsSortUpAlt } from 'react-icons/bs';
 import { CiFilter } from 'react-icons/ci';
 import { containerVariants, rowVariants } from '../../../utils/Anim';
 import { format } from 'date-fns'
@@ -23,25 +23,42 @@ import SearchBar from '../../../components/ui/Searchbar';
 import SkeltoList from '../../../components/ui/SkeltoList';
 import { useSelector } from 'react-redux';
 import { useblockUserMutation, useDeleteUserMutation } from '../../../services/MutationHooks';
-import { filterData } from '../../../utils/Utils';
+import { filterData, sortData } from '../../../utils/Utils';
 import clsx from 'clsx';
+import SortHeader from '../../../components/ui/SortHeader';
+import HeaderSortIcon from '../../../components/ui/HeaderSortIcon';
 
 const UsersList = () => {
 
   const navigate = useNavigate();
   const blockMutation = useblockUserMutation();
   const deleteUserMutation = useDeleteUserMutation();
+  const [currentSort, setCurrentSort] = useState(null)
 
   const [users, setUsers] = useState([]);
   const { users: usersList } = useSelector(state => state.user);
 
   /* initial data loader */
   useEffect(() => {
-    const sorted = [...usersList]?.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
-    setUsers(sorted)
+    const updatedList = setupData(usersList);
+    setUsers(updatedList)
+    setCurrentSort({field: "join", ascending: false})
   },[usersList])
 
-  /* search filter */
+  const setupData = (list) => {
+
+    return list?.map(user => {
+      
+      return {
+        ...user,
+        join: new Date(user?.createdAt),
+        last_login: user?.last_login ? new Date(user?.last_login) : null
+      }
+    })
+
+  }
+
+  /* search and filter */
   const [searchQuery, setSearchQuery] = useState(null);
   const [filter, setFilter] = useState({});
   const fields = ['username','email','roles','status','mobile'];
@@ -54,7 +71,26 @@ const UsersList = () => {
     {id: 'blocked', value: {'status': 'blocked'}, color: '--color-red-400'},
   ]
 
-  const filteredUsers = filterData(searchQuery, filter, users, fields)
+  const filteredUsers = useMemo(()=> {
+    return filterData(searchQuery, filter, users, fields);
+  },[searchQuery, filter, users])
+
+  /* sort */
+  const [sortedUsers, setSortedUsers] = useState([]);
+  const [sortDirection, setSortDirection] = useState('asc');
+  const headerSortOptions = [
+    {title: 'orders',field: 'orderDetails.orders', ascending: true},
+    {title: 'reviews',field: 'reviews', ascending: true},
+    {title: 'status',field: 'status', ascending: true},
+  ]
+
+  useEffect(() => {
+
+    const sorted = sortData(currentSort, filteredUsers)
+
+    setSortedUsers(sorted)
+
+  },[filteredUsers, currentSort])
 
   /* handling action buttons */
   const handleUserBlock = (user) => {
@@ -123,9 +159,9 @@ const UsersList = () => {
   /* paingation logic */
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const totalPages = Math.ceil(users?.length / itemsPerPage);
 
-  const paginatedUsers = filteredUsers?.slice(
+  const paginatedUsers = sortedUsers?.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -168,35 +204,57 @@ const UsersList = () => {
         />
 
         {/* filter sort */}
-        <div className='flex items-center h-full gap-x-2'>
+        <div className='flex items-center h-full space-x-3'>
           {/* sort */}
-          <DropdownButton
-            label='sort'
-            icon={<FaSort className='text-lg me-1' />}
-            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
-            items={[
-              { id: 'priceltoh', 
-                icon: <BsSortDownAlt className='text-xl'/>,
-                text: <span className={`capitalize`}> price: low to high </span>,
-                onclick: () => {}
-              },
-              { id: 'pricehtol', 
-                icon: <BsSortDown className='text-xl'/>,
-                text: <span className={`capitalize`}> price: high to low</span>,
-                onclick: () => {}
-              },
-              { id: 'newfirst', 
-                icon: <BsSortDown className='text-xl'/>,
-                text: <span className={`capitalize`}> Newest First</span>,
-                onclick: () => {}
-              },
-              { id: 'oldfirst', 
-                icon: <BsSortDownAlt className='text-xl'/>,
-                text: <span className={`capitalize`}> Oldest First</span>,
-                onclick: () => {}
-              },
-            ]}
-          />
+          <motion.div layout className='flex items-center h-full bg-white border border-gray-300 rounded-xl space-x-1'>
+            <DropdownButton
+              label='sort'
+              icon={<FaSort className='text-lg me-1' />}
+              className='!text-gray-500'
+              items={[
+                { id: 'priceltoh', 
+                  icon: <BsSortDownAlt className='text-xl'/>,
+                  text: <span className={`capitalize`}> price: low to high </span>,
+                  onclick: () => {}
+                },
+                { id: 'pricehtol', 
+                  icon: <BsSortDown className='text-xl'/>,
+                  text: <span className={`capitalize`}> price: high to low</span>,
+                  onclick: () => {}
+                },
+                { id: 'newfirst', 
+                  icon: <BsSortDown className='text-xl'/>,
+                  text: <span className={`capitalize`}> Newest First</span>,
+                  onclick: () => {}
+                },
+                { id: 'oldfirst', 
+                  icon: <BsSortDownAlt className='text-xl'/>,
+                  text: <span className={`capitalize`}> Oldest First</span>,
+                  onclick: () => {}
+                },
+              ]}
+            />
+
+            <span className='h-full border-r border-gray-300'></span>
+
+            <DropdownButton
+              icon={<LuArrowUpDown />}
+              items={[
+                { id: 'asc', 
+                  icon: <BsSortDownAlt className='text-xl'/>,
+                  text: <span className={`capitalize`}>Low to high</span>,
+                  tail: sortDirection === 'asc' ? (<span><FaCheck /></span>) : null,
+                  onClick: () => setSortDirection('asc')
+                },
+                { id: 'desc', 
+                  icon: <BsSortUpAlt className='text-xl'/>,
+                  text: <span className={`capitalize`}>high to low</span>,
+                  tail: sortDirection === 'desc' ? (<span><FaCheck /></span>) : null,
+                  onClick: () => setSortDirection('desc')
+                },
+              ]}
+            />
+          </motion.div>
 
           {/* filter */}
           <DropdownButton
@@ -245,9 +303,29 @@ const UsersList = () => {
             <span>User</span>
             <span>Roles</span>
             <span>Contact</span>
-            <span>Orders</span>
+            {headerSortOptions?.map((item, index) => 
+              <SortHeader
+                key={index}
+                onClick={()=> {
+                  setCurrentSort(prev => {
+                    if (prev?.field === item.field) {
+                      return { ...item, ascending: !prev.ascending };
+                    }
+                    return { ...item, ascending: true };
+                  });
+                }}
+                title={item?.title}
+                sortIcon={<HeaderSortIcon currentSort={currentSort} field={item?.field} />}
+                className={clsx('flex items-center space-x-1 cursor-pointer',
+                  index > 0 && 'justify-center'
+                )}
+                titleClass='relative'
+                iconClass='inline-flex flex-col -space-y-1 absolute -right-4'
+              />
+            )}
+            {/* <span>Orders</span>
             <span className='text-center'>Reviews</span>
-            <span className='text-center'>Status</span>
+            <span className='text-center'>Status</span> */}
             <span className="flex items-center justify-center">
               <BsFillMenuButtonFill className='text-xl' />
             </span>
@@ -285,6 +363,10 @@ const UsersList = () => {
                       format(new Date(user?.last_login), 'dd/MM/yy, hh:mm a')
                         .replace('AM','am')
                         .replace('PM','pm') : null;
+
+                    const join = format(user?.join, 'dd-MMM-yyyy')
+                        .replace('AM','am')
+                        .replace('PM','pm');
                     
                     const { orders, pendings, cancelled } = user?.orderDetails;
 
@@ -316,8 +398,9 @@ const UsersList = () => {
                             </div>
                             <div className="inline-flex flex-col">
                               <p className="capitalize">{user?.username}</p>
-                              <p className="text-xs text-gray-500">{user?.email}</p>
-                              <p className="text-xs text-gray-400">
+                              <p className="text-xs text-gray-500">Joined: {join}</p>
+                              
+                              <p className="text-xs text-gray-500/80">
                                 <span>{lastLogin ? 'Logined: ' : 'Not logined'}</span>
                                 <span>{lastLogin}</span>
                               </p>
@@ -332,7 +415,10 @@ const UsersList = () => {
                           </div>
 
                           {/* Contact */}
-                          <div>{user?.mobile || <span className="text-gray-400">Not added</span>}</div>
+                          <div>
+                            <p>{user?.mobile || <span className="text-gray-400">Not added</span>}</p>
+                            <p className="text-xs text-gray-500">{user?.email}</p>
+                          </div>
 
                           {/* orders */}
                           <div className='text-[13px]'>

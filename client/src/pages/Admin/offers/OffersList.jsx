@@ -69,13 +69,13 @@ const OffersList = () => {
 
   /* sort */
   const [sortedOffers, setSortedOffers] = useState([]);
-  const [sortOptions, setSortOptions] = useState([
+  const sortOptions = [
     {title: 'offer',field: 'title', ascending: true},
     {title: 'discount',field: 'discountValue', ascending: true},
     {title: 'validity',field: 'startDate', ascending: true},
     {title: 'min. purchase',field: 'minPurchase', ascending: true},
     {title: 'limit',field: 'usageLimit', ascending: true},
-  ])
+  ]
   
 
   useEffect(() => {
