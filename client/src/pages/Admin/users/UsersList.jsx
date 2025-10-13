@@ -1,8 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { LuEye, LuSearch, LuUserRoundPlus } from "react-icons/lu";
-import ApiBucket from '../../../services/ApiBucket';
-import { Axios } from '../../../utils/AxiosSetup';
 import place_holder from '../../../assets/user_placeholder.jpg'
 import { TbUserEdit } from "react-icons/tb";
 import { HiHome, HiOutlineTrash } from "react-icons/hi2";
@@ -12,12 +10,11 @@ import { MdBlock } from "react-icons/md";
 import { CgUnblock } from "react-icons/cg";
 import AdminPagination from '../../../components/ui/AdminPagination';
 import { useNavigate } from 'react-router';
-import { blockUserAction, deleteUserAction } from '../../../services/ApiActions';
 import AxiosToast from '../../../utils/AxiosToast';
 import Alert from '../../../components/ui/Alert'
 import { Menu, MenuButton } from '@headlessui/react';
 import DropdownButton from '../../../components/ui/DropdownButton';
-import { FaSort } from 'react-icons/fa6';
+import { FaCheck, FaSort } from 'react-icons/fa6';
 import { BsFillMenuButtonFill, BsSortDown, BsSortDownAlt } from 'react-icons/bs';
 import { CiFilter } from 'react-icons/ci';
 import { containerVariants, rowVariants } from '../../../utils/Anim';
@@ -25,25 +22,18 @@ import { format } from 'date-fns'
 import SearchBar from '../../../components/ui/Searchbar';
 import SkeltoList from '../../../components/ui/SkeltoList';
 import { useSelector } from 'react-redux';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useblockUserMutation, useDeleteUserMutation } from '../../../services/MutationHooks';
+import { filterData } from '../../../utils/Utils';
+import clsx from 'clsx';
 
 const UsersList = () => {
 
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const blockMutation = useblockUserMutation();
+  const deleteUserMutation = useDeleteUserMutation();
 
   const [users, setUsers] = useState([]);
   const { users: usersList } = useSelector(state => state.user);
-
-  const blockUnblockMutation = useMutation({
-    mutationFn: async({user_id, status})=> {
-      const response = await blockUserAction(user_id, status);
-      return response
-    },
-    onSuccess: (response) => {
-      queryClient.invalidateQueries(['users']);
-    }
-  })
 
   /* initial data loader */
   useEffect(() => {
@@ -53,23 +43,18 @@ const UsersList = () => {
 
   /* search filter */
   const [searchQuery, setSearchQuery] = useState(null);
-  const fields = ['username','email','role','status','mobile']
+  const [filter, setFilter] = useState({});
+  const fields = ['username','email','roles','status','mobile'];
+  const filterMenus = [
+    {id: 'none', value: {}, color: '--color-gray-200'},
+    {id: 'user', value: {'roles': 'user'}, color: '--color-amber-400'},
+    {id: 'admin', value: {'roles': 'admin'}, color: '--color-blue-400'},
+    {id: 'active', value: {'status': 'active'}, color: '--color-green-400'},
+    {id: 'inactive', value: {'status': 'inactive'}, color: '--color-gray-400'},
+    {id: 'blocked', value: {'status': 'blocked'}, color: '--color-red-400'},
+  ]
 
-  const filteredUsers = useMemo(() => {
-    return users?.filter(user =>{
-
-      return fields.some(field => {
-
-        if(user && user[field]){
-          return user[field]?.includes(searchQuery)
-        }
-        return false
-
-      })
-
-    });
-
-  },[searchQuery, users])
+  const filteredUsers = filterData(searchQuery, filter, users, fields)
 
   /* handling action buttons */
   const handleUserBlock = (user) => {
@@ -82,11 +67,14 @@ const UsersList = () => {
       showCancelButton: true,
       confirmButtonText: 'Yes, do it!',
       cancelButtonText: 'Cancel',
+      customClass: {
+        confirmButton: mode === 'block' ? '!bg-red-500' : '!bg-green-500'
+      }
     })
     .then(async (result) => {
       if (result.isConfirmed) {
         
-        const response = await blockUnblockMutation.mutateAsync({user_id: user?._id, status: mode});
+        const response = await blockMutation.mutateAsync({user_id: user?._id, status: mode});
 
         if(response?.data?.success){
           const newStatus = response?.data?.updates;
@@ -103,6 +91,7 @@ const UsersList = () => {
     });
 
   }
+
   const handleUserDelete = (user) => {
 
     Alert({
@@ -111,12 +100,14 @@ const UsersList = () => {
       text: 'This action cannot revert back',
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it',
-      confirmButtonColor: 'var(--color-red-500)'
+      customClass: {
+        confirmButton: '!bg-red-500'
+      }
     }).then(async result => {
       
       if(result.isConfirmed){
 
-        const response = await deleteUserAction('users', user?._id);
+        const response = await deleteUserMutation.mutateAsync({ user_id: user?._id })
 
         if(response?.data?.success){
           setUsers(prev => prev.filter(u => u._id !== user?._id));
@@ -209,31 +200,37 @@ const UsersList = () => {
 
           {/* filter */}
           <DropdownButton
-            label='filter'
+            label={ Object?.values(filter)[0] || 'filter'}
             icon={<CiFilter className='text-lg me-1' />}
-            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
-            items={[
-              { id: 'featured', 
-                icon: <span className='text-xl point-before'></span>,
-                text: <span className={`capitalize`}> featured </span>,
-                onclick: () => {}
-              },
-              { id: 'active', 
-                icon: <span className='text-xl point-before point-before:bg-green-400'></span>,
-                text: <span className={`capitalize`}> active </span>,
-                onclick: () => {}
-              },
-              { id: 'inactive', 
-                icon: <span className='text-xl point-before point-before:bg-gray-400'></span>,
-                text: <span className={`capitalize`}> inactive </span>,
-                onclick: () => {}
-              },
-              { id: 'outofstock', 
-                icon: <span className='text-xl point-before point-before:bg-red-400'></span>,
-                text: <span className={`capitalize`}> out of stock </span>,
-                onclick: () => {}
-              },
-            ]}
+            style={{ 
+              '--dynamic': `var(${
+                filterMenus?.find(el => Object.values(el?.value)[0] === Object.values(filter)[0]).color
+              })` 
+            }}
+            className={clsx('bg-white border rounded-xl',
+              Object?.values(filter)[0] ? 'text-(--dynamic) border-(--dynamic)' : 'border-gray-300 text-gray-500'
+            )}
+            items={
+              filterMenus?.map(menu => {
+                const key = Object.keys(menu?.value)[0];
+                const value = menu?.value[key];
+                const isSelected = menu?.id === 'none' ? 
+                  !Object.keys(filter)?.length 
+                  :
+                  filter[key] === value
+
+                return {
+                  id: menu?.id, 
+                  icon: <span 
+                          style={{ '--point-color': `var(${menu?.color})` }} 
+                          className={`text-xl point-before point-before:bg-(--point-color)`}>
+                        </span>,
+                  text: <span className={`capitalize`}> {menu?.id} </span>,
+                  tail: isSelected ? (<span><FaCheck /></span>) : null,
+                  onClick: () => setFilter(menu?.value)
+                }
+              })
+            }
           />
         </div>
         
@@ -268,12 +265,12 @@ const UsersList = () => {
 
           {paginatedUsers?.length > 0 ? (
 
-            <AnimatePresence>
-              <motion.li
-                key="list-container"
-                layout 
-                className="divide-y divide-theme-divider"
+            <motion.li
+              key="list-container"
+              layout 
+              className="divide-y divide-theme-divider"
               >
+              <AnimatePresence>
                 {paginatedUsers.map((user) => {
 
                     const statusColors = () => {
@@ -444,15 +441,14 @@ const UsersList = () => {
                     )
                   })
                 }
-
-              </motion.li>
-            </AnimatePresence>
+              </AnimatePresence>
+            </motion.li>
 
           ) : (
-            !searchQuery?.trim() ? (
+            !searchQuery?.trim() && !Object.keys(filter)?.length ? (
               <SkeltoList />
             ):(
-              <AnimatePresence>
+              
                 <motion.li
                   key="not-found"
                   layout
@@ -467,7 +463,7 @@ const UsersList = () => {
                     text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
                   >No users found</span>
                 </motion.li>
-              </AnimatePresence>
+              
             )
           )}
 

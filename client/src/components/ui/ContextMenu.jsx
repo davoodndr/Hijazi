@@ -6,8 +6,6 @@ import { useState } from 'react';
 
 function ContextMenuComponent({items, open, itemHeight = 10}) {
 
-  const [checked, setChecked] = useState({});
-
   return (
     <AnimatePresence>
       {open && 

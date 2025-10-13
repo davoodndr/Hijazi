@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Axios } from "./AxiosSetup";
 import AxiosToast from "./AxiosToast";
 
@@ -366,3 +367,29 @@ export const getMinPricedVariant = (variants) => {
     null
   );
 };
+
+export const filterData = (searchQuery = null, filter = null, list = [], fields = []) => {
+  
+  return useMemo(()=> {
+    return list?.filter(item =>{
+
+      if(searchQuery){
+        return fields.some(field => {
+
+          if(item && item[field]){
+            return item[field]?.includes(searchQuery?.toLowerCase())
+          }
+          return false
+
+        })
+      }else{
+
+        if(!filter || !Object.keys(filter).length) return item;
+        const [[key, value]] = Object.entries(filter)
+
+        return item[key]?.includes(value)
+      }
+
+    });
+  },[searchQuery, filter, list])
+}
