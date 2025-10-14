@@ -395,7 +395,7 @@ export const sortData = (currentSort = null, list)=> {
 
   const field = currentSort?.field;
 
-  if (!list || !field) return;
+  if (!list || !field) return list;
 
   return [...list]?.sort((a, b) => {
     const aVal = field?.includes('.') ? field.split('.').reduce((acc, key) => acc?.[key], a) :  a[field];

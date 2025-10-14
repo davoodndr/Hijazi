@@ -21,7 +21,7 @@ function DropdownButtonComponent({
               relative ${className}`}
           >
             {icon}
-            <span className={`capitalize ${labelClass}`}>{label}</span>
+            <p className={`capitalize ${labelClass}`}>{label}</p>
             <div className='inline-flex items-center h-full'>
               <span className='h-[60%] w-px mx-2 bg-gray-500/30'></span>
               <IoIosArrowDown />

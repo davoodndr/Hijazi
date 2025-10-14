@@ -42,7 +42,6 @@ const UsersList = () => {
   useEffect(() => {
     const updatedList = setupData(usersList);
     setUsers(updatedList)
-    setCurrentSort({field: "join", ascending: false})
   },[usersList])
 
   const setupData = (list) => {
@@ -83,14 +82,25 @@ const UsersList = () => {
     {title: 'reviews',field: 'reviews', ascending: true},
     {title: 'status',field: 'status', ascending: true},
   ]
+  const sortMenus = [
+    {id: 'none', title: 'none', color: '--color-gray-200'},
+    {id: 'username', title: 'name', color: '--color-amber-400'},
+    {id: 'email', title: 'email', color: '--color-blue-400'},
+    {id: 'mobile', title: 'contact no.', color: '--color-pink-400'},
+    {id: 'join', title: 'join date', color: '--color-green-400'},
+    {id: 'last_login', title: 'login', color: '--color-violet-400'},
+  ]
 
   useEffect(() => {
 
-    const sorted = sortData(currentSort, filteredUsers)
-
+    const sorted = sortData(currentSort, filteredUsers);
     setSortedUsers(sorted)
 
-  },[filteredUsers, currentSort])
+  },[filteredUsers, currentSort]);
+
+  const isSortMenuSelected = ()=>{
+    return sortMenus?.find(el => el?.id  === currentSort?.field)
+  }
 
   /* handling action buttons */
   const handleUserBlock = (user) => {
@@ -206,33 +216,43 @@ const UsersList = () => {
         {/* filter sort */}
         <div className='flex items-center h-full space-x-3'>
           {/* sort */}
-          <motion.div layout className='flex items-center h-full bg-white border border-gray-300 rounded-xl space-x-1'>
+          <motion.div layout 
+            style={{ 
+              '--dynamic': `var(${
+                isSortMenuSelected()?.color || ''
+              })` 
+            }}
+            className={clsx('flex items-center h-full bg-white border rounded-xl space-x-1',
+              isSortMenuSelected() && currentSort?.field !== 'none' ? 
+              'text-(--dynamic) border-(--dynamic)' : 'border-gray-300 text-gray-500'
+            )}
+          >
             <DropdownButton
               label='sort'
               icon={<FaSort className='text-lg me-1' />}
-              className='!text-gray-500'
-              items={[
-                { id: 'priceltoh', 
-                  icon: <BsSortDownAlt className='text-xl'/>,
-                  text: <span className={`capitalize`}> price: low to high </span>,
-                  onclick: () => {}
-                },
-                { id: 'pricehtol', 
-                  icon: <BsSortDown className='text-xl'/>,
-                  text: <span className={`capitalize`}> price: high to low</span>,
-                  onclick: () => {}
-                },
-                { id: 'newfirst', 
-                  icon: <BsSortDown className='text-xl'/>,
-                  text: <span className={`capitalize`}> Newest First</span>,
-                  onclick: () => {}
-                },
-                { id: 'oldfirst', 
-                  icon: <BsSortDownAlt className='text-xl'/>,
-                  text: <span className={`capitalize`}> Oldest First</span>,
-                  onclick: () => {}
-                },
-              ]}
+              className='!text-inherit'
+              items={
+                sortMenus?.map(menu => {
+
+                  const isSelected = menu?.id === 'none' ?
+                    (menu?.id === currentSort?.field || !isSortMenuSelected())
+                    :
+                    menu?.id === currentSort?.field;
+
+                  return { 
+                    id: menu?.id, 
+                    icon: <span 
+                            style={{ '--point-color': `var(${menu?.color})` }} 
+                            className={`text-xl point-before point-before:bg-(--point-color)`}>
+                          </span>,
+                    text: <span className={`capitalize`}>{menu.id === 'none' ? menu?.title : `by ${menu?.title}`} </span>,
+                    tail: isSelected ? (<span><FaCheck /></span>) : null,
+                    onClick: () => {
+                      setCurrentSort({ field: menu?.id, ascending: sortDirection === 'asc'})
+                    }
+                  }
+                })
+              }
             />
 
             <span className='h-full border-r border-gray-300'></span>
@@ -244,13 +264,19 @@ const UsersList = () => {
                   icon: <BsSortDownAlt className='text-xl'/>,
                   text: <span className={`capitalize`}>Low to high</span>,
                   tail: sortDirection === 'asc' ? (<span><FaCheck /></span>) : null,
-                  onClick: () => setSortDirection('asc')
+                  onClick: () => {
+                    setSortDirection('asc')
+                    setCurrentSort({...currentSort, ascending: true })
+                  }
                 },
                 { id: 'desc', 
                   icon: <BsSortUpAlt className='text-xl'/>,
                   text: <span className={`capitalize`}>high to low</span>,
                   tail: sortDirection === 'desc' ? (<span><FaCheck /></span>) : null,
-                  onClick: () => setSortDirection('desc')
+                  onClick: () => {
+                    setSortDirection('desc')
+                    setCurrentSort({...currentSort, ascending: false })
+                  }
                 },
               ]}
             />
@@ -316,16 +342,13 @@ const UsersList = () => {
                 }}
                 title={item?.title}
                 sortIcon={<HeaderSortIcon currentSort={currentSort} field={item?.field} />}
-                className={clsx('flex items-center space-x-1 cursor-pointer',
+                className={clsx('flex items-center space-x-1 cursor-pointer smooth hover:text-primary-300',
                   index > 0 && 'justify-center'
                 )}
                 titleClass='relative'
                 iconClass='inline-flex flex-col -space-y-1 absolute -right-4'
               />
             )}
-            {/* <span>Orders</span>
-            <span className='text-center'>Reviews</span>
-            <span className='text-center'>Status</span> */}
             <span className="flex items-center justify-center">
               <BsFillMenuButtonFill className='text-xl' />
             </span>
