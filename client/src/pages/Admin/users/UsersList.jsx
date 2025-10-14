@@ -181,8 +181,15 @@ const UsersList = () => {
 
       {/* page title & add user button */}
       <div className="mb-5 flex justify-between items-start">
-        <div className="flex flex-col">
-          <h3 className='text-xl'>Users Management</h3>
+        <div className="inline-flex flex-col">
+          <div className="flex items-center leading-4 space-x-3">
+            <h3 className='text-xl'>Users Management</h3>
+            <span className='border-r border-gray-400/70 inline-flex h-5'></span>
+            <p className='space-x-1 text-black'>
+              <span className='font-semibold'>{users?.length}</span>
+              <span className='text-xs text-gray-500'>Users</span>
+            </p>
+          </div>
           <span className='sub-title'>Add, edit and delete users</span>
         </div>
         <button 
@@ -205,13 +212,26 @@ const UsersList = () => {
       {/* search */}
       <div className="flex items-center justify-between mb-5">
         
-        <SearchBar
-          onSearch={(value) => setSearchQuery(value)}
-          placeholder='Search users'
-          className='w-3/10'
-          inputClass="!pl-10 rounded-xl bg-white peer"
-          iconClass='left-3 smooth peer-focus:text-primary-400'
-        />
+        <div className="w-full flex items-center space-x-3">
+          <SearchBar
+            onSearch={(value) => setSearchQuery(value)}
+            placeholder='Search users'
+            className='w-4/10'
+            inputClass="!pl-10 rounded-xl bg-white peer"
+            iconClass='left-3 smooth peer-focus:text-primary-400'
+          />
+
+          {(Object?.keys(filter)?.length > 0 || searchQuery) && (
+            <motion.p layout className='space-x-1'>
+              <span>Found</span>
+              {filteredUsers?.length > 0 && <span className='font-semibold'>{filteredUsers?.length}</span>}
+              <span>{
+                filteredUsers?.length === 1 ? 'user' : 
+                filteredUsers?.length < 1 ? 'nothing' : 'users'}!</span>
+            </motion.p>
+          )}
+
+        </div>
 
         {/* filter sort */}
         <div className='flex items-center h-full space-x-3'>

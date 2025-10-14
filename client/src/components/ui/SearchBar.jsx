@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { LuSearch } from 'react-icons/lu'
+import { motion } from 'motion/react'
 
 function SearchBarComponent({
   onSearch = () => {},
@@ -22,7 +23,7 @@ function SearchBarComponent({
   },[query])
 
   return (
-    <div className={`flex items-center relative ${className || ''}`}>
+    <motion.div layout className={`flex items-center relative ${className || ''}`}>
       <input 
         type="text"
         value={query} 
@@ -31,7 +32,7 @@ function SearchBarComponent({
         className={inputClass || ''}
       />
       <LuSearch size={20} className={`absolute text-neutral-400/80 ${iconClass || ''}`}/>
-    </div>
+    </motion.div>
   )
 }
 
