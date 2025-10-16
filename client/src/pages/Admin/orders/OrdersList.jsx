@@ -2,28 +2,30 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { HiHome } from 'react-icons/hi2'
 import { IoIosArrowForward, IoMdMore } from 'react-icons/io'
 import { LuEye, LuPackagePlus, LuSearch } from 'react-icons/lu'
-import DropdownButton from '../../../components/ui/DropdownButton';
 import { AnimatePresence, motion } from 'motion/react';
 import { containerVariants, rowVariants } from '../../../utils/Anim';
 import { useSelector } from 'react-redux';
 import AdminPagination from '../../../components/ui/AdminPagination';
-import AvatarGroup from '../../../components/ui/AvatarGroup';
 import { format } from 'date-fns';
 import clsx from 'clsx';
 import { Menu, MenuButton } from '@headlessui/react';
 import ContextMenu from '../../../components/ui/ContextMenu';
 import { useNavigate } from 'react-router';
-import { Axios } from '../../../utils/AxiosSetup';
-import ApiBucket from '../../../services/ApiBucket';
 import { BsFillMenuButtonFill } from 'react-icons/bs';
 import SkeltoList from '../../../components/ui/SkeltoList';
 import SearchBar from '../../../components/ui/Searchbar';
+import { filterData } from '../../../utils/Utils';
+import { CiFilter } from 'react-icons/ci';
+import { FaCheck } from 'react-icons/fa6';
+import DropdownMenuButton from '../../../components/ui/DropdownMenuButton';
 
 function OrdersList() {
 
   const navigate = useNavigate();
   const { ordersList } = useSelector(state => state.orders);
   const [orders, setOrders] = useState([]);
+
+  const [currentSort, setCurrentSort] = useState(null);
 
   useEffect(() => {
 
@@ -32,6 +34,33 @@ function OrdersList() {
 
   },[ordersList]);
 
+
+  /* search and filter */
+  const [searchQuery, setSearchQuery] = useState(null);
+  const [filter, setFilter] = useState({})
+  const fields = ['name','slug']
+  const filterMenus = [
+    {label: 'all', value: {}, color: '--color-gray-200'},
+    {label: 'status', color: '--color-pink-300',
+      children: [
+        {label: 'pending', value: {'status': 'pending'}, color: '--color-amber-400'},
+        {label: 'paid',  value: {'status': 'paid'}, color: '--color-pink-400'},
+      ]
+    },
+    {label: 'user', value: {'roles': 'user'}, color: '--color-amber-400'},
+    {label: 'admin', value: {'roles': 'admin'}, color: '--color-blue-400'},
+    {label: 'active', value: {'status': 'active'}, color: '--color-green-400'},
+    {label: 'inactive', value: {'status': 'inactive'}, color: '--color-gray-400'},
+    {label: 'blocked', value: {'status': 'blocked'}, color: '--color-red-400'},
+  ]
+
+  const filteredOrders = useMemo(() => {
+
+    return filterData(searchQuery, filter?.value, orders, fields);
+
+  },[searchQuery, filter, orders])
+
+
   const handleViewOrderClick = (order) => { 
     navigate(`view-order/${order?.order_no}`,
       {
@@ -39,37 +68,6 @@ function OrdersList() {
       }
     )
   }
-
-  /* debouncer */
-  const [searchQuery, setSearchQuery] = useState(null);
-  const [filter, setFilter] = useState({})
-  const fields = ['name','slug']
-
-  /* search filter */
-  const filteredOrders = useMemo(() => {
-    return orders.filter(order =>{
-
-      if(searchQuery){
-        
-        return fields.some(field => {
-
-          if(order[field]){
-            return order[field].includes(searchQuery)
-          }
-          return false
-
-        })
-
-      }else{
-
-        if(!filter || !Object.keys(filter).length) return order;
-        const [[key, value]] = Object.entries(filter)
-        return order[key] === value
-      }
-
-    });
-
-  },[searchQuery, filter, orders])
 
   /* paingation logic */
   const [currentPage, setCurrentPage] = useState(1);
@@ -81,12 +79,58 @@ function OrdersList() {
     currentPage * itemsPerPage
   );
 
+  const buildMenuItems = (menus) => {
+    return menus?.map(menu => {
+      const hasChildren = Array.isArray(menu?.children) && menu.children.length > 0;
+
+      let isSelected = false;
+
+      if(!hasChildren && filter?.value){
+        const key = Object?.keys(menu?.value)?.[0] || null;
+        const value = menu?.value[key];
+        isSelected = menu?.label === 'all' ? 
+          !Object.keys(filter?.value)?.length 
+          :
+          filter?.value[key] === value
+      }
+      
+      if(menu?.label === 'all'){
+        if(!filter?.value || filter?.label === 'all') {
+          isSelected = true
+        }else{
+          isSelected = false
+        }
+      }
+
+      return {
+        label: menu?.label,
+        isSelected,
+        icon: (
+          <span
+            style={{ '--point-color': `var(${menu.color})` }}
+            className="text-xl point-before point-before:bg-(--point-color)"
+          ></span>
+        ),
+        tail: isSelected ? (<span><FaCheck /></span>) : null,
+        children: hasChildren ? buildMenuItems(menu.children) : undefined,
+        action: () => setFilter(menu),
+      };
+    });
+  };
+
   return (
     <section className='flex flex-col p-6'>
       {/* page title & add category button */}
       <div className="mb-5 flex justify-between items-start">
-        <div className="flex flex-col">
-          <h3 className='text-xl'>Order Management</h3>
+        <div className="inline-flex flex-col">
+          <div className="flex items-center leading-4 space-x-3">
+            <h3 className='text-xl'>Order Management</h3>
+            <span className='border-r border-gray-400/70 inline-flex h-5'></span>
+            <p className='space-x-1 text-black'>
+              <span className='font-semibold'>{orders?.length}</span>
+              <span className='text-xs text-gray-500'>Orders</span>
+            </p>
+          </div>
           <span className='sub-title'>View and manage orders</span>
         </div>
         <button 
@@ -107,85 +151,113 @@ function OrdersList() {
       </div>
 
       {/* search sort filter*/}
-      <div className="flex items-center justify-between mb-5">
-      
-        <SearchBar
-          onSearch={(value) => setSearchQuery(value)}
-          placeholder='Search users'
-          className='w-3/10'
-          inputClass="!pl-10 rounded-xl bg-white peer"
-          iconClass='left-3 smooth peer-focus:text-primary-400'
-        />
+      <div className="flex items-center mb-5">
+              
+        <div className="w-full flex items-center space-x-3">
+          <SearchBar
+            onSearch={(value) => setSearchQuery(value)}
+            placeholder='Search users'
+            className='w-4/10'
+            inputClass="!pl-10 rounded-xl bg-white peer"
+            iconClass='left-3 smooth peer-focus:text-primary-400'
+          />
+
+          {(Object?.keys(filter)?.length > 0 || searchQuery) && (
+            <motion.p layout className='space-x-1'>
+              <span>Found</span>
+              {filteredOrders?.length > 0 && <span className='font-semibold'>{filteredOrders?.length}</span>}
+              <span>{
+                filteredOrders?.length === 1 ? 'order' : 
+                filteredOrders?.length < 1 ? 'nothing' : 'orders'}!</span>
+            </motion.p>
+          )}
+
+        </div>
 
         {/* filter sort */}
-        <div className='flex items-center h-full gap-x-2'>
+        <div className='flex items-center h-full space-x-3'>
+
           {/* sort */}
-          {/* <DropdownButton
-            label='sort'
-            icon={<FaSort className='text-md me-1' />}
-            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
-            items={useMemo(() => [
-              { id: 'priceltoh', 
-                icon: <BsSortDownAlt className='text-xl'/>,
-                text: <span className={`capitalize`}> price: low to high </span>,
-                onClick: () => sortData('price')
-              },
-              { id: 'pricehtol', 
-                icon: <BsSortDown className='text-xl'/>,
-                text: <span className={`capitalize`}> price: high to low</span>,
-                onClick: () => sortData('price','desc')
-              },
-              { id: 'newfirst', 
-                icon: <BsSortDown className='text-xl'/>,
-                text: <span className={`capitalize`}> Newest First</span>,
-                onClick: () => sortData('createdAt','asc')
-              },
-              { id: 'oldfirst', 
-                icon: <BsSortDownAlt className='text-xl'/>,
-                text: <span className={`capitalize`}> Oldest First</span>,
-                onClick: () => sortData('createdAt','desc')
-              },
-            ],[])}
-          /> */}
+          {/* <motion.div layout 
+            style={{ 
+              '--dynamic': `var(${
+                isSortMenuSelected()?.color || ''
+              })` 
+            }}
+            className={clsx('flex items-center h-full bg-white border rounded-xl space-x-1',
+              isSortMenuSelected() && currentSort?.field !== 'none' ? 
+              'text-(--dynamic) border-(--dynamic)' : 'border-gray-300 text-gray-500'
+            )}
+          >
+            <DropdownButton
+              label='sort'
+              icon={<FaSort className='text-lg me-1' />}
+              className='!text-inherit'
+              items={
+                sortMenus?.map(menu => {
+
+                  const isSelected = menu?.id === 'none' ?
+                    (menu?.id === currentSort?.field || !isSortMenuSelected())
+                    :
+                    menu?.id === currentSort?.field;
+
+                  return { 
+                    id: menu?.id, 
+                    icon: <span 
+                            style={{ '--point-color': `var(${menu?.color})` }} 
+                            className={`text-xl point-before point-before:bg-(--point-color)`}>
+                          </span>,
+                    text: <span className={`capitalize`}>{menu.id === 'none' ? menu?.title : `by ${menu?.title}`} </span>,
+                    tail: isSelected ? (<span><FaCheck /></span>) : null,
+                    onClick: () => {
+                      setCurrentSort({ field: menu?.id, ascending: sortDirection === 'asc'})
+                    }
+                  }
+                })
+              }
+            />
+
+            <span className='h-full border-r border-gray-300'></span>
+
+            <DropdownButton
+              icon={<LuArrowUpDown />}
+              items={[
+                { id: 'asc', 
+                  icon: <BsSortDownAlt className='text-xl'/>,
+                  text: <span className={`capitalize`}>Low to high</span>,
+                  tail: sortDirection === 'asc' ? (<span><FaCheck /></span>) : null,
+                  onClick: () => {
+                    setSortDirection('asc')
+                    setCurrentSort({...currentSort, ascending: true })
+                  }
+                },
+                { id: 'desc', 
+                  icon: <BsSortUpAlt className='text-xl'/>,
+                  text: <span className={`capitalize`}>high to low</span>,
+                  tail: sortDirection === 'desc' ? (<span><FaCheck /></span>) : null,
+                  onClick: () => {
+                    setSortDirection('desc')
+                    setCurrentSort({...currentSort, ascending: false })
+                  }
+                },
+              ]}
+            />
+          </motion.div> */}
 
           {/* filter */}
-          {/* <DropdownButton
-            label='filter'
-            icon={<CiFilter className='text-lg me-1' />}
-            className=' bg-white border border-gray-300 rounded-xl !text-gray-600'
-            items={useMemo(() => [
-              { id: 'none',
-                icon: <span className='text-xl point-before point-before:bg-gray-300'></span>,
-                text: <span className={`capitalize`}> None </span>,
-                onClick: () => setFilter({})
-              },
-              { id: 'featured',
-                icon: <span className='text-xl point-before'></span>,
-                text: <span className={`capitalize`}> featured </span>,
-                onClick: () => setFilter({'featured':true})
-              },
-              { id: 'active', 
-                icon: <span className='text-xl point-before point-before:bg-green-400'></span>,
-                text: <span className={`capitalize`}> active </span>,
-                onClick: () => setFilter({'status':'active'})
-              },
-              { id: 'inactive', 
-                icon: <span className='text-xl point-before point-before:bg-gray-400'></span>,
-                text: <span className={`capitalize`}> inactive </span>,
-                onClick: () => setFilter({'status':'inactive'})
-              },
-              { id: 'outofstock', 
-                icon: <span className='text-xl point-before point-before:bg-red-400'></span>,
-                text: <span className={`capitalize`}> out of stock </span>,
-                onClick: () => setFilter({'stock':0})
-              },
-              { id: 'archived', 
-                icon: <span className='text-xl point-before point-before:bg-yellow-400'></span>,
-                text: <span className={`capitalize`}> archived </span>,
-                onClick: () => setFilter({'archived':true})
-              },
-            ],[])}
-          /> */}
+          <DropdownMenuButton
+            label={ filter?.label || 'filter'}
+            icon={<span className='p-1.5'><CiFilter className='text-lg' /></span>}
+            style={{ 
+              '--dynamic': `var(${filter?.color || ''})` 
+            }}
+            className={clsx('bg-white border rounded-xl',
+              (filter?.label !== 'all' && filter?.color) ?
+                'text-(--dynamic) border-(--dynamic)' :
+                'border-gray-300 text-gray-500'
+            )}
+            items={buildMenuItems(filterMenus)}
+          />
         </div>
         
       </div>

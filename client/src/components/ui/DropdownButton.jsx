@@ -7,18 +7,19 @@ import { AnimatePresence, motion } from 'motion/react';
 function DropdownButtonComponent({
   icon, label, onClick, style, className = '', labelClass = '', items
 }){
+
   return (
     <Menu as={motion.div} layout className='h-full'>
       {({open}) => (
 
         <>
-          
           <MenuButton as={motion.div}
             layout
             onClick={onClick}
             style={style}
             className={`inline-flex h-full items-center ps-2 pe-3 py-1 cursor-pointer 
-              relative ${className}`}
+              relative ${className}`
+            }
           >
             {icon}
             <p className={`capitalize ${labelClass}`}>{label}</p>
