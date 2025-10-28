@@ -102,7 +102,7 @@ const orderSchema = new mongoose.Schema({
   },
   status: { 
     type: String,
-    enum: ['pending', 'processing', 'shipped', 'out-for-del', 'cancelled', 'failed', 'returned', 'on-hold', 'refunded' ],
+    enum: ['pending', 'processing', 'shipped', 'out-for-del', 'delivered', 'cancelled', 'failed', 'returned', 'on-hold', 'refunded' ],
     default: 'pending' 
   },
   cancelSummery: {

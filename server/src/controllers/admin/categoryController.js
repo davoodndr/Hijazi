@@ -7,8 +7,37 @@ import { responseMessage } from "../../utils/messages.js"
 export const getCategories = async(req, res) => {
   try {
 
-    const categories = await Category.find({})
-    .populate('parentId');
+    const rawCategories = await Category.find({})
+    .populate('parentId').lean();
+
+    const products = await Product.find({})
+    .populate([
+      {
+        path: 'category',
+        select: 'parentId',
+      }
+    ])
+    .lean();
+    
+    const categories = rawCategories?.map(cat => {
+      const pList = [], bList = [];
+      for (const p of products) {
+				if (
+					(cat?._id.toString() === p?.category?._id.toString() ||
+						cat?._id.toString() === p?.category?.parentId?._id.toString()) &&
+					!pList.includes(p?._id.toString())
+				) {
+					pList.push(p?._id.toString());
+
+					if (!bList?.includes(p?.brand?._id.toString())) bList.push(p?.brand?._id.toString());
+				}
+			}
+			return {
+				...cat,
+				products: pList?.length,
+				brands: bList?.length,
+			};
+    })
 
     return responseMessage(res, 200, true, "",{categories});
     

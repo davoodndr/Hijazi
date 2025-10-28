@@ -10,10 +10,14 @@ function DropdownMenuButtonComponent({
 	items,
 	anchor = 'auto',
 	className,
-	icon,
 	style,
+	label,
 	labelClass,
-	label
+	icon,
+	iconClass,
+	showTail = false,
+	tailIcon,
+	tailIconClass
 }) {
 
 	const [isOpen, setIsOpen] = useState(false);
@@ -39,68 +43,25 @@ function DropdownMenuButtonComponent({
 	useLayoutEffect(() => {
 		if (!isOpen) return;
 
-		const updatePosition = () => {
-			const rect = buttonRef.current?.getBoundingClientRect();
-			if (!rect) return;
-
-			// Re-run same logic as toggleMenu (or call toggleMenu directly if safe)
-			const menuWidth = 160;
-			const menuHeight = 200;
-			const screenWidth = window.innerWidth;
-			const screenHeight = window.innerHeight;
-
-			const spaceBelow = screenHeight - rect.bottom;
-			const spaceAbove = rect.top;
-			const spaceRight = screenWidth - rect.left;
-			const spaceLeft = rect.right;
-
-			let top;
-			if (spaceBelow >= menuHeight) {
-				top = rect.bottom;
-			} else if (spaceAbove >= menuHeight) {
-				top = rect.top - menuHeight;
-			} else {
-				top = Math.max(0, screenHeight - menuHeight - 8);
-			}
-
-			let left;
-			if (anchor === 'auto') {
-				if (spaceRight >= menuWidth) {
-					left = rect.left;
-				} else if (spaceLeft >= menuWidth) {
-					left = rect.right - menuWidth;
-				} else {
-					left = Math.max(0, screenWidth - menuWidth - 8);
-				}
-			} else if (anchor === 'left') {
-				left = spaceLeft > menuWidth
-					? rect.right - menuWidth
-					: Math.max(0, rect.left);
-			} else {
-				left = spaceRight > menuWidth
-					? rect.left
-					: Math.max(0, rect.right - menuWidth);
-			}
-
-			setPosition({ top, left });
-		};
-
-		// ✅ Attach listeners
-		window.addEventListener('scroll', updatePosition, true); // `true` to capture scroll in nested containers
+		updatePosition()
+		
+		window.addEventListener('scroll', updatePosition, true);
 		window.addEventListener('resize', updatePosition);
 
-		// ✅ Cleanup
 		return () => {
 			window.removeEventListener('scroll', updatePosition, true);
 			window.removeEventListener('resize', updatePosition);
 		};
 	}, [isOpen]);
 
-	const toggleMenu = () => {
-    const rect = buttonRef.current.getBoundingClientRect();
+	const updatePosition = () => {
+    const rect = buttonRef?.current.getBoundingClientRect();
+    const menuRect = menuRef?.current?.getBoundingClientRect();
 
-    const menuWidth = 160;
-		const menuHeight = 200;
+		if (!rect || !menuRect) return;
+
+		const menuWidth = menuRect.width;
+		const menuHeight = menuRect.height;
 		const screenWidth = window.innerWidth;
 		const screenHeight = window.innerHeight;
 
@@ -128,21 +89,26 @@ function DropdownMenuButtonComponent({
 				left = Math.max(0, screenWidth - menuWidth - 8);
 			}
 		} else if (anchor === 'left') {
-			left = spaceLeft > menuWidth
-				? rect.right - menuWidth
-				: Math.max(0, rect.left);
+			if (spaceRight >= menuWidth) {
+					left = rect.left;
+			} else {
+					left = Math.max(0, screenWidth - menuWidth - 8);
+			}
 		} else {
-			left = spaceRight > menuWidth
-				? rect.left
-				: Math.max(0, rect.right - menuWidth);
+			if (spaceLeft >= menuWidth) {
+					left = rect.right - menuWidth;
+			} else {
+					left = Math.max(0, screenWidth - menuWidth - 8);
+			}
 		}
 
 		setPosition({ top, left });
-		setIsOpen(prev => !prev);
   };
+
+	const toggleMenu = () => setIsOpen(prev => !prev);
   
   return (
-		<div>
+		<div className='h-full'>
 			{/* button */}
 			<motion.div
 				layout
@@ -150,16 +116,20 @@ function DropdownMenuButtonComponent({
         ref={buttonRef}
         onClick={toggleMenu}
 				style={style}
-        className={`inline-flex h-9 items-center cursor-pointer ${className}`}
+        className={`inline-flex items-center cursor-pointer ${className || ''}`}
       >
         {icon}
-				<p className={`capitalize pe-2 ${labelClass}`}>{label}</p>
-				<span className='h-full w-px bg-gray-500/30'></span>
-				<span className={clsx('inline-flex items-center p-2 h-full rounded-e-xl',
-					isOpen && 'bg-gray-100'
-				)}>
-					<IoIosArrowDown />
-				</span>
+				{label && <p className={`capitalize whitespace-nowrap pe-2 ${labelClass || ''}`}>{label}</p>}
+				{showTail &&
+					<>
+						<span className='h-full w-px bg-gray-500/30'></span>
+						<span className={clsx(`inline-flex items-center ${tailIconClass || ''}`,
+							isOpen && 'bg-gray-100'
+						)}>
+								{tailIcon ? tailIcon : <IoIosArrowDown />}
+						</span>
+					</>
+				}
       </motion.div>
 
 			{/* menu */}
@@ -298,10 +268,12 @@ const MenuItem = forwardRef(({ item, parentDirection, onClose }, parentRect) => 
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-			<div className='smooth group-hover:pl-1 capitalize space-x-1 temp'>
+			<div className='inline-flex items-center whitespace-nowrap smooth 
+				group-hover:pl-1 capitalize space-x-1'>
 				{item?.icon}
 				<span>{item?.label}</span>
 			</div>
+			<div className="mx-1"></div>
       {item?.children && <span className="ml-auto">▶</span>}
 			{!item?.children && item?.tail && (
 				<div className='ml-auto'>{item?.tail}</div>

@@ -1,4 +1,5 @@
 import Brand from "../../models/Brand.js";
+import Product from "../../models/Product.js";
 import { deleteImageFromCloudinary, uploadImagesToCloudinary } from "../../utils/coudinaryActions.js";
 import { responseMessage } from "../../utils/messages.js";
 
@@ -6,7 +7,27 @@ import { responseMessage } from "../../utils/messages.js";
 export const getBrands = async(req, res) => {
   try {
 
-    const brands = await Brand.find();
+    const rawBrands = await Brand.find({}).lean();
+
+    const products = await Product.find({}).lean();
+
+    const brands = rawBrands?.map(brand => {
+      const pList = [], cList = [];
+      for(const p of products){
+        if(brand?._id?.toString() === p?.brand?.toString()  && !pList.includes(p?._id?.toString())){
+
+          pList.push(p?._id?.toString());
+
+          if(!cList?.includes(p?.category?.toString())) cList.push(p?.category?.toString())
+          
+        }
+      }
+      return {
+        ...brand,
+        products: pList?.length,
+        categories: cList?.length
+      }
+    })
 
     return responseMessage(res, 200, true, "",{brands});
     

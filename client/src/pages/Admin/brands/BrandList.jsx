@@ -1,15 +1,12 @@
 
-import { RiApps2AddLine } from "react-icons/ri";
-import React, { useEffect, useMemo, useState } from 'react'
+
+import React, { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
-import { LuSearch } from "react-icons/lu";
-import ApiBucket from '../../../services/ApiBucket';
-import { Axios } from '../../../utils/AxiosSetup';
-import { HiHome, HiOutlineTrash } from "react-icons/hi2";
-import { IoIosArrowForward, IoMdMore } from "react-icons/io";
+import { HiOutlineTrash } from "react-icons/hi2";
+import { IoMdMore } from "react-icons/io";
 import ContextMenu from '../../../components/ui/ContextMenu';
 import AdminPagination from '../../../components/ui/AdminPagination';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { deleteBrandAction } from '../../../services/ApiActions';
 import AxiosToast from '../../../utils/AxiosToast';
 import Alert from '../../../components/ui/Alert'
@@ -19,69 +16,42 @@ import AddBrandModal from '../../../components/admin/brands/AddBrandModal'
 import { MdOutlineEdit } from "react-icons/md";
 import EditBrandModal from "../../../components/admin/brands/EditBrandModal";
 import { setLoading } from "../../../store/slices/CommonSlices";
-import DropdownButton from "../../../components/ui/DropdownButton";
-import { FaSort } from "react-icons/fa6";
-import { BsSortDown, BsSortDownAlt } from "react-icons/bs";
-import { CiFilter } from "react-icons/ci";
-import SearchBar from "../../../components/ui/Searchbar";
-import clsx from "clsx";
+import {useOutletContext } from "react-router";
 
 
 function BrandList() {
 
   const dispatch = useDispatch();
   
-  const { brandList } = useSelector(state => state.brands);
-  const { items: products } = useSelector(state => state.products);
+  const { list, searchQuery, filter, action } = useOutletContext();
   const [brands, setBrands] = useState([]);
 
   /* initial data loader */
   useEffect(() => {
+    setBrands(list);
+  }, [list]);
 
-    const sorted = [...brandList]?.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
-    const updatedList = getCountedList(sorted);
+  /* paingation logic */
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(brands?.length / itemsPerPage);
 
-    setBrands(updatedList);
-
-  },[brandList, products])
-
-  /* counts products and brands in each category */
-  const getCountedList = (list) => {
-    return list?.map(brand => {
-      const pList = [], cList = [];
-      for(const p of products){
-        if(brand?._id === p?.brand?._id  && !pList.includes(p?._id)){
-
-          pList.push(p?._id);
-
-          if(!cList?.includes(p?.category?._id)) cList.push(p?.category?._id)
-          
-        }
-      }
-      return {
-        ...brand,
-        products: pList?.length,
-        categories: cList?.length
-      }
-    })
-  }
+  const paginatedBrands = brands?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
   
-  /* debouncer */
-  const [query, setQuery] = useState('');
-  const [searchQuery, setSearchQuery] = useState(query);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchQuery(query)
-    }, 300);
-
-    return () => clearTimeout(timer);
-
-  },[query])
 
   /* add brand action */
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState(null);
+
+  useEffect(()=>{
+    if(action === 'openAddBrandModal'){
+      setIsAddOpen(true)
+    }
+  },[action])
 
   /* create action handling */
   const handleCreate =  (doc) => {
@@ -123,58 +93,30 @@ function BrandList() {
 
   }
 
-  /* search filter */
-  const filteredBrands = useMemo(() => {
-    return brands.filter(brand =>{
-
-      const fields = ['name','slug','status']
-
-      return fields.some(field => {
-
-        if(brand[field]){
-          return brand[field].includes(searchQuery)
-        }
-        return false
-
-      })
-
-    });
-
-  },[searchQuery, brands])
-
   const containerVariants = {
-    hidden: {
-      transition: {
-        staggerChildren: 0.05,
-        staggerDirection: -1,
-      },
-    },
+    hidden: { opacity: 0 },
     visible: {
+      opacity: 1,
       transition: {
-        staggerChildren: 0.05,
+        staggerChildren: 0.08,
+        delayChildren: 0.1,
       },
     },
   };
 
-  const rowVariants = {
-    hidden: { opacity: 0, y:-20 },
+  const rowVariants = (i) =>  ({
+    hidden: { opacity: 0, y: -30 },
     visible: {
       opacity: 1,
-      y:0,
-      transition: {
-        duration: 0.5,
-        ease: 'easeOut',
-      },
+      y: 0,
+      transition: { duration: 0.4, ease: "easeOut", delay: i * 0.05 },
     },
     exit: {
       opacity: 0,
-      y: -20,
-      transition: {
-        duration: 0.3,
-        ease: 'easeIn',
-      },
+      y: 10,
+      transition: { duration: 0.25, ease: "easeInOut", delay: i * 0.05 },
     },
-  };
+  });
 
   const noDataVariants = {
     hidden: { opacity: 0, height:0 },
@@ -201,149 +143,43 @@ function BrandList() {
       },
     },
   };
-
-  /* paingation logic */
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-  const totalPages = Math.ceil(brands.length / itemsPerPage);
-
-  const paginatedBrands = filteredBrands.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-
+  
   return (
-    <section className='flex flex-col p-6'>
+    
+    <motion.ul
+      key={`brand-page-${currentPage}`}
+      className="flex flex-col"
+    >
 
-      {/* page title & add brand button */}
-      <div className="mb-5 flex justify-between items-start">
-        <div className="flex flex-col">
-          <h3 className='text-xl'>Brand Management</h3>
-          <span className='sub-title'>Add, edit and delete brands</span>
-        </div>
-        <button 
-          onClick={() => setIsAddOpen(true)}
-          className='px-4! inline-flex items-center gap-2 text-white'>
-          <RiApps2AddLine size={20} />
-          <span>Add Brand</span>
-        </button>
-      </div>
-      
-      {/* beadcrumps */}
-      <div className='flex items-center gap-2 mb-5 py-2 border-y border-gray-200'>
-        <HiHome size={20} />
-        <IoIosArrowForward size={13} />
-        <div className='inline-flex items-center text-sm gap-2'>
-          <span>Brands</span>
-        </div>
-      </div>
+      {paginatedBrands.length > 0 ? (
+        <motion.li
+          key={currentPage} 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
+          className='grid grid-cols-5 gap-6 h-50 my-5'
+        >
+          <AnimatePresence mode="popLayout">
+            {paginatedBrands.map((brand, i) => 
 
-      {/* search */}
-      <div className="flex items-center justify-between mb-5">
+              /* brand item */
+              <motion.div
+                layout='position'
+                key={brand?._id}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={rowVariants(i)}
+                className=''
+              >
 
-        <SearchBar
-          onSearch={(value) => setSearchQuery(value)}
-          placeholder='Search users'
-          className='w-3/10'
-          inputClass="!pl-10 rounded-xl bg-white peer"
-          iconClass='left-3 smooth peer-focus:text-primary-400'
-        />
-
-        {/* filter sort */}
-        <div className='flex items-center h-full gap-x-2'>
-          {/* sort */}
-          <DropdownButton
-            label='sort'
-            icon={<FaSort className='text-lg me-1' />}
-            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
-            items={[
-              { id: 'priceltoh', 
-                icon: <BsSortDownAlt className='text-xl'/>,
-                text: <span className={`capitalize`}> price: low to high </span>,
-                onclick: () => {}
-              },
-              { id: 'pricehtol', 
-                icon: <BsSortDown className='text-xl'/>,
-                text: <span className={`capitalize`}> price: high to low</span>,
-                onclick: () => {}
-              },
-              { id: 'newfirst', 
-                icon: <BsSortDown className='text-xl'/>,
-                text: <span className={`capitalize`}> Newest First</span>,
-                onclick: () => {}
-              },
-              { id: 'oldfirst', 
-                icon: <BsSortDownAlt className='text-xl'/>,
-                text: <span className={`capitalize`}> Oldest First</span>,
-                onclick: () => {}
-              },
-            ]}
-          />
-
-          {/* filter */}
-          <DropdownButton
-            label='filter'
-            icon={<CiFilter className='text-lg me-1' />}
-            className=' bg-white border border-gray-300 rounded-xl !text-gray-500'
-            items={[
-              { id: 'featured', 
-                icon: <span className='text-xl point-before'></span>,
-                text: <span className={`capitalize`}> featured </span>,
-                onclick: () => {}
-              },
-              { id: 'active', 
-                icon: <span className='text-xl point-before point-before:bg-green-400'></span>,
-                text: <span className={`capitalize`}> active </span>,
-                onclick: () => {}
-              },
-              { id: 'inactive', 
-                icon: <span className='text-xl point-before point-before:bg-gray-400'></span>,
-                text: <span className={`capitalize`}> inactive </span>,
-                onclick: () => {}
-              },
-              { id: 'outofstock', 
-                icon: <span className='text-xl point-before point-before:bg-red-400'></span>,
-                text: <span className={`capitalize`}> out of stock </span>,
-                onclick: () => {}
-              },
-            ]}
-          />
-        </div>
-        
-      </div>
-
-      <motion.ul
-        key={currentPage} 
-        layout="position"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="w-full flex flex-col"
-      >
-
-          
-        {paginatedBrands.length > 0 ? (
-          <AnimatePresence>
-            <li className={clsx(`w-full`,
-                paginatedBrands.length > 0 && 'grid grid-cols-5 gap-6 h-50'
-              )}
-            >
-              {paginatedBrands.map((brand) => 
-
-                /* brand item */
-                <motion.div 
-                  layout="position"
-                  key={brand._id}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  variants={rowVariants}
-                  className='w-full border border-gray-300 bg-gray-50 space-y-1 rounded-4xl overflow-hidden shadow-lg'>
-
+                <div
+                  className="border border-gray-300 bg-gray-50 space-y-1 rounded-4xl overflow-hidden shadow-lg"
+                >
                   {/* brand logo and menu */}
-                  <div className="flex h-30 w-full">
-                    <div className="flex relative w-full overflow-hidden bg-white border-b border-gray-300">
+                  <div className="flex h-30">
+                    <div className="flex relative overflow-hidden bg-white border-b border-gray-300">
                       <Menu as="div" className="absolute right-3 top-3 overflow-hidden w-2 inline-flex justify-center">
                         {({open}) => (
                           <>
@@ -401,75 +237,68 @@ function BrandList() {
                     </div>
                     
                   </div>
-                </motion.div>
-              )}
-            </li>
-              
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
-        ) : (
-          !searchQuery?.trim() ? (
+        </motion.li>
             
-            <li className='w-full grid grid-cols-5 gap-6'>
-              {
-                [...Array(5)].map((_,i) => (
-                  <div key={i} className='border border-gray-300 bg-white overflow-hidden rounded-4xl shadow-md/4'>
-                    <div className="flex w-full">
-                      <Skeleton className='w-[164]px h-[110px]' />
-                    </div>
-                    <div className="px-3 py-3 flex flex-col h-20 space-y-1 justify-end">
-                      <Skeleton height='h-4' width='w-7/10'/>
-                      <Skeleton height='h-4' width='w-7/10'/>
-                      <Skeleton height='h-3' width='w-5/10'/>
-                    </div>
+      ) : !searchQuery?.trim() && !Object.keys(filter)?.length ? (
+          
+          <motion.li className='w-full grid grid-cols-5 gap-6'>
+            {
+              [...Array(5)].map((_,i) => (
+                <div key={i} className='border border-gray-300 bg-white overflow-hidden rounded-4xl shadow-md/4'>
+                  <div className="flex w-full">
+                    <Skeleton className='w-[164]px h-[110px]' />
                   </div>
-                ))
-              }
-            </li>
-
-          ):(
-
-            <AnimatePresence>
-              <motion.li
-                key="not-found"
-                layout
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                variants={noDataVariants}
-                className="flex items-center"
-              >
-                <span
-                  className="w-full h-full text-center py-10 text-primary-400
-                  text-xl bg-primary-50 border border-primary-300/50 rounded-3xl"
-                >No users found</span>
-              </motion.li>
-            </AnimatePresence>
-
-          )
-        )}
-          
-          
-
-        {/* Pagination */}
-        {paginatedBrands.length > 0 && 
-          <motion.li
-            key="pagination"
-            layout
-            className="py-5"
-          >
-            <AdminPagination 
-              currentPage={currentPage} 
-              totalPages={totalPages}
-              setCurrentPage={setCurrentPage}
-              className={`grid grid-cols-1 items-center w-full bg-white border border-gray-300 
-                p-4 rounded-xl`}
-            />
-
+                  <div className="px-3 py-3 flex flex-col h-20 space-y-1 justify-end">
+                    <Skeleton height='h-4' width='w-7/10'/>
+                    <Skeleton height='h-4' width='w-7/10'/>
+                    <Skeleton height='h-3' width='w-5/10'/>
+                  </div>
+                </div>
+              ))
+            }
           </motion.li>
-        }
 
-      </motion.ul>
-      
+      ) : (
+
+          <AnimatePresence>
+            <motion.li
+              key="not-found"
+              layout
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={noDataVariants}
+              className="flex items-center"
+            >
+              <span
+                className="w-full h-full text-center py-10 text-primary-400
+                text-xl bg-primary-50 border border-primary-300/50 rounded-3xl"
+              >No brands found</span>
+            </motion.li>
+          </AnimatePresence>
+
+        
+      )}
+        
+      {/* Pagination */}
+      {brands?.length > itemsPerPage && 
+        <motion.li
+          key="pagination"
+          layout
+          className="flex justify-center py-5"
+        >
+          <AdminPagination 
+            currentPage={currentPage} 
+            totalPages={totalPages}
+            setCurrentPage={setCurrentPage}
+          />
+
+        </motion.li>
+      }
 
       <AddBrandModal
         isOpen={isAddOpen}
@@ -485,8 +314,9 @@ function BrandList() {
         onClose={() => setIsEditOpen(false)}
       />
 
-    </section>
+    </motion.ul>
   )
+  
 }
 
 export default BrandList

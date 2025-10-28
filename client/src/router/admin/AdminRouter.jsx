@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast'
 import { useDispatch, useSelector } from 'react-redux'
 import LoadingFallOff from '../../components/ui/LoadingFallOff'
 import AdminLayout from '../../pages/Admin/AdminLayout'
+import PageLayout from '../../pages/Admin/PageLayout'
 import { useEffect } from 'react'
 import { updateRole } from '../../store/slices/UsersSlice'
 import { clearWishlist } from '../../store/slices/WishlistSlice'
@@ -74,44 +75,60 @@ const AdminRouter = () => {
           {/* protected routes */}
           <Route element={<ProtectedRoutes />}>
             <Route element={<AdminLayout />}>
-              <Route index element={<Navigate to="dashboard" />} />
-              <Route path="dashboard" element={<AdminDashboard />} />
+              {/* <Route index element={<Navigate to="dashboard" />} /> */}
+              <Route index path="dashboard" element={<AdminDashboard />} />
 
               {/* users tab */}
-              <Route path="users">
-                <Route index element={<UsersList />} />
-                <Route path="add-user" element={<AddUser />} />
-                <Route path="edit-user" element={<EditUser />} />
-                <Route path="view-user" element={<ViewUser />} />
-              </Route>
+              
+                <Route path="users">
+                  <Route element={<PageLayout />}>
+                    <Route index element={<UsersList />} />
+                  </Route>
+                  <Route path="add-user" element={<AddUser />} />
+                  <Route path="edit-user" element={<EditUser />} />
+                  <Route path="view-user" element={<ViewUser />} />
+                </Route>
 
-              {/* categories tab */}
-              <Route path='categories'>
-                <Route index element={<CategoryList />} />
-              </Route>
-              {/* brands tab */}
-              <Route path='brands'>
-                <Route index element={<BrandList />} />
-              </Route>
-              {/* products tab */}
-              <Route path='products'>
-                <Route index element={<ProductList />} />
-                <Route path="add-product" element={<AddProduct />} />
-                <Route path=":slug/edit" element={<EditProduct />} />
-              </Route>
-              {/* orders tab */}
-              <Route path='orders'>
-                <Route index element={<OrdersList />} />
-                <Route path='view-order/:id' element={<ViewOrder />} />
-              </Route>
-              {/* offers tab */}
-              <Route path='offers'>
-                <Route index element={<OffersList />} />
-              </Route>
-              {/* reviews tab */}
-              <Route path='reviews'>
-                <Route index element={<UserReviews />} />
-              </Route>
+                {/* categories tab */}
+                <Route path='categories'>
+                  <Route element={<PageLayout />}>
+                    <Route index element={<CategoryList />} />
+                  </Route>
+                </Route>
+                {/* brands tab */}
+                <Route path='brands'>
+                  <Route element={<PageLayout />}>
+                    <Route index element={<BrandList />} />
+                  </Route>
+                </Route>
+                {/* products tab */}
+                <Route path='products'>
+                  <Route element={<PageLayout />}>
+                    <Route index element={<ProductList />} />
+                  </Route>
+                  <Route path="add-product" element={<AddProduct />} />
+                  <Route path=":slug/edit" element={<EditProduct />} />
+                </Route>
+                {/* orders tab */}
+                <Route path='orders'>
+                  <Route element={<PageLayout />}>
+                    <Route index element={<OrdersList />} />
+                  </Route>
+                  <Route path='view-order/:id' element={<ViewOrder />} />
+                </Route>
+                {/* offers tab */}
+                <Route path='offers'>
+                  <Route element={<PageLayout />}>
+                    <Route index element={<OffersList />} />
+                  </Route>
+                </Route>
+                {/* reviews tab */}
+                <Route path='reviews'>
+                  <Route element={<PageLayout />}>
+                    <Route index element={<UserReviews />} />
+                  </Route>
+                </Route>
+              
               
             </Route>
           </Route>

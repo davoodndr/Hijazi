@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Axios } from "./AxiosSetup";
 import AxiosToast from "./AxiosToast";
+import { FaCheck } from "react-icons/fa6";
 
 export const hexToRgba = (hex, alpha = 100) => {
 
@@ -385,24 +386,73 @@ export const filterData = (searchQuery = null, filter = null, list = [], fields 
       if(!filter || !Object.keys(filter).length) return item;
       const [[key, value]] = Object.entries(filter)
 
-      return item[key]?.includes(value)
+      if(typeof value === 'string'){
+        return item[key]?.includes(value)
+      }
+      return item[key] === value
     }
 
   });
 }
 
+export const buildFilterMenuItems = (menus, currentFilter, commonFilterLabel = 'none', commonAction) => {
+
+  return menus?.map(menu => {
+
+    const itemAction = commonAction ?  
+        ()=> commonAction(menu) 
+        : menu?.action ? 
+            menu?.action(menu) 
+              : (() => {})
+
+    const hasChildren = Array.isArray(menu?.children) && menu.children.length > 0;
+
+    let isSelected = false;
+
+    if(!hasChildren &&  currentFilter?.value){
+      const key = Object?.keys(menu?.value)?.[0] || null;
+      const value = menu?.value[key];
+      isSelected = menu?.label === commonFilterLabel ? 
+        !Object.keys( currentFilter?.value)?.length 
+        :
+         currentFilter?.value[key] === value
+    }
+    
+    if(menu?.label === commonFilterLabel){
+      if(! currentFilter?.value ||  currentFilter?.label === commonFilterLabel) {
+        isSelected = true
+      }else{
+        isSelected = false
+      }
+    }
+
+    return {
+      label: menu?.label,
+      isSelected,
+      icon: (
+        <span
+          style={{ '--point-color': `var(${menu.color})` }}
+          className="text-xl point-before point-before:bg-(--point-color)"
+        ></span>
+      ),
+      tail: isSelected ? (<span><FaCheck /></span>) : null,
+      children: hasChildren ? buildFilterMenuItems(menu.children, currentFilter, commonFilterLabel, commonAction) : undefined,
+      action: itemAction
+    };
+  });
+};
+
 export const sortData = (currentSort = null, list)=> {
-
   const field = currentSort?.field;
-
+  
   if (!list || !field) return list;
-
+  
   return [...list]?.sort((a, b) => {
-    const aVal = field?.includes('.') ? field.split('.').reduce((acc, key) => acc?.[key], a) :  a[field];
-    const bVal = field?.includes('.') ? field.split('.').reduce((acc, key) => acc?.[key], b) : b[field];
-
+    const aVal = field?.includes('.') ? field?.split('.').reduce((acc, key) => acc?.[key], a) :  a[field];
+    const bVal = field?.includes('.') ? field?.split('.').reduce((acc, key) => acc?.[key], b) : b[field];
+    
     if(typeof aVal === 'string'){
-      return currentSort?.ascending ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      return currentSort?.ascending ? aVal?.localeCompare(bVal) : bVal?.localeCompare(aVal);
     }
 
     const res = currentSort?.ascending ? 
@@ -415,3 +465,38 @@ export const sortData = (currentSort = null, list)=> {
   })
         
 }
+
+export const buildSortMenuItems = (menus, currentSort, commonSortField = 'none', commonAction) => {
+  
+  return menus?.map(menu => {
+
+    const itemAction = commonAction ?  
+        ()=> commonAction(menu) 
+        : menu?.action ? 
+            menu?.action(menu) 
+              : (() => {})
+
+    let isSelected = false;
+    
+    if(menu?.label === commonSortField){
+      if(!currentSort || currentSort?.field === commonSortField) {
+        isSelected = true
+      }
+    }else{
+      isSelected = menu?.field === currentSort?.field;
+    }
+
+    return {
+      label: menu?.label,
+      isSelected,
+      icon: (
+        <span
+          style={{ '--point-color': `var(${menu.color})` }}
+          className="text-xl point-before point-before:bg-(--point-color)"
+        ></span>
+      ),
+      tail: isSelected ? (<span><FaCheck /></span>) : null,
+      action: itemAction
+    };
+  });
+};

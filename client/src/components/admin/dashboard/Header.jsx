@@ -11,7 +11,7 @@ const Header = () => {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    setCurrentUser(user?.roles.includes('admin') ? user : null);
+    setCurrentUser(user?.roles?.includes('admin') ? user : null);
   },[user])
 
   return (

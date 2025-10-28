@@ -18,7 +18,7 @@ export const containerVariants = {
     },
   };
 
-export const rowVariants = {
+export const rowVariants = (i)=> ({
   hidden: { opacity: 0, height:0 },
   visible: {
     opacity: 1,
@@ -29,6 +29,7 @@ export const rowVariants = {
       type: 'spring',
       stiffness: 100,
       damping: 10,
+      delay: i * 0.05
     },
   },
   exit: {
@@ -40,9 +41,10 @@ export const rowVariants = {
       type: 'spring',
       stiffness: 100,
       damping: 15,
+      delay: i * 0.05
     },
   },
-};
+});
 
 export const slowContainerVariants = {
   hidden: {
