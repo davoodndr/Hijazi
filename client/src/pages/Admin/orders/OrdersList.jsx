@@ -8,10 +8,12 @@ import { format } from "date-fns";
 import clsx from "clsx";
 import { Menu, MenuButton } from "@headlessui/react";
 import ContextMenu from "../../../components/ui/ContextMenu";
-import { useOutletContext } from "react-router";
+import { useNavigate, useOutletContext } from "react-router";
 import SkeltoList from "../../../components/ui/SkeltoList";
 
 function OrdersList() {
+
+	const navigate = useNavigate();
 	const { list, searchQuery, filter, gridCols } = useOutletContext();
 	const [orders, setOrders] = useState([]);
 
@@ -61,13 +63,6 @@ function OrdersList() {
 									? `${order?.itemsCount} items includes`
 									: order?.name;
 
-							const count = Math.min(order?.itemsCount || 0, 3);
-
-							/* const images = Array.from({ length: count }, (_, i) => ({
-                    name: "",
-                    image: order?.image || ''
-                  })); */
-
 							const isPaid = order?.isPaid ? "Paid" : "Unpaid";
 							const payment =
 								order?.paymentMethod === "cod"
@@ -99,11 +94,6 @@ function OrdersList() {
 										{/* product Info & thumbnail */}
 										<div className="flex gap-2 items-center relative">
 											<div className="inline-flex">
-												{/* <AvatarGroup
-                              images={images}
-                              avatarClass={`w-12 rounded-md overflow-hidden border-2 border-gray-300`}
-                              className='flex w-full -space-x-11 items-end'
-                            /> */}
 												<img
 													src={order?.image}
 													className="rounded-xl border border-gray-300 w-12 h-12"
@@ -170,10 +160,10 @@ function OrdersList() {
 										</div>
 
 										{/* status */}
-										<div className="capitalize flex flex-col items-center">
+										<div className="capitalize flex items-center justify-center">
 											<span
 												className={clsx(
-													"badge",
+													"badge h-fit",
 													order?.status === "pending" &&
 														"bg-amber-100 text-amber-500",
 													order?.status === "processing" &&

@@ -42,7 +42,7 @@ function ViewOrder() {
     const fetchOrder = async() => {
       try {
         
-        const data = await getOrder(currentOrder._id);
+        const data = await getOrder(currentOrder._id, currentOrder?.user_id);
 
         setupData(data)
 

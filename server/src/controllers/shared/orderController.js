@@ -10,14 +10,14 @@ import { calculateDiscount } from "../../services/misc.js";
 // get single order
 export const getOrder = async(req, res) => {
 
-  const { user_id } = req
-  const { order_id } = req.query
+  const { user_id } = req?.query || req
+  const { order_id } = req?.query
   
   try {
 
     let data = await Order.findOne({user_id, _id: order_id});
     
-    data = data.toObject();
+    data = data?.toObject();
 
     const updateItems = await Promise.all(data?.cartItems?.map(async item => {
 

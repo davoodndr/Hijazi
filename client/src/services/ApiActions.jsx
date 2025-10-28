@@ -539,21 +539,22 @@ export const placeOrderAction = async(order) => {
 
 }
 
-export const getOrder = async(id) => {
+export const getOrder = async(id, user_id) => {
 
   try {
 
     const response = await Axios({
       ...ApiBucket.fetchOrder,
       params: {
+        user_id,
         order_id: id
       }
     })
 
-    return response.data.order
+    return response?.data?.order
     
   } catch (error) {
-    return error
+    throw new Error(error?.response?.data?.message || error?.message);
   }
 
 }

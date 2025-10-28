@@ -136,7 +136,7 @@
   }
 
   .badge{
-    @apply w-fit text-[11px] px-1.5 py-0.5 rounded-xl
+    @apply w-fit text-[11px] px-2 rounded-2xl
   }
 
   .custom-input{
