@@ -6,11 +6,9 @@ import clsx from 'clsx';
 import { sortData } from '../../../utils/Utils';
 
 function TableHeaderComponent({
-  headers,
-  centerHeaders,
+  data,
   filteredData,
   onSort,
-  gridCols
 }) {
 
   /* sort */
@@ -33,9 +31,9 @@ function TableHeaderComponent({
   return (
     <div className="text-gray-400 uppercase font-semibold tracking-wider
       border-b border-theme-divider px-4.5 py-3.5 bg-gray-50 rounded-t-3xl">
-      <div className={`grid ${gridCols} items-center w-full`}>
+      <div className={`grid ${data?.gridCols} items-center w-full`}>
         <span><input type="checkbox" /></span>
-        {headers?.map((header, i) => {
+        {data?.headers?.map((header, i) => {
           if(header?.sortOptions){
             return (
               header?.sortOptions?.map((item, index) => 
@@ -51,7 +49,7 @@ function TableHeaderComponent({
                   }
                   className={clsx('flex items-center space-x-1',
                     item?.field && 'cursor-pointer smooth hover:text-primary-300',
-                    (centerHeaders && centerHeaders?.includes(i+index)) && 'justify-center'
+                    (data?.centerHeaders && data?.centerHeaders?.includes(i+index)) && 'justify-center'
                   )}
                   titleClass='relative'
                   iconClass='inline-flex flex-col -space-y-1 absolute -right-4'

@@ -12,10 +12,10 @@ import {
   updateUser, 
   uploadAvatar
 } from "../controllers/admin/usersController.js";
-import { addCategory, deleteCategory, getCategories, updateCategory, uploadCategoryImage } from "../controllers/admin/categoryController.js";
-import { addBrand, deleteBrand, getBrands, updateBrand, uploadBrandLogo } from "../controllers/admin/brandController.js";
+import { addCategory, changeCategoryStatus, deleteCategory, getCategories, updateCategory, uploadCategoryImage } from "../controllers/admin/categoryController.js";
+import { addBrand, changeBrandStatus, deleteBrand, getBrands, updateBrand, uploadBrandLogo } from "../controllers/admin/brandController.js";
 import { addProduct, changeProductStatus, getProducts, updateProduct, uploadProductImages } from "../controllers/admin/productController.js";
-import { addOffer, changeOfferStatus, getOffers, updateOffer } from "../controllers/admin/offerController.js";
+import { addOffer, changeOfferStatus, deleteOffer, getOffers, updateOffer } from "../controllers/admin/offerController.js";
 import { cancelItem, cancelOrder, getOrders } from "../controllers/admin/orderController.js";
 import { changeReviewStatus, getReviews, getUserReviews } from "../controllers/admin/reviewController.js";
 
@@ -40,6 +40,7 @@ adminRouter.get('/get-categories', authenticate, allowRoles(['admin']), getCateg
 adminRouter.post('/add-category', authenticate, allowRoles(['admin']), addCategory)
 adminRouter.post('/upload-category-image',authenticate, allowRoles(['admin']), upload, uploadCategoryImage);
 adminRouter.patch('/update-category', authenticate, allowRoles(['admin']), updateCategory)
+adminRouter.patch('/change-category-status', authenticate, allowRoles(['admin']), changeCategoryStatus)
 adminRouter.put('/delete-category', authenticate, allowRoles(['admin']), deleteCategory)
 
 /* brand management */
@@ -47,6 +48,7 @@ adminRouter.get('/get-brands', authenticate, allowRoles(['admin']), getBrands)
 adminRouter.post('/add-brand', authenticate, allowRoles(['admin']), addBrand)
 adminRouter.post('/upload-brand-logo',authenticate, allowRoles(['admin']), upload, uploadBrandLogo);
 adminRouter.patch('/update-brand', authenticate, allowRoles(['admin']), updateBrand)
+adminRouter.patch('/change-brand-status', authenticate, allowRoles(['admin']), changeBrandStatus)
 adminRouter.put('/delete-brand', authenticate, allowRoles(['admin']), deleteBrand)
 
 /* product management */
@@ -57,14 +59,15 @@ adminRouter.patch('/update-product', authenticate, allowRoles(['admin']), update
 adminRouter.patch('/change-product-status', authenticate, allowRoles(['admin']), changeProductStatus)
 
 /* order management */
-adminRouter.get('/get-orders', /* authenticate, allowRoles(['admin']), */ getOrders)
+adminRouter.get('/get-orders', authenticate, allowRoles(['admin']), getOrders)
 adminRouter.post('/cancel-item', authenticate, allowRoles(['admin']), cancelItem)
 adminRouter.post('/cancel-order', authenticate, allowRoles(['admin']), cancelOrder)
 
-/* coupon management */
+/* offer management */
 adminRouter.get('/get-offers', authenticate, allowRoles(['admin']), getOffers)
 adminRouter.post('/add-offer', authenticate, allowRoles(['admin']), addOffer)
 adminRouter.put('/update-offer', authenticate, allowRoles(['admin']), updateOffer)
+adminRouter.delete('/delete-offer', authenticate, allowRoles(['admin']), deleteOffer)
 adminRouter.patch('/change-offer-status', authenticate, allowRoles(['admin']), changeOfferStatus)
 
 /* review management */

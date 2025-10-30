@@ -12,21 +12,7 @@ export const getBrands = async(req, res) => {
     const products = await Product.find({}).lean();
 
     const brands = rawBrands?.map(brand => {
-      const pList = [], cList = [];
-      for(const p of products){
-        if(brand?._id?.toString() === p?.brand?.toString()  && !pList.includes(p?._id?.toString())){
-
-          pList.push(p?._id?.toString());
-
-          if(!cList?.includes(p?.category?.toString())) cList.push(p?.category?.toString())
-          
-        }
-      }
-      return {
-        ...brand,
-        products: pList?.length,
-        categories: cList?.length
-      }
+      return countProducts(products, brand);
     })
 
     return responseMessage(res, 200, true, "",{brands});
@@ -54,7 +40,11 @@ export const addBrand = async(req, res) => {
       return responseMessage(res, 400, false, "This brand already exists");
     }
 
-    const newBrand = await Brand.create(req.body);
+    const rawBrand = await Brand.create(req.body);
+    const brandObject = rawBrand?.toObject();
+    const products = await Product.find({}).lean();
+
+    const newBrand = countProducts(products, brandObject);
 
     return responseMessage(res, 201, true, "New brand created successfully",{brand: newBrand});
     
@@ -122,10 +112,14 @@ export const updateBrand = async(req, res) => {
       return responseMessage(res, 400, false, "Brand does not exists");
     }
 
-    const updated = await Brand.findByIdAndUpdate(brand_id, 
+    const rawBrand = await Brand.findByIdAndUpdate(brand_id, 
       {...req.body},
       {new: true}
-    );
+    ).lean();
+
+    const products = await Product.find({}).lean();
+
+    const updated = countProducts(products, rawBrand);
 
     return responseMessage(res, 200, true, "Brand updated successfully",
       {brand: updated}
@@ -134,6 +128,36 @@ export const updateBrand = async(req, res) => {
 
   } catch (error) {
     console.log('updateBrand', error);
+    return responseMessage(res, 500, false, error.message || error);
+  }
+
+}
+
+export const changeBrandStatus = async(req, res) => {
+
+  const { brand_id, status } = req.body;
+
+  try {
+
+    if(!brand_id || !status) {
+      return responseMessage(res, 400, false, "Invalid data!");
+    }
+
+    const brand = await Brand.findById(brand_id);
+
+    if(!brand){
+      return responseMessage(res, 400, false, "Brand does not exists");
+    }
+
+    const rawBrand = await Brand.findByIdAndUpdate(brand_id, { status }, { new: true }).lean();
+
+    const products = await Product.find({}).lean();
+    const updated = countProducts(products, rawBrand);
+
+    return responseMessage(res, 200, true, "Brand status changed successfully", {brand: updated})
+
+  } catch (error) {
+    console.log('changeBrandStatus', error);
     return responseMessage(res, 500, false, error.message || error);
   }
 
@@ -155,8 +179,8 @@ export const deleteBrand = async(req, res) => {
       return responseMessage(res, 400, false, "Brand does not exists");
     }
 
-    if(brand.logo){
-      let public_id = brand.logo?.split('/').filter(Boolean).pop().split('.')[0];
+    if(brand?.logo){
+      let public_id = brand?.logo?.split('/').filter(Boolean).pop().split('.')[0];
       if(public_id){
         await deleteImageFromCloudinary(folder, public_id)
       }
@@ -171,4 +195,22 @@ export const deleteBrand = async(req, res) => {
     return responseMessage(res, 500, false, error.message || error);
   }
 
+}
+
+const countProducts = (products, brand) => {
+  const pList = [], cList = [];
+  for(const p of products){
+    if(brand?._id?.toString() === p?.brand?.toString()  && !pList.includes(p?._id?.toString())){
+
+      pList.push(p?._id?.toString());
+
+      if(!cList?.includes(p?.category?.toString())) cList.push(p?.category?.toString())
+      
+    }
+  }
+  return {
+    ...brand,
+    products: pList?.length,
+    categories: cList?.length
+  }
 }

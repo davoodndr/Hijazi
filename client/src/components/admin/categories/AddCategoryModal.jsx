@@ -9,12 +9,11 @@ import CropperWindow from '../../ui/CropperWindow';
 import toast from 'react-hot-toast'
 import { finalizeValues, findDuplicateAttribute, getImageDimensions, isValidDatas, isValidFile, isValidName } from '../../../utils/Utils';
 import AxiosToast from '../../../utils/AxiosToast';
-import { Axios } from '../../../utils/AxiosSetup';
-import ApiBucket from '../../../services/ApiBucket';
 import { uploadCategoryImage } from '../../../services/ApiActions';
 import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
 import DynamicInputList from '../../ui/DynamicInputList';
+import { useCreateCategoryMutaion } from '../../../services/MutationHooks';
 
 function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
 
@@ -26,6 +25,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
   const [parentAttributes, setParentAttributes] = useState([]);
   const categoryImagedimen = {width:440, height: 440}
   const categoryThumbdimen = {width:300, height: 300}
+  const createCategoryMutation = useCreateCategoryMutaion();
     
 
   /* data input handling */
@@ -132,14 +132,12 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
           return
         }
         
-        const response = await Axios({
-          ...ApiBucket.addCategory,
-          data: finalData
-        })
+        const response = await createCategoryMutation.
+          mutateAsync({ data: finalData });
 
-        if(response.data.success){
+        if(response?.data?.success){
 
-          const newCategory = response.data.category;
+          const newCategory = response?.data?.category;
 
           const updatedImages = await uploadCategoryImage(
             newCategory._id,'categories',
@@ -182,6 +180,7 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
     setStatus(null);
     setParent(null);
     setAttributes([])
+    setParentAttributes([])
     onClose();
   }
   
@@ -255,15 +254,18 @@ function AddCategoryModal({categories, isOpen, onCreate, onClose}) {
                 <div className="inline-flex gap-2 items-center">
                   <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Featured</label>
                   <Switch
-                    onChange={(value) => setData(prev => ({...prev,featured:value}))}
+                    value={data?.featured}
+                    onChange={(value) => 
+                      setData(prev => ({...prev,featured:value}))
+                    }
                   />
                 </div>
-                <div className="inline-flex gap-2 items-center">
+                {/* <div className="inline-flex gap-2 items-center">
                   <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Visible</label>
                   <Switch
                     onChange={(value) => setData(prev => ({...prev,visible:value}))}
                   />
-                </div>
+                </div> */}
               </div>
             </div>
 

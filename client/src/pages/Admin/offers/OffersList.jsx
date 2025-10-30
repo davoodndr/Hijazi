@@ -1,60 +1,60 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { HiHome, HiOutlineTrash } from "react-icons/hi2";
+import { HiOutlineTrash } from "react-icons/hi2";
 import {
-	IoIosArrowForward,
-	IoIosArrowUp,
 	IoMdCheckmarkCircleOutline,
 	IoMdMore,
 } from "react-icons/io";
-import { LuSearch } from "react-icons/lu";
-import { TbCategoryPlus, TbUserEdit } from "react-icons/tb";
+import { TbUserEdit } from "react-icons/tb";
 import ContextMenu from "../../../components/ui/ContextMenu";
 import { Menu, MenuButton } from "@headlessui/react";
 import Alert from "../../../components/ui/Alert";
-import ApiBucket from "../../../services/ApiBucket";
-import { Axios } from "../../../utils/AxiosSetup";
 import AdminPagination from "../../../components/ui/AdminPagination";
-import Skeleton from "../../../components/ui/Skeleton";
-import { deleteCategoryAction } from "../../../services/ApiActions";
-import PreviewImage from "../../../components/ui/PreviewImage";
 import AxiosToast from "../../../utils/AxiosToast";
 import { setLoading } from "../../../store/slices/CommonSlices";
-import { useDispatch, useSelector } from "react-redux";
-import DropdownButton from "../../../components/ui/DropdownButton";
-import { FaRegCircleXmark, FaSort } from "react-icons/fa6";
-import { BsSortDown, BsSortDownAlt } from "react-icons/bs";
-import { IoIosArrowDown } from "react-icons/io";
-import { CiFilter } from "react-icons/ci";
+import { useDispatch } from "react-redux";
+import { FaRegCircleXmark } from "react-icons/fa6";
 import { containerVariants, rowVariants } from "../../../utils/Anim";
 import clsx from "clsx";
 import ToggleSwitch from "../../../components/ui/ToggleSwitch";
 import { format } from "date-fns";
-import SortHeader from "../../../components/ui/SortHeader";
 import AddOfferModal from "../../../components/admin/offers/AddOfferModal";
 import EditOfferModal from "../../../components/admin/offers/EditOfferModal";
-import SearchBar from "../../../components/ui/Searchbar";
-import SkeltoList from "../../../components/ui/SkeltoList";
 import { useOutletContext } from "react-router";
+import SearchFilterComponent from "../pageComponents/SearchFilterComponent";
+import TableHeaderComponent from "../pageComponents/TableHeaderComponent";
+import { useChangeOfferStatusMutation, useDeleteOfferMutation } from "../../../services/MutationHooks";
+import { setAllOffers, updateOffer } from "../../../store/slices/OfferSlice";
+import SkeltoList from "../../../components/ui/SkeltoList";
 
 const OffersList = () => {
 
 	const dispatch = useDispatch();
 
-	const { list, searchQuery, filter, gridCols, action } = useOutletContext();
-	const [offers, setOffers] = useState([]);
+	const { data, action } = useOutletContext();
 
-	/* initial data loader */
-  useEffect(() => {
-    setOffers(list);
-  }, [list]);
+	/* filter */
+	const [searchQuery, setSearchQuery] = useState(null);
+	const [filter, setFilter] = useState({});
+	const [filteredData, setFilteredData] = useState([]);
+	const handleOnFilter = (filtered) => {
+		setFilteredData(filtered?.list)
+		setFilter(filtered?.filter)
+	}
+
+	/* sort */
+	const [sortedData, setSortedData] = useState([]);
+
+	const handleOnSort = (sorted) => {
+		setSortedData(sorted?.list);
+	}
 
   /* paingation logic */
 	const [currentPage, setCurrentPage] = useState(1);
 	const itemsPerPage = 5;
-	const totalPages = Math.ceil(offers?.length / itemsPerPage);
+	const totalPages = Math.ceil(sortedData?.length / itemsPerPage);
 
-	const paginatedOffers = offers?.slice(
+	const paginatedOffers = sortedData?.slice(
 		(currentPage - 1) * itemsPerPage,
 		currentPage * itemsPerPage
 	);
@@ -70,42 +70,35 @@ const OffersList = () => {
     }
   },[action])
 
-	/* create action handleing */
-	const handleCreate = (newOffer) => {
-		setOffers((prev) => [newOffer, ...prev]);
-		setIsAddOpen(false);
-	};
+	/* offers action handleing */
 
-	/* update action handleing */
-	const handleUpdate = (doc) => {
-		setOffers((prev) =>
-			prev.map((item) => {
-				if (item._id === doc._id) {
-					return doc;
-				} else {
-					return item;
-				}
-			})
-		);
-		setIsEditOpen(false);
-	};
+	const changeOfferStatusMutation = useChangeOfferStatusMutation();
+	const deleteOfferMutation = useDeleteOfferMutation();
 
 	/* handle delete offer */
 	const handledelete = async (id) => {
 		Alert({
 			icon: "question",
 			title: "Are you sure?",
-			text: "This action cannot revert back",
+			html: "<span class='text-red-400'>This action cannot revert back</span>",
 			showCancelButton: true,
 			confirmButtonText: "Yes, delete it",
-			confirmButtonColor: "var(--color-red-500)",
+			customClass: {
+				confirmButton: '!bg-red-500',
+				title: '!text-red-500',
+				icon: '!text-red-500'
+			},
 		}).then(async (result) => {
 			if (result.isConfirmed) {
 				dispatch(setLoading(true));
-				const response = await deleteCategoryAction("offers", id);
+
+				const response = await deleteOfferMutation.mutateAsync({ offer_id: id });
 
 				if (response?.data?.success) {
-					setOffers((prev) => prev.filter((offer) => offer._id !== id));
+					
+					const restOffers = sortedData?.filter(el => el?._id !== id);
+					dispatch(setAllOffers(restOffers))
+					
 					AxiosToast(response, false);
 				} else {
 					AxiosToast(response);
@@ -157,21 +150,16 @@ const OffersList = () => {
 				dispatch(setLoading(true));
 
 				try {
-					const response = await Axios({
-						...ApiBucket.changeOfferStatus,
-						data: {
-							offer_id: id,
-							status: statusChange,
-						},
-					});
+					const response = await changeOfferStatusMutation
+					.mutateAsync({ offer_id: id, status: statusChange });
 
 					if (response?.data?.success) {
-						const updated = response.data.offer;
-						setOffers((prev) =>
-							prev.map((offer) => (offer._id === updated._id ? updated : offer))
-						);
+						const updated = response?.data?.offer;
+						
+						dispatch(updateOffer(updated));
 						AxiosToast(response, false);
 					}
+
 				} catch (error) {
 					AxiosToast(error);
 				} finally {
@@ -182,298 +170,317 @@ const OffersList = () => {
 	};
 
 	return (
-		<motion.ul
-      layoutRoot
-			className="text-gray-700"
-		>
-			{/* Rows */}
+		<>
+			{/* search, filter, sort*/}
+			<SearchFilterComponent
+				data={data}
+				onSearch={(value)=> setSearchQuery(value)}
+				onFilter={handleOnFilter}
+				onSort={handleOnSort}
+			/>
 
-			{paginatedOffers?.length > 0 ? (
-        <motion.li
-          layout
-          key={currentPage}
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          className={clsx(
-            "divide-y divide-theme-divider overflow-hidden",
-            offers?.length <= itemsPerPage && "rounded-b-3xl"
-          )}
-        >
-          <AnimatePresence>
-						{paginatedOffers?.map((offer, i) => {
-							const statusColors = () => {
-								switch (offer.status) {
-									case "active":
-										return "bg-green-500/40 text-teal-800";
-									case "expired":
-										return "bg-red-100 text-red-500";
-									default:
-										return "bg-gray-200 text-gray-400";
-								}
-							};
+			<div className="flex flex-col w-full rounded-3xl shade border border-theme-divider">
 
-							return (
-								<motion.div
-									layout
-									key={offer._id}
-									initial="hidden"
-									animate="visible"
-									exit="exit"
-									variants={rowVariants(i)}
-									whileHover={{
-										backgroundColor: "#efffeb",
-										transition: { duration: 0.3 },
-									}}
-                  className="bg-white"
-								>
-									<div
-										className={`grid ${gridCols} items-center w-full px-4 py-2`}
-									>
-										{/* Checkbox */}
-										<div>
-											<input type="checkbox" />
-										</div>
+				{/* data table header with quick sort facility */}
+				<TableHeaderComponent
+					data={data}
+					filteredData={filteredData}
+					onSort={handleOnSort}
+				/>
 
-										{/* Caoupon Info */}
-										<div>
-											<p className="text-sm font-semibold capitalize">
-												{offer?.title}
-											</p>
-											<p className="text-xs text-gray-500 capitalize">
-												{offer?.type === "coupon" ? (
-													<span>
-														{offer?.type} | {offer?.couponCode}
-													</span>
-												) : (
-													<span>Offer | {offer?.type} level</span>
-												)}
-											</p>
-										</div>
+				{/* table contents */}
+				<motion.ul
+					layoutRoot
+					className="text-gray-700"
+				>
+					{/* Rows */}
 
-										{/* discount */}
-										<div className="flex flex-col text-sm">
-											<p className="tracking-tight space-x-1">
-												<span className="text-gray-400">Value:</span>
-												<span
-													className={clsx(
-														offer?.discountType === "fixed"
-															? "price-before"
-															: 'content-after content-after:content-["%"]'
+					{paginatedOffers?.length > 0 ? (
+						<motion.li
+							layout
+							key={currentPage}
+							variants={containerVariants}
+							initial="hidden"
+							animate="visible"
+							exit="exit"
+							className={clsx(
+								"divide-y divide-theme-divider overflow-hidden",
+								sortedData?.length <= itemsPerPage && "rounded-b-3xl"
+							)}
+						>
+							<AnimatePresence>
+								{paginatedOffers?.map((offer, i) => {
+									const statusColors = () => {
+										switch (offer.status) {
+											case "active":
+												return "bg-green-500/40 text-teal-800";
+											case "expired":
+												return "bg-red-100 text-red-500";
+											default:
+												return "bg-gray-200 text-gray-400";
+										}
+									};
+
+									return (
+										<motion.div
+											layout
+											key={offer._id}
+											initial="hidden"
+											animate="visible"
+											exit="exit"
+											variants={rowVariants(i)}
+											whileHover={{
+												backgroundColor: "#efffeb",
+												transition: { duration: 0.3 },
+											}}
+											className="bg-white"
+										>
+											<div
+												className={`grid ${data?.gridCols} items-center w-full px-4 py-2`}
+											>
+												{/* Checkbox */}
+												<div>
+													<input type="checkbox" />
+												</div>
+
+												{/* Caoupon Info */}
+												<div>
+													<p className="text-sm font-semibold capitalize">
+														{offer?.title}
+													</p>
+													<p className="text-xs text-gray-500 capitalize">
+														{offer?.type === "coupon" ? (
+															<span>
+																{offer?.type} | {offer?.couponCode}
+															</span>
+														) : (
+															<span>Offer | {offer?.type} level</span>
+														)}
+													</p>
+												</div>
+
+												{/* discount */}
+												<div className="flex flex-col text-sm">
+													<p className="tracking-tight space-x-1">
+														<span className="text-gray-400">Value:</span>
+														<span
+															className={clsx(
+																offer?.discountType === "fixed"
+																	? "price-before"
+																	: 'content-after content-after:content-["%"]'
+															)}
+														>
+															{offer.discountValue}
+														</span>
+													</p>
+													{offer?.discountType === "percentage" && (
+														<p className="tracking-tight space-x-1">
+															<span className="text-gray-400">Max:</span>
+															{offer?.maxDiscount > 0 ? (
+																<span className="price-before">
+																	{offer?.maxDiscount}
+																</span>
+															) : (
+																<span>Unlimited</span>
+															)}
+														</p>
 													)}
-												>
-													{offer.discountValue}
-												</span>
-											</p>
-											{offer?.discountType === "percentage" && (
-												<p className="tracking-tight space-x-1">
-													<span className="text-gray-400">Max:</span>
-													{offer?.maxDiscount > 0 ? (
+												</div>
+
+												{/* validity */}
+												<div className="flex flex-col text-sm">
+													<p className="tracking-tight space-x-1">
+														<span className="text-gray-400">Start:</span>
+														{offer?.startDate ? (
+															<span>
+																{format(new Date(offer?.startDate), "dd-MM-yy")}
+															</span>
+														) : (
+															<span>Unlimited</span>
+														)}
+													</p>
+													<p className="tracking-tight space-x-1">
+														<span className="text-gray-400">End:</span>
+														{offer?.endDate ? (
+															<span>
+																{format(new Date(offer?.endDate), "dd-MM-yy")}
+															</span>
+														) : (
+															<span>Unlimited</span>
+														)}
+													</p>
+												</div>
+
+												{/* min puschase value */}
+												<div className="text-sm w-[50%] text-end">
+													{offer?.minPurchase ? (
 														<span className="price-before">
-															{offer?.maxDiscount}
+															{offer?.minPurchase}
 														</span>
 													) : (
-														<span>Unlimited</span>
+														<span>All Purchase</span>
 													)}
-												</p>
-											)}
-										</div>
+												</div>
 
-										{/* validity */}
-										<div className="flex flex-col text-sm">
-											<p className="tracking-tight space-x-1">
-												<span className="text-gray-400">Start:</span>
-                        {offer?.startDate ? (
-													<span>
-														{format(new Date(offer?.startDate), "dd-MM-yy")}
+												{/* usage limit */}
+												<div className="flex flex-col">
+													<div className="inline-flex space-x-1 text-sm">
+														<span className="text-gray-400">Total:</span>
+														<span>{offer?.usageLimit ?? "No limit"}</span>
+													</div>
+													<div className="inline-flex text-sm">
+														<span>{offer?.usagePerUser ?? "No limit"}</span>
+														<span className="text-gray-400"> /per user</span>
+													</div>
+												</div>
+
+												{/* Status */}
+												<div className="flex justify-center">
+													<span
+														className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
+																	${statusColors()}`}
+													>
+														{offer?.status}
 													</span>
-												) : (
-													<span>Unlimited</span>
-												)}
-											</p>
-											<p className="tracking-tight space-x-1">
-												<span className="text-gray-400">End:</span>
-												{offer?.endDate ? (
-													<span>
-														{format(new Date(offer?.endDate), "dd-MM-yy")}
-													</span>
-												) : (
-													<span>Unlimited</span>
-												)}
-											</p>
-										</div>
+												</div>
 
-										{/* min puschase value */}
-										<div className="text-sm w-[50%] text-end">
-											{offer?.minPurchase ? (
-												<span className="price-before">
-													{offer?.minPurchase}
-												</span>
-											) : (
-												<span>All Purchase</span>
-											)}
-										</div>
+												{/* Actions */}
+												<div className="flex items-center justify-center gap-3 z-50">
+													<div
+														onClick={() => {
+															setIsEditOpen(true);
+															setEditingOffer(offer);
+														}}
+														className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
+																	border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer"
+													>
+														<TbUserEdit size={20} />
+													</div>
 
-										{/* usage limit */}
-										<div className="flex flex-col">
-											<div className="inline-flex space-x-1 text-sm">
-												<span className="text-gray-400">Total:</span>
-												<span>{offer?.usageLimit ?? "No limit"}</span>
+													<Menu as="div" className="relative">
+														{({ open }) => (
+															<>
+																<MenuButton
+																	as="div"
+																	className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
+																				border border-gray-300 !text-gray-900 cursor-pointer"
+																>
+																	<IoMdMore size={20} />
+																</MenuButton>
+
+																<ContextMenu
+																	open={open}
+																	items={[
+																		...(offer?.status === "active" ||
+																		offer?.status === "inactive"
+																			? [
+																					{
+																						id: "active",
+																						icon:
+																							offer?.status === "active" ? (
+																								<IoMdCheckmarkCircleOutline className="text-xl text-primary-400" />
+																							) : (
+																								<FaRegCircleXmark className="text-xl" />
+																							),
+																						text: (
+																							<span className={`capitalize`}>
+																								{" "}
+																								{offer?.status}{" "}
+																							</span>
+																						),
+																						onClick: () => {},
+																						tail: (
+																							<ToggleSwitch
+																								size={4}
+																								value={offer?.status === "active"}
+																								onChange={() =>
+																									handleStatusChange(
+																										offer?._id,
+																										offer?.status
+																									)
+																								}
+																							/>
+																						),
+																					},
+																				]
+																			: []),
+																		{
+																			id: "delete",
+																			icon: <HiOutlineTrash className="text-xl" />,
+																			text: (
+																				<span className={`capitalize`}>
+																					{" "}
+																					delete{" "}
+																				</span>
+																			),
+																			onClick: () => handledelete(offer._id),
+																			itemClass:
+																				"bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100",
+																		},
+																	]}
+																/>
+															</>
+														)}
+													</Menu>
+												</div>
 											</div>
-											<div className="inline-flex text-sm">
-												<span>{offer?.usagePerUser ?? "No limit"}</span>
-												<span className="text-gray-400"> /per user</span>
-											</div>
-										</div>
+										</motion.div>
+									);
+								})}
+							</AnimatePresence>
+							</motion.li>
+					) : !searchQuery?.trim() && !Object.keys(filter)?.length ? (
+						<SkeltoList />
+					) : (
+						<AnimatePresence>
+							<motion.li
+								key="not-found"
+								layout
+								initial="hidden"
+								animate="visible"
+								exit="exit"
+								variants={rowVariants(paginatedOffers?.length)}
+								className="flex items-center"
+							>
+								<span
+									className="w-full h-full text-center py-6 text-primary-400
+												text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
+								>
+									No offers found
+								</span>
+							</motion.li>
+						</AnimatePresence>
+					)}
 
-										{/* Status */}
-										<div className="flex justify-center">
-											<span
-												className={`px-2 py-1 text-xs font-semibold rounded-full capitalize
-                              ${statusColors()}`}
-											>
-												{offer?.status}
-											</span>
-										</div>
-
-										{/* Actions */}
-										<div className="flex items-center justify-center gap-3 z-50">
-											<div
-												onClick={() => {
-													setIsEditOpen(true);
-													setEditingOffer(offer);
-												}}
-												className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
-                              border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer"
-											>
-												<TbUserEdit size={20} />
-											</div>
-
-											<Menu as="div" className="relative">
-												{({ open }) => (
-													<>
-														<MenuButton
-															as="div"
-															className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-                                    border border-gray-300 !text-gray-900 cursor-pointer"
-														>
-															<IoMdMore size={20} />
-														</MenuButton>
-
-														<ContextMenu
-															open={open}
-															items={[
-																...(offer?.status === "active" ||
-																offer?.status === "inactive"
-																	? [
-																			{
-																				id: "active",
-																				icon:
-																					offer?.status === "active" ? (
-																						<IoMdCheckmarkCircleOutline className="text-xl text-primary-400" />
-																					) : (
-																						<FaRegCircleXmark className="text-xl" />
-																					),
-																				text: (
-																					<span className={`capitalize`}>
-																						{" "}
-																						{offer?.status}{" "}
-																					</span>
-																				),
-																				onClick: () => {},
-																				tail: (
-																					<ToggleSwitch
-																						size={4}
-																						value={offer?.status === "active"}
-																						onChange={() =>
-																							handleStatusChange(
-																								offer?._id,
-																								offer?.status
-																							)
-																						}
-																					/>
-																				),
-																			},
-																	  ]
-																	: []),
-																{
-																	id: "delete",
-																	icon: <HiOutlineTrash className="text-xl" />,
-																	text: (
-																		<span className={`capitalize`}>
-																			{" "}
-																			delete{" "}
-																		</span>
-																	),
-																	onClick: () => handledelete(offer._id),
-																	itemClass:
-																		"bg-red-50 text-red-300 hover:text-red-500 hover:bg-red-100",
-																},
-															]}
-														/>
-													</>
-												)}
-											</Menu>
-										</div>
-									</div>
-								</motion.div>
-							);
-						})}
-				  </AnimatePresence>
-					</motion.li>
-			) : !searchQuery?.trim() && !Object.keys(filter)?.length ? (
-				<SkeltoList />
-			) : (
-				<AnimatePresence>
-					<motion.li
-						key="not-found"
-						layout
-						initial="hidden"
-						animate="visible"
-						exit="exit"
-						variants={rowVariants(paginatedOffers?.length)}
-						className="flex items-center"
-					>
-						<span
-							className="w-full h-full text-center py-6 text-primary-400
-                    text-xl bg-primary-50 border border-primary-300/50 border-t-0 rounded-b-3xl"
+					{/* Pagination */}
+					{sortedData?.length > itemsPerPage && (
+						<motion.li
+							layout
+							key="pagination"
+							className="flex justify-end px-4 py-5"
 						>
-							No offers found
-						</span>
-					</motion.li>
-				</AnimatePresence>
-			)}
+							<AdminPagination
+								currentPage={currentPage}
+								totalPages={totalPages}
+								setCurrentPage={setCurrentPage}
+							/>
+						</motion.li>
+					)}
 
-			{/* Pagination */}
-			{offers?.length > itemsPerPage && (
-				<motion.li
-					layout
-					key="pagination"
-					className="flex justify-end px-4 py-5"
-				>
-					<AdminPagination
-						currentPage={currentPage}
-						totalPages={totalPages}
-						setCurrentPage={setCurrentPage}
+					<AddOfferModal
+						offers={sortedData}
+						isOpen={isAddOpen}
+						onClose={() => setIsAddOpen(false)}
 					/>
-				</motion.li>
-			)}
 
-      <AddOfferModal
-        offers={offers}
-        isOpen={isAddOpen}
-        onCreate={handleCreate}
-        onClose={() => setIsAddOpen(false)}
-      />
-
-      <EditOfferModal
-        offer={editingOffer}
-        isOpen={isEditOpen}
-        onUpdate={handleUpdate}
-        onClose={() => setIsEditOpen(false)}
-      />
-		</motion.ul>
+					<EditOfferModal
+						offer={editingOffer}
+						isOpen={isEditOpen}
+						onClose={() => setIsEditOpen(false)}
+					/>
+				</motion.ul>
+			</div>
+		</>
 	);
 };
 

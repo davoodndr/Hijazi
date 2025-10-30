@@ -31,14 +31,18 @@ const userSlice = createSlice({
   },
   reducers: {
     setUser: (state, action) => {
-      state.user = action.payload.user;
+      state.user = action?.payload?.user;
       state.isLoading = false;
     },
     setActiveRole: (state, action) => {
       state.activeRole = action.payload;
       state.isLoading = false;
     },
-    fetchAllUsers: (state, action) => {
+    updateUserStatus: (state, action) => {
+      const { user_id, newStatus } = action?.payload;
+      state.users = state?.users?.map(u => u._id === user_id ? {...u, status: newStatus} : u)
+    },
+    setAllUsers: (state, action) => {
       state.users = action?.payload;
       state.error = null
     }
@@ -63,6 +67,6 @@ const userSlice = createSlice({
   }
 })
 
-export const { setUser, setActiveRole, fetchAllUsers } = userSlice.actions;
+export const { setUser, setActiveRole, setAllUsers, updateUserStatus } = userSlice.actions;
 
 export default  userSlice.reducer

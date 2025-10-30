@@ -272,7 +272,7 @@ export const blockUser = async(req, res) => {
       { new: true }
     )
 
-    return responseMessage(res, 200, true, "Blocked the user successfully", {updates: updated?.status});
+    return responseMessage(res, 200, true, "Blocked the user successfully", {updates: updated});
     
   } catch (error) {
     console.log('blockUser', error);
@@ -299,7 +299,7 @@ export const unblockUser = async(req, res) => {
     )
 
 
-    return responseMessage(res, 200, true, "User unblocked successfully",{updates: updated?.status});
+    return responseMessage(res, 200, true, "User unblocked successfully",{updates: updated});
     
   } catch (error) {
     console.log('unblockUser', error);

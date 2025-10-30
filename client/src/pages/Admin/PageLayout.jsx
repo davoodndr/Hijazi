@@ -2,12 +2,10 @@ import React, { useEffect, useState } from 'react'
 import PageTitleComponent from './pageComponents/PageTitleComponent'
 import BreadcrumpsComponent from './pageComponents/BreadcrumpsComponent'
 import { Outlet, useLocation } from 'react-router'
-import SearchFilterComponent from './pageComponents/SearchFilterComponent'
-import { useSelector } from 'react-redux'
-import TableHeaderComponent from './pageComponents/TableHeaderComponent'
+import { useDispatch, useSelector } from 'react-redux'
 import { dataBank } from './pageComponents/LayoutConstants'
 import { getEffectivePrice } from '../../utils/Utils'
-import clsx from 'clsx'
+import { setAllUsers } from '../../store/slices/UsersSlice'
 
 const entityToSliceMap = {
   users: 'user',
@@ -24,29 +22,25 @@ const reduxSliceMap = {
 function PageLayout() {
 
   const location = useLocation();
+  const dispatch = useDispatch();
   const path = location?.pathname?.split('/').pop();
   const entity = entityToSliceMap[path] || path;
 
   const dataFromRedux = useSelector(state => state[entity]);
 
   const [data, setData] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(null);
-  const [filter, setFilter] = useState({});
-  const [filteredData, setFilteredData] = useState([]);
-  const [currentSort, setCurrentSort] = useState(null);
   const [action, setAction] = useState(null);
-  const [showTable, setShowTable] = useState(true);
 
   /* initial data loader */
   useEffect(()=> {
     
-    resetFields();
+    setData(null);
 
     const dataPath = Object.keys(dataBank).find(key => key === path);
+    
     if(dataPath && dataPath === path){
       const listPath = reduxSliceMap[path]
       const newPath = listPath || path;
-      
       const updatedData = {
         ...dataBank[path],
         list: setupData(dataFromRedux[newPath])
@@ -56,21 +50,17 @@ function PageLayout() {
       setData(null)
     }
 
-    if(path === 'brands'){
-      setShowTable(false)
-    }else{
-      setShowTable(true)
-    }
-
   },[path, dataFromRedux])
 
   const setupData = (list) => {
+//    console.log(list)
     const sorted = [...list]?.sort((a,b) => b.createdAt.localeCompare(a.createdAt))
-//console.log(sorted?.[0])
     if(path === 'users'){
       return sorted?.map(user => {
         return {
           ...user,
+          name: user?.fullname || user?.username,
+          mobile: user?.mobile || "",
           join: new Date(user?.createdAt),
           last_login: user?.last_login ? new Date(user?.last_login) : null
         }
@@ -120,25 +110,13 @@ function PageLayout() {
     return sorted
   }
   
-  /* filter */
-  const handleOnFilter = (filtered) => {
-    setFilteredData(filtered?.list)
-    setFilter(filtered?.filter)
-  }
 
-  /* sort */
-  const [sortedData, setSortedData] = useState([]);
-  const handleOnSort = (sorted) => {
-    setSortedData(sorted?.list);
-    setCurrentSort(sorted?.currentSort);
-  }
-
-  const resetFields = ()=> {
-    setSearchQuery(null);
-    setFilter({});
-    setFilteredData([]);
-    setCurrentSort(null);
-    setData(null);
+  const handleChildReturn = (values)=>{
+    setData({
+      ...data,
+      list: values
+    })
+    dispatch(setAllUsers(values))
   }
   
   return (
@@ -161,47 +139,12 @@ function PageLayout() {
       {/* beadcrumps */}
       <BreadcrumpsComponent listType={path} />
 
-      {/* search, filter, sort*/}
-      <SearchFilterComponent
-        key={path}
-        currentFilter={filter}
-        data={data}
-        onSearch={(value)=> setSearchQuery(value)}
-        onFilter={handleOnFilter}
-        currentSort={currentSort}
-        sortMenus={data?.sortMenus}
-        onSort={handleOnSort}
+      <Outlet 
+        context={{
+          data,
+          action
+        }}
       />
-
-      {/* content wrapper */}
-      <div className={clsx("flex flex-col w-full",
-        showTable && 'rounded-3xl shade border border-theme-divider'
-      )}>
-
-        {/* data table header with quick sort facility */}
-        {showTable && (
-          <TableHeaderComponent
-            headers={data?.headers}
-            centerHeaders={data?.centerHeaders}
-            filteredData={filteredData}
-            currentSort={currentSort}
-            gridCols={data?.gridCols}
-            onSort={handleOnSort}
-          />
-        )}
-
-        {/* table contents */}
-        <Outlet 
-          context={{
-            list: sortedData,
-            searchQuery: searchQuery,
-            filter: filter,
-            gridCols: data?.gridCols,
-            action
-          }}
-        />
-
-      </div>
       
     </section>
   )

@@ -162,7 +162,7 @@ function CropperWindowComponent({
           }
         </div>
         {/* crop image buttons */}
-        <div className={`absolute ${buttonsClass}`}>
+        <div className={`sticky ${buttonsClass}`}>
 
           {/* browse image */}
           <label 

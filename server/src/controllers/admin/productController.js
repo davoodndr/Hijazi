@@ -243,7 +243,7 @@ export const updateProduct = async(req, res) => {
 //archive / softdelete peoduct
 export const changeProductStatus = async(req, res) => {
 
-  const { product_id, status, visibility } = req.body;
+  const { product_id, status, visibility, archived } = req.body;
 
   try {
 
@@ -253,14 +253,37 @@ export const changeProductStatus = async(req, res) => {
       return responseMessage(res, 400, false, "Product not found");
     }
 
-    if(status) {
-      product.status = status
-    }else{
-      product.visible = visibility
+    if(!status && typeof visibility !== 'boolean' && typeof archived !== 'boolean'){
+      return responseMessage(res, 400, false, "Invalid data");
     }
-    await product.save();
+    const updated = await Product.findByIdAndUpdate(
+      product_id,
+      { ...( status ? { status } : {}),
+        ...( typeof visibility === 'boolean' ? { visible: visibility } : {}),
+        ...( typeof archived === 'boolean' ? { archived } : {})
+      },
+      { new: true }
+    )
+    .populate([
+      {
+        path: 'category',
+        select: 'name',
+        populate: {
+          path: 'parentId',
+          select: 'name'
+        }
+      },
+      {
+        path: 'brand',
+        select: 'name'
+      }
+    ]);
 
-    return responseMessage(res, 200, true, "Product archived successfully",{product});
+    const msg = status ? "Product status changed successfully"
+      : visibility ? "Product visibility changed successfully"
+      : "Product archived successfully"
+
+    return responseMessage(res, 200, true, msg, {product: updated});
     
   } catch (error) {
     console.log('changeProductStatus',error)

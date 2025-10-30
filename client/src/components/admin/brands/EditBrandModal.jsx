@@ -14,12 +14,14 @@ import ApiBucket from '../../../services/ApiBucket';
 import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
 import { uploadBrandLogo } from '../../../services/ApiActions';
+import { useUpdateBrandMutation } from '../../../services/MutationHooks';
 
 function EditBrandModal({list, brand, isOpen, onUpdate, onClose}) {
 
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const brandImageDimen = {width: 500, height: 195};
+  const updateBrandMutation = useUpdateBrandMutation();
     
 
   /* data input handling */
@@ -86,17 +88,12 @@ function EditBrandModal({list, brand, isOpen, onUpdate, onClose}) {
 
         const finalData = finalizeValues(data);
         
-        const response = await Axios({
-          ...ApiBucket.updateBrand,
-          data: {
-            ...finalData,
-            brand_id: brand?._id
-          }
-        })
+        const response = await updateBrandMutation
+          .mutateAsync({ data: {...finalData, brand_id: brand?._id }});
 
-        if(response.data.success){
+        if(response?.data?.success){
 
-          const updatedBrand = response.data.brand;
+          const updatedBrand = response?.data?.brand;
           const public_id = updatedBrand.logo.split('/').filter(Boolean).pop().split('.')[0]
 
           if(isValidFile(finalData.file)){
@@ -220,7 +217,7 @@ function EditBrandModal({list, brand, isOpen, onUpdate, onClose}) {
               <CropperWindow
                 src={data?.file}
                 validFormats={['jpg','jpeg','png','bmp','webp']}
-                onImageCrop={(file) => setData(prev => ({...prev,file}))}
+                onImageCrop={(files) => setData(prev => ({...prev, file: files?.file}))}
                 outPutDimen={brandImageDimen}
                 outputFormat='webp'
                 cropperClass="flex items-center justify-center !h-55 !w-55 rounded-2xl 

@@ -19,7 +19,7 @@ const productSlice = createSlice({
     error: null,
   },
   reducers: {
-    fetchAllProducts: (state, action) => {
+    setAllProducts: (state, action) => {
       state.items = action?.payload
       state.error = null;
     },
@@ -64,7 +64,7 @@ const productSlice = createSlice({
 })
 
 export const {
-  fetchAllProducts,
+  setAllProducts,
   addProduct,
   updateProduct,
   setActiveProduct,

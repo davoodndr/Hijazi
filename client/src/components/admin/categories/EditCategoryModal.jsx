@@ -8,14 +8,13 @@ import CropperWindow from '../../ui/CropperWindow';
 import toast from 'react-hot-toast'
 import { finalizeValues, findDuplicateAttribute, getImageDimensions, isValidDatas, isValidFile, isValidName } from '../../../utils/Utils';
 import AxiosToast from '../../../utils/AxiosToast';
-import { Axios } from '../../../utils/AxiosSetup';
-import ApiBucket from '../../../services/ApiBucket';
 import { uploadCategoryImage } from '../../../services/ApiActions';
 import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
 import CustomSelect from '../../ui/CustomSelect';
 import DynamicInputList from '../../ui/DynamicInputList';
 import { useCallback } from 'react';
+import { useUpdateCategoryMutation } from '../../../services/MutationHooks';
 
 function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
 
@@ -26,6 +25,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
   const [parentAttributes, setParentAttributes] = useState([]);
   const categoryImageDimen = {width: 440, height: 440};
   const categoryThumbdimen = {width:300, height: 300}
+  const updateCategoryMutation = useUpdateCategoryMutation();
   
 
   /* data input handling */
@@ -36,8 +36,12 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
 
   /* initial data */
   useEffect(() => {
-  
-    if(category){
+
+    if(!open){
+      resetDatas();
+    }
+
+    if(isOpen && category){
       setData({...category, file: category?.image?.url});
       const parent = category?.parentId;
       if(parent){
@@ -45,11 +49,11 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
         setParentAttributes(attrs)
         setParent({id:parent?._id, label: parent?.name})
       }
-      setAttributes(prev => ([...prev, ...category.attributes]))
+      setAttributes(category?.attributes || []);
       setStatus({id:category?.status, label:category?.status})
     }
     
-  },[category])
+  },[category, isOpen])
 
   const handleChange = (e) => {
     
@@ -65,7 +69,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
   }
 
   const handleAttributes = useCallback((inputs) => {
-    if(inputs.length){
+    if(inputs?.length){
       
       let attrs = inputs.filter(item => !item.parent).map(item => {
         return {
@@ -145,17 +149,12 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
         }
 
         
-        const response = await Axios({
-          ...ApiBucket.updateCategory,
-          data: {
-            ...finalData,
-            category_id: category._id
-          }
-        })
+        const response = await updateCategoryMutation
+          .mutateAsync({ data: { ...finalData, category_id: category?._id }});
 
-        if(response.data.success){
+        if(response?.data?.success){
 
-          const updatedCategory = response.data.category;
+          const updatedCategory = response?.data?.category;
           const image_public_id = updatedCategory?.image?.public_id || finalData.slug.replaceAll('-', '_');
           const thumb_public_id = updatedCategory?.thumb?.public_id || `${finalData.slug.replaceAll('-', '_')}_thumb`;
 
@@ -199,6 +198,11 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
   }
 
   const handleClose = ()=>{
+    resetDatas();
+    onClose();
+  }
+
+  const resetDatas = () => {
     setData({
       file: "", name:"", slug:"", parentId:"", status:"", 
       featured:false, visible:false, attributes: []
@@ -207,9 +211,8 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
     setParent(null);
     setAttributes([]);
     setParentAttributes([]);
-    onClose();
   }
-  
+
   return (
 
     <AnimatePresence>
@@ -280,16 +283,18 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
                   <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Featured</label>
                   <Switch
                     value={data?.featured}
-                    onChange={(value) => setData(prev => ({...prev,featured:value}))}
+                    onChange={(value) => 
+                      setData(prev => ({...prev,featured:value}))
+                    }
                   />
                 </div>
-                <div className="inline-flex gap-2 items-center">
+                {/* <div className="inline-flex gap-2 items-center">
                   <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Visible</label>
                   <Switch
                     value={data?.visible}
                     onChange={(value) => setData(prev => ({...prev,visible:value}))}
                   />
-                </div>
+                </div> */}
               </div>
             </div>
 

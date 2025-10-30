@@ -17,8 +17,17 @@ const categorySlice = createSlice({
     error: null
   },
   reducers: {
-    fetchAllCategories: (state, action) => {
+    setAllCategories: (state, action) => {
       state.categoryList = action?.payload;
+      state.error = null;
+    },
+    addCategory: (state, action) => {
+      state?.categoryList?.unshift(action?.payload);
+      state.error = null;
+    },
+    updateCategory: (state, action) => {
+      const updated = action?.payload;
+      state.categoryList = state?.categoryList?.map(el => el?._id === updated?._id ? updated : el);
       state.error = null;
     }
   },
@@ -39,6 +48,6 @@ const categorySlice = createSlice({
   }
 })
 
-export const { fetchAllCategories } = categorySlice.actions;
+export const { setAllCategories, addCategory, updateCategory } = categorySlice.actions;
 
 export default categorySlice.reducer;

@@ -67,56 +67,6 @@ export const uploadSingleImage = async(folder, fieldName, file, public_id= "") =
 
 }
 
-export const uploadCategoryImage = async(category_id, folder, files, public_id) => {
-
-  try {
-
-    const imageData = new FormData();
-    imageData.append('image', files.file)
-    imageData.append('public_id', public_id.file)
-    imageData.append('image', files.thumb)
-    imageData.append('public_id', public_id.thumb)
-    imageData.append('folder',folder)
-    imageData.append('category_id',category_id)
-
-    const response = await Axios({
-      ...ApiBucket.uploadCategoryImage,
-      data: imageData,
-      /* params: {fieldName} */
-    })
-
-    return response.data;
-
-  } catch (error) {
-    return error
-  }
-
-}
-
-export const uploadBrandLogo = async(brand_id, folder, file, public_id= "") => {
-
-  try {
-            
-    const imageData = new FormData();
-    imageData.append('image', file)
-    imageData.append('public_id', public_id)
-    imageData.append('folder',folder)
-    imageData.append('brand_id',brand_id)
-
-    const response = await Axios({
-      ...ApiBucket.uploadBrandLogo,
-      data: imageData,
-      /* params: {fieldName} */
-    })
-
-    return response.data.logo;
-
-  } catch (error) {
-    return error
-  }
-
-}
-
 // bloch or unblock user
 export const blockUserAction = async(user_id, mode) => {
 
@@ -163,45 +113,6 @@ export const deleteUserAction = async(folder, user_id) => {
   }
 }
 
-// delete category
-export const deleteCategoryAction = async(folder, category_id) => {
-
-  try {
-
-    const response = await Axios({
-      ...ApiBucket.deleteCategory,
-      data: {
-        category_id, 
-        folder  // image containing folder
-      }
-    })
-
-    return response
-
-  } catch (error) {
-    return error
-  }
-}
-
-// delete brand
-export const deleteBrandAction = async(folder, brand_id) => {
-
-  try {
-
-    const response = await Axios({
-      ...ApiBucket.deleteBrand,
-      data: {
-        brand_id, 
-        folder  // image containing folder
-      }
-    })
-
-    return response
-
-  } catch (error) {
-    return error
-  }
-}
 
 // products
 export const uploadProductImages = async(product, product_id, remove_ids = []) => {
@@ -252,6 +163,226 @@ export const uploadProductImages = async(product, product_id, remove_ids = []) =
 
   } catch (error) {
     console.log(error?.response?.data?.message || error)
+    return error
+  }
+
+}
+
+export const changeProductStatusAction = async({product_id, status, visibility, archived}) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.changeProductStatus,
+      data: {
+        product_id,
+        status,
+        visibility,
+        archived
+      },
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+// category
+export const addCategoryAction = async(data) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.addCategory,
+      data
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const updateCategoryAction = async(data) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.updateCategory,
+      data
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const uploadCategoryImage = async(category_id, folder, files, public_id) => {
+
+  try {
+
+    const imageData = new FormData();
+    imageData.append('image', files.file)
+    imageData.append('public_id', public_id.file)
+    imageData.append('image', files.thumb)
+    imageData.append('public_id', public_id.thumb)
+    imageData.append('folder',folder)
+    imageData.append('category_id',category_id)
+
+    const response = await Axios({
+      ...ApiBucket.uploadCategoryImage,
+      data: imageData,
+      /* params: {fieldName} */
+    })
+
+    return response.data;
+
+  } catch (error) {
+    return error
+  }
+
+}
+
+export const changeCategoryStatusAction = async(category_id, status) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.changeCategoryStatus,
+      data: {
+        category_id,
+        status,
+      },
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const deleteCategoryAction = async(folder, category_id) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.deleteCategory,
+      data: {
+        category_id, 
+        folder  // image containing folder
+      }
+    })
+
+    return response
+
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+}
+
+//brand
+export const addBrandAction = async(data) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.addBrand,
+      data
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const updateBrandAction = async(data) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.updateBrand,
+      data
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const changeBrandStatusAction = async(brand_id, status) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.changeBrandStatus,
+      data: {
+        brand_id,
+        status,
+      },
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const deleteBrandAction = async(folder, brand_id) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.deleteBrand,
+      data: {
+        brand_id, 
+        folder  // image containing folder
+      }
+    })
+
+    return response
+
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+}
+
+export const uploadBrandLogo = async(brand_id, folder, file, public_id= "") => {
+
+  try {
+            
+    const imageData = new FormData();
+    imageData.append('image', file)
+    imageData.append('public_id', public_id)
+    imageData.append('folder',folder)
+    imageData.append('brand_id',brand_id)
+
+    const response = await Axios({
+      ...ApiBucket.uploadBrandLogo,
+      data: imageData,
+      /* params: {fieldName} */
+    })
+
+    return response.data.logo;
+
+  } catch (error) {
     return error
   }
 
@@ -600,6 +731,80 @@ export const cancelOrder = async(id, reason) => {
 
 }
 
+// offers
+export const createOfferAction = async(data) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.addOffer,
+      data
+    })
+
+    return response;
+    
+  } catch (error) {
+
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const updateOfferAction = async(data) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.updateOffer,
+      data
+    })
+
+    return response;
+    
+  } catch (error) {
+
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const changeOfferStatusAction = async(offer_id, status) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.changeOfferStatus,
+      data: {
+        offer_id,
+        status,
+      },
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const deleteOfferAction = async(offer_id) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.deleteOffer,
+      params: { offer_id },
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
 /* wallet */
 export const addFundAction = async(data) => {
 
@@ -665,6 +870,26 @@ export const updateReviewAction = async(data) => {
     })
 
     return response?.data?.updated;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const changeReviewStatusAction = async(review_id, status) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.changeReviewStatus,
+      data: {
+        review_id,
+        status,
+      },
+    })
+
+    return response;
     
   } catch (error) {
     throw new Error(error?.response?.data?.message || error?.message)

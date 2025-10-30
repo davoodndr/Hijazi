@@ -14,11 +14,14 @@ import LoadingButton from '../../ui/LoadingButton';
 import CustomSelect from '../../ui/CustomSelect'
 import MyDatePicker from '../../ui/MyDatePicker';
 import MultiSelectCheck from '../../ui/MultiSelectCheck';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import clsx from 'clsx';
+import { useCreateOfferMutation } from '../../../services/MutationHooks';
+import { addOffer } from '../../../store/slices/OfferSlice';
 
 function AddOfferModal({isOpen, onCreate, onClose}) {
 
+  const dispatch = useDispatch();
   const { categoryList } = useSelector(state => state.categories);
   const { items:productList } = useSelector(state => state.products);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +29,7 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
   const [discountType, setDicountType] = useState(null);
   const [applicableCategories, setApplicableCategories] = useState([]);
   const [applicableProducts, setApplicableProducts] = useState([]);
+  const createOfferMutation = useCreateOfferMutation();
 
   const offerTypes = [
     {value: 'coupon', label: 'coupon'},
@@ -120,15 +124,13 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
 
       try {
         
-        const response = await Axios({
-          ...ApiBucket.addOffer,
-          data: finalized
-        })
+        const response = await createOfferMutation
+          .mutateAsync({ data: finalized })
 
 
         if(response?.data?.success){
 
-          const newOffer = response.data.offer;
+          const newOffer = response?.data?.offer;
 
           AxiosToast(response, false);
           setData({
@@ -137,11 +139,13 @@ function AddOfferModal({isOpen, onCreate, onClose}) {
           })
           setDicountType(null)
 
-          onCreate(newOffer);
+          dispatch(addOffer(newOffer))
+          onClose();
 
         }
 
       } catch (error) {
+        console.log(error)
         AxiosToast(error)
       }finally{
         setIsLoading(false)

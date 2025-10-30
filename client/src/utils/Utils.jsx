@@ -46,7 +46,6 @@ export const finalizeValues = (data) => {
 
 // check input is a valid file
 export const isValidFile = (file) => {
-
   return file instanceof File;
 }
 

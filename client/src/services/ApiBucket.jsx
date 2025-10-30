@@ -180,6 +180,10 @@ const ApiBucket = {
     url: '/api/admin/update-category',
     method: 'patch'
   },
+  changeCategoryStatus: {
+    url: '/api/admin/change-category-status',
+    method: 'patch'
+  },
   deleteCategory: {
     url: '/api/admin/delete-category',
     method: 'put'
@@ -200,6 +204,10 @@ const ApiBucket = {
   },
   updateBrand: {
     url: '/api/admin/update-brand',
+    method: 'patch'
+  },
+  changeBrandStatus: {
+    url: '/api/admin/change-brand-status',
     method: 'patch'
   },
   deleteBrand: {
@@ -251,6 +259,10 @@ const ApiBucket = {
   updateOffer: {
     url: '/api/admin/update-offer',
     method: 'put'
+  },
+  deleteOffer: {
+    url: '/api/admin/delete-offer',
+    method: 'delete'
   },
 
   /* reviews */

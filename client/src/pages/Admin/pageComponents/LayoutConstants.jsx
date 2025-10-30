@@ -9,8 +9,10 @@ export const dataBank = {
     subTitle: 'Add, edit and delete users',
     gridCols:'grid-cols-[30px_1.75fr_0.75fr_1fr_0.75fr_0.5fr_0.75fr_0.75fr]',
     headers: [
-      'user', 'roles','contact',
       {sortOptions : [
+        {title: 'user',field: 'name', ascending: true},
+        {title: 'roles',field: '', ascending: true},
+        {title: 'contact',field: 'mobile', ascending: true},
         {title: 'orders',field: 'orderDetails.orders', ascending: true},
         {title: 'reviews',field: 'reviews', ascending: true},
         {title: 'status',field: 'status', ascending: true},
@@ -36,9 +38,9 @@ export const dataBank = {
     ],
     sortMenus : [
       {field: 'none', label: 'none', color: '--color-gray-200'},
-      {field: 'username', label: 'name', color: '--color-amber-400'},
+      {field: 'username', label: 'user name', color: '--color-amber-400'},
+      {field: 'fullname', label: 'full name', color: '--color-pink-400'},
       {field: 'email', label: 'email', color: '--color-blue-400'},
-      {field: 'mobile', label: 'contact no.', color: '--color-pink-400'},
       {field: 'join', label: 'join date', color: '--color-green-400'},
       {field: 'last_login', label: 'login', color: '--color-violet-400'},
     ],
@@ -136,7 +138,7 @@ export const dataBank = {
     entity: 'products',
     title: 'Product Management',
     subTitle: 'Add, edit and delete products',
-    gridCols:'grid-cols-[40px_2fr_1.5fr_1fr_0.75fr_0.75fr_0.75fr_88px]',
+    gridCols:'grid-cols-[40px_2fr_1.5fr_1fr_0.75fr_1.25fr_88px]',
     headers: [
       {sortOptions : [
         {title: 'product',field: 'name', ascending: true},
@@ -144,7 +146,7 @@ export const dataBank = {
         {title: 'price',field: 'effective_price', ascending: true},
         {title: 'stock',field: 'effective_stock', ascending: true},
         {title: 'status',field: 'status', ascending: true},
-        {title: 'visible',field: 'visible', ascending: true},
+        /* {title: 'visible',field: 'visible', ascending: true}, */
       ]}
     ],
     centerHeaders: [3,4,5],
@@ -193,7 +195,7 @@ export const dataBank = {
       ]}
     ],
     centerHeaders: [5],
-    fields : ['name','slug'],
+    fields : ['title','status'],
     filterMenus : [
       {label: 'none', value: {}, color: '--color-gray-200'},
       {label: 'offer type', color: '--color-pink-400',
@@ -241,14 +243,14 @@ export const dataBank = {
     entity: 'categories',
     title: 'Category Management',
     subTitle: 'Add, edit and delete categories',
-    gridCols:'grid-cols-[30px_1.5fr_1fr_1fr_1fr_0.75fr_1fr]',
+    gridCols:'grid-cols-[30px_1.75fr_1.5fr_1.5fr_1fr_1fr]',
     headers: [
       {sortOptions : [
         {title: 'category',field: 'name', ascending: true},
         {title: 'slug',field: 'slug', ascending: true},
         {title: 'parent',field: '', ascending: true},
         {title: 'status',field: 'status', ascending: true},
-        {title: 'visible',field: 'visible', ascending: true},
+        /* {title: 'visible',field: 'visible', ascending: true}, */
       ]}
     ],
     centerHeaders: [],

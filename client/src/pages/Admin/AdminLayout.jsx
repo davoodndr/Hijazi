@@ -11,13 +11,6 @@ import { Sidebar } from '../../components/admin/dashboard/SideBar'
 import Header from '../../components/admin/dashboard/Header'
 import { useQueryClient } from '@tanstack/react-query';
 import { useDispatch } from 'react-redux';
-import { fetchAllUsers } from '../../store/slices/UsersSlice';
-import { fetchAllProducts } from '../../store/slices/ProductSlices';
-import { fetchAllOrders } from '../../store/slices/OrderSlice';
-import { fetchAllReviews } from '../../store/slices/ReviewSlice';
-import { fetchAllOffers } from '../../store/slices/OfferSlice';
-import { fetchAllCategories } from '../../store/slices/CategorySlices';
-import { fetchAllBrands } from '../../store/slices/BrandSlice';
 import { 
   fetchAllBrandsAction,
   fetchAllCategoriesAction,
@@ -27,6 +20,13 @@ import {
   fetchAllReviewsAction,
   fetchAllUsersAction 
 } from '../../services/FetchDatas';
+import { setAllUsers } from '../../store/slices/UsersSlice';
+import { setAllOrders } from '../../store/slices/OrderSlice';
+import { setAllReviews } from '../../store/slices/ReviewSlice';
+import { setAllProducts } from '../../store/slices/ProductSlices';
+import { setAllOffers } from '../../store/slices/OfferSlice';
+import { setAllCategories } from '../../store/slices/CategorySlices';
+import { setAllBrands } from '../../store/slices/BrandSlice';
 
 const AdminLayout = () => {
 
@@ -39,13 +39,13 @@ const AdminLayout = () => {
 
       const [users, orders, reviews, products, offers, categories, brands] = await getQueryResults(queryClient);
       
-      dispatch(fetchAllUsers(users))
-      dispatch(fetchAllOrders(orders))
-      dispatch(fetchAllReviews(reviews))
-      dispatch(fetchAllProducts(products))
-      dispatch(fetchAllOffers(offers))
-      dispatch(fetchAllCategories(categories))
-      dispatch(fetchAllBrands(brands))
+      dispatch(setAllUsers(users))
+      dispatch(setAllOrders(orders))
+      dispatch(setAllReviews(reviews))
+      dispatch(setAllProducts(products))
+      dispatch(setAllOffers(offers))
+      dispatch(setAllCategories(categories))
+      dispatch(setAllBrands(brands))
 
     }
 

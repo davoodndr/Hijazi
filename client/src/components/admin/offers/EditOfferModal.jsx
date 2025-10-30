@@ -13,12 +13,15 @@ import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
 import CustomSelect from '../../ui/CustomSelect';
 import MyDatePicker from '../../ui/MyDatePicker';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import MultiSelectCheck from '../../ui/MultiSelectCheck';
 import clsx from 'clsx';
+import { useUpdateOfferMutation } from '../../../services/MutationHooks';
+import { updateOffer } from '../../../store/slices/OfferSlice';
 
 function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
 
+  const dispatch = useDispatch();
   const { categoryList } = useSelector(state => state.categories);
   const { items:productList } = useSelector(state => state.products);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +29,7 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
   const [discountType, setDicountType] = useState(null)
   const [applicableCategories, setApplicableCategories] = useState([]);
   const [applicableProducts, setApplicableProducts] = useState([]);
+  const updateOfferMutation = useUpdateOfferMutation();
 
   const offerTypes = [
     {value: 'coupon', label: 'coupon'},
@@ -145,14 +149,11 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
 
       try {
         
-        const response = await Axios({
-          ...ApiBucket.updateOffer,
-          data: finalData
-        })
+        const response = await updateOfferMutation.mutateAsync({ data: finalData });
 
         if(response?.data?.success){
 
-          const updatedOffer = response.data.offer;
+          const updatedOffer = response?.data?.offer;
 
           AxiosToast(response, false);
           setData({
@@ -161,7 +162,8 @@ function EditOfferModal({offer, isOpen, onUpdate, onClose}) {
           })
           setDicountType(null)
 
-          onUpdate(updatedOffer);
+          dispatch(updateOffer(updatedOffer));
+          onClose();
 
         }
 

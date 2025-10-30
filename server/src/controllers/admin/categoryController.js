@@ -20,23 +20,7 @@ export const getCategories = async(req, res) => {
     .lean();
     
     const categories = rawCategories?.map(cat => {
-      const pList = [], bList = [];
-      for (const p of products) {
-				if (
-					(cat?._id.toString() === p?.category?._id.toString() ||
-						cat?._id.toString() === p?.category?.parentId?._id.toString()) &&
-					!pList.includes(p?._id.toString())
-				) {
-					pList.push(p?._id.toString());
-
-					if (!bList?.includes(p?.brand?._id.toString())) bList.push(p?.brand?._id.toString());
-				}
-			}
-			return {
-				...cat,
-				products: pList?.length,
-				brands: bList?.length,
-			};
+      return countProductsNbrands(products, cat)
     })
 
     return responseMessage(res, 200, true, "",{categories});
@@ -64,7 +48,20 @@ export const addCategory = async(req, res) => {
       return responseMessage(res, 400, false, "This category already exists");
     }
 
-    const newCategory = await Category.create(req.body);
+    let rawCategory = await Category.create(req.body);
+    await rawCategory.populate('parentId');
+    const categoryObj = rawCategory.toObject();
+
+    const products = await Product.find({})
+    .populate([
+      {
+        path: 'category',
+        select: 'parentId',
+      }
+    ])
+    .lean();
+
+    const newCategory = countProductsNbrands(products, categoryObj);
 
     return responseMessage(res, 201, true, "New category created successfully",{category: newCategory});
     
@@ -166,7 +163,32 @@ export const updateCategory = async(req, res) => {
 
 }
 
-//delete category
+export const changeCategoryStatus = async(req, res) => {
+
+  const { category_id, status } = req.body;
+
+  try {
+    
+    if(!category_id || !status) {
+      return responseMessage(res, 400, false, "Invalid data");
+    }
+
+    const category = await Category.findById(category_id);
+
+    if(!category){
+      return responseMessage(res, 400, false, "Category does not exists");
+    }
+    const updated = await Category.findByIdAndUpdate(category_id, { status }, { new: true });
+
+    return responseMessage(res, 200, true, "Category status changed successfully", {category: updated})
+
+  } catch (error) {
+    console.log('changeCategoryStatus', error);
+    return responseMessage(res, 500, false, error.message || error);
+  }
+
+}
+
 export const deleteCategory = async(req, res) => {
   const { category_id, folder } = req.body;
 
@@ -182,9 +204,8 @@ export const deleteCategory = async(req, res) => {
       return responseMessage(res, 400, false, "Category does not exists");
     }
 
-    if(category.image){
-      let public_id = category.image?.split('/').filter(Boolean).pop().split('.')[0];
-      if(public_id){
+    if(category?.image){
+      if(category?.image?.public_id){
         await deleteImageFromCloudinary(folder, public_id)
       }
     }
@@ -198,4 +219,25 @@ export const deleteCategory = async(req, res) => {
     return responseMessage(res, 500, false, error.message || error);
   }
 
+}
+
+const countProductsNbrands = (products, category) => {
+
+  const pList = [], bList = [];
+  for (const p of products) {
+    if (
+      (category?._id?.toString() === p?.category?._id?.toString() ||
+        category?._id?.toString() === p?.category?.parentId?._id?.toString()) &&
+      !pList?.includes(p?._id?.toString())
+    ) {
+      pList.push(p?._id?.toString());
+
+      if (!bList?.includes(p?.brand?._id?.toString())) bList.push(p?.brand?._id?.toString());
+    }
+  }
+  return {
+    ...category,
+    products: pList?.length,
+    brands: bList?.length,
+  };
 }

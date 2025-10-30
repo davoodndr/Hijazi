@@ -16,7 +16,7 @@ export const getOffers = async(req, res) => {
     
   } catch (error) {
     console.log('getOffers:',error);
-    return responseMessage(500,false, error.message || error);
+    return responseMessage(res, 500, false, error.message || error);
   }
 }
 
@@ -58,7 +58,6 @@ export const addOffer = async(req, res) => {
     if(!invalidMessage){
       return responseMessage(res, 400, false, invalidMessage);
     }
-
     if(type === 'coupon'){
       if(!couponCode){
         return responseMessage(res, 400, false, "Please fill all mandatory fields!");
@@ -70,14 +69,13 @@ export const addOffer = async(req, res) => {
       }
     }
     
-
     const newOffer = await Offer.create(req.body);
 
     return responseMessage(res, 201, true, "Offer created successfully!", {offer: newOffer});
     
   } catch (error) {
     console.log('addOffer:',error);
-    return responseMessage(500,false, error.message || error);
+    return responseMessage(res, 500, false, error.message || error);
   }
 }
 
@@ -141,7 +139,29 @@ export const updateOffer = async(req, res) => {
     
   } catch (error) {
     console.log('updateOffer:',error);
-    return responseMessage(500,false, error.message || error);
+    return responseMessage(res, 500, false, error.message || error);
+  }
+}
+
+export const deleteOffer = async(req, res) => {
+
+  const { offer_id } = req.query;
+
+  try {
+
+    const offer = await Offer.findById(offer_id);
+
+    if(!offer){
+      return responseMessage(res, 400, false, "Offer does not exists!");
+    }
+
+    await Offer.findByIdAndDelete(offer_id);
+
+    return responseMessage(res, 200, true, "Offer deleted successfully!", { offer });
+    
+  } catch (error) {
+    console.log('deleteOffer:',error);
+    return responseMessage(res, 500, false, error.message || error);
   }
 }
 
@@ -161,7 +181,7 @@ export const expireOffer = () => {
     
     } catch (error) {
       console.log('expireOffer:',error);
-      return responseMessage(500,false, error.message || error);
+      return responseMessage(res, 500, false, error.message || error);
     }
 
   },{

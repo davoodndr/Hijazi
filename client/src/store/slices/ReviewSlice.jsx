@@ -7,12 +7,16 @@ const reviewSlice = createSlice({
     error: null
   },
   reducers: {
-    fetchAllReviews: (state, action) => {
+    setAllReviews: (state, action) => {
       state.reviews = action?.payload;
+    },
+    updateReview: (state, action) => {
+      const updated = action?.payload;
+      state.reviews = state?.reviews?.map(el => el?._id === updated?._id ? updated : el);
     }
   }
 })
 
-export const { fetchAllReviews } = reviewSlice.actions;
+export const { setAllReviews, updateReview } = reviewSlice.actions;
 
 export default reviewSlice.reducer;

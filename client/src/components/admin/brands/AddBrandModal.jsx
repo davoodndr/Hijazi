@@ -9,11 +9,10 @@ import CropperWindow from '../../ui/CropperWindow';
 import toast from 'react-hot-toast'
 import { finalizeValues, getImageDimensions, isValidDatas, isValidFile, isValidName } from '../../../utils/Utils';
 import AxiosToast from '../../../utils/AxiosToast';
-import { Axios } from '../../../utils/AxiosSetup';
-import ApiBucket from '../../../services/ApiBucket';
 import { uploadBrandLogo } from '../../../services/ApiActions';
 import { ClipLoader } from 'react-spinners'
 import LoadingButton from '../../ui/LoadingButton';
+import { useCreateBrandMutaion } from '../../../services/MutationHooks';
 
 function AddBrandModal({brands, isOpen, onCreate, onClose}) {
 
@@ -21,6 +20,7 @@ function AddBrandModal({brands, isOpen, onCreate, onClose}) {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const brandImageDimen = {width: 500, height: 195};
+  const createBrandMutation = useCreateBrandMutaion();
     
 
   /* data input handling */
@@ -60,6 +60,7 @@ function AddBrandModal({brands, isOpen, onCreate, onClose}) {
         toast.error("Image is mandatory to create brand");
         return
       }
+      
 
       if(!isValidFile(data['file'])){
         toast.error("You selected invalid file");
@@ -79,14 +80,12 @@ function AddBrandModal({brands, isOpen, onCreate, onClose}) {
 
         const finalData = finalizeValues(data);
         
-        const response = await Axios({
-          ...ApiBucket.addBrand,
-          data: finalData
-        })
+        const response = await createBrandMutation
+          .mutateAsync({ data: finalData });
 
-        if(response.data.success){
+        if(response?.data?.success){
 
-          const newBrand = response.data.brand;
+          const newBrand = response?.data?.brand;
 
           const logo = await uploadBrandLogo(newBrand._id, 'brands', finalData.file);
           
@@ -139,9 +138,9 @@ function AddBrandModal({brands, isOpen, onCreate, onClose}) {
           </div>
 
           {/* form inputs */}
-          <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='new-category-form'>
+          <form onSubmit={handleSubmit} className='grid grid-cols-2 gap-y-2 gap-x-4' id='new-brand-form'>
             
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col space-y-4">
               <div className='flex flex-col w-full'>
                 <label className="flex text-sm font-medium">
                   <span>Name</span>
@@ -150,7 +149,7 @@ function AddBrandModal({brands, isOpen, onCreate, onClose}) {
                 <input type="text" name='name' value={data.name} 
                   onChange={handleChange}
                   spellCheck={false}
-                  placeholder='Enter category name'/>
+                  placeholder='Enter brand name'/>
               </div>
               <div className='flex flex-col w-full'>
                 <label className="flex text-sm font-medium">
@@ -161,7 +160,7 @@ function AddBrandModal({brands, isOpen, onCreate, onClose}) {
                   value={data.slug} 
                   onChange={handleChange}
                   spellCheck={false}
-                  placeholder='@ex: category-name'/>
+                  placeholder='@ex: brand-name'/>
               </div>
 
               <div className='flex flex-col w-full'>
@@ -182,34 +181,38 @@ function AddBrandModal({brands, isOpen, onCreate, onClose}) {
                 <div className="inline-flex gap-2 items-center">
                   <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Featured</label>
                   <Switch
-                    onChange={(value) => setData(prev => ({...prev,featured:value}))}
+                    value={data?.featured}
+                    onChange={(value) => 
+                      setData(prev => ({...prev,featured:value}))
+                    }
                   />
                 </div>
-                <div className="inline-flex gap-2 items-center">
+                {/* <div className="inline-flex gap-2 items-center">
                   <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Visible</label>
                   <Switch
                     onChange={(value) => setData(prev => ({...prev,visible:value}))}
                   />
-                </div>
+                </div> */}
               </div>
             </div>
 
             {/* Image */}
-            <div className='flex flex-col items-center'>
-              <label className="flex text-sm font-medium w-55">
-                <span>Image</span>
-                <span className="text-xl leading-none ms-1 text-red-500">*</span>
-                <span className='ms-2 text-gray-400'>(jpg, png, webp, bmp) 500 x 195</span>
+            <div className='flex flex-col items-center space-y-1'>
+              <label className="flex items-center text-sm font-medium space-x-4">
+                <span className='mandatory'>Image</span>
+                <span className='text-xs text-gray-500/80'>( jpg, png, webp, bmp ) 500 x 195</span>
               </label>
-              <CropperWindow
-                validFormats={['jpg','jpeg','png','bmp','webp']}
-                onImageCrop={(file) => setData(prev => ({...prev,file}))}
-                outPutDimen={brandImageDimen}
-                outputFormat='webp'
-                cropperClass="flex items-center justify-center !h-55 !w-55 rounded-2xl 
-                  overflow-hidden border border-gray-300 bg-gray-500"
-                buttonsClass="flex items-center justify-between w-55 gap-2 py-2"
-              />
+              <div>
+                <CropperWindow
+                  validFormats={['jpg','jpeg','png','bmp','webp']}
+                  onImageCrop={(files) => setData(prev => ({...prev, file: files?.file }))}
+                  outPutDimen={brandImageDimen}
+                  outputFormat='webp'
+                  cropperClass="flex items-center justify-center !h-55 !w-55 rounded-2xl 
+                    overflow-hidden border border-gray-300 bg-gray-500"
+                  buttonsClass="flex items-center justify-between w-55 space-x-2 py-2"
+                />
+              </div>
             </div>
 
           </form>
@@ -226,6 +229,7 @@ function AddBrandModal({brands, isOpen, onCreate, onClose}) {
             </button>
 
             <LoadingButton
+              onClick={handleSubmit}
               loading={isLoading}
               text='Create Now'
               loadingText='Creating . . . . .'
