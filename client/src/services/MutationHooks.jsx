@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   addBrandAction,
   addCategoryAction,
+  addUserAction,
   blockUserAction,
   changeBrandStatusAction,
   changeCategoryStatusAction,
@@ -15,12 +16,54 @@ import {
   deleteUserAction,
   updateBrandAction,
   updateCategoryAction,
-  updateOfferAction 
+  updateOfferAction, 
+  updateUserAction
 } from './ApiActions';
 
 /* admin side */
 
 // users
+export const useAddUserMutation = ()=> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async({ data }) => {
+      const response = await addUserAction(data);
+      return response;
+    },
+    onSuccess: (newUser) => {
+      queryClient.setQueryData(['users'], (oldData) => {
+
+        if(!oldData) return [newUser];
+        return [newUser, ...oldData]
+      })
+    }
+  })
+}
+
+export const useUpdateUserMutation = () => {
+
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async({ data })=> {
+      const response = await updateUserAction(data);
+      return response
+    },
+    onSuccess: (updatedUser) => {
+
+      queryClient.setQueryData(['users'], (oldData) => {
+
+        if (!oldData) return [updatedUser];
+
+        return oldData?.map(user =>
+          user._id === updatedUser?._id ? updatedUser : user
+        );
+      });
+    }
+  })
+}
+
 export const useblockUserMutation = () => {
 
   const queryClient = useQueryClient();

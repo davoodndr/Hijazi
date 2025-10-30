@@ -19,31 +19,8 @@ export const getUsers = async(req, res) => {
     let updatedUsers = [];
 
     for(let user of users){
-
-      let orders = 0, cancelled = 0, pendings = 0;
-      const userOrders = await Order.find({user_id: user?._id});
-      const reviews = await Review.find({user_id: user?._id});
-
-      for(const o of userOrders){
-        if(o){
-          orders++;
-          if(o?.status === 'pending'){
-            pendings++;
-          }else if(o?.status === 'cancelled'){
-            cancelled++;
-          }
-        }
-      }
-      user = {
-        ...user,
-        orderDetails: {
-          orders,
-          pendings,
-          cancelled
-        },
-        reviews: reviews?.length
-      }
-      updatedUsers.push(user);
+      const craftedUser = await craftUserDetail(user);
+      updatedUsers.push(craftedUser);
     }
 
     return responseMessage(res, 200, true, "", {users: updatedUsers});
@@ -115,10 +92,15 @@ export const getUserInfo = async(req, res) => {
 // register user
 export const addUser= async(req, res) => {
 
-  const { email, username, password, mobile, address_line } = req.body;
+  /* const { email, username, password, mobile, address_line } = req.body;
+  const { files } = req; */
+  const { files } = req;
+  const { info } = req.body;
+  const userData = JSON.parse(info);
+  const { email, mobile, username, password, address_line } = userData;
 
   try {
-    
+
     if(!email || !password || !username){
       return responseMessage(res, 400, false, 'Please fill all mandatory fields');
     }
@@ -146,24 +128,35 @@ export const addUser= async(req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hash(password, salt);
 
-    const newUser = new User({
-      ...req.body,
+    const rawUser = new User({
+      ...userData,
       password: hashedPass,
     })
 
-    const wallet = new Wallet({user: newUser?._id});
+    const wallet = new Wallet({user: rawUser?._id});
+
+    const public_id = rawUser?._id?.toString().toLowerCase();
+    const avatar = await uploadUserAvatar(files, public_id)
+
+    rawUser.avatar = avatar
 
     await Promise.all(
       [
-        newUser.save(),
-        address_line ? new Address(req.body).save() : Promise.resolve(),
+        (await (rawUser.save())).toObject({
+          virtuals: false,
+          getters: false,
+          versionKey: false
+        }),
+        address_line ? new Address(userData).save() : Promise.resolve(),
         wallet.save()
       ]
     )
     
     // can delete filed from new user if want to response with new user
-    delete {...newUser}._doc.password;
-    delete {...newUser}._doc.refresh_token;
+    delete rawUser._doc.password;
+    delete rawUser._doc.refresh_token;
+
+    const newUser = await craftUserDetail(rawUser?._doc);
     
     return responseMessage(res, 201, true, 'User registered successfully',{user: newUser})
     
@@ -177,10 +170,13 @@ export const addUser= async(req, res) => {
 
 // update user
 export const updateUser = async(req, res) => {
-  const { user_id, email, mobile, username, password } = req.body;
+
+  const { files } = req;
+  const { info } = req.body;
+  const userData = JSON.parse(info);
+  const { user_id, email, mobile, username, password, default_address } = userData;
 
   try {
-
 
     const emailUser = await User.findOne({email, _id:{$ne: user_id}});
     
@@ -202,25 +198,54 @@ export const updateUser = async(req, res) => {
       return responseMessage(res, 400, false, 'Username already taken for another account');
     }
 
-    let userData = req.body;
-
     if(password){
       const salt = await bcrypt.genSalt(10);
       const hashedPass = await bcrypt.hash(password, salt);
       userData.password = hashedPass;
     }
 
-    await User.findOneAndUpdate({_id:user_id},{
-      ...userData
-    })
+    const user = await User.findById(user_id);
 
-    return responseMessage(res, 200, true, "User updated successfully")
+    const public_id = user?.avatar?.public_id || user?._id?.toString().toLowerCase();
+    const avatar = await uploadUserAvatar(files, public_id)
+
+    if(default_address){
+      await Address.findByIdAndUpdate(default_address, userData);
+    }
+
+    const updated = await User.findByIdAndUpdate(
+      user_id,
+      {
+        ...userData,
+        ...(avatar ? {avatar} : {})
+      },
+      { new: true }
+    ).select('-password -refresh_token').lean();
+
+    const updatedUser = await craftUserDetail(updated);
+
+    return responseMessage(res, 200, true, "User updated successfully", { user: updatedUser });
     
   } catch (error) {
     console.log('updateUser:',error);
     return responseMessage(res,500,false, error.message || error);
   }
 
+}
+
+const uploadUserAvatar = async(files, public_id) => {
+  let avatar = null;
+    
+  if(files && files?.length){
+
+    const upload = await uploadImagesToCloudinary("users", files, public_id);
+    avatar = {
+      url: upload[0].secure_url,
+      public_id: upload[0]?.public_id.split('/').pop()
+    }
+  }
+
+  return avatar
 }
 
 //add avatar
@@ -298,7 +323,6 @@ export const unblockUser = async(req, res) => {
       { new: true }
     )
 
-
     return responseMessage(res, 200, true, "User unblocked successfully",{updates: updated});
     
   } catch (error) {
@@ -321,8 +345,8 @@ export const deleteUser = async(req, res) => {
       return responseMessage(res, 400, false, "User does not exisits");
     }
 
-    if(user.avatar){
-      let public_id = user.avatar?.split('/').filter(Boolean).pop().split('.')[0];
+    if(user?.avatar){
+      let public_id = user?.avatar?.url?.split('/').filter(Boolean).pop().split('.')[0];
       if(public_id){
         await deleteImageFromCloudinary(folder, public_id)
       }
@@ -338,4 +362,33 @@ export const deleteUser = async(req, res) => {
     return responseMessage(res, 500, false, error.message || error);
   }
 
+}
+
+const craftUserDetail = async(user) => {
+
+  let orders = 0, cancelled = 0, pendings = 0;
+  const userOrders = await Order.find({user_id: user?._id});
+  const reviews = await Review.find({user_id: user?._id});
+
+  for(const o of userOrders){
+    if(o){
+      orders++;
+      if(o?.status === 'pending'){
+        pendings++;
+      }else if(o?.status === 'cancelled'){
+        cancelled++;
+      }
+    }
+  }
+  user = {
+    ...user,
+    orderDetails: {
+      orders,
+      pendings,
+      cancelled
+    },
+    reviews: reviews?.length
+  }
+
+  return user
 }

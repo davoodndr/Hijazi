@@ -34,9 +34,17 @@ const userSlice = createSlice({
       state.user = action?.payload?.user;
       state.isLoading = false;
     },
+    addUser: (state, action) => {
+      state?.users?.unshift(action?.payload)
+      state.error = null;
+    },
     setActiveRole: (state, action) => {
       state.activeRole = action.payload;
       state.isLoading = false;
+    },
+    updateUser: (state, action) => {
+      const updated = action?.payload;
+      state.users = state?.users?.map(u => u._id === updated?._id ? updated : u)
     },
     updateUserStatus: (state, action) => {
       const { user_id, newStatus } = action?.payload;
@@ -67,6 +75,6 @@ const userSlice = createSlice({
   }
 })
 
-export const { setUser, setActiveRole, setAllUsers, updateUserStatus } = userSlice.actions;
+export const { setUser, addUser, updateUser, setActiveRole, setAllUsers, updateUserStatus } = userSlice.actions;
 
 export default  userSlice.reducer

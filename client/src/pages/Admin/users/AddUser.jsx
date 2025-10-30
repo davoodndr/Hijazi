@@ -14,11 +14,15 @@ import { Axios } from "../../../utils/AxiosSetup";
 import ApiBucket from "../../../services/ApiBucket";
 import { useDispatch } from 'react-redux'
 import { setLoading } from '../../../store/slices/CommonSlices'
-import { TbArrowBackUp } from "react-icons/tb";
-import { HiHome } from "react-icons/hi2";
+import { TiArrowBack } from "react-icons/ti";
 import { uploadAvatar } from '../../../services/ApiActions'
 import CropperModal from "../../../components/ui/CropperModal";
 import { imageFileToSrc } from "../../../utils/Utils";
+import BreadcrumpsComponent from "../pageComponents/BreadcrumpsComponent";
+import PageTitleComponent from "../pageComponents/PageTitleComponent";
+import CropperWindow from "../../../components/ui/CropperWindow";
+import { useAddUserMutation } from "../../../services/MutationHooks";
+import { addUser } from "../../../store/slices/UsersSlice";
 
 const AddUser = () => {
 
@@ -28,9 +32,8 @@ const AddUser = () => {
   const [status, setStatus] = useState('');
   const [passwordShowing, setPasswordShowing] = useState(false);
   const [confirmShowing, setConfirmShowing] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
   const [address, setAddress] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const addUserMutation = useAddUserMutation();
 
   /* input handling */
   const [data, setData] = useState({
@@ -49,27 +52,12 @@ const AddUser = () => {
     })
   }
 
-  // image change handling
-  const handleImageSelect = async(files) => {
-    try {
-      const src = await imageFileToSrc(files.thumb);
-      setImagePreview(src);
-      
-      setData(prev => ({...prev, file: files.file}));
-      
-    } catch (err) {
-      console.error('Error reading file:', err);
-    }
-
-    setIsModalOpen(false);
-  }
-
   /* address active and deactive */
   const handleAddressActivation = (e) => {
 
-    const addressContainer = document.querySelector('.hidden-div');
     //const addressContainer = document.querySelector('.address-container');
     const divs = addressContainer.querySelectorAll('div')
+    const addressContainer = document.querySelector('.hidden-div');
     const elements = addressContainer.querySelectorAll('input')
     const addressFeilds = Array.from(elements).map(el => el.name)
 
@@ -97,6 +85,7 @@ const AddUser = () => {
     e.preventDefault();
 
     let mandatories = ['username', 'email', 'password', 'confirm'];
+
     // adding address field for validation
     if(address.length) mandatories = mandatories.concat(address);
     const validateValues = mandatories.every(field => data[field]);
@@ -134,21 +123,25 @@ const AddUser = () => {
         });
         
         const finalData = Object.fromEntries(filteresData);
+
+        //creating formdata
+        const formData = new FormData();
+
+        if(finalData?.file){
+          formData.append('image', finalData?.file)
+        }
+
+        delete finalData.file;
+        formData.append('info', JSON.stringify(finalData))
         
-        
-        const response = await Axios({
-          ...ApiBucket.addUser,
-          data: finalData
-        })
+        const response = await addUserMutation
+          .mutateAsync({ data: formData })
 
-        if(response.data.success){
+        if(response?.data?.success){
 
-          const file = finalData.file;
-          let newAvatar = "";
+          const newUser = response?.data?.user;
 
-          if(file){
-            newAvatar =  await uploadAvatar(response.data.user._id,file);
-          }
+          dispatch(addUser(newUser))
 
           AxiosToast(response, false);
           setData({
@@ -158,11 +151,11 @@ const AddUser = () => {
           })
           setRoles([]);
           setStatus('')
-          setImagePreview(null);
+          navigate('/admin/users');
         }
         
       } catch (error) {
-        console.log(error.response.data)
+        console.log(error)
         AxiosToast(error)
       }finally{
         dispatch(setLoading(false))
@@ -177,64 +170,61 @@ const AddUser = () => {
   };
 
   return (
-    <section className='min-h-full h-fit flex flex-col p-6 bg-gray-100'>
-      {/* page title & add user button */}
-      <div className="mb-5 flex justify-between items-start">
-        <div className="flex flex-col">
-          <h3 className='text-xl'>Create New User</h3>
-          <span className='sub-title'>Enter user details below</span>
-        </div>
-        <div className="inline-flex items-stretch gap-5">
-          <div className={`inline-flex items-center gap-1.5`}>
-            <input
-              type="checkbox"
-              id="address-ticker"
-              className="peer"
-              onChange={handleAddressActivation}
-            />
-            <label
-              htmlFor="address-ticker"
-              className="!text-[13px] !text-neutral-600 peer-checked:!text-primary-400 
-              peer-checked:!font-semibold cursor-pointer"
-            >
-              Address
-            </label>
-          </div>
-          <button
-            onClick={() => navigate('/admin/users')} 
-            className='!ps-2 !pe-4 !bg-white border border-gray-300 !text-gray-400 
-              inline-flex items-center gap-2 hover:!text-primary-400 hover:!border-primary-300'>
-            <TbArrowBackUp size={25} />
-            <span>Back</span>
-          </button>
-          <button 
-            form="add-user-form"
-            type="submit"
-            className='ps-2! pe-4! inline-flex items-center gap-2 text-white'>
-            <IoIosAdd size={25} />
-            <span>Register</span>
-          </button>
-        </div>
-        
-      </div>
 
+    <section className='flex flex-col p-6'>
+
+      {/* page title & add user button */}
+      <PageTitleComponent
+        title='Create New User'
+        subTitle='Enter user details below'
+        customActions={(
+          <div className="inline-flex items-stretch gap-5">
+            <div className={`inline-flex items-center gap-1.5`}>
+              <input
+                type="checkbox"
+                id="address-ticker"
+                className="peer"
+                onChange={handleAddressActivation}
+              />
+              <label
+                htmlFor="address-ticker"
+                className="text-[13px]! text-neutral-600! peer-checked:text-primary-400! 
+                peer-checked:font-semibold! cursor-pointer"
+              >
+                Address
+              </label>
+            </div>
+            <div
+              onClick={() => navigate('/admin/users')}
+              className="button px-3 space-x-1 smooth hover:shadow-md text-gray-400
+              hover:text-primary-400"
+            >
+              <TiArrowBack className="text-xl" />
+              <span>Back</span>
+            </div>
+            <button 
+              form="add-user-form"
+              type="submit"
+              className='ps-2! pe-4! inline-flex items-center gap-2 text-white'>
+              <IoIosAdd size={25} />
+              <span>Register</span>
+            </button>
+          </div>
+        )}
+      />
+      
       {/* beadcrumps */}
-      <div className='flex items-center gap-2 mb-5 py-2 border-y border-gray-200'>
-        <HiHome size={20} />
-        <IoIosArrowForward size={13} />
-        <div className='inline-flex items-center text-sm gap-2 text-gray-400'>
-          <span>Users</span>
-          <IoIosArrowForward size={13} />
-        </div>
-        <div className='inline-flex items-center text-sm gap-2'>
-          <span>Add User</span>
-        </div>
-      </div>
+      <BreadcrumpsComponent
+        listType='users'
+        listTypeClass='text-gray-500/80'
+        view='Add User'
+      />
 
       {/* form */}
       <div className="grid grid-cols-[2fr_1fr] gap-2">
         
         <form onSubmit={handleSubmit} className="columns-2 gap-2 space-y-2 " id="add-user-form">
+
           {/* Personal Information */}
           <div className="break-inside-avoid space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
             <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">
@@ -463,6 +453,7 @@ const AddUser = () => {
           </div>
 
         </form>
+
         {/* profile image */}
         <div className="h-fit space-y-6 border border-gray-200 bg-white p-6 rounded-lg shadow-xs">
           <h2 className="text-md font-medium text-gray-900 flex items-center gap-2">
@@ -472,51 +463,16 @@ const AddUser = () => {
 
           <div className='flex flex-col items-center space-y-2 mb-5'>
 
-            <div className='w-60 h-60 relative rounded-lg overflow-hidden'>
-              <img src={imagePreview || place_holder} className='pointer-events-none w-full' alt="avatar" />
-              <svg
-                className="absolute inset-0 w-60 h-60 pointer-events-none"
-                viewBox="0 0 100 100"
-                preserveAspectRatio="none"
-              >
-                <defs>
-                  <mask id="hole">
-                    <rect width="100" height="100" fill="white" />
-                    <circle cx="50" cy="50" r="47" fill="black" />
-                  </mask>
-                </defs>
-                {imagePreview && 
-                  <>
-                    <rect width="100%" height="100%" fill="rgba(0,0,0,0.4)" mask="url(#hole)" />
-                    <circle cx="50" cy="50" r="47" fill="none" stroke="white" strokeWidth="1" />
-                  </>
-                }
-              </svg>
-            </div>
-
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className='w-60'
-            >Change Image</button>
-
-            <CropperModal
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
-              dimen={{width: 450, height:320}}
-              title="Crop Image"
-              subTitle="Crop images as per the required dimention"
-              headerIcon={IoImage}
-              onResult={handleImageSelect}
-              cropper={{
-                outputFormat: 'webp',
-                validFormats: ['jpg','jpeg','png','bmp','webp'],
-                outPutDimen: 300,
-                thumbDimen: 200,
-                containerClass: 'flex flex-col items-center w-full h-full',
-                cropperClass: 'flex w-60 !h-60 border border-gray-300 rounded-3xl overflow-hidden',
-                buttonsClass: 'flex flex-col space-y-2 -right-12 top-1/2 -translate-y-1/2'
-              }}
+            <CropperWindow
+              onImageCrop={(files) => setData(prev => ({...prev, file: files?.file}))}
+              outPutDimen={{width: 300, height: 300}}
+              thumbDimen={{width:200, height: 200}}
+              outputFormat='webp'
+              validFormats= {['jpg','jpeg','png','bmp','webp']}
+              cropperClass="flex items-center justify-center !h-60 !w-60 rounded-2xl overflow-hidden border border-gray-300"
+              buttonsClass="flex items-center justify-center w-60 gap-2 py-2"
             />
+
           </div>
         </div>
         

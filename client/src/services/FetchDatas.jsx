@@ -94,6 +94,24 @@ export const fetchAllUsersAction = async() => {
   
 }
 
+export const getUserInfoAction = async(user_id)=> {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.getUserInfo,
+      params: { user_id }
+    })
+
+    return response?.data?.user
+
+  } catch (error) {
+    console.log(error?.response?.data?.message || error?.message)
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
 /* products */
 export const fetchAllProductsAction = async() => {
 

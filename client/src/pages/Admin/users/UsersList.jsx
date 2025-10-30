@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { containerVariants, rowVariants } from "../../../utils/Anim";
 import place_holder from "../../../assets/user_placeholder.jpg";
@@ -10,7 +10,7 @@ import { Menu, MenuButton } from "@headlessui/react";
 import { IoMdMore } from "react-icons/io";
 import ContextMenu from "../../../components/ui/ContextMenu";
 import { LuEye } from "react-icons/lu";
-import { useOutletContext } from "react-router";
+import { useNavigate, useOutletContext } from "react-router";
 import AdminPagination from "../../../components/ui/AdminPagination";
 import { CgUnblock } from "react-icons/cg";
 import { MdBlock } from "react-icons/md";
@@ -25,6 +25,7 @@ import TableHeaderComponent from "../pageComponents/TableHeaderComponent";
 
 function UsersList() {
 	
+	const navigate = useNavigate();
 	const dispatch = useDispatch();
 	const { data } = useOutletContext();
 
@@ -81,8 +82,6 @@ function UsersList() {
 				if(response?.data?.success){
 					const newStatus = response?.data?.updates?.status;
 
-					const updatedUsers = users?.map(u => u._id === user?._id ? {...u, status: newStatus} : u)
-
 					dispatch(updateUserStatus({ user_id: user?._id, newStatus }))
 					AxiosToast(response, false);
 
@@ -112,7 +111,7 @@ function UsersList() {
 				const response = await deleteUserMutation.mutateAsync({ user_id: user?._id })
 
 				if(response?.data?.success){
-					const updatedUsers = prev => prev.filter(u => u._id !== user?._id);
+					const updatedUsers = sortedData?.filter(u => u._id !== user?._id);
 
 					dispatch(setAllUsers(updatedUsers))
 					AxiosToast(response, false);
@@ -291,7 +290,7 @@ function UsersList() {
 													<div
 														onClick={() =>
 															navigate("/admin/users/edit-user", {
-																state: { user },
+																state: { user_id: user?._id },
 															})
 														}
 														className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
@@ -303,9 +302,9 @@ function UsersList() {
 													<Menu as="div" className="relative">
 														{({ open }) => (
 															<>
-																<MenuButton
-																	className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-																	border border-gray-300 !text-gray-900 cursor-pointer"
+																<MenuButton as='div'
+																	className="p-2 rounded-xl bg-gray-100 hover:bg-white 
+																	border border-gray-300 text-gray-900 cursor-pointer"
 																>
 																	<IoMdMore size={20} />
 																</MenuButton>

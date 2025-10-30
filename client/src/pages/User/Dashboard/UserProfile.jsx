@@ -99,7 +99,7 @@ function UserProfile() {
   }
 
   return (
-    <div className='flex-grow px-5 py-3 space-y-5'>
+    <div className='grow px-5 py-3 space-y-5'>
       {/* header */}
       <h3 className='text-xl'>Profile Settings</h3>
 

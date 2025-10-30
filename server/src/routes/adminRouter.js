@@ -27,10 +27,10 @@ adminRouter.post('/upload-upload-image',authenticate, allowRoles(['admin']), upl
 
 /* users management */
 adminRouter.get('/get-users',authenticate, allowRoles(['admin']), getUsers);
-adminRouter.get('/get-user-info', /* authenticate, allowRoles(['admin']), */ getUserInfo);
-adminRouter.post('/add-user',authenticate, allowRoles(['admin']),addUser);
+adminRouter.get('/get-user-info', authenticate, allowRoles(['admin']), getUserInfo);
+adminRouter.post('/add-user',authenticate, allowRoles(['admin']), upload, addUser);
 adminRouter.post('/upload-avatar',authenticate, allowRoles(['admin']), upload, uploadAvatar);
-adminRouter.patch('/update-user',authenticate, allowRoles(['admin']),updateUser);
+adminRouter.patch('/update-user',authenticate, allowRoles(['admin']), upload, updateUser);
 adminRouter.patch('/block-user',authenticate, allowRoles(['admin']),blockUser);
 adminRouter.patch('/unblock-user',authenticate, allowRoles(['admin']),unblockUser);
 adminRouter.put('/delete-user',authenticate, allowRoles(['admin']),deleteUser);

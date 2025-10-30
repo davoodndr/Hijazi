@@ -150,7 +150,7 @@ function CropperWindowComponent({
                 onCrop={(cropFunction) => cropFunRef.current = cropFunction}
                 outPutDimen={outPutDimen}
                 format={outputFormat}
-                className='!w-full !h-full'
+                className='w-full! h-full!'
               />
             ): (
               <div className='flex flex-col items-center justify-center w-full h-full bg-gray-100'>
@@ -169,8 +169,8 @@ function CropperWindowComponent({
             htmlFor='category-image'
             className='w-9 h-9 inline-flex items-center justify-center
             cursor-pointer border border-gray-300 p-1 rounded-xl transition-all duration-300
-            hover:border-primary-300 hover:!text-primary-400 hover:shadow-md/10
-            hover:scale-105 !text-gray-600'>
+            hover:border-primary-300 hover:text-primary-400! hover:shadow-md/10
+            hover:scale-105 text-gray-600!'>
 
             <MdImageSearch size={23}/>
 

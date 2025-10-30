@@ -7,7 +7,7 @@ export const dataBank = {
     entity: 'users',
     title: 'Users Management',
     subTitle: 'Add, edit and delete users',
-    gridCols:'grid-cols-[30px_1.75fr_0.75fr_1fr_0.75fr_0.5fr_0.75fr_0.75fr]',
+    gridCols:'grid-cols-[30px_1.75fr_0.5fr_1.25fr_0.75fr_0.5fr_0.75fr_0.75fr]',
     headers: [
       {sortOptions : [
         {title: 'user',field: 'name', ascending: true},

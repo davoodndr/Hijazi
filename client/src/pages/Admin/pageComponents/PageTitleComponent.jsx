@@ -8,7 +8,8 @@ function PageTitleComponent({
   showStrength = false,
   strength,
   actions,
-  onAction
+  onAction,
+  customActions
 }) {
 
   const navigate = useNavigate();
@@ -50,6 +51,9 @@ function PageTitleComponent({
             <span>{action?.label}</span>
           </button>
         )
+      }
+      {customActions &&
+        customActions
       }
     </div>
   )

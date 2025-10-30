@@ -2,14 +2,23 @@ import React from 'react'
 import { HiHome } from 'react-icons/hi2'
 import { IoIosArrowForward } from 'react-icons/io'
 
-function BreadcrumpsComponent({listType}) {
+function BreadcrumpsComponent({
+  listType,
+  listTypeClass,
+  view,
+  viewClass
+}) {
   return (
-    <div className='flex items-center gap-2 mb-5 py-2 border-y border-theme-divider'>
+    <div className='flex items-center space-x-2 mb-5 py-2 border-y border-theme-divider'>
       <HiHome size={20} />
       <IoIosArrowForward size={13} />
-      <div className='inline-flex items-center text-sm gap-2 capitalize'>
-        <span>{listType}</span>
-      </div>
+      <span className={`capitalize ${listTypeClass}`}>{listType}</span>
+      {view && (
+        <>
+          <IoIosArrowForward size={13} />
+          <span className={`capitalize ${viewClass}`}>{view}</span>
+        </>
+      )}
     </div>
   )
 }
