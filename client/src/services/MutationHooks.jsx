@@ -7,6 +7,7 @@ import {
   changeBrandStatusAction,
   changeCategoryStatusAction,
   changeOfferStatusAction,
+  changeOrderStatusAction,
   changeProductStatusAction,
   changeReviewStatusAction,
   createOfferAction,
@@ -344,6 +345,26 @@ export const useHandleProductArchiveMutation = () => {
           product._id === updatedProduct?._id ? { ...product, archived: updatedProduct?.archived } : product
         );
       });
+    }
+  })
+}
+
+//orders
+export const useOrderStatusMutation = ()=> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async({ order_id, status }) => {
+      const response = await changeOrderStatusAction(order_id, status);
+      return response;
+    },
+    onSuccess: (updatedOrder) => {
+      queryClient.setQueryData(['orders'], (oldData) => {
+        if(!oldData) return [];
+        return oldData?.map(order => 
+          order?._id === updatedOrder?._id ? {...order, status: updatedOrder?.status} : order
+        )
+      })
     }
   })
 }

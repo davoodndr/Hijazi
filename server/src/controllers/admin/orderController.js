@@ -82,6 +82,35 @@ export const getOrders = async(req, res) => {
 
 }
 
+export const changeOrderStatus = async(req, res) => {
+
+  const { order_id, status } = req.body;
+
+  try {
+
+    const offer = await Order.findById(order_id);
+
+    if(!offer){
+      return responseMessage(res, 400, false, "Order not found");
+    }
+
+    const updated = await Order.findByIdAndUpdate(
+      order_id,
+      {status},
+      {new: true}
+    )
+
+    return responseMessage(res, 200, true, 
+      "Order status changed successfully",
+      {order: updated}
+    );
+    
+  } catch (error) {
+    console.log('changeOrderStatus',error)
+    return responseMessage(res, 500, false, error.message || error)
+  }
+}
+
 /* cancel order */
 export const cancelOrder = async(req, res) => {
   

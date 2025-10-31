@@ -1,7 +1,7 @@
-import { useMemo } from "react";
-import { Axios } from "./AxiosSetup";
+
 import AxiosToast from "./AxiosToast";
 import { FaCheck } from "react-icons/fa6";
+import { parse, formatRgb } from 'culori';
 
 export const hexToRgba = (hex, alpha = 100) => {
 
@@ -14,6 +14,20 @@ export const hexToRgba = (hex, alpha = 100) => {
   const b = parseInt(hex.slice(5, 7), 16);
 
   return `rgba(${r}, ${g}, ${b}, ${alpha / 100})`;
+}
+
+export const tailwindToRgba = (varName, alpha = 1) => {
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(varName)
+    .trim();
+
+  // parse the OKLCH color
+  const color = parse(value);
+  if (!color) return;
+
+  // convert to rgba object
+  const rgbaString = formatRgb({ ...color, alpha });
+  return rgbaString;
 }
 
 export const capitalize = (value) => {

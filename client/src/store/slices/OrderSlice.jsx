@@ -23,16 +23,8 @@ const orderSlice = createSlice({
       state.ordersList.unshift(action.payload);
     },
     updateOrder: (state, action) => {
-      const order = action.payload;
-      state.ordersList = state?.ordersList?.map(el => {
-        if(el?._id === order?._id){
-          return {
-            ...el,
-            ...order
-          }
-        }
-        return el
-      })
+      const order = action?.payload;
+      state.ordersList = state?.ordersList?.map(el => el?._id === order?._id ? order : el);
     },
     clearOrders: (state) => {
       state.ordersList = []

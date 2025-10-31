@@ -724,6 +724,26 @@ export const getOrder = async(id, user_id) => {
 
 }
 
+export const changeOrderStatusAction = async(order_id, status) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.changeOrderStatus,
+      data: {
+        order_id,
+        status,
+      },
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
 export const cancelItem = async(order_id, item_id, reason) => {
 
   try {

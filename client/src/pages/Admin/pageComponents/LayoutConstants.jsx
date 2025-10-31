@@ -57,7 +57,7 @@ export const dataBank = {
     entity: 'orders',
     title: 'Order Management',
     subTitle: 'View and manage orders',
-    gridCols:'grid-cols-[30px_1.5fr_1fr_0.5fr_1fr_0.75fr_0.75fr_0.25fr]',
+    gridCols:'grid-cols-[30px_1.5fr_1fr_0.5fr_1fr_0.75fr_0.75fr_0.75fr]',
     headers: [
       {sortOptions : [
         {title: 'items',field: 'itemsCount', ascending: true},

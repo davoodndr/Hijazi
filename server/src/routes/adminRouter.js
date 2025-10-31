@@ -16,7 +16,7 @@ import { addCategory, changeCategoryStatus, deleteCategory, getCategories, updat
 import { addBrand, changeBrandStatus, deleteBrand, getBrands, updateBrand, uploadBrandLogo } from "../controllers/admin/brandController.js";
 import { addProduct, changeProductStatus, getProducts, updateProduct, uploadProductImages } from "../controllers/admin/productController.js";
 import { addOffer, changeOfferStatus, deleteOffer, getOffers, updateOffer } from "../controllers/admin/offerController.js";
-import { cancelItem, cancelOrder, getOrders } from "../controllers/admin/orderController.js";
+import { cancelItem, cancelOrder, changeOrderStatus, getOrders } from "../controllers/admin/orderController.js";
 import { changeReviewStatus, getReviews, getUserReviews } from "../controllers/admin/reviewController.js";
 
 
@@ -60,6 +60,7 @@ adminRouter.patch('/change-product-status', authenticate, allowRoles(['admin']),
 
 /* order management */
 adminRouter.get('/get-orders', authenticate, allowRoles(['admin']), getOrders)
+adminRouter.patch('/change-order-status', authenticate, allowRoles(['admin']), changeOrderStatus)
 adminRouter.post('/cancel-item', authenticate, allowRoles(['admin']), cancelItem)
 adminRouter.post('/cancel-order', authenticate, allowRoles(['admin']), cancelOrder)
 

@@ -17,11 +17,14 @@ import toast from 'react-hot-toast';
 import { getOrder } from '../../../services/ApiActions';
 import CancelOrderSummery from '../../../components/ui/CancelOrderSummery';
 import SaleInvoice from '../../../components/ui/SaleInvoice';
+import { useDispatch } from 'react-redux';
+import { setLoading } from '../../../store/slices/CommonSlices';
 
 function ViewOrder() {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const currentOrder = location.state?.order;
   const ordersList = location.state?.orders;
   const [order, setOrder] = useState(null);
@@ -34,6 +37,7 @@ function ViewOrder() {
   const cancelledStatuses = ['cancelled', 'refunded', 'returned'];
 
   useEffect(() => {
+    dispatch(setLoading(false));
     if(!currentOrder) navigate("/admin/orders")
   },[])
 

@@ -242,6 +242,10 @@ const ApiBucket = {
     url: '/api/admin/get-orders',
     method: 'get'
   },
+  changeOrderStatus: {
+    url: '/api/admin/change-order-status',
+    method: 'patch'
+  },
 
   /* offer */
   getOffers: {

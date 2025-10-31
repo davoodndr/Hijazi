@@ -139,7 +139,8 @@ function PageLayout() {
       {/* beadcrumps */}
       <BreadcrumpsComponent listType={path} />
 
-      <Outlet 
+      <Outlet
+        key={path}
         context={{
           data,
           action

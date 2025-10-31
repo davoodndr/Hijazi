@@ -82,7 +82,7 @@ const AdminRouter = () => {
               
                 <Route path="users">
                   <Route element={<PageLayout />}>
-                    <Route index element={<UsersList />} />
+                    <Route index element={<UsersList key="users" />} />
                   </Route>
                   <Route path="add-user" element={<AddUser />} />
                   <Route path="edit-user" element={<EditUser />} />
@@ -92,19 +92,19 @@ const AdminRouter = () => {
                 {/* categories tab */}
                 <Route path='categories'>
                   <Route element={<PageLayout />}>
-                    <Route index element={<CategoryList />} />
+                    <Route index element={<CategoryList key="categories" />} />
                   </Route>
                 </Route>
                 {/* brands tab */}
                 <Route path='brands'>
                   <Route element={<PageLayout />}>
-                    <Route index element={<BrandList />} />
+                    <Route index element={<BrandList key="brands" />} />
                   </Route>
                 </Route>
                 {/* products tab */}
                 <Route path='products'>
                   <Route element={<PageLayout />}>
-                    <Route index element={<ProductList />} />
+                    <Route index element={<ProductList key="products" />} />
                   </Route>
                   <Route path="add-product" element={<AddProduct />} />
                   <Route path=":slug/edit" element={<EditProduct />} />
@@ -112,20 +112,20 @@ const AdminRouter = () => {
                 {/* orders tab */}
                 <Route path='orders'>
                   <Route element={<PageLayout />}>
-                    <Route index element={<OrdersList />} />
+                    <Route index element={<OrdersList key="orders" />} />
                   </Route>
                   <Route path='view-order/:id' element={<ViewOrder />} />
                 </Route>
                 {/* offers tab */}
                 <Route path='offers'>
                   <Route element={<PageLayout />}>
-                    <Route index element={<OffersList />} />
+                    <Route index element={<OffersList key="offers" />} />
                   </Route>
                 </Route>
                 {/* reviews tab */}
                 <Route path='reviews'>
                   <Route element={<PageLayout />}>
-                    <Route index element={<UserReviews />} />
+                    <Route index element={<UserReviews key="reviews" />} />
                   </Route>
                 </Route>
               

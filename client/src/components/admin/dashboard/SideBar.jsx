@@ -14,7 +14,7 @@ export const Sidebar = ({menuItems}) => {
 
   const path = location.pathname;
   const current = menuItems.find(item => path.includes(item?.href)) || menuItems[0]
-
+  //console.log(current)
   const [selected, setSelected] = useState(current);
 
   const handleSelect = (item) => {
