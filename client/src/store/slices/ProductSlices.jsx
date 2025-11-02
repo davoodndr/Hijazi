@@ -15,6 +15,7 @@ const productSlice = createSlice({
     items: [],
     productsLoading: false,
     activeProduct: null,
+    activeFilter: null,
     reviews: [],
     error: null,
   },
@@ -35,6 +36,9 @@ const productSlice = createSlice({
     setActiveProduct: (state, action) => {
       state.activeProduct = action?.payload;
       state.error = null;
+    },
+    setActiveFilter: (state, action) => {
+      state.activeFilter = action?.payload;
     },
     setReviews: (state, action) => {
       state.reviews = action?.payload;
@@ -68,6 +72,7 @@ export const {
   addProduct,
   updateProduct,
   setActiveProduct,
+  setActiveFilter,
   setReviews,
   clearActiveProduct,
   clearReviews

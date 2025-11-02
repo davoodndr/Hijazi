@@ -69,7 +69,7 @@ function NavbarComponent(){
             <UserSearchBar />
 
             {/* wishlist & cart */}
-            <ul className="flex flex-row items-center justify-end w-full md:w-4/10 md:max-w-[160px]">
+            <ul className="flex flex-row items-center justify-end w-full md:w-4/10 md:max-w-40">
 
               <li
                 onClick={() => {
@@ -121,7 +121,7 @@ function NavbarComponent(){
                     <div className={clsx(
                       'menu-indicator h-[3px] w-full bg-primary-300 z-10',
                       cartCount > 0 && !location.pathname.match('cart') &&
-                       'group-hover:!visible group-hover:!opacity-100 group-hover:!transform translate-y-0'
+                       'group-hover:visible! group-hover:opacity-100! group-hover:transform! translate-y-0'
                     )}></div>
                   </div>
                 </div>
@@ -129,7 +129,7 @@ function NavbarComponent(){
                 {/* cart dropdown */}
                 {cartCount > 0 && !location.pathname.match('cart') &&
                   <CartDropdown 
-                    className='group-hover:!visible group-hover:!opacity-100 group-hover:!transform translate-y-0'
+                    className='group-hover:visible! group-hover:opacity-100! group-hover:transform! translate-y-0'
                   />
                 }
                 

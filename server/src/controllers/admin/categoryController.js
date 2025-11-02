@@ -1,6 +1,7 @@
 import Category from "../../models/Category.js";
 import Product from "../../models/Product.js";
 import { deleteImageFromCloudinary, uploadImagesToCloudinary } from "../../utils/coudinaryActions.js";
+import { countProductsNbrands } from "../../utils/helperFuntions.js";
 import { responseMessage } from "../../utils/messages.js"
 
 // get all categories
@@ -219,25 +220,4 @@ export const deleteCategory = async(req, res) => {
     return responseMessage(res, 500, false, error.message || error);
   }
 
-}
-
-const countProductsNbrands = (products, category) => {
-
-  const pList = [], bList = [];
-  for (const p of products) {
-    if (
-      (category?._id?.toString() === p?.category?._id?.toString() ||
-        category?._id?.toString() === p?.category?.parentId?._id?.toString()) &&
-      !pList?.includes(p?._id?.toString())
-    ) {
-      pList.push(p?._id?.toString());
-
-      if (!bList?.includes(p?.brand?._id?.toString())) bList.push(p?.brand?._id?.toString());
-    }
-  }
-  return {
-    ...category,
-    products: pList?.length,
-    brands: bList?.length,
-  };
 }

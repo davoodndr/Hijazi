@@ -23,7 +23,7 @@ function ProductListingComponent() {
 
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { items, productsLoading } = useSelector(state => state.products)
+  const { items, productsLoading, activeFilter } = useSelector(state => state.products)
   const { categoryList } = useSelector(state => state.categories)
   const { brandList } = useSelector(state => state.brands)
   const [sortedProducts, setSortedProducts] = useState([])
@@ -56,6 +56,15 @@ function ProductListingComponent() {
       }));
     }
   }, [minPrice, maxPrice]);
+
+  useEffect(()=> {
+    if(activeFilter){
+      setFilters(prev => ({
+        ...prev,
+        selectedList: [activeFilter]
+      }))
+    }
+  },[activeFilter])
 
 
   const handleChangeRange = (data) => {
@@ -248,7 +257,7 @@ function ProductListingComponent() {
               <input 
                 type="checkbox" 
                 checked={filters.selectedList.some(item => item.id === category._id)}
-                onChange={(e) => handleSelect(e,category._id, category.name)} 
+                onChange={(e) => handleSelect(e, category._id, category.name)} 
                 id={category._id}
               />
               <label htmlFor={category._id} 
@@ -337,13 +346,15 @@ function ProductListingComponent() {
               value={filters.range}
               onChange={handleChangeRange}
               allowCross={false}
-              trackStyle={{
-                backgroundColor: 'var(--color-primary-400)'
-              }}
-              handleStyle={{
-                backgroundColor: 'var(--color-primary-400)',
-                borderColor: 'var(--color-primary-400)',
-                opacity: 1
+              styles={{
+                track: {
+                  backgroundColor: 'var(--color-primary-400)'
+                },
+                handle: {
+                  backgroundColor: 'var(--color-primary-400)',
+                  borderColor: 'var(--color-primary-400)',
+                  opacity: 1
+                }
               }}
             />
             <p htmlFor="cat-1" className=''>
@@ -372,7 +383,7 @@ function ProductListingComponent() {
       </section>
 
       {/* right section - products */}
-      <section className='flex-grow flex flex-col justify-start h-fit space-y-5 py-3'>
+      <section className='grow flex flex-col justify-start h-fit space-y-5 py-3'>
 
         {/* filters and sort */}
         <div className='flex justify-between space-x-3 min-h-[74px]'>
@@ -398,8 +409,8 @@ function ProductListingComponent() {
                   {filters?.selectedList?.map(item => 
                     <BadgeButton 
                       showClear 
-                      key={item.id} 
-                      text={item.name} 
+                      key={item?.id} 
+                      text={item?.name} 
                       onClear={() => setFilters(prev => ({
                         ...prev,
                         selectedList: prev.selectedList.filter(el => el.id !== item.id)
@@ -417,7 +428,7 @@ function ProductListingComponent() {
               label={setSortLabel() || 'Sort by'}
               labelClass='whitespace-nowrap'
               icon={<RxCaretSort className='text-xl' />}
-              className='bg-white border border-gray-200 rounded-2xl !px-4 !py-2'
+              className='bg-white border border-gray-200 rounded-2xl px-4! py-2!'
               items={useMemo(() => sortOptionsRaw.map((opt, i) => (
               
                 { id: `${opt.field}-${opt.order}`,
@@ -430,7 +441,7 @@ function ProductListingComponent() {
                       <label 
                         onClick={() => applySort(opt.field, opt.order, i)}
                         htmlFor='pricel2h' 
-                        className={`capitalize py-2.5 px-2 !text-sm !text-gray-600 cursor-pointer`}
+                        className={`capitalize py-2.5 px-2 text-sm! text-gray-600! cursor-pointer`}
                       > {opt.text} </label>
                     </div>
                   )

@@ -5,8 +5,19 @@ import { responseMessage } from "../../utils/messages.js";
 export const getCategories = async(req, res) => {
   try {
 
-    const categories = await Category.find({status:'active', visible:true})
-      .populate('parentId');
+    const rawCategories = await Category.find({ status: 'active' })
+    .populate('parentId')
+    .lean();
+
+    const parentIds = rawCategories?.map(el => el?.parentId?._id?.toString()).filter(Boolean);
+
+    const categories = rawCategories.filter(cat => {
+      const hasParent = !!cat.parentId;
+      const hasChildren = !cat.parentId && 
+        !!parentIds?.find(el => el === cat?._id?.toString())
+
+      return hasParent || hasChildren;
+    });
 
     return responseMessage(res, 200, true, "",{categories});
     

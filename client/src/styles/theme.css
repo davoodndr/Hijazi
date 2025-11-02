@@ -101,7 +101,7 @@
   }
 
   .review-progress{
-    @apply bg-gray-200 flex-grow text-xs inline-flex items-center relative 
+    @apply bg-gray-200 grow text-xs inline-flex items-center relative 
         rounded-sm overflow-hidden text-white
       before:absolute before:content-[''] before:bg-primary-400 before:h-full before:rounded-sm
   }
@@ -140,15 +140,15 @@
   }
 
   .custom-input{
-    @apply h-[40px] w-full py-0 px-[15px] border border-neutral-300 rounded-input-border outline-0 smooth
+    @apply h-10 w-full py-0 px-[15px] border border-neutral-300 rounded-input-border outline-0 smooth
   }
 
   .button{
-    @apply border h-[40px] rounded-input-border flex items-center justify-center cursor-pointer smooth
+    @apply border h-10 rounded-input-border flex items-center justify-center cursor-pointer smooth
   }
 
   .select{
-    @apply border h-[40px] rounded-input-border flex items-center cursor-pointer pl-3.75 smooth
+    @apply border h-10 rounded-input-border flex items-center cursor-pointer pl-3.75 smooth
   }
 
   .shade{
