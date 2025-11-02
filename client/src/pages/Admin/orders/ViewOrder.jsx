@@ -19,6 +19,11 @@ import CancelOrderSummery from '../../../components/ui/CancelOrderSummery';
 import SaleInvoice from '../../../components/ui/SaleInvoice';
 import { useDispatch } from 'react-redux';
 import { setLoading } from '../../../store/slices/CommonSlices';
+import PageTitleComponent from '../pageComponents/PageTitleComponent';
+import BreadcrumpsComponent from '../pageComponents/BreadcrumpsComponent';
+import { TiArrowBack } from 'react-icons/ti';
+import { ordersColorMap, orderStatusColors, orderStatusList } from '../../../constants/strings';
+import { tailwindToRgba } from '../../../utils/Utils';
 
 function ViewOrder() {
 
@@ -161,6 +166,11 @@ function ViewOrder() {
     setOriginalTotals(null)
   }
 
+  /* status color */
+  const currentStatusIndex = orderStatusList?.findIndex(el => order?.status === el);
+  const statusColorVal = orderStatusColors[currentStatusIndex];
+  const statusBgColor = tailwindToRgba(statusColorVal, 0.1)
+
   /* handling cancel order */
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [cancelItem, setCancelItem] = useState(null);
@@ -180,32 +190,29 @@ function ViewOrder() {
 
   return (
     <section className='flex flex-col p-6'>
-      {/* page title & add category button */}
-      <div className="mb-5 flex justify-between items-start">
-        <div className="flex flex-col">
-          <h3 className='text-xl'>Order Management</h3>
-          <span className='sub-title'>View and manage orders</span>
-        </div>
-        <button 
-          onClick={() => navigate('/admin/orders')}
-          className='px-4! inline-flex items-center gap-2 !bg-white border !text-primary-400'>
-          <TbArrowBackUp size={25} />
-          <span>Back</span>
-        </button>
-      </div>
+
+      {/* page title & add user button */}
+      <PageTitleComponent
+        title='View Order'
+        subTitle='View and download invoice of order'
+        customActions={(
+          <div
+            onClick={() => navigate('/admin/orders')}
+            className="button px-3 space-x-1 smooth hover:shadow-md text-gray-400
+            hover:text-primary-400"
+          >
+            <TiArrowBack className="text-xl" />
+            <span>Back</span>
+          </div>
+        )}
+      />
       
       {/* beadcrumps */}
-      <div className='flex items-center gap-2 mb-5 py-2 border-y border-gray-200'>
-        <HiHome size={20} />
-        <IoIosArrowForward size={13} />
-        <div className='inline-flex items-center text-sm gap-2'>
-          <span>Orders</span>
-          <IoIosArrowForward size={13} />
-        </div>
-        <div className='inline-flex items-center text-sm gap-2'>
-          <span>View Order</span>
-        </div>
-      </div>
+      <BreadcrumpsComponent
+        listType='orders'
+        listTypeClass='text-gray-500/80'
+        view='View Order'
+      />
 
       <div className='flex flex-col space-y-5'>
       
@@ -214,7 +221,8 @@ function ViewOrder() {
 
           {/* left */}
           <div className='inline-flex items-center space-x-3 capitalize w-full'>
-            <h3 className='text-lg !font-extrabold space-x-2'>
+
+            <h3 className='text-lg font-extrabold! space-x-2'>
               <span className='text-gray-400'>Order</span>
               <span>#{order?.order_no}</span>
             </h3>
@@ -223,15 +231,14 @@ function ViewOrder() {
               className={clsx(`font-bold px-2 py-1 rounded-md text-sm 
               inline-flex leading-4`,
               paymentInfo?.isPaid ? 'bg-green-200 text-primary-400' 
-              : 'bg-gray-200 text-gray-400'
+              : 'bg-gray-200/70 text-gray-400'
             )}
             >{paymentInfo?.isPaid ? 'Paid' : 'Unpaid'}</p>
-            <p 
-              className={clsx(`px-2 py-1 rounded-md text-sm inline-flex leading-4`,
-              order?.status === "pending" && 'bg-yellow-200 text-orange-500',
-              order?.isDelivered && 'bg-green-200 text-primary-400',
-              (order?.status === "cancelled" || order?.status === "returned") && 'bg-red-200 text-red-500',
-              order?.status === "refunded" && 'bg-pink-200 text-pink-500',
+            <p
+              style={{ 
+                backgroundColor: `${statusBgColor}`
+              }}
+              className={clsx(`px-2 py-1 rounded-md text-sm ${ordersColorMap[statusColorVal]?.text} inline-flex leading-4`,
             )}
             >{order?.status}</p>
             <span className='border-r border-gray-200 w-px h-6'></span>
@@ -301,8 +308,8 @@ function ViewOrder() {
                   setIsInvoiceModalOpen(true)
                 }
               }}
-              className={clsx('inline-flex items-center !px-5 !space-x-2',
-                order?.status === 'cancelled' && 'pointer-events-none disabled-el !bg-gray-400'
+              className={clsx('inline-flex items-center px-5! space-x-2!',
+                order?.status === 'cancelled' && 'pointer-events-none disabled-el bg-gray-400!'
               )}
             >
               <VscCloudDownload className='text-xl' />
@@ -315,7 +322,7 @@ function ViewOrder() {
         {/* content */}
         <div className="flex space-x-6">
           {/* left */}
-          <div className="flex flex-col flex-grow space-y-5">
+          <div className="flex flex-col grow space-y-5">
 
             {/* items */}
             <ul className='bg-white shade rounded-3xl overflow-hidden divide-y divide-theme-divider'>
@@ -357,14 +364,14 @@ function ViewOrder() {
                                 (<li
                                   key={name}
                                   style={{ "--dynamic": val }}
-                                  className='point-before point-before:!p-1.5 point-before:!me-0.5 
-                                  point-before:!bg-(--dynamic) point-before:!rounded-sm'
+                                  className='point-before point-before:p-1.5! point-before:me-0.5! 
+                                  point-before:bg-(--dynamic)! point-before:rounded-sm!'
                                 ></li>)
                                 :
                                 (<li key={name}
                                   
-                                  className={clsx(`not-first:point-before point-before:!bg-gray-400/80 point-before:!p-0.5 
-                                  point-before:!me-2 !text-sm !text-gray-500`,
+                                  className={clsx(`not-first:point-before point-before:bg-gray-400/80! point-before:p-0.5! 
+                                  point-before:me-2! text-sm! text-gray-500!`,
                                   name === 'size' ? 'uppercase' : 'capitalize'
                                 )}
                                 >{val}</li>)
@@ -383,6 +390,8 @@ function ViewOrder() {
                         before:content-["total"] before:absolute before:top-2 before:text-gray-300'>
                         <h3 className='price-before price-before:font-normal price-before:text-sm text-lg items-start'>{itemTotal}</h3>
                       </div>
+
+                      {/* cancel button */}
                       <div className='inline-flex items-center justify-end'>
                         <span
                           onClick={() => {
@@ -630,6 +639,7 @@ function ViewOrder() {
 
         <CancelOrderModal
           onSubmit={(orderData) => {
+            setupData(orderData)
             setOrder(orderData)
             setIsModalOpen(false);
             if(cancelItem) setCancelItem(null);
@@ -645,7 +655,7 @@ function ViewOrder() {
         <SaleInvoice
           isOpen={isInvoiceModalOpen}
           onClose={() => setIsInvoiceModalOpen(false)}
-          orderId={order?._id}
+          currentOrder={currentOrder}
         />
       </div>
 

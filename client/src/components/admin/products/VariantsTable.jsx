@@ -206,8 +206,8 @@ function VariantsTable(
                       style={{
                         "--dynamic" : variant.attributes[attribute.name],
                       }}
-                      className='point-before !text-sm !text-(--dynamic) point-before:!bg-(--dynamic)
-                        point-before:!p-1.5 point-before:none'
+                      className='point-before text-sm! text-(--dynamic)! point-before:bg-(--dynamic)!
+                        point-before:p-1.5! point-before:none'
                       >{variant.attributes[attribute.name]}
                     </span>
               
@@ -236,8 +236,8 @@ function VariantsTable(
                       style={{
                         "--dynamic" : el,
                       }}
-                      className='point-before !text-sm !text-(--dynamic) point-before:!bg-(--dynamic)
-                        point-before:!p-1.5 point-before:none'
+                      className='point-before text-sm! text-(--dynamic)! point-before:bg-(--dynamic)!
+                        point-before:p-1.5! point-before:none'
                       >{el}</span>
                     :
                     el
@@ -297,7 +297,7 @@ function VariantsTable(
           thumbDimen,
           containerClass: 'flex flex-col items-center w-full h-full',
           cropperClass: 'flex w-60 !h-60 border border-gray-300 rounded-3xl overflow-hidden',
-          buttonsClass: 'flex flex-col space-y-2 -right-12 top-1/2 -translate-y-1/2'
+          buttonsClass: 'flex justify-center space-x-2 mt-2'
         }}
         onResult={handleModalResult}
         onClose={()=> {

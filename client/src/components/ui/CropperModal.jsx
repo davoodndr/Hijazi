@@ -86,7 +86,7 @@ function CropperModal(
           <button
             onClick={handleClose}
             className={`px-4! rounded-3xl! inline-flex items-center
-            transition-all duration-300 !text-gray-500 hover:!text-white !bg-gray-300 hover:!bg-gray-400`}>
+            transition-all duration-300 text-gray-500! hover:text-white! bg-gray-300! hover:bg-gray-400!`}>
 
             <span>Close</span>
           </button>

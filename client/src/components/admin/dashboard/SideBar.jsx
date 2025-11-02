@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Link, useLocation } from "react-router";
 import logo from '../../../assets/logo.svg'
@@ -14,8 +14,12 @@ export const Sidebar = ({menuItems}) => {
 
   const path = location.pathname;
   const current = menuItems.find(item => path.includes(item?.href)) || menuItems[0]
-  //console.log(current)
+
   const [selected, setSelected] = useState(current);
+
+  useEffect(()=> {
+    setSelected(current)
+  },[current])
 
   const handleSelect = (item) => {
     setSelected(item)

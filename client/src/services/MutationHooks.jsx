@@ -4,6 +4,7 @@ import {
   addCategoryAction,
   addUserAction,
   blockUserAction,
+  cancelItem,
   changeBrandStatusAction,
   changeCategoryStatusAction,
   changeOfferStatusAction,
@@ -11,6 +12,7 @@ import {
   changeProductStatusAction,
   changeReviewStatusAction,
   createOfferAction,
+  createProductAction,
   deleteBrandAction,
   deleteCategoryAction,
   deleteOfferAction,
@@ -18,6 +20,7 @@ import {
   updateBrandAction,
   updateCategoryAction,
   updateOfferAction, 
+  updateProductAction, 
   updateUserAction
 } from './ApiActions';
 
@@ -284,6 +287,50 @@ export const useDeleteBrandMutation = () => {
 }
 
 //products
+export const useCreateProductMutation = () => {
+
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async({ data })=> {
+      const response = await createProductAction(data);
+      return response
+    },
+    onSuccess: (newProduct) => {
+
+      queryClient.setQueryData(['products'], (oldData) => {
+
+        if (!oldData) return [newProduct];
+        const updatedList = [newProduct, ...oldData]
+        return updatedList;
+      });
+    }
+  })
+}
+
+export const useUpdateProductMutation = () => {
+
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async({ data })=> {
+      const response = await updateProductAction(data);
+      return response
+    },
+    onSuccess: (updatedProduct) => {
+
+      queryClient.setQueryData(['products'], (oldData) => {
+
+        if (!oldData) return [updatedProduct];
+
+        return oldData?.map(product =>
+          product._id === updatedProduct?._id ? updatedProduct : product
+        );
+      });
+    }
+  })
+}
+
 export const useHandleProductStatusMutation = () => {
 
   const queryClient = useQueryClient();
@@ -356,6 +403,44 @@ export const useOrderStatusMutation = ()=> {
   return useMutation({
     mutationFn: async({ order_id, status }) => {
       const response = await changeOrderStatusAction(order_id, status);
+      return response;
+    },
+    onSuccess: (updatedOrder) => {
+      queryClient.setQueryData(['orders'], (oldData) => {
+        if(!oldData) return [];
+        return oldData?.map(order => 
+          order?._id === updatedOrder?._id ? {...order, status: updatedOrder?.status} : order
+        )
+      })
+    }
+  })
+}
+
+export const useCancelOrderMutation = ()=> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async({ order_id, reason }) => {
+      const response = await cancelItem(order_id, reason);
+      return response;
+    },
+    onSuccess: (updatedOrder) => {
+      queryClient.setQueryData(['orders'], (oldData) => {
+        if(!oldData) return [];
+        return oldData?.map(order => 
+          order?._id === updatedOrder?._id ? {...order, status: updatedOrder?.status} : order
+        )
+      })
+    }
+  })
+}
+
+export const useCancelItemMutation = ()=> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async({ order_id, item_id, reason }) => {
+      const response = await cancelItem(order_id, item_id, reason);
       return response;
     },
     onSuccess: (updatedOrder) => {

@@ -5,10 +5,11 @@ import Modal from './Modal';
 import LoadingButton from './LoadingButton';
 import { ClipLoader } from 'react-spinners';
 import CustomSelect from './CustomSelect';
-import { cancelItem, cancelOrder } from '../../services/ApiActions';
 import { useDispatch } from 'react-redux';
 import { updateOrder } from '../../store/slices/OrderSlice';
 import toast from 'react-hot-toast';
+import { useCancelItemMutation, useCancelOrderMutation } from '../../services/MutationHooks';
+import AxiosToast from '../../utils/AxiosToast';
 
 function CancelOrderModalComponent({isOpen, order, item, onSubmit, onClose}) {
 
@@ -35,6 +36,9 @@ function CancelOrderModalComponent({isOpen, order, item, onSubmit, onClose}) {
   }
 
   /* handle cancel api call */
+  const cancelOrderMutation = useCancelOrderMutation();
+  const cancelItemMutation = useCancelItemMutation();
+
   const handleCancel = async() => {
     
     setIsLoading(true);
@@ -46,15 +50,15 @@ function CancelOrderModalComponent({isOpen, order, item, onSubmit, onClose}) {
       }
       
       const response = item ? 
-        await cancelItem(order?._id, item?._id, reason) 
-        : await cancelOrder(order?._id, reason);
+        await cancelItemMutation.mutateAsync({order_id: order?._id, item_id: item?._id, reason}) 
+        : await cancelOrderMutation.mutateAsync({order_id: order?._id, reason});
 
-      if(response.success){
-        toast.success(response.message, {position: "top-center"});
-
-        const data = response.order;
-        dispatch(updateOrder({_id: data?._id, status: data?.status}))
-        onSubmit(data)
+      if(response?.data?.success){
+        
+        const updated = response?.data?.order;
+        dispatch(updateOrder({_id: updated?._id, status: updated?.status}))
+        AxiosToast(response, false);
+        onSubmit(updated)
       }
 
     } catch (error) {
@@ -77,7 +81,7 @@ function CancelOrderModalComponent({isOpen, order, item, onSubmit, onClose}) {
             <div className='p-2 border border-red-300 rounded-xl bg-red-50'>
               <BsPatchQuestionFill className='text-red-500' size={20} />
             </div>
-            <h1 className='text-lg !text-red-500'>Are you sure?</h1>
+            <h1 className='text-lg text-red-500!'>Are you sure?</h1>
           </div>
 
           <motion.div className='flex flex-col mt-5 px-3'>
@@ -108,7 +112,7 @@ function CancelOrderModalComponent({isOpen, order, item, onSubmit, onClose}) {
                     name="other_reason"
                     rows="4"
                     placeholder='Write your reason here'
-                    className='mt-3 !h-auto'
+                    className='mt-3 h-auto!'
                   ></textarea>
                 </motion.div>
               }
@@ -121,7 +125,7 @@ function CancelOrderModalComponent({isOpen, order, item, onSubmit, onClose}) {
             <button
               onClick={handleclose}
               className={`px-4! rounded-3xl! inline-flex items-center
-              transition-all duration-300 !text-gray-500 hover:!text-white !bg-gray-300 hover:!bg-gray-400`}>
+              transition-all duration-300 text-gray-500! hover:text-white! bg-gray-300! hover:bg-gray-400!`}>
 
               <span>Close</span>
             </button>
@@ -132,7 +136,7 @@ function CancelOrderModalComponent({isOpen, order, item, onSubmit, onClose}) {
               text='Yes, cancel now'
               loadingText='Cancelling . . . . .'
               icon={<ClipLoader color="white" size={23} />}
-              className={`px-4! rounded-3xl! inline-flex items-center smooth !bg-red-400`}
+              className={`px-4! rounded-3xl! inline-flex items-center smooth bg-red-400!`}
             />
           </div>
         </div>

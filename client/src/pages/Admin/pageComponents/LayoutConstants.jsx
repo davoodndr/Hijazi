@@ -257,6 +257,8 @@ export const dataBank = {
     fields : ['name','slug'],
     filterMenus : [
       {label: 'none', value: {}, color: '--color-gray-200'},
+      {label: 'parents', value: {'parentId': false}, color: '--color-amber-400'},
+      {label: 'children', value: {'parentId': true}, color: '--color-gray-400'},
       {label: 'featured', value: {'featured': true}, color: '--color-sky-400'},
       {label: 'status', color: '--color-green-400',
         children: [
@@ -264,12 +266,12 @@ export const dataBank = {
           {label: 'inactive', value: {'status': 'inactive'}, color: '--color-gray-400'},
         ]
       },
-      {label: 'visibility', color: '--color-pink-400',
+      /* {label: 'visibility', color: '--color-pink-400',
         children: [
           {label: 'visible', value: {'visible': true}, color: '--color-amber-400'},
           {label: 'invisible', value: {'visible': false}, color: '--color-gray-400'},
         ]
-      },
+      }, */
     ],
     sortMenus : [
       {field: 'none', label: 'none', color: '--color-gray-200'},

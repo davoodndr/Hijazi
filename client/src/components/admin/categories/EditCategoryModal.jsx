@@ -280,7 +280,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
               <div className='flex items-center gap-8 w-full py-2 mt-2'>
 
                 <div className="inline-flex gap-2 items-center">
-                  <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Featured</label>
+                  <label htmlFor="" className='text-sm! text-neutral-600! font-semibold!'>Featured</label>
                   <Switch
                     value={data?.featured}
                     onChange={(value) => 
@@ -337,7 +337,7 @@ function EditCategoryModal({list, category, isOpen, onUpdate, onClose}) {
             <button
               onClick={handleClose}
               className={`px-4! rounded-3xl! inline-flex items-center
-              transition-all duration-300 !text-gray-500 hover:!text-white !bg-gray-300 hover:!bg-gray-400`}>
+              transition-all duration-300 text-gray-500! hover:text-white! bg-gray-300! hover:bg-gray-400!`}>
 
               <span>Close</span>
             </button>

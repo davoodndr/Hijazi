@@ -401,6 +401,11 @@ export const filterData = (searchQuery = null, filter = null, list = [], fields 
 
       if(typeof value === 'string'){
         return item[key]?.includes(value)
+      }else if(typeof value === 'boolean'){
+        if(typeof item[key] === 'boolean'){
+          return item[key] === value
+        }
+        return value ? item[key] !== null : item[key] === null
       }
       return item[key] === value
     }

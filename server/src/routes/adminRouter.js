@@ -53,9 +53,9 @@ adminRouter.put('/delete-brand', authenticate, allowRoles(['admin']), deleteBran
 
 /* product management */
 adminRouter.get('/get-products', authenticate, allowRoles(['admin']), getProducts)
-adminRouter.post('/add-product', authenticate, allowRoles(['admin']), addProduct)
+adminRouter.post('/add-product', authenticate, allowRoles(['admin']), productUpload, addProduct)
 adminRouter.post('/upload-product-images',authenticate, allowRoles(['admin']), productUpload, uploadProductImages);
-adminRouter.patch('/update-product', authenticate, allowRoles(['admin']), updateProduct)
+adminRouter.patch('/update-product', authenticate, allowRoles(['admin']), productUpload, updateProduct)
 adminRouter.patch('/change-product-status', authenticate, allowRoles(['admin']), changeProductStatus)
 
 /* order management */

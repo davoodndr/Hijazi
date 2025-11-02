@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { IoIosAdd, IoIosArrowForward } from "react-icons/io";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import AxiosToast from "../../../utils/AxiosToast";
 import toast from "react-hot-toast";
@@ -9,18 +8,20 @@ import { Axios } from "../../../utils/AxiosSetup";
 import ApiBucket from "../../../services/ApiBucket";
 import { useDispatch } from 'react-redux'
 import { setLoading } from '../../../store/slices/CommonSlices'
-import { TbArrowBackUp } from "react-icons/tb";
-import { HiHome } from "react-icons/hi2";
-import { uploadProductImages } from '../../../services/ApiActions'
 import ToggleSwitch from "../../../components/ui/ToggleSwitch";
 import ImageThumb from "../../../components/ui/ImageThumb";
-import { capitalize, fetchImageAsFile, finalizeValues, findDuplicateAttribute, imageFileToSrc, isValidDatas, isValidFile, isValidName } from "../../../utils/Utils";
+import { fetchImageAsFile, findDuplicateAttribute, imageFileToSrc, isValidFile, isValidName } from "../../../utils/Utils";
 import CropperModal from "../../../components/ui/CropperModal";
 import DynamicInputList from "../../../components/ui/DynamicInputList";
 import VariantsTable from "../../../components/admin/products/VariantsTable";
 import { useCallback } from "react";
 import clsx from "clsx";
 import { updateProduct } from "../../../store/slices/ProductSlices";
+import PageTitleComponent from "../pageComponents/PageTitleComponent";
+import BreadcrumpsComponent from "../pageComponents/BreadcrumpsComponent";
+import { TiArrowBack } from "react-icons/ti";
+import { RxUpdate } from "react-icons/rx";
+import { useUpdateProductMutation } from "../../../services/MutationHooks";
 
 const EditProduct = () => {
 
@@ -28,7 +29,6 @@ const EditProduct = () => {
   const dispatch = useDispatch();
   const { state } = useLocation();
   const { currentProduct } = state || {};
-  const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState(null);
   const [brand, setBrand] = useState(null);
   const [brands, setBrands] = useState([]);
@@ -47,6 +47,7 @@ const EditProduct = () => {
   const maxLimit =  5;
   const productImageDimen = {width:1200, height: 1200}
   const productThumbDimen = {width:450, height: 450}
+  const updateProductMutation = useUpdateProductMutation();
 
   /* input handling */
   const [data, setData] = useState({
@@ -58,6 +59,7 @@ const EditProduct = () => {
   useEffect(() => {
     fetchCategories();
     fetchBrands();
+    dispatch(setLoading(false));
   },[])
 
   /* initial data from item */
@@ -114,8 +116,7 @@ const EditProduct = () => {
   },[currentProduct, categories, brands])
 
   const fetchCategories = async()=> {
-    setIsLoading(true);
-
+    
     try {
         
       const response = await Axios({
@@ -130,14 +131,11 @@ const EditProduct = () => {
 
     } catch (error) {
       console.log(error)
-    }finally{
-      setIsLoading(false)
     }
   }
 
   const fetchBrands = async()=> {
-    setIsLoading(true);
-
+    
     try {
         
       const response = await Axios({
@@ -152,8 +150,6 @@ const EditProduct = () => {
 
     } catch (error) {
       console.log(error)
-    }finally{
-      setIsLoading(false)
     }
   }
 
@@ -407,11 +403,11 @@ const EditProduct = () => {
     e.preventDefault();
     
     let product = {
+      product_id: currentProduct?._id,
       ...data,
       variants
     }
     
-
     if(!isValidName(product['name']) || !isValidName(product['slug'])){
       toast.error('Name and slug should have minimum 3 letters')
       return
@@ -525,38 +521,21 @@ const EditProduct = () => {
         }
       })
 
-      const response = await Axios({
-        ...ApiBucket.updateProduct,
-        data: {
-          ...product,
-          product_id: currentProduct._id
-        }
-      })
+      // submit data setup
+      const formData = new FormData();
+      setupImages(formData, product, remove_ids);
+      formData.append('info', JSON.stringify(product))
 
-      
+      const response = await updateProductMutation
+        .mutateAsync({ data: formData});    
 
       if(response?.data?.success){
-        await uploadProductImages(product, currentProduct._id, remove_ids);
 
         const updated = response?.data?.product;
         dispatch(updateProduct(updated))
         AxiosToast(response, false);
         
-        setData({
-          name: "", slug:"", sku:"", description:"", price:"", stock:"", tax: "",
-          visible: true, status: "active",
-          brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: [], customAttributes: []
-        })
-        setBrand(null);
-        setStatus(null);
-        setCategory(null);
-        setVariants([]);
-        setAttributes([]);
-        setCustomAttributes([])
-        setFinalAttributes([])
-        setViewImages([]);
-        setVariantImages([])
-        setDisableMessage('');
+        resetFields();
         navigate('/admin/products',{state})
       }
       
@@ -571,46 +550,95 @@ const EditProduct = () => {
 
   };
 
+  const setupImages = (formData, product, remove_ids = []) => {
+
+    const slug = product.slug.replaceAll('-','_')
+    
+
+    product?.files?.forEach((item,i) => {
+      if(item.file instanceof File){
+        formData.append('productImages', item.file);
+        formData.append('productImageIds[]', `product_${slug}_${i + 1}`);
+        formData.append('productImages', item.thumb);
+        formData.append('productImageIds[]', `product_${slug}_${i + 1}_thumb`);
+      }
+    });
+
+    const variants = product?.variants;
+    if(variants && variants.length){
+      variants.forEach((item, i) => {
+        if(item.files && item.files.file instanceof File){
+          formData.append('variantImages', item.files.file);
+          formData.append('variantImageIds[]', `@variant_${slug}_${item.sku}`)
+          formData.append('variantImages', item.files.thumb);
+          formData.append('variantImageIds[]', `@variant_${slug}_${item.sku}_thumb`)
+        }
+      })
+    }
+
+    if(remove_ids.length){
+      remove_ids.forEach(id => {
+        formData.append('remove_ids[]', id);
+      })
+    }
+
+    formData.append('folder',`products/${slug}`)
+
+  }
+
+  const resetFields = () => {
+    setData({
+      name: "", slug:"", sku:"", description:"", price:"", stock:"", tax: "",
+      visible: true, status: "active",
+      brand:"", category:"", featured:false, width:0, height: 0, weight:0, files: [], customAttributes: []
+    })
+    setBrand(null);
+    setStatus(null);
+    setCategory(null);
+    setVariants([]);
+    setAttributes([]);
+    setCustomAttributes([])
+    setFinalAttributes([])
+    setViewImages([]);
+    setVariantImages([])
+    setDisableMessage('');
+  }
+
   return (
 
-    <section className='flex flex-col p-6 bg-gray-100'>
+    <section className='flex flex-col p-6'>
+      
       {/* page title & add user button */}
-      <div className="mb-5 flex justify-between items-start">
-        <div className="flex flex-col">
-          <h3 className='text-xl'>Edit Product</h3>
-          <span className='sub-title'>Change product details bellow</span>
-        </div>
-        <div className="inline-flex items-stretch gap-5">
-          <button
-            onClick={() => navigate('/admin/products')} 
-            className='!ps-2 !pe-4 !bg-white border border-gray-300 !text-gray-400 
-              inline-flex items-center gap-2 hover:!text-primary-400 hover:!border-primary-300'>
-            <TbArrowBackUp size={25} />
-            <span>Back</span>
-          </button>
-          <button 
-            form="edit-product-form"
-            type="submit"
-            className='ps-2! pe-4! inline-flex items-center gap-2 text-white'>
-            <IoIosAdd size={25} />
-            <span>Update Now</span>
-          </button>
-        </div>
-        
-      </div>
-
+      <PageTitleComponent
+        title='Edit Product'
+        subTitle='Change your product details bellow'
+        customActions={(
+          <div className="inline-flex items-stretch gap-5">
+            <div
+              onClick={() => navigate('/admin/products')}
+              className="button px-3 space-x-1 smooth hover:shadow-md text-gray-400
+              hover:text-primary-400"
+            >
+              <TiArrowBack className="text-xl" />
+              <span>Back</span>
+            </div>
+            <button 
+              form="edit-product-form"
+              type="submit"
+              className='ps-2! pe-4! inline-flex items-center gap-2 text-white'>
+              <RxUpdate size={20} />
+              <span>Update Now</span>
+            </button>
+          </div>
+        )}
+      />
+      
       {/* beadcrumps */}
-      <div className='flex items-center gap-2 mb-5 py-2 border-y border-gray-200'>
-        <HiHome size={20} />
-        <IoIosArrowForward size={13} />
-        <div className='inline-flex items-center text-sm gap-2 text-gray-400'>
-          <span>Products</span>
-          <IoIosArrowForward size={13} />
-        </div>
-        <div className='inline-flex items-center text-sm gap-2'>
-          <span>Edit Product</span>
-        </div>
-      </div>
+      <BreadcrumpsComponent
+        listType='products'
+        listTypeClass='text-gray-500/80'
+        view='Add product'
+      />
 
       <div className="flex flex-col space-y-2">
         
@@ -692,7 +720,7 @@ const EditProduct = () => {
                   onChange={handleChange}
                   rows='5'
                   placeholder="Enter product stock"
-                  className="!h-auto !p-2"
+                  className="h-auto! p-2!"
                 ></textarea>
               </div>
             </div>
@@ -748,13 +776,13 @@ const EditProduct = () => {
             {/* features and visible */}
             <div className='flex items-center gap-8 w-full py-2 mt-2'>
               <div className="inline-flex gap-2 items-center">
-                <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Featured</label>
+                <label htmlFor="" className='text-sm! text-neutral-600! font-semibold!'>Featured</label>
                 <ToggleSwitch
                   onChange={(value) => setData(prev => ({...prev,featured:value}))}
                   />
               </div>
               <div className="inline-flex gap-2 items-center">
-                <label htmlFor="" className='!text-sm text-neutral-600! font-semibold!'>Visible</label>
+                <label htmlFor="" className='text-sm! text-neutral-600! font-semibold!'>Visible</label>
                 <ToggleSwitch
                   value={data.visible}
                   onChange={(value) => setData(prev => ({...prev,visible:value}))}
@@ -835,7 +863,7 @@ const EditProduct = () => {
                                         style={{ "--dynamic": variant?.attributes['color'] }}
                                         className={clsx(
                                           'capitalize text-xs relative',
-                                          key === 'color' && 'point-before point-before:!bg-(--dynamic)'
+                                          key === 'color' && 'point-before point-before:bg-(--dynamic)!'
                                         )}
                                       >
                                         {key !== 'color' && variant?.attributes[key]}
@@ -872,7 +900,7 @@ const EditProduct = () => {
                 disableMessage,
                 containerClass: 'flex flex-col items-center w-full h-full',
                 cropperClass: 'flex w-60 !h-60 border border-gray-300 rounded-3xl overflow-hidden',
-                buttonsClass: 'flex flex-col space-y-2 -right-12 top-1/2 -translate-y-1/2'
+                buttonsClass: 'flex justify-center space-x-2 mt-2'
               }}
             />
 
@@ -900,7 +928,7 @@ const EditProduct = () => {
               <button
                 onClick={handleApplyAttributes}
                 type="button"
-                className="!px-4 !py-2"
+                className="px-4! py-2!"
               >Apply</button>
             </div>
 

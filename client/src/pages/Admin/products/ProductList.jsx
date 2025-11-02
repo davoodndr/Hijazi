@@ -37,7 +37,7 @@ const ProductList = () => {
 	const dispatch = useDispatch();
 	const navigate = useNavigate();
 
-	const { data } = useOutletContext();
+	const { data, action } = useOutletContext();
 
 	/* filter */
 	const [searchQuery, setSearchQuery] = useState(null);
@@ -316,7 +316,7 @@ const ProductList = () => {
 												}}
 												className={clsx(
 													product.archived
-														? "disabled-el bg-gray-100 grayscale-100 !opacity-50"
+														? "disabled-el bg-gray-100 grayscale-100 opacity-50!"
 														: "bg-white"
 												)}
 											>
@@ -428,11 +428,12 @@ const ProductList = () => {
 													{/* Actions */}
 													<div className="flex items-center justify-center space-x-1 z-50">
 														<div
-															onClick={() =>
+															onClick={() =>{
+																dispatch(setLoading(true))
 																navigate(`/admin/products/${product?.slug}/edit`, {
 																	state: { currentProduct: product },
 																})
-															}
+															}}
 															className="p-2 rounded-xl bg-blue-100/50 hover:bg-sky-300 border 
 																	border-primary-300/60 hover:scale-103 transition-all duration-300 cursor-pointer"
 														>
@@ -444,8 +445,8 @@ const ProductList = () => {
 																<>
 																	<MenuButton
 																		as="div"
-																		className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-																				border border-gray-300 !text-gray-900 cursor-pointer"
+																		className="p-2! rounded-xl! bg-gray-100! hover:bg-white! 
+																				border border-gray-300 text-gray-900! cursor-pointer"
 																	>
 																		<IoMdMore size={20} />
 																	</MenuButton>
@@ -457,11 +458,10 @@ const ProductList = () => {
 																				icon: <LuEye className="text-xl" />,
 																				text: (
 																					<span className={`capitalize`}>
-																						{" "}
-																						view{" "}
+																						view
 																					</span>
 																				),
-																				onclick: () => {},
+																				onClick: () => {},
 																			},
 																			{
 																				id: "status",
@@ -602,7 +602,7 @@ const ProductList = () => {
 																						className={clsx(
 																							(key === "color" ||
 																								key === "colour") &&
-																								"point-before point-before:p-1.25 point-before:bg-(--dynamic) point-before:!rounded-sm"
+																								"point-before point-before:p-1.25 point-before:bg-(--dynamic) point-before:rounded-sm!"
 																						)}
 																					>
 																						{key !== "color" &&

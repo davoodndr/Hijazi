@@ -24,7 +24,7 @@ const productSlice = createSlice({
       state.error = null;
     },
     addProduct: (state, action) => {
-      state.items = state.items.unshift(action.payload);
+      state?.items?.unshift(action.payload);
       state.error = null;
     },
     updateProduct: (state, action) => {

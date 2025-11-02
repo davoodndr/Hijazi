@@ -16,6 +16,9 @@ import clsx from 'clsx'
 import PreviewImage from '../../../components/ui/PreviewImage'
 import ImagePlaceHolder from '../../../components/ui/ImagePlaceHolder'
 import StarRating from '../../../components/ui/StarRating'
+import PageTitleComponent from '../pageComponents/PageTitleComponent'
+import { TiArrowBack } from 'react-icons/ti'
+import BreadcrumpsComponent from '../pageComponents/BreadcrumpsComponent'
 
 function ViewUser() {
 
@@ -107,42 +110,29 @@ function ViewUser() {
 
   return (
     <section className='flex flex-col p-6'>
-      {/* page title & add user button */}
-      <div className="mb-5 flex justify-between items-start">
-        <div className="flex flex-col">
-          <h3 className='text-xl'>User Account</h3>
-        </div>
-        <div className="inline-flex items-stretch gap-5">
-          <button
-            onClick={() => navigate('/admin/users')} 
-            className='!ps-2 !pe-4 !bg-white border border-gray-300 !text-gray-400 
-              inline-flex items-center gap-2 hover:!text-primary-400 hover:!border-primary-300'>
-            <TbArrowBackUp size={25} />
-            <span>Back</span>
-          </button>
-          <button 
-            form="add-user-form"
-            type="submit"
-            className='ps-2! pe-4! inline-flex items-center gap-2 text-white'>
-            <IoIosAdd size={25} />
-            <span>Add Now</span>
-          </button>
-        </div>
-        
-      </div>
 
+      {/* page title & add user button */}
+      <PageTitleComponent
+        title='User Account'
+        subTitle='View and manage user'
+        customActions={(
+          <div
+            onClick={() => navigate('/admin/users')}
+            className="button px-3 space-x-1 smooth hover:shadow-md text-gray-400
+            hover:text-primary-400"
+          >
+            <TiArrowBack className="text-xl" />
+            <span>Back</span>
+          </div>
+        )}
+      />
+      
       {/* beadcrumps */}
-      <div className='flex items-center gap-2 mb-5 py-2 border-y border-gray-200'>
-        <HiHome size={20} />
-        <IoIosArrowForward size={13} />
-        <div className='inline-flex items-center text-sm gap-2 text-gray-400'>
-          <span>Users</span>
-          <IoIosArrowForward size={13} />
-        </div>
-        <div className='inline-flex items-center text-sm gap-2'>
-          <span>User Account</span>
-        </div>
-      </div>
+      <BreadcrumpsComponent
+        listType='users'
+        listTypeClass='text-gray-500/80'
+        view='User Account'
+      />
 
       {/* content */}
       <div className="grid grid-cols-[0.75fr_1.25fr] gap-2">
@@ -155,7 +145,7 @@ function ViewUser() {
               <img src={user?.avatar?.url || place_holder} className="object-cover" alt="profile" />
             </div>
 
-            <div className='flex-grow flex flex-col justify-center space-x-2 space-y-1 h-full'>
+            <div className='grow flex flex-col justify-center space-x-2 space-y-1 h-full'>
 
               <p className='capitalize text-base font-semibold'>{user?.username}</p>
               <div className='flex items-center space-x-2'>
@@ -345,14 +335,14 @@ function ViewUser() {
                             (<li
                               key={name}
                               style={{ "--dynamic": val }}
-                              className='point-before point-before:!p-1.5 point-before:!me-0.5 
-                              point-before:!bg-(--dynamic) point-before:!rounded-sm'
+                              className='point-before point-before:p-1.5! point-before:me-0.5! 
+                              point-before:bg-(--dynamic)! point-before:rounded-sm!'
                             ></li>)
                             :
                             (<li key={name}
                               
-                              className={clsx(`not-first:point-before point-before:!bg-gray-400 
-                              point-before:!p-0.5 point-before:!me-2 !text-sm !text-gray-500`,
+                              className={clsx(`not-first:point-before point-before:bg-gray-400! 
+                              point-before:p-0.5! point-before:me-2! text-sm! text-gray-500!`,
                               name === 'size' ? 'uppercase' : 'capitalize'
                             )}
                             >{val}</li>)
@@ -451,7 +441,7 @@ function ViewUser() {
         <div className='col-span-2 flex space-x-2'>
 
           {/* orders */}
-          <div className="flex-grow flex flex-col bg-white rounded-2xl border border-gray-200 shade">
+          <div className="grow flex flex-col bg-white rounded-2xl border border-gray-200 shade">
             <div className='flex items-center space-x-2 leading-4 p-6 pb-0'>
               <h3 className='text-base'>Orders</h3>
               {user?.orders?.length > 0 && 
@@ -644,7 +634,7 @@ function ViewUser() {
                       thumbClass="rounded-xl border border-gray-300 w-12 h-12 shrink-0 mt-1"
                     />
 
-                    <div className='flex-grow flex-col'>
+                    <div className='grow flex-col'>
                       <div className="inline-flex items-center space-x-2">
                         <p className='capitalize font-bold text-black text-xs'>{review?.title}</p>
                         <StarRating 

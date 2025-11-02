@@ -24,7 +24,16 @@ const orderSlice = createSlice({
     },
     updateOrder: (state, action) => {
       const order = action?.payload;
-      state.ordersList = state?.ordersList?.map(el => el?._id === order?._id ? order : el);
+      // should keep this as the list pattern differ from view order pattern
+      state.ordersList = state?.ordersList?.map(el => {
+        if(el?._id === order?._id){
+          return {
+            ...el,
+            ...order
+          }
+        }
+        return el
+      })
     },
     clearOrders: (state) => {
       state.ordersList = []

@@ -67,7 +67,7 @@ function UserReviewsComponent() {
 				data = {
 					text: "Yes, hide now",
 					msg: "Hidden review won't visible publicly",
-					color: "!bg-red-500 hover:!bg-red-600",
+					color: "bg-red-500! hover:bg-red-600!",
 				};
 				statusChange = "hidden";
 				break;
@@ -88,12 +88,15 @@ function UserReviewsComponent() {
 		Alert({
 			icon: "question",
 			title: "Are you sure?",
-			text: data?.msg,
+			html: data?.msg,
 			showCancelButton: true,
 			confirmButtonText: data?.text,
 			customClass: {
 				popup: "!w-[400px]",
 				confirmButton: data?.color,
+				htmlContainer: 'text-red-500!',
+				icon: 'text-red-500! border-red-500!',
+				title: 'text-red-500!'
 			},
 		}).then(async (result) => {
 			if (result.isConfirmed) {
@@ -234,8 +237,8 @@ function UserReviewsComponent() {
 															<>
 																<MenuButton
 																	as="div"
-																	className="!p-2 !rounded-xl !bg-gray-100 hover:!bg-white 
-																			border border-gray-300 !text-gray-900 cursor-pointer"
+																	className="p-2! rounded-xl! bg-gray-100! hover:bg-white! 
+																			border border-gray-300 text-gray-900! cursor-pointer"
 																>
 																	<IoMdMore size={20} />
 																</MenuButton>

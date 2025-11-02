@@ -1,5 +1,7 @@
 import React from 'react'
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router'
+import { setLoading } from '../../../store/slices/CommonSlices';
 
 function PageTitleComponent({
   title,
@@ -13,11 +15,13 @@ function PageTitleComponent({
 }) {
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleAction = (action)=>{
     
     if(action.type === 'route'){
       navigate(action?.route)
+      dispatch(setLoading(true))
     }else if(action?.type === 'modal'){
       onAction(action?.action);
     }

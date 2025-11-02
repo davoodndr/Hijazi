@@ -149,6 +149,41 @@ export const deleteUserAction = async(folder, user_id) => {
 
 
 // products
+export const createProductAction = async(data) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.addProduct,
+      data
+    })
+
+    return response;
+    
+  } catch (error) {
+
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const updateProductAction = async(data) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.updateProduct,
+      data
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
 export const uploadProductImages = async(product, product_id, remove_ids = []) => {
 
   try {
@@ -757,30 +792,30 @@ export const cancelItem = async(order_id, item_id, reason) => {
       }
     })
 
-    return response.data
+    return response
     
   } catch (error) {
-    return error
+    throw new Error(error?.response?.data?.message || error?.message)
   }
 
 }
 
-export const cancelOrder = async(id, reason) => {
+export const cancelOrder = async(order_id, reason) => {
 
   try {
 
     const response = await Axios({
       ...ApiBucket.cancelOrder,
       data: {
-        order_id: id,
+        order_id,
         reason
       }
     })
 
-    return response.data
+    return response
     
   } catch (error) {
-    return error
+    throw new Error(error?.response?.data?.message || error?.message)
   }
 
 }
