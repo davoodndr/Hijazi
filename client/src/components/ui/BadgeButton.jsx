@@ -2,8 +2,11 @@ import React from 'react'
 import { IoIosClose } from 'react-icons/io';
 import { motion } from 'motion/react'
 import { xRowVariants } from '../../utils/Anim';
+import clsx from 'clsx';
 
-function BadgeButtonComponent({text, onClick, showClear = false, onClear}) {
+function BadgeButtonComponent({item, onClick, showClear = false, onClear}) {
+
+  // putting key for motion.div gives wiered animation
   return (
     <motion.div
       layout="position"
@@ -19,7 +22,13 @@ function BadgeButtonComponent({text, onClick, showClear = false, onClear}) {
           py-1.5 rounded-2xl inline-flex items-center group cursor-pointer 
           smooth hover:border-gray-400 capitalize gap-2`}
         >
-        <span className='inline-flex'>{text}</span>
+        <span
+          style={{ '--dynamic': item?.name }}
+          className={clsx('inline-flex',
+            item?.id === 'color' && 'point-before point-before:p-1.75! point-before:bg-(--dynamic)!'
+          )}
+
+        >{item?.id === 'color' ? 'color' : '' || item?.name || item}</span>
         {showClear && <div
           onClick={onClear}
           className='bg-gray-200 rounded-full smooth hover:bg-red-400 hover:text-white'>

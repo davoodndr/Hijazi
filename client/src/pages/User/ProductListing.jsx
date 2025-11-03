@@ -13,11 +13,12 @@ import { AnimatePresence, motion } from 'motion/react';
 import { containerVariants } from '../../utils/Anim';
 import { LuSearch } from 'react-icons/lu';
 import MoreSearchPopup from '../../components/user/MoreSearchPopup';
-import { sortProductsByPrice } from '../../utils/Utils';
+import { mergeObjectArrayToOneObject, sortProductsByPrice } from '../../utils/Utils';
 import { IoMdCheckmarkCircleOutline } from "react-icons/io";
 import { useNavigate } from 'react-router'
 import { setLoading } from '../../store/slices/CommonSlices';
 import clsx from 'clsx';
+import ColorButton from '../../components/ui/ColorButton';
 
 function ProductListingComponent() {
 
@@ -26,6 +27,7 @@ function ProductListingComponent() {
   const { items, productsLoading, activeFilter } = useSelector(state => state.products)
   const { categoryList } = useSelector(state => state.categories)
   const { brandList } = useSelector(state => state.brands)
+  const [colors, setColors] = useState([])
   const [sortedProducts, setSortedProducts] = useState([])
   const [sortOption, setSortOption] = useState(null);
   const [sortOrder, setSortOrder] = useState('asc');
@@ -47,6 +49,7 @@ function ProductListingComponent() {
     range: [minPrice, maxPrice],
     selectedList: []
   })
+
 
   useEffect(() => {
     if (validPrices.length) {
@@ -84,9 +87,25 @@ function ProductListingComponent() {
     }else{
       setFilters(prev => ({
         ...prev, 
-        selectedList: prev.selectedList.filter(item => item.id !== id)
+        selectedList: prev.selectedList.filter(item => `${item.id}-${item?.name}` !== `${id}-${name}`)
       }))
     }
+  }
+
+  const matchAttribute = (product, attr) => {
+    const macthCustom = product?.customAttributes?.find(el => {
+      return el?.name === attr.id && el?.values?.includes(attr.name)
+    })
+
+    const macthAttrs = product?.variants?.find(el => {
+      return el?.attributes[attr.id]?.trim() === attr.name
+    })
+
+    if(macthCustom || macthAttrs) {
+      return attr.name
+    }
+
+    return
   }
 
   const filteredProducts = useMemo(() => {
@@ -102,18 +121,49 @@ function ProductListingComponent() {
       // other select
       const selectMatch = !filters.selectedList.length ||
         filters.selectedList.some(item => item.id === p.brand._id) ||
-        filters.selectedList.some(item => item.id === p.category._id || item.id === p.category.parentId._id);
+        filters.selectedList.some(item => item.id === p.category._id || item.id === p.category.parentId._id) ||
+        filters.selectedList.some(item => item.name === matchAttribute(p, item))
 
       return priceMatch && selectMatch
     });
   }, [items, filters]);
 
+  
+
   const [slicedCategoryList, setSlicedCategoryList] = useState([])
   const [slicedBrandList, setSlicedBrandList] = useState([])
+  const [slicedColorList, setSlicedColorList] = useState([])
 
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
 
+  useEffect(()=> {
+    let attributes = listAttributes(items);
+    const colors = attributes['color'];
+    setColors(colors)
+    setSlicedColorList(colors?.slice(0, 25))
+  },[items])
+
+  const listAttributes = (items) => {
+    
+    let datas = []
+    for(const product of items){
+      if(product?.customAttributes?.length) {
+
+        datas = [...datas, ...product?.customAttributes]
+
+      }
+      
+      if(product?.variants?.length){
+        const attrs = product?.variants?.map(el => {
+          return el?.attributes
+        }).filter(Boolean)
+
+        datas = [...datas, ...attrs]
+      }
+    }
+    return mergeObjectArrayToOneObject(datas)
+  }
 
   useEffect(() => {
 
@@ -233,7 +283,7 @@ function ProductListingComponent() {
           
           <BadgeButton 
             onClick={handleClearAllFilters} 
-            text='Clear All' 
+            item='Clear All' 
             />
         </div>
 
@@ -314,7 +364,7 @@ function ProductListingComponent() {
           {brandList.slice(5).length > 0 && slicedBrandList.length !== brandList.length &&
             <li onClick={() => {
               {
-                if(categoryList.slice(5).length > 10){
+                if(brandList.slice(5).length > 10){
                   setIsBrandModalOpen(true)
                 }else{
                   setSlicedBrandList(brandList)
@@ -367,18 +417,44 @@ function ProductListingComponent() {
         </ul>
 
         {/* color filter */}
-        {/* <ul className='border border-gray-300 p-6'>
+        <ul className='border border-gray-300 p-6'>
           <h4 className='lined-header-small'>Colors</h4>
           
-          {Array(5).fill(null).map((el, i) => 
-            <li key={i} className='flex items-center w-fit py-2'>
-              <input type="checkbox" name="" id="cat-1" />
-              <label htmlFor="cat-1" className='!text-sm !text-gray-600 !ps-2 cursor-pointer'>Shoes & Bags</label>
-            </li>
-          )}
-          <li className='ps-4 text-primary-400 cursor-pointer'>+2 more</li>
+          <li className='grid grid-cols-6 grid-rows-[auto_auto] gap-2'>
+            {slicedColorList.map((color, i) =>
+
+              <ColorButton
+                key={color}
+                color={color}
+                onChange={(e) => handleSelect(e, 'color', color)}
+                checked={filters.selectedList.some(item => item.name === color)}
+                selected={filters?.selectedList?.some(el => `${el?.id}-${el?.name}` === `color-${color}`)}
+              />
+            )}
+          </li>
+          {/* {colors.slice(5).length > 0 && slicedColorList.length !== colors.length &&
+            <li onClick={() => {
+              {
+                if(categoryList.slice(5).length > 10){
+                  //setIsBrandModalOpen(true)
+                }else{
+                  //setSlicedBrandList(colors)
+                }
+              }
+            }}
+              className='ps-4 text-primary-400 cursor-pointer mt-2'>+{colors.slice(5).length} more</li>
+          } */}
           
-        </ul> */}
+          {/* <MoreSearchPopup
+            type='brands'
+            isOpen={isBrandModalOpen}
+            onChange={(e, id) => handleSelect(e, id)}
+            list={brandList}
+            selectedList={filters.selectedList}
+            onClose={() => setIsBrandModalOpen(false)}
+          /> */}
+          
+        </ul>
 
       </section>
 
@@ -406,14 +482,14 @@ function ProductListingComponent() {
             >
               <li className='space-x-2 space-y-2'>
                 <AnimatePresence exitBeforeEnter>
-                  {filters?.selectedList?.map(item => 
+                  {filters?.selectedList?.map((item, i) => 
                     <BadgeButton 
                       showClear 
-                      key={item?.id} 
-                      text={item?.name} 
+                      key={`${item?.id}-${i}`} 
+                      item={item} 
                       onClear={() => setFilters(prev => ({
                         ...prev,
-                        selectedList: prev.selectedList.filter(el => el.id !== item.id)
+                        selectedList: prev.selectedList.filter(el => `${el?.id}-${el?.name}` !== `${item?.id}-${item?.name}`)
                       }))}
                     />
                   )}

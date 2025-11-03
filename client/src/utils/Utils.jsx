@@ -518,3 +518,41 @@ export const buildSortMenuItems = (menus, currentSort, commonSortField = 'none',
     };
   });
 };
+
+export const mergeObjectArrayToOneObject = (items) => {
+  const merged = {};
+
+  items?.forEach(entry => {
+    
+    if (Array.isArray(entry)) {
+      return entry.forEach(inner => mergeAllData([inner]).forEach(o => Object.assign(merged, o)));
+    }
+
+    if (entry?.name && Array.isArray(entry.values)) {
+      const key = entry.name.trim();
+      if (!merged[key]) merged[key] = new Set();
+      entry.values.forEach(v => merged[key].add(String(v).trim()));
+      return;
+    }
+
+    if (typeof entry === 'object' && !Array.isArray(entry)) {
+      Object.entries(entry).forEach(([key, value]) => {
+        if (!merged[key]) merged[key] = new Set();
+
+        if (Array.isArray(value)) {
+          value.forEach(v => merged[key].add(String(v).trim()));
+        } else {
+          merged[key].add(String(value).trim());
+        }
+      });
+    }
+  });
+
+  // Convert sets to arrays
+  const result = {};
+  Object.keys(merged).forEach(key => {
+    result[key] = Array.from(merged[key]);
+  });
+
+  return result;
+}
