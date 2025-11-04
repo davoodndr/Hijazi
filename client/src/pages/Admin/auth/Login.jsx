@@ -114,7 +114,7 @@ const Login = () => {
 
   /* for prevent access of user already logged in */
   useEffect(() => {
-    if(user?.roles.includes('admin')){
+    if(user?.roles?.includes('admin')){
       navigate('/admin/dashboard');
     }
 

@@ -421,7 +421,7 @@ function ProductListingComponent() {
           <h4 className='lined-header-small'>Colors</h4>
           
           <li className='grid grid-cols-6 grid-rows-[auto_auto] gap-2'>
-            {slicedColorList.map((color, i) =>
+            {slicedColorList?.map((color, i) =>
 
               <ColorButton
                 key={color}
@@ -534,18 +534,8 @@ function ProductListingComponent() {
           animate="visible"
         >
           <AnimatePresence exitBeforeEnter>
-          {productsLoading ?
+          {paginatedProducts?.length > 0 ?
 
-            (<li className='grid grid-cols-4 gap-6 h-fit'>
-              {Array(4).fill(null).map((_, i) => 
-                {/* <ProductCardMed key={i} index={i} product={{
-                  category: {name:'Loading..'},
-                  name: 'Loading..',
-                  images: []
-                }} /> */}
-              )}
-            </li>)
-            :
             (<li className='grid grid-cols-4 gap-6 h-fit'>
               
               {paginatedProducts?.map((product, i) => 
@@ -558,6 +548,10 @@ function ProductListingComponent() {
                   />
               )}
               
+            </li>)
+            :
+            (<li className='flex justify-center border border-gray-300 rounded-2xl py-10'>
+              <h3 className='text-amber-500! text-xl'>No Product existing</h3>
             </li>)
             
           }

@@ -7,7 +7,7 @@ const AdminPublicRoutes = () => {
 
   const { user, isLoading } = useSelector(state => state.user);
   
-  if(isLoading) return <Loader />;
+  if(isLoading) return <Loader loading={isLoading} />;
 
   if(user?.roles.includes('admin')){
     return <Navigate to={'/admin/dashboard'} replace />

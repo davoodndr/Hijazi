@@ -47,6 +47,10 @@ const cartSlice = createSlice({
     error: null
   },
   reducers: {
+    setCartItems: (state, action) => {
+      state.items = action?.payload;
+      state.error = null;
+    },
     setCheckoutItems:  (state, action) => {
       state.checkoutItems = action.payload
     },
@@ -108,6 +112,8 @@ const cartSlice = createSlice({
       state.cartSubTotal = action.payload
     }
   },
+
+  /* 
   extraReducers: (builder) => {
     builder
       .addCase(fetchCart.fulfilled, (state, action) => {
@@ -141,7 +147,7 @@ const cartSlice = createSlice({
         toast.error(state.error, {position: 'top-center'})
       })
   }
-
+ */
 })
 
 export const getCartItem = (state, id) => {
@@ -173,6 +179,6 @@ export const getCartCount = (state) => {
   return state?.cart?.items?.reduce((total, item) => total + item?.quantity,0)
 }
 
-export const { setCart, setCheckoutItems, addToCart, removeFromCart, updateQuantity, clearCart, 
+export const { setCartItems, setCheckoutItems, addToCart, removeFromCart, updateQuantity, clearCart, 
   setAppliedCoupon, setAppliedCartOffer } = cartSlice.actions;
 export default cartSlice.reducer;

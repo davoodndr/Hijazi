@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema(
 			default: "",
 		},
 		roles: { type: [String], default: ["user"] },
-		activeRole: { type: String, default: "user" },
+		activeRole: { type: String, default: null },
 	},
 	{ timestamps: true }
 );

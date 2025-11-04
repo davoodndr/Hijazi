@@ -26,12 +26,13 @@ const userSlice = createSlice({
     user: null,
     users: [],
     activeRole: 'user',
-    isLoading: false,
+    isLoading: true,
     error: null
   },
   reducers: {
     setUser: (state, action) => {
-      state.user = action?.payload?.user;
+      state.user = action?.payload;
+      state.error = null;
       state.isLoading = false;
     },
     addUser: (state, action) => {
@@ -40,7 +41,6 @@ const userSlice = createSlice({
     },
     setActiveRole: (state, action) => {
       state.activeRole = action.payload;
-      state.isLoading = false;
     },
     updateUser: (state, action) => {
       const updated = action?.payload;
@@ -55,24 +55,22 @@ const userSlice = createSlice({
       state.error = null
     }
   },
-  extraReducers: (builder) => {
+  /* extraReducers: (builder) => {
     builder
     .addCase(logoutUser, (state) => {
       state.user = null;
-      state.isLoading = false;
     })
     .addMatcher(isPending(fetchUser, updateRole), (state) => {
       state.isLoading = true;
     })
     .addMatcher(isFulfilled(fetchUser, updateRole), (state, action) => {
       state.user = action?.payload;
-      state.isLoading = false;
     })
     .addMatcher(isRejected(fetchUser, updateRole),(state, action) => {
       state.error = action?.payload;
       state.isLoading = false
     })
-  }
+  } */
 })
 
 export const { setUser, addUser, updateUser, setActiveRole, setAllUsers, updateUserStatus } = userSlice.actions;

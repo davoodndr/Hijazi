@@ -16,19 +16,17 @@ export const updateUserRole = async(req, res) => {
       return responseMessage(res, 400, false, "Invalid user request");
     }
 
-    await User.findByIdAndUpdate(
+    const data = await User.findByIdAndUpdate(
       user_id,
       {activeRole: role},
       {new: true}
     )
+    .select("username fullname activeRole avatar email roles default_address")
+    .populate({
+      path: "default_address",
+      select: "-user_id -updatedAt -createdAt -__v"
+    })
 
-    const data = await User.findOne({_id:user_id})
-      .select("-password -refresh_token")
-      .populate({
-        path: "default_address",
-        select: "-user_id -updatedAt -createdAt -__v"
-      });
-    
     return responseMessage(res, 200, true, "", {user: data});
 
   } catch (error) {

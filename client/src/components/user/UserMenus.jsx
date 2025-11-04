@@ -23,20 +23,22 @@ const UserMenus = ({isMobile = false}) => {
   const getCategoriesMenu = () => {
     
     let cats = [];
-    for(const category of categoryList){
+    if(categoryList?.length){
+      for(const category of categoryList){
 
-      if (!category?.parentId) {
-        cats.push({
-          id: category?._id,
-          label: category?.name,
-          href: '',
-          items: []
-        });
-      }
-      if (category?.parentId?._id) {
-        const parentIndex = cats.findIndex(c => c.id === category?.parentId?._id);
-        if (parentIndex !== -1) {
-          cats[parentIndex]?.items?.push({id: category._id, name: category?.name});
+        if (!category?.parentId) {
+          cats.push({
+            id: category?._id,
+            label: category?.name,
+            href: '',
+            items: []
+          });
+        }
+        if (category?.parentId?._id) {
+          const parentIndex = cats.findIndex(c => c.id === category?.parentId?._id);
+          if (parentIndex !== -1) {
+            cats[parentIndex]?.items?.push({id: category._id, name: category?.name});
+          }
         }
       }
     }

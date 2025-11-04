@@ -1,15 +1,15 @@
 import React from 'react'
 import { Navigate, Outlet } from 'react-router';
-import LoadingFallOff from '../../components/ui/LoadingFallOff';
 import { useSelector } from 'react-redux';
+import Loader from '../../components/ui/LoadingFallOff';
 
 const AdminProtectedRoutes = () => {
 
   const { user, isLoading } = useSelector(state => state.user);
 
-  if(isLoading) return <LoadingFallOff />
+  if(isLoading) return <Loader loading={isLoading} />;
 
-  if(!user?.roles.includes('admin') || user?.status === 'blocked'){
+  if(!user?.roles?.includes('admin') || user?.status === 'blocked'){
     return <Navigate to={'/admin/login'} replace />
   }
 

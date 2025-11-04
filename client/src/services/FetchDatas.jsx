@@ -228,7 +228,7 @@ export const getCategories = async() => {
       ...ApiBucket.getCategoryList
     })
 
-    return response.data.categories;
+    return response?.data?.categories;
 
   } catch (error) {
     console.log(error.response.data)
@@ -279,7 +279,7 @@ export const getProductList = async() => {
       ...ApiBucket.getProductList
     })
 
-    return response.data.products;
+    return response?.data?.products;
 
   } catch (error) {
     console.log(error.response.data)
@@ -316,7 +316,7 @@ export const getCart = async() => {
       ...ApiBucket.getCart,
     })
 
-    return response.data.cart.items;
+    return response?.data?.cart?.items;
 
   } catch (error) {
     //console.log(error.response.data)
@@ -373,7 +373,7 @@ export const getOrdersList = async() => {
   }
 }
 
-/* coupons */
+/* offers */
 export const getOffers = async() => {
   
   try {

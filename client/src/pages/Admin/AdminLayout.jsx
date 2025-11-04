@@ -9,49 +9,8 @@ import { MdOutlineReviews } from "react-icons/md";
 import { SlBadge } from "react-icons/sl";
 import { Sidebar } from '../../components/admin/dashboard/SideBar'
 import Header from '../../components/admin/dashboard/Header'
-import { useQueryClient } from '@tanstack/react-query';
-import { useDispatch } from 'react-redux';
-import { 
-  fetchAllBrandsAction,
-  fetchAllCategoriesAction,
-  fetchAllOffersAction,
-  fetchAllOrdersAction,
-  fetchAllProductsAction,
-  fetchAllReviewsAction,
-  fetchAllUsersAction 
-} from '../../services/FetchDatas';
-import { setAllUsers } from '../../store/slices/UsersSlice';
-import { setAllOrders } from '../../store/slices/OrderSlice';
-import { setAllReviews } from '../../store/slices/ReviewSlice';
-import { setAllProducts } from '../../store/slices/ProductSlices';
-import { setAllOffers } from '../../store/slices/OfferSlice';
-import { setAllCategories } from '../../store/slices/CategorySlices';
-import { setAllBrands } from '../../store/slices/BrandSlice';
 
 const AdminLayout = () => {
-
-  const queryClient = useQueryClient();
-  const dispatch = useDispatch();
-
-  useEffect(()=> {
-
-    const fetchDatas = async() => {
-
-      const [users, orders, reviews, products, offers, categories, brands] = await getQueryResults(queryClient);
-      
-      dispatch(setAllUsers(users))
-      dispatch(setAllOrders(orders))
-      dispatch(setAllReviews(reviews))
-      dispatch(setAllProducts(products))
-      dispatch(setAllOffers(offers))
-      dispatch(setAllCategories(categories))
-      dispatch(setAllBrands(brands))
-
-    }
-
-    fetchDatas();
-
-  },[queryClient, dispatch])
 
   const menuItems = [
     { icon: TbLayout2, label: 'Dashboard', href: '/admin/dashboard' },
@@ -75,48 +34,6 @@ const AdminLayout = () => {
       </main>
     </div>
   )
-}
-
-const getQueryResults = async(queryClient) => {
-  
-  return await Promise.all([
-
-    queryClient.prefetchQuery({
-      queryKey: ['users'],
-      queryFn: fetchAllUsersAction,
-    }).then(() => queryClient.getQueryData(['users'])),
-
-    queryClient.prefetchQuery({
-      queryKey: ['orders'],
-      queryFn: fetchAllOrdersAction,
-    }).then(() => queryClient.getQueryData(['orders'])),
-
-    queryClient.prefetchQuery({
-      queryKey: ['reviews'],
-      queryFn: fetchAllReviewsAction,
-    }).then(() => queryClient.getQueryData(['reviews'])),
-
-    queryClient.prefetchQuery({
-      queryKey: ['products'],
-      queryFn: fetchAllProductsAction,
-    }).then(() => queryClient.getQueryData(['products'])),
-
-    queryClient.prefetchQuery({
-      queryKey: ['offers'],
-      queryFn: fetchAllOffersAction,
-    }).then(() => queryClient.getQueryData(['offers'])),
-
-    queryClient.prefetchQuery({
-      queryKey: ['categories'],
-      queryFn: fetchAllCategoriesAction,
-    }).then(() => queryClient.getQueryData(['categories'])),
-
-    queryClient.prefetchQuery({
-      queryKey: ['brands'],
-      queryFn: fetchAllBrandsAction,
-    }).then(() => queryClient.getQueryData(['brands'])),
-
-  ])
 }
 
 export default AdminLayout

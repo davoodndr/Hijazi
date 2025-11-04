@@ -6,14 +6,16 @@ import ProtectedRoutes from "./UserProtectedRoutes"
 import { Suspense } from 'react'
 import LoadingFallOff from '../../components/ui/LoadingFallOff'
 import { useDispatch, useSelector } from 'react-redux'
-import { fetchCart } from '../../store/slices/CartSlice'
-import { fetchWishlist } from '../../store/slices/WishlistSlice'
-import { fetchOffers } from '../../store/slices/OfferSlice'
-import { fetchAddresses } from '../../store/slices/AddressSlice'
-import { updateRole } from '../../store/slices/UsersSlice'
-import { fetchProducts } from '../../store/slices/ProductSlices'
-import { fetchCategories } from '../../store/slices/CategorySlices'
-import { fetchBrands } from '../../store/slices/BrandSlice'
+import { clearCart, setCartItems } from '../../store/slices/CartSlice'
+import { setWishlist } from '../../store/slices/WishlistSlice'
+import { setAllOffers } from '../../store/slices/OfferSlice'
+import { setUser } from '../../store/slices/UsersSlice'
+import { setAllProducts } from '../../store/slices/ProductSlices'
+import { setAllBrands } from '../../store/slices/BrandSlice'
+import { useQueryClient } from '@tanstack/react-query'
+import { getBrands, getCart, getCategories, getOffers, getProductList, getWishlist } from '../../services/FetchDatas'
+import { setAllCategories } from '../../store/slices/CategorySlices'
+import { updateUserRole } from '../../services/ApiActions'
 
 const Register = React.lazy(() => import("../../pages/User/Auth/Register"))
 const Login = React.lazy(() => import("../../pages/User/Auth/Login"))
@@ -36,40 +38,39 @@ const ProductReviews = React.lazy(() => import("../../pages/User/ProductReviews"
 const UserRouter = () => {
 
   const { loading } = useSelector(state => state.common);
+
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
+
     const handleVisibilityChange = () => {
       // for capturing the role and switching datas after login
       if (document.visibilityState === "visible") {
-        dispatch(updateRole('user'))
-        dispatch(fetchCart())
-        dispatch(fetchWishlist())
-        dispatch(fetchAddresses())
-      }
-    };
-
-    const getAccessUserRole = async() => {
-      const response = await dispatch(updateRole('user'));
-      if(response?.meta?.requestStatus === 'fulfilled'){
-        dispatch(fetchCart())
-        dispatch(fetchWishlist())
-        dispatch(fetchAddresses())
+        setCurrentUser(queryClient, dispatch);
       }
     }
+
+    const fetchData = async() => {
+      
+      setCurrentUser(queryClient, dispatch);
+      
+      const [categories, products, offers, brands] = await getDataQueryResults(queryClient);
+      
+      dispatch(setAllCategories(categories))
+      dispatch(setAllProducts(products))
+      dispatch(setAllOffers(offers))
+      dispatch(setAllBrands(brands))
+    }
     
-    getAccessUserRole();
-    dispatch(fetchCategories())
-    dispatch(fetchProducts())
-    dispatch(fetchOffers())
-    dispatch(fetchBrands())
-    
-    
+    fetchData();
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [dispatch]);
+
+  }, [dispatch, queryClient]);
 
   return (
     <>
@@ -117,6 +118,71 @@ const UserRouter = () => {
 
     </>
   )
+}
+
+const getUserQueryResults = async(queryClient) => {
+
+  return (await Promise.allSettled([
+
+    queryClient.fetchQuery({
+      queryKey: ['user'],
+      queryFn: () => updateUserRole('user'),
+    })
+    .then(() => queryClient.getQueryData(['user']))
+    .catch(error => ({error: error.message || 'Failed to fetch user'})),
+
+    queryClient.prefetchQuery({
+      queryKey: ['cartItems'],
+      queryFn: getCart,
+    }).then(() => queryClient.getQueryData(['cartItems'])),
+
+    queryClient.prefetchQuery({
+      queryKey: ['wishlist'],
+      queryFn: getWishlist,
+    }).then(() => queryClient.getQueryData(['wishlist'])),
+    
+
+  ])).map(res => res?.value)
+}
+
+const setCurrentUser = async(queryClient, dispatch) => {
+
+  const [user, cartItems, wishlist] = await getUserQueryResults(queryClient);
+
+  if(user?.error) {
+    localStorage.removeItem('cart');
+    dispatch(clearCart())
+  }else {
+    dispatch(setUser(user))
+    dispatch(setCartItems(cartItems))
+    dispatch(setWishlist(wishlist))
+  }
+}
+
+const getDataQueryResults = async(queryClient) => {
+
+  return (await Promise.allSettled([
+    queryClient.prefetchQuery({
+      queryKey: ['categories'],
+      queryFn: getCategories,
+    }).then(() => queryClient.getQueryData(['categories'])),
+
+    queryClient.prefetchQuery({
+      queryKey: ['products'],
+      queryFn: getProductList,
+    }).then(() => queryClient.getQueryData(['products'])),
+
+    queryClient.prefetchQuery({
+      queryKey: ['offers'],
+      queryFn: getOffers,
+    }).then(() => queryClient.getQueryData(['offers'])),
+
+    queryClient.prefetchQuery({
+      queryKey: ['brands'],
+      queryFn: getBrands,
+    }).then(() => queryClient.getQueryData(['brands'])),
+
+  ])).map(res => res?.value)
 }
 
 export default UserRouter

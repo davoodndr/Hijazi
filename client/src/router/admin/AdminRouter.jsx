@@ -8,12 +8,26 @@ import LoadingFallOff from '../../components/ui/LoadingFallOff'
 import AdminLayout from '../../pages/Admin/AdminLayout'
 import PageLayout from '../../pages/Admin/PageLayout'
 import { useEffect } from 'react'
-import { updateRole } from '../../store/slices/UsersSlice'
+import { setAllUsers, setUser } from '../../store/slices/UsersSlice'
 import { clearWishlist } from '../../store/slices/WishlistSlice'
-import { clearOrders } from '../../store/slices/OrderSlice'
-import { clearAddressList } from '../../store/slices/AddressSlice'
-import { clearOffers } from '../../store/slices/OfferSlice'
 import { clearCart } from '../../store/slices/CartSlice'
+import { useQueryClient } from '@tanstack/react-query'
+import { 
+  fetchAllBrandsAction,
+  fetchAllCategoriesAction,
+  fetchAllOffersAction,
+  fetchAllOrdersAction,
+  fetchAllProductsAction,
+  fetchAllReviewsAction,
+  fetchAllUsersAction 
+} from '../../services/FetchDatas'
+import { updateUserRole } from '../../services/ApiActions'
+import { setAllOrders } from '../../store/slices/OrderSlice'
+import { setAllReviews } from '../../store/slices/ReviewSlice'
+import { setAllProducts } from '../../store/slices/ProductSlices'
+import { setAllOffers } from '../../store/slices/OfferSlice'
+import { setAllCategories } from '../../store/slices/CategorySlices'
+import { setAllBrands } from '../../store/slices/BrandSlice'
 
 const Login = React.lazy(() => import('../../pages/Admin/auth/Login'))
 const Register = React.lazy(() => import('../../pages/Admin/auth/Register'))
@@ -35,31 +49,42 @@ const UserReviews = React.lazy(() => import('../../pages/Admin/reviews/UserRevie
 const AdminRouter = () => {
 
   const { loading } = useSelector(state => state.common);
+  const queryClient = useQueryClient();
   const dispatch = useDispatch();
 
-  useEffect(() => {
+  useEffect(()=> {
+
     const handleVisibilityChange = () => {
+      // for capturing the role and switching datas after login
       if (document.visibilityState === "visible") {
-        dispatch(updateRole('admin'))
-        dispatch(clearCart())
-        dispatch(clearWishlist())
-        dispatch(clearOrders())
-        dispatch(clearAddressList())
-        dispatch(clearOffers())
+        setCurrentUser(queryClient, dispatch)
       }
-    };
-    dispatch(updateRole('admin'))
-    dispatch(clearCart())
-    dispatch(clearWishlist())
-    dispatch(clearOrders())
-    dispatch(clearAddressList())
-    dispatch(clearOffers())
+    }
+
+    const fetchDatas = async() => {
+
+      setCurrentUser(queryClient, dispatch)
+
+      const [users, orders, reviews, products, offers, categories, brands] = await getQueryResults(queryClient);
+      
+      dispatch(setAllUsers(users))
+      dispatch(setAllOrders(orders))
+      dispatch(setAllReviews(reviews))
+      dispatch(setAllProducts(products))
+      dispatch(setAllOffers(offers))
+      dispatch(setAllCategories(categories))
+      dispatch(setAllBrands(brands))
+
+    }
+
+    fetchDatas();
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+
+  },[queryClient, dispatch]);
 
   return (
     <>
@@ -168,6 +193,71 @@ const AdminRouter = () => {
     </>
     
   )
+}
+
+const getUserQueryResult = async(queryClient) => {
+
+  return await queryClient.fetchQuery({
+      queryKey: ['user'],
+      queryFn: () => updateUserRole('admin'),
+    })
+    .then(() => queryClient.getQueryData(['user']))
+    .catch(error => ({error: error?.message || 'Failed to fetch user'}))
+  
+}
+
+const setCurrentUser = async(queryClient, dispatch) => {
+
+  const user = await getUserQueryResult(queryClient);
+
+  if(user) {
+    localStorage.removeItem('cart');
+    dispatch(setUser(user))
+    dispatch(clearCart())
+    dispatch(clearWishlist())
+  }
+}
+
+const getQueryResults = async(queryClient) => {
+  
+  return await Promise.all([
+
+    queryClient.prefetchQuery({
+      queryKey: ['users'],
+      queryFn: fetchAllUsersAction,
+    }).then(() => queryClient.getQueryData(['users'])),
+
+    queryClient.prefetchQuery({
+      queryKey: ['orders'],
+      queryFn: fetchAllOrdersAction,
+    }).then(() => queryClient.getQueryData(['orders'])),
+
+    queryClient.prefetchQuery({
+      queryKey: ['reviews'],
+      queryFn: fetchAllReviewsAction,
+    }).then(() => queryClient.getQueryData(['reviews'])),
+
+    queryClient.prefetchQuery({
+      queryKey: ['products'],
+      queryFn: fetchAllProductsAction,
+    }).then(() => queryClient.getQueryData(['products'])),
+
+    queryClient.prefetchQuery({
+      queryKey: ['offers'],
+      queryFn: fetchAllOffersAction,
+    }).then(() => queryClient.getQueryData(['offers'])),
+
+    queryClient.prefetchQuery({
+      queryKey: ['categories'],
+      queryFn: fetchAllCategoriesAction,
+    }).then(() => queryClient.getQueryData(['categories'])),
+
+    queryClient.prefetchQuery({
+      queryKey: ['brands'],
+      queryFn: fetchAllBrandsAction,
+    }).then(() => queryClient.getQueryData(['brands'])),
+
+  ])
 }
 
 export default AdminRouter

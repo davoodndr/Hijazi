@@ -34,6 +34,10 @@ const wishlistSlice = createSlice({
     error: null
   },
   reducers: {
+    setWishlist: (state, action) => {
+      state.list = action?.payload;
+      state.error = null;
+    },
     addToList: (state, action) => {
       const item = action.payload;
       const existing = state?.list?.find(i => i.id === item.id);
@@ -51,7 +55,7 @@ const wishlistSlice = createSlice({
       state.list = []
     }
   },
-  extraReducers: (builder) => {
+  /* extraReducers: (builder) => {
     builder
       .addCase(fetchWishlist.fulfilled, (state, action) => {
         state.list = action.payload;
@@ -75,12 +79,12 @@ const wishlistSlice = createSlice({
         state.error = action.payload;
         toast.error(state.error,{position: 'top-center'})
       })
-  }
+  } */
 })
 
 export const getWishlistCount = (state) => {
   return state?.wishlist?.list?.length;
 }
 
-export const { addToList, removeFromList, clearWishlist } = wishlistSlice.actions;
+export const { setWishlist, addToList, removeFromList, clearWishlist } = wishlistSlice.actions;
 export default wishlistSlice.reducer;

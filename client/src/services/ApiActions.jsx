@@ -73,7 +73,6 @@ export const updateUserRole = async(role) => {
 
   } catch (error) {
     //console.log(error?.response)
-    localStorage.removeItem('cart');
     throw new Error(error?.response?.data?.message)
   }
 

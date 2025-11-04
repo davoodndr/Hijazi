@@ -30,7 +30,7 @@ function NavbarComponent(){
 
   /* settingup depending on user role */
   useEffect(() => {
-    setCurrentUser(user?.roles.includes('user') ? user : null);
+    setCurrentUser(user?.roles?.includes('user') ? user : null);
   },[user])
 
   const setMobMenuExpand = useCallback((expand) => {

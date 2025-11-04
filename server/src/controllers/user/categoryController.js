@@ -6,6 +6,7 @@ export const getCategories = async(req, res) => {
   try {
 
     const rawCategories = await Category.find({ status: 'active' })
+    .select('name parentId')
     .populate('parentId')
     .lean();
 
