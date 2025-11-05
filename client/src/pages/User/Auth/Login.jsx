@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import welcome from '../../../assets/welcome_to_shop_green.jpg'
 import googleLogo from '../../../assets/google-logo.svg'
 import { LuEyeClosed } from "react-icons/lu";
@@ -6,11 +6,8 @@ import { LuEye } from "react-icons/lu";
 import { Link, useLocation, useNavigate } from 'react-router'
 import toast from 'react-hot-toast';
 import AxiosToast from '../../../utils/AxiosToast';
-import { Axios } from '../../../utils/AxiosSetup';
-import ApiBucket from '../../../services/ApiBucket';
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { setUser } from '../../../store/slices/UsersSlice';
-import { getUserDetail } from '../../../services/FetchDatas';
 import { useGoogleAuth } from '../../../services/hooks';
 import ForgotPassword from '../../../components/ui/ForgotPassword';
 import VerfyOtp from '../../../components/ui/VerifyOtp';
@@ -19,9 +16,10 @@ import { AnimatePresence } from 'motion/react';
 import Modal from '../../../components/ui/Modal';
 import Lottie from 'lottie-react'
 import success_icon from '../../../assets/animated_success_icon.json'
-import { fetchCart } from '../../../store/slices/CartSlice';
+import { setCartItems } from '../../../store/slices/CartSlice';
 import { addToCartAction } from '../../../services/ApiActions';
-import { fetchWishlist } from '../../../store/slices/WishlistSlice';
+import { setWishlist } from '../../../store/slices/WishlistSlice';
+import { useFetchCartMutation, useFetchWishlistMutation, useUserLoginMutation } from '../../../services/UserMutationHooks';
 
 
 const Login = () => {
@@ -30,13 +28,15 @@ const Login = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const redirect = new URLSearchParams(location.search).get('redirect' || '/')
-  const { user } = useSelector(state => state.user);
 
   const [passwordShowing, setPasswordShowing] = useState(false);
   const [isForgotPassOpen, setForgotPassOpen] = useState(false);
   const [isVerifyOtpOpen, setVerifyOtpOpen] = useState(false);
   const [isResetOpen, setResetOpen] = useState(false);
   const [isSuccesOpen, setSuccessOpen] = useState(false);
+  const loginMutation = useUserLoginMutation();
+  const cartMutation = useFetchCartMutation();
+  const wishlistMutation = useFetchWishlistMutation();
 
   const [capturedValue, setCapturedValue] = useState("");
   const [data, setData] = useState({email: '', password: ''});
@@ -63,22 +63,13 @@ const Login = () => {
 
       try {
 
-        const response = await Axios({
-          ...ApiBucket.login,
-          data: {
-            ...data,
-            role: 'user'
-          }
+        const response = await loginMutation
+          .mutateAsync({ data: { ...data, role: 'user' } });
 
-        })
+        if(response?.data?.success){
 
-        if(response.data.success){
-          AxiosToast(response, false);
-
-          localStorage.setItem('accessToken',response.data.accessToken);
-          localStorage.setItem('refreshToken',response.data.refreshToken);
-
-          const userData = await getUserDetail();
+          localStorage.setItem('accessToken',response?.data?.accessToken);
+          localStorage.setItem('refreshToken',response?.data?.refreshToken);
 
           const savedCart = JSON.parse(localStorage.getItem('cart'));
           if(savedCart?.items?.length){
@@ -88,12 +79,19 @@ const Login = () => {
             }
           }
 
-          dispatch(fetchCart(userData._id))
-          dispatch(fetchWishlist(userData._id))
-          dispatch(setUser({user: userData}));
+          const userData = response?.data?.user;
+          const cartItems = await cartMutation.mutateAsync();
+          const wishlist = await wishlistMutation.mutateAsync();
+
+
+          dispatch(setUser(userData));
+          dispatch(setCartItems(cartItems))
+          dispatch(setWishlist(wishlist))
 
           setData({email: '', password: ''});
+          AxiosToast(response, false);
           navigate(redirect);
+
         }
         
       } catch (error) {
@@ -130,14 +128,6 @@ const Login = () => {
   },[isVerifyOtpOpen]);
 
 
-  /* for prevent access of user already logged in */
-  /* useEffect(() => {
-    if(user?.roles?.includes'user'){
-      navigate(redirect);
-    }
-
-  },[user]) */
-
   return (
     <main className='flex flex-col w-full h-full bg-green-screen items-center justify-center'>
       <div className='bg-white from-primary-300 to-primary-50 shadow-xl border border-primary-50 
@@ -150,7 +140,7 @@ const Login = () => {
 
         {/* form inputs */}
         <div className='flex flex-col items-center justify-between w-full md:w-4/10'>
-          <form /* onSubmit={handleSubmit}  */className='border-neutral-200 w-full p-6 md:pb-2 flex flex-col gap-3'>
+          <form className='border-neutral-200 w-full p-6 md:pb-2 flex flex-col gap-3'>
             <div>
               <p className='text-center text-2xl'>Sign in</p>
               <p className='text-center text-xs mb-5'>Sign in and get in to your account</p>

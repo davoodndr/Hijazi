@@ -1,13 +1,11 @@
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router";
 import AxiosToast from "../utils/AxiosToast";
-import ApiBucket from "./ApiBucket";
-import { Axios } from "../utils/AxiosSetup";
 import { logoutUser, setUser } from "../store/slices/UsersSlice";
 import { useGoogleLogin } from "@react-oauth/google";
-import { getUserDetail } from "./FetchDatas";
-import { clearCart } from "../store/slices/CartSlice";
-import { clearWishlist } from "../store/slices/WishlistSlice";
+import { clearCart, setCartItems } from "../store/slices/CartSlice";
+import { clearWishlist, setWishlist } from "../store/slices/WishlistSlice";
+import { useFetchCartMutation, useFetchWishlistMutation, useGoogleAuthMutation, useUserLogoutMutation } from "./UserMutationHooks";
 
 export const useLogout = () => {
 
@@ -15,15 +13,14 @@ export const useLogout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const redirect = new URLSearchParams(location.search).get('redirect' || '/')
+  const logoutMutation = useUserLogoutMutation();
 
   const logout = async() => {
     try {
     
-      const response = await Axios({
-        ...ApiBucket.logout
-      })
+      const response = await logoutMutation.mutateAsync();
   
-      if(response.data.success){
+      if(response?.data?.success){
         dispatch(logoutUser());
         localStorage.clear();
         dispatch(clearCart());
@@ -45,6 +42,9 @@ export const useGoogleAuth = (role = 'user') => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const googleAuthMutation = useGoogleAuthMutation();
+  const cartMutation = useFetchCartMutation();
+  const wishlistMutation = useFetchWishlistMutation();
 
   const goodleLogin = useGoogleLogin({
   
@@ -52,24 +52,23 @@ export const useGoogleAuth = (role = 'user') => {
       onSuccess: async(tokenResponse) => {
   
         try {
+
+          const response = await googleAuthMutation.mutateAsync({ tokenResponse, role })
   
-          const response = await Axios({
-            ...ApiBucket.google,
-            data : {
-              code: tokenResponse.code,
-              role
-            }
-          })
+          if(response?.data?.success){
+              
+            localStorage.setItem('accessToken',response?.data?.accessToken);
+            localStorage.setItem('refreshToken',response?.data?.refreshToken);
   
-          if(response.data.success){
+            const userData = response?.data?.user;
+            const cartItems = await cartMutation.mutateAsync();
+            const wishlist = await wishlistMutation.mutateAsync();
+  
+            dispatch(setUser(userData));
+            dispatch(setCartItems(cartItems))
+            dispatch(setWishlist(wishlist))
+
             AxiosToast(response, false);
-  
-            localStorage.setItem('accessToken',response.data.accessToken);
-            localStorage.setItem('refreshToken',response.data.refreshToken);
-  
-            const userData = await getUserDetail();
-  
-            dispatch(setUser({user: userData}));
             navigate('/');
           }
   

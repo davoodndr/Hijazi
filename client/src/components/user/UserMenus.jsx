@@ -194,9 +194,9 @@ const UserMenus = ({isMobile = false}) => {
                             cursor-pointer smooth hover:text-primary-400'
                           >{sub?.label}</span>
 
-                          {sub.items && (
+                          {sub?.items && (
                             <ul>
-                              {sub.items.map(item => (
+                              {sub?.items?.map(item => (
                                 <li 
                                   key={item?.id}
                                   onClick={()=> handleCategorySelect({id: item?.id, name: item?.name})} 

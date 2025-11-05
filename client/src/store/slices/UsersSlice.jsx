@@ -55,12 +55,12 @@ const userSlice = createSlice({
       state.error = null
     }
   },
-  /* extraReducers: (builder) => {
+  extraReducers: (builder) => {
     builder
     .addCase(logoutUser, (state) => {
       state.user = null;
     })
-    .addMatcher(isPending(fetchUser, updateRole), (state) => {
+    /* .addMatcher(isPending(fetchUser, updateRole), (state) => {
       state.isLoading = true;
     })
     .addMatcher(isFulfilled(fetchUser, updateRole), (state, action) => {
@@ -69,8 +69,8 @@ const userSlice = createSlice({
     .addMatcher(isRejected(fetchUser, updateRole),(state, action) => {
       state.error = action?.payload;
       state.isLoading = false
-    })
-  } */
+    }) */
+  }
 })
 
 export const { setUser, addUser, updateUser, setActiveRole, setAllUsers, updateUserStatus } = userSlice.actions;

@@ -67,7 +67,7 @@ const Register = () => {
   }
 
   /* imported hook for google auth */
-    const googleLogin = useGoogleAuth();
+  const googleLogin = useGoogleAuth();
 
   return (
     <main className='flex flex-col w-full h-full bg-green-screen items-center justify-center'>

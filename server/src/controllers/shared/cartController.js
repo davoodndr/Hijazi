@@ -8,39 +8,38 @@ export const getCart = async(req, res) => {
 
   try {
 
-    let cart = await Cart.findOne({user_id}).lean();
+    let cart = await Cart.findOne({user_id}).lean() || [];
 
-    if(!cart){
-      return responseMessage(res, 400, false, "Bag does not exists")
-    }
+    if(cart?.items?.length) {
 
-    let itemsCount = 0;
+      let itemsCount = 0;
 
-    cart.items = await Promise.all(cart?.items?.map(async item => {
-      const product = await Product.findById(item?.product_id)
-        .populate({path: 'category', select: 'name'});
-      
-      const variant = product.variants?.find(v => v._id.toString() === item?.variant_id);
-      
-      itemsCount += item?.quantity;
+      cart.items = await Promise.all(cart?.items?.map(async item => {
+        const product = await Product.findById(item?.product_id)
+          .populate({path: 'category', select: 'name'});
+        
+        const variant = product.variants?.find(v => v._id.toString() === item?.variant_id);
+        
+        itemsCount += item?.quantity;
 
-      return{
-        id: item?.variant_id || product._id,
-        name:product.name,
-        category: product?.category?.name,
-        sku: variant?.sku || product.sku,
-        price: variant?.price || product.price,
-        stock: variant?.stock || product.stock,
-        quantity: item.quantity,
-        image: variant?.image || product?.images[0],
-        attributes: item.attributes,
-        product_id: item.product_id
+        return{
+          id: item?.variant_id || product._id,
+          name:product.name,
+          category: product?.category?.name,
+          sku: variant?.sku || product.sku,
+          price: variant?.price || product.price,
+          stock: variant?.stock || product.stock,
+          quantity: item.quantity,
+          image: variant?.image || product?.images[0],
+          attributes: item.attributes,
+          product_id: item.product_id
+        }
+      }))
+
+      cart = {
+        ...cart,
+        itemsCount
       }
-    }))
-
-    cart = {
-      ...cart,
-      itemsCount
     }
     
     return responseMessage(res, 200, true, "",{cart});

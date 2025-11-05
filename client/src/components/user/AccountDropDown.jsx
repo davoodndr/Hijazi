@@ -11,7 +11,7 @@ const AccountDropDown = ({user}) => {
   const navigate = useNavigate();
 
   return (
-    <div className='nav-account-dropdown border md:invisible opacity-0 border-primary-200 absolute top-[100%] 
+    <div className='nav-account-dropdown border md:invisible opacity-0 border-primary-200 absolute top-full 
       -right-50 -translate-x-5/10 w-auto min-w-70 bg-white shadow-md rounded-sm cursor-default'>
 
         {

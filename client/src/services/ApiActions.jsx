@@ -4,6 +4,56 @@ import { loadRazorpay } from "../services/Payments";
 import ApiBucket from "./ApiBucket";
 
 //users
+export const userLoginAction = async(data) => {
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.login,
+      data
+    })
+
+    return response;
+
+  } catch (error) {
+    console.log(error?.response?.data);
+    throw new Error(error?.response?.data?.message);
+  }
+}
+
+export const googleAuthAction = async(tokenResponse, role) => {
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.google,
+      data : {
+        code: tokenResponse.code,
+        role
+      }
+    })
+
+    return response;
+
+  } catch (error) {
+    console.log(error?.response?.data);
+    throw new Error(error?.response?.data?.message);
+  }
+}
+
+export const userLogoutAction = async() => {
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.logout
+    })
+
+    return response;
+
+  } catch (error) {
+    console.log(error?.response?.data);
+    throw new Error(error?.response?.data?.message);
+  }
+}
+
 export const addUserAction = async(data) => {
 
   try {
@@ -126,7 +176,6 @@ export const blockUserAction = async(user_id, mode) => {
   }
 }
 
-// bloch or unblock user
 export const deleteUserAction = async(folder, user_id) => {
 
   try {
@@ -472,7 +521,7 @@ export const addToCartAction = async(item, type) => {
       }
     })
 
-    return response.data
+    return response;
 
   } catch (error) {
 

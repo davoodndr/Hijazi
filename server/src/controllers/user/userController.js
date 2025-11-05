@@ -61,7 +61,7 @@ export const registerUser= async(req, res) => {
 
 // login user
 export const userLogin = async(req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password, role, cartItems } = req.body;
 
   try {
     
@@ -106,21 +106,15 @@ export const userLogin = async(req, res) => {
     res.cookie('accessToken',accessToken, cookieOptions);
     res.cookie('refreshToken',refreshToken, cookieOptions);
 
-    const updated = await User.findByIdAndUpdate(
+    const userData = await User.findByIdAndUpdate(
       user?._id,
       { 
         last_login: new Date(),
         activeRole: role
       },
       { new: true}
-    )
+    ).select('-password -refresh_token')
     
-
-    let userData = {...updated};
-    
-    delete userData._doc.password;
-    delete userData._doc.refresh_token;
-
     return responseMessage(res, 200, true, 'Login Successfull',{
       accessToken,
       refreshToken,
@@ -158,10 +152,10 @@ export const googleAuth = async(req, res) => {
     let user = await User.findOne({ googleId: sub });
 
     // to check user already exisits with email
-    const exisitingUser = await User.findOne({email});
-    const username = exisitingUser.username ? exisitingUser.username : name;
+    const exisitingUser = await User.findOne({ email });
+    const username = exisitingUser?.username ? exisitingUser?.username : name;
 
-    if(!exisitingUser?.roles.includes(role)){
+    if(exisitingUser && !exisitingUser?.roles?.includes(role)){
       return responseMessage(res, 403, false, "You have no access to this account");
     }
 
@@ -176,7 +170,7 @@ export const googleAuth = async(req, res) => {
     if(!user){
       
       if(exisitingUser){
-        user = await User.findByIdAndUpdate(exisitingUser._id,{
+        user = await User.findByIdAndUpdate(exisitingUser?._id,{
           googleId: sub,
           username
         })
@@ -188,9 +182,14 @@ export const googleAuth = async(req, res) => {
         })
       }
     }
+    
+    const tokenPayload = {
+      id: user?._id,
+      roles: user?.roles
+    }
 
-    const accessToken = await generateAccessToken(user._id);
-    const refreshToken = await generateRefreshToken(user._id);
+    const accessToken = await generateAccessToken(tokenPayload);
+    const refreshToken = await generateRefreshToken(user?._id);
 
     const cookieOptions = {
       httpOnly : true,
@@ -201,25 +200,23 @@ export const googleAuth = async(req, res) => {
     res.cookie('accessToken',accessToken, cookieOptions);
     res.cookie('refreshToken',refreshToken, cookieOptions);
 
-    const updated = await User.findByIdAndUpdate(user?._id,
-      { last_login: new Date() },
+    const userData = await User.findByIdAndUpdate(user?._id,
+      { 
+        last_login: new Date(),
+        activeRole: role
+      },
       { new: true}
-    )
-
-    let userData = {...updated};
-    
-    delete userData._doc.password;
-    delete userData._doc.refresh_token;
+    ).select('-password -refresh_token')
 
     return responseMessage(res, 200, true, 'Login Successfull',{
       accessToken,
       refreshToken,
-      user: updated
+      user: userData
     })
 
   } catch (error) {
     console.log('googleAuth:', error);
-    return responseMessage(res, 500, false, error);
+    return responseMessage(res, 500, false, error?.message || error);
   }
 
 }

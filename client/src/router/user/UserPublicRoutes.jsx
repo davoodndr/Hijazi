@@ -9,7 +9,7 @@ const UserPublicRoutes = () => {
   const location = useLocation();
   const redirect = new URLSearchParams(location.search).get('redirect') || '/';
 
-  if(isLoading) return <Loader />;
+  //if(isLoading) return <Loader loading={isLoading} />
 
   if(user?.roles?.includes('user')){
     return <Navigate to={redirect} replace />
