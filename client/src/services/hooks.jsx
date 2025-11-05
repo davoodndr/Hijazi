@@ -5,7 +5,8 @@ import { logoutUser, setUser } from "../store/slices/UsersSlice";
 import { useGoogleLogin } from "@react-oauth/google";
 import { clearCart, setCartItems } from "../store/slices/CartSlice";
 import { clearWishlist, setWishlist } from "../store/slices/WishlistSlice";
-import { useFetchCartMutation, useFetchWishlistMutation, useGoogleAuthMutation, useUserLogoutMutation } from "./UserMutationHooks";
+import { useFetchCartMutation, useFetchWishlistMutation } from "./UserMutationHooks";
+import { useGoogleAuthMutation, useUserLogoutMutation } from "./AuthMutationHooks";
 
 export const useLogout = () => {
 

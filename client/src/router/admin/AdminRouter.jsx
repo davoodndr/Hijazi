@@ -63,17 +63,19 @@ const AdminRouter = () => {
 
     const fetchDatas = async() => {
 
-      setCurrentUser(queryClient, dispatch)
+      const currentUser = await setCurrentUser(queryClient, dispatch)
 
-      const [users, orders, reviews, products, offers, categories, brands] = await getQueryResults(queryClient);
-      
-      dispatch(setAllUsers(users))
-      dispatch(setAllOrders(orders))
-      dispatch(setAllReviews(reviews))
-      dispatch(setAllProducts(products))
-      dispatch(setAllOffers(offers))
-      dispatch(setAllCategories(categories))
-      dispatch(setAllBrands(brands))
+      if(!currentUser?.error){
+        const [users, orders, reviews, products, offers, categories, brands] = await getQueryResults(queryClient);
+        
+        dispatch(setAllUsers(users))
+        dispatch(setAllOrders(orders))
+        dispatch(setAllReviews(reviews))
+        dispatch(setAllProducts(products))
+        dispatch(setAllOffers(offers))
+        dispatch(setAllCategories(categories))
+        dispatch(setAllBrands(brands))
+      }
 
     }
 
@@ -216,6 +218,7 @@ const setCurrentUser = async(queryClient, dispatch) => {
     dispatch(clearCart())
     dispatch(clearWishlist())
   }
+  return user
 }
 
 const getQueryResults = async(queryClient) => {

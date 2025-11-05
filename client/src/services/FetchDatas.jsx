@@ -124,7 +124,7 @@ export const fetchAllProductsAction = async() => {
     return response?.data?.products
 
   } catch (error) {
-    console.log(error)
+    //console.log(error)
     throw new Error(error?.response?.data?.message || error?.message)
   }
 
@@ -141,7 +141,7 @@ export const fetchAllOrdersAction = async() => {
     return response?.data?.orders;
 
   } catch (error) {
-    console.log(error)
+    //console.log(error)
     throw new Error(error?.response?.data?.message || error?.message)
   }
 }
@@ -158,7 +158,7 @@ export const fetchAllReviewsAction = async() => {
     return response?.data?.reviews;
 
   } catch (error) {
-    console.log(error)
+    //console.log(error)
     throw new Error(error?.response?.data?.message || error?.message)
   }
 
@@ -176,7 +176,7 @@ export const fetchAllOffersAction = async() => {
     return response?.data?.offers;
 
   } catch (error) {
-    console.log(error)
+    //console.log(error)
     throw new Error(error?.response?.data?.message || error?.message)
   }
 
@@ -194,7 +194,7 @@ export const fetchAllCategoriesAction = async() => {
     return response?.data?.categories;
 
   } catch (error) {
-    console.log(error)
+    //console.log(error)
     throw new Error(error?.response?.data?.message || error?.message)
   }
 };

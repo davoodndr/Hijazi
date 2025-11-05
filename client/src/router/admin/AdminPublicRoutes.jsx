@@ -9,7 +9,7 @@ const AdminPublicRoutes = () => {
   
   if(isLoading) return <Loader loading={isLoading} />;
 
-  if(user?.roles.includes('admin')){
+  if(user?.roles?.includes('admin')){
     return <Navigate to={'/admin/dashboard'} replace />
   }
   

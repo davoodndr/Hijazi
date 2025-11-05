@@ -19,7 +19,8 @@ import success_icon from '../../../assets/animated_success_icon.json'
 import { setCartItems } from '../../../store/slices/CartSlice';
 import { addToCartAction } from '../../../services/ApiActions';
 import { setWishlist } from '../../../store/slices/WishlistSlice';
-import { useFetchCartMutation, useFetchWishlistMutation, useUserLoginMutation } from '../../../services/UserMutationHooks';
+import { useUserLoginMutation } from '../../../services/AuthMutationHooks';
+import { useFetchCartMutation, useFetchWishlistMutation } from '../../../services/UserMutationHooks';
 
 
 const Login = () => {

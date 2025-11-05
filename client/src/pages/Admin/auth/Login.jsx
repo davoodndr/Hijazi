@@ -19,6 +19,7 @@ import Lottie from 'lottie-react'
 import success_icon from '../../../assets/animated_success_icon.json'
 import { getUserDetail } from '../../../services/FetchDatas';
 import { setUser } from '../../../store/slices/UsersSlice';
+import { useUserLoginMutation } from '../../../services/AuthMutationHooks';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ const Login = () => {
   const [isVerifyOtpOpen, setVerifyOtpOpen] = useState(false);
   const [isResetOpen, setResetOpen] = useState(false);
   const [isSuccesOpen, setSuccessOpen] = useState(false);
+  const loginMutation = useUserLoginMutation();
 
   const [capturedValue, setCapturedValue] = useState("");
   const [data, setData] = useState({email: '', password: ''});
@@ -56,23 +58,18 @@ const Login = () => {
 
       try {
 
-        const response = await Axios({
-          ...ApiBucket.login,
-          data: {
-            ...data,
-            role: 'admin'
-          }
-        })
+        const response = await loginMutation
+          .mutateAsync({ data: { ...data, role: 'user' } });
 
-        if(response.data.success){
+        if(response?.data?.success){
           AxiosToast(response, false);
 
           localStorage.setItem('accessToken',response.data.accessToken);
           localStorage.setItem('refreshToken',response.data.refreshToken);
 
-          const userData = await getUserDetail();
+          const userData = response?.data?.user
 
-          dispatch(setUser({user: userData}));
+          dispatch(setUser(userData));
 
           setData({email: '', password: ''});
           navigate('/');
