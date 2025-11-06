@@ -506,19 +506,13 @@ export const uploadBrandLogo = async(brand_id, folder, file, public_id= "") => {
 }
 
 //cart
-export const addToCartAction = async(item, type) => {
+export const addToCartAction = async(item) => {
 
   try {
     
     const response = await Axios({
       ...ApiBucket.addToCart,
-      data: {
-        product_id: item.product_id,
-        quantity: item.quantity,
-        variant_id: item.id === item.product_id ? null : item.id,
-        attributes: item.attributes,
-        type
-      }
+      data: item
     })
 
     return response;
@@ -531,19 +525,16 @@ export const addToCartAction = async(item, type) => {
 
 }
 
-export const removeFromCartAction = async(item) => {
+export const removeFromCartAction = async(item_id) => {
 
   try {
     
     const response = await Axios({
       ...ApiBucket.removeFromCart,
-      data: {
-        product_id: item.product_id,
-        variant_id: item.id === item.product_id ? null : item.id,
-      }
+      data: { item_id }
     })
 
-    return response.data
+    return response;
 
   } catch (error) {
 
@@ -578,40 +569,33 @@ export const addToWishlistAction = async(item) => {
     
     const response = await Axios({
       ...ApiBucket.addToWishlist,
-      data: {
-        product_id: item.product_id,
-        variant_id: item.id === item.product_id ? null : item.id,
-        attributes: item.attributes
-      }
+      data: item
     })
 
-    return response.data
+    return response;
 
   } catch (error) {
 
-    console.log(error)
+    console.log(error?.response?.data)
     throw new Error(error?.response?.data?.message);
   }
 
 }
 
-export const removeFromWishlistAction = async(item) => {
+export const removeFromWishlistAction = async(item_id) => {
 
   try {
     
     const response = await Axios({
       ...ApiBucket.removeFromWishlist,
-      data: {
-        product_id: item.product_id,
-        variant_id: item.id === item.product_id ? null : item.id,
-      }
+      data: { item_id }
     })
 
-    return response.data
+    return response
 
   } catch (error) {
 
-    console.log(error)
+    console.log(error?.response?.data)
     throw new Error(error?.response?.data?.message);
   }
 

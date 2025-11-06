@@ -6,7 +6,11 @@ const wishListItemSchema = new mongoose.Schema({
     ref: 'Product'
   },
   variant_id:String,
-  attributes: Object
+  attributes: Object,
+  createdAt: {
+    type: Date,
+    default: new Date()
+  }
 })
 
 const wishlistSchema = new mongoose.Schema({

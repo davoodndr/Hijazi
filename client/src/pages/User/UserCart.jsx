@@ -18,6 +18,8 @@ import { calculateDiscount, filterDiscountOffers, findBestOffer } from '../../ut
 import CouponSlider from '../../components/user/CouponSlider';
 import { TbHeart } from 'react-icons/tb';
 import { syncWishlistItem } from '../../store/slices/WishlistSlice';
+import { useAddToCartMutation, useRemoveFromCartMutation } from '../../services/UserMutationHooks';
+import AxiosToast from '../../utils/AxiosToast';
 
 function UserCart(){
 
@@ -41,36 +43,57 @@ function UserCart(){
   const [roundOffValue, setRoundOffValue] = useState(0)
   const [grandTotal, setGrandTotal] = useState(0);
 
+  const addToCartMutation = useAddToCartMutation();
+  const removeFromCartMutation = useRemoveFromCartMutation();
+
 
   // initial
-  const handleQuantityUpdate = async(item, qty) => {
+  const handleQuantityUpdate = async(item, type) => {
     const newitem = {
-      ...item,
-      quantity: item.quantity + qty
+      _id: item?._id,
+      product_id: item?.product_id,
+      variant_id: item?.id,
+      quantity: 1,
+      attributes: item?.attributes,
+      type
     }
 
     if(user?.roles?.includes('user')){
-      const {payload: data} = await dispatch(syncCartitem({user_id: user._id, item: newitem, type: 'update'}))
-      if(data?.success){
-        toast.success(qty < 0 ? "Item removed from cart" : "Item added to cart",{position: 'top-center'})
+
+      const response = await addToCartMutation.mutateAsync(
+        { item: newitem },
+        {
+          onError: (err)=> AxiosToast(err)
+        }
+      )
+      
+      if(response?.data?.success){
+        
+        const updated = response?.data?.cartItem;
+
+        dispatch(addToCart(updated));
+        AxiosToast(response, false);
       }
+
     }else{
       dispatch(addToCart({item: newitem, type:'update'}))
       toast.success("Item removed from cart",{position: 'top-center'})
     }
-    //calculateOfferDiscount();
   }
 
   // handle remove cart item
-  const handleRemoveCartItem = async(item) => {
+  const handleRemoveCartItem = async(item_id) => {
   
     if(user?.roles.includes('user')){
-      const { payload: data } = await dispatch(deleteCartItem({user_id: user._id, item}))
-      if(data?.success){
-        toast.success(data.message,{position: 'top-center'})
+      const response = await removeFromCartMutation.mutateAsync({ item_id });
+      if(response?.data?.success){
+
+        const removed_id = response?.data?.item_id;
+        dispatch(removeFromCart(removed_id));
+        AxiosToast(response, false);
       }
     }else{
-      dispatch(removeFromCart(item.id));
+      dispatch(removeFromCart(item_id));
       toast.success("Item removed from cart",{position: 'top-center'})
     }
   }
@@ -120,6 +143,7 @@ function UserCart(){
   useEffect(() => {
 
     const cartList = cartItems?.map(item => {
+
       const p = productsList?.find(el => el?._id === item?.product_id);
       if(p){
         
@@ -139,8 +163,10 @@ function UserCart(){
         return item
       }
     })
+
+    const sorted = cartList?.sort((a,b)=> a?.createdAt?.localeCompare(b?.createdAt))
     
-    setItems(cartList);
+    setItems(sorted);
 
   },[productsList, cartItems])
 
@@ -278,16 +304,16 @@ function UserCart(){
     e.stopPropagation();
     
     const newitem = {
-      id: item.id,
-      name:item.name,
-      category:item.category.name,
-      sku:item.sku,
-      price:item.price,
-      stock: item.stock,
+      id: item?.id,
+      name:item?.name,
+      category:item?.category.name,
+      sku:item?.sku,
+      price:item?.price,
+      stock: item?.stock,
       quantity: 1,
-      image:item.image,
-      attributes:item.attributes,
-      product_id: item.product_id
+      image:item?.image,
+      attributes:item?.attributes,
+      product_id: item?.product_id
     }
 
     if(user?.roles?.includes('user')){
@@ -307,7 +333,7 @@ function UserCart(){
       <div className="w-9/10 flex items-start my-10 space-x-8">
 
         {/* left side */}
-        <div className='flex-grow'>
+        <div className='grow'>
           <h3 className='text-xl'>Shopping Bag</h3>
           {items?.length ? 
             (<p><span className='font-bold'>{items?.length}
@@ -327,24 +353,24 @@ function UserCart(){
               <span>rate</span>
               <span>quantity</span>
               <span>total price</span>
-              <span></span>
+              <span>Actions</span>
             </li>
 
             {/* item */}
-            {items.length > 0 ? 
+            {items?.length > 0 ? 
             
-              items.map(item => {
+              items?.map(item => {
 
-                const attributes = item?.attributes ? Object.entries(item.attributes) : [];
+                const attributes = item?.attributes ? Object.entries(item?.attributes) : [];
                 
                 const availableOffers = filterDiscountOffers(offers, item, null)
                 
                 const bestOffer = findBestOffer(availableOffers, item?.price);
                 const offerPrice = item?.price - bestOffer?.value;
-                const itemTotal = item.quantity * item?.price;
+                const itemTotal = item?.quantity * item?.price;
 
                 return (
-                  <li key={item.id} className='grid grid-cols-[3fr_1fr_1fr_1fr_0.5fr] pb-5 justify-items-center'>
+                  <li key={item?._id} className='grid grid-cols-[3fr_1fr_1fr_1fr_0.5fr] pb-5 justify-items-center'>
                     <div className='flex w-full items-center space-x-4 relative'>
 
                       {item?.stock <= 0 &&
@@ -369,13 +395,13 @@ function UserCart(){
 
                       {/* image */}
                       <div className='w-30 rounded-2xl overflow-hidden'>
-                        <img src={item.image?.thumb} alt="" />
+                        <img src={item?.image?.thumb} alt="" />
                       </div>
                       {/* info */}
                       <div className='flex flex-col leading-normal'>
                         <div className='mb-1'>
                           <p className='uppercase text-[10px] text-gray-400'>{item?.category?.name}</p>
-                          <p className='capitalize font-bold'>{item.name}</p>
+                          <p className='capitalize font-bold'>{item?.name}</p>
                         </div>
                         {/* attributes */}
                         {attributes.length > 0 && 
@@ -384,14 +410,14 @@ function UserCart(){
                               <div key={name} className='grid grid-cols-3 capitalize'>
                                 <span className='text-gray-400 text-xs'>{name}</span>
                                 {name === 'color' || name === 'colour' ?
-                                  <div className='point-before point-before:!me-3 point-before:!p-0.5'>
+                                  <div className='point-before point-before:me-3! point-before:p-0.5!'>
                                     <span
                                       style={{"--dynamic": value}}
                                       className='w-3 h-3 bg-(--dynamic) rounded-sm'
                                     ></span>
                                   </div>
                                   :
-                                  <span className='text-xs text-gray-600 point-before point-before:!me-3 point-before:!p-0.5'>{value}</span>
+                                  <span className='text-xs text-gray-600 point-before point-before:me-3! point-before:p-0.5!'>{value}</span>
                                 }
                               </div>
                             )}
@@ -422,26 +448,26 @@ function UserCart(){
                     <div className='flex items-center'>
                       <span 
                         onClick={() => 
-                          item.quantity > 1 && 
-                          handleQuantityUpdate(item, - 1)
+                          item?.quantity > 1 && 
+                          handleQuantityUpdate(item, 'decrement')
                         }
                         className='cursor-pointer'>
                         <CiSquareMinus className='text-3xl' />
                       </span>
-                      <span className='px-2'>{item.quantity}</span>
+                      <span className='px-2'>{item?.quantity}</span>
                       <span 
-                        onClick={() => handleQuantityUpdate(item, 1)}
+                        onClick={() => handleQuantityUpdate(item, 'increment')}
                         className='cursor-pointer'>
                         <CiSquarePlus className='text-3xl' />
                       </span>
                     </div>
 
                     {/* item total */}
-                    <p className='price-before !text-base font-bold'>{itemTotal}</p>
+                    <p className='price-before text-base! font-bold'>{itemTotal}</p>
 
                     {/* delete button */}
                     <div className='flex flex-col items-center justify-center'>
-                      {user?.roles?.includes('user') &&
+                      {/* {user?.roles?.includes('user') &&
                         <span 
                           onClick={(e) => {
                             e.preventDefault();
@@ -451,11 +477,11 @@ function UserCart(){
                           hover:scale-110 hover:text-red-500'>
                           <TbHeart className='text-2xl' />
                         </span>
-                      }
+                      } */}
                       <span
                         onClick={(e) => {
                           e.preventDefault();
-                          handleRemoveCartItem(item)
+                          handleRemoveCartItem(item?._id)
                         }} 
                         className='cursor-pointer p-2 rounded-xl smooth hover:shadow-lg/20
                           hover:scale-110 hover:text-red-500'>
@@ -587,7 +613,7 @@ function UserCart(){
             <ul className='mb-6'>
               <li className='flex w-full items-center justify-between'>
                 <span>Cart Subtotal</span>
-                <span className='price-before price-before:!text-gray-400 font-bold'>
+                <span className='price-before price-before:text-gray-400! font-bold'>
                   {Number(cartSubTotal).toFixed(2)}
                 </span>
               </li>
@@ -599,7 +625,7 @@ function UserCart(){
                 <li className='flex w-full items-center justify-between'>
                   <span>Discount</span>
                   <p className='text-red-400'>-
-                    <span className='price-before price-before:!text-red-300 ps-0.5 font-bold'>
+                    <span className='price-before price-before:text-red-300! ps-0.5 font-bold'>
                       {Number(offersDiscount + couponDiscount).toFixed(2)}
                     </span>
                   </p>
@@ -609,7 +635,7 @@ function UserCart(){
                 <li className='flex w-full items-center justify-between'>
                   <span>Round off</span>
                   <p className=''>-
-                    <span className='price-before price-before:!text-red-300 ps-0.5 font-bold text-red-400'>
+                    <span className='price-before price-before:text-red-300! ps-0.5 font-bold text-red-400'>
                       {Number(roundOffValue).toFixed(2)}
                     </span>
                   </p>
@@ -618,8 +644,8 @@ function UserCart(){
               <li className='my-1 border-t border-primary-500/20'></li>
               <li className='flex w-full items-center justify-between py-1'>
                 <h3 className='text-base'>Cart Total</h3>
-                <h3 className='price-before text-lg font-bold !items-start
-                 price-before:!text-gray-400 !leading-5'>
+                <h3 className='price-before text-lg font-bold items-start!
+                 price-before:text-gray-400! leading-5!'>
                   {Number(grandTotal).toFixed(2)}
                 </h3>
               </li>
@@ -628,7 +654,7 @@ function UserCart(){
               <button 
                 onClick={handleCheckout}
                 className={clsx('w-full',
-                  !user?.roles?.includes('user') && '!bg-gray-300 pointer-events-none'
+                  !user?.roles?.includes('user') && 'bg-gray-300! pointer-events-none'
                 )}
                 >Checkout</button>
             </div>

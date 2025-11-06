@@ -14,10 +14,12 @@ export const getWishlist = async(req, res) => {
       wishlist.list = await Promise.all(wishlist?.list?.map(async item => {
         const product = await Product.findById(item?.product_id)
           .populate({path: 'category', select: 'name'});
-        
-        const variant = product.variants?.find(v => v._id.toString() === item?.variant_id);
-        
+
+        const variant = product.variants?.find(v => v._id.toString() === item?.variant_id?.toString());
+
         return{
+          _id: item?._id,
+          createdAt: item?.createdAt,
           id: item?.variant_id || product._id,
           name:product.name,
           category: product?.category?.name,

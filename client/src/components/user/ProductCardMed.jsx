@@ -7,14 +7,15 @@ import MyFadeLoader from '../ui/MyFadeLoader';
 import { motion } from 'motion/react'
 import { yRowVariants } from '../../utils/Anim';
 import { useDispatch, useSelector } from 'react-redux';
-import { addToCart, syncCartitem } from '../../store/slices/CartSlice';
+import { addToCart } from '../../store/slices/CartSlice';
 import { useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { addToList, syncWishlistItem } from '../../store/slices/WishlistSlice';
+import { addToList } from '../../store/slices/WishlistSlice';
 import { useLocation, useNavigate } from 'react-router';
-import ProductCardBadge from './ProductCardBadge';
 import clsx from 'clsx';
 import { filterDiscountOffers, findBestOffer } from '../../utils/Utils';
+import AxiosToast from '../../utils/AxiosToast';
+import { useAddToCartMutation, useAddToWishlistMutation } from '../../services/UserMutationHooks'
 
 function ProducCardMedComponent({product, offers = [], onClick}) {
 
@@ -28,6 +29,8 @@ function ProducCardMedComponent({product, offers = [], onClick}) {
   const [bestOffer, setBestOffer] = useState(null);
   const [activeOffer, setActiveOffer] = useState(null);
   const [stock, setStock] = useState(0);
+  const addToWishlistMutation = useAddToWishlistMutation();
+  const addToCartMutation = useAddToCartMutation();
 
   /* initialize product */
   useEffect(()=> {
@@ -79,23 +82,30 @@ function ProducCardMedComponent({product, offers = [], onClick}) {
     }
 
     const newitem = {
-      id: activeVariant?._id || product._id,
-      name:product.name,
-      category:product.category.name,
-      sku:activeVariant?.sku || product?.sku,
-      price:activeVariant?.price || product?.price,
-      stock,
+      variant_id: activeVariant?._id || product._id,
       quantity: 1,
-      image:activeVariant?.image || product?.images[0],
       attributes:activeVariant?.attributes,
-      product_id: product._id
+      product_id: product._id,
+      type: 'increment'
     }
 
     if(user?.roles?.includes('user')){
-      const {payload: data} = await dispatch(syncCartitem({item: newitem}))
-      if(data?.success){
-        toast.success(data.message,{position: 'top-center'})
+      
+      const response = await addToCartMutation.mutateAsync(
+        { item: newitem },
+        {
+          onError: (err)=> AxiosToast(err)
+        }
+      )
+      
+      if(response?.data?.success){
+        
+        const updated = response?.data?.cartItem;
+
+        dispatch(addToCart(updated));
+        AxiosToast(response, false);
       }
+
     }else{
       dispatch(addToCart({item: newitem, type:'update'}))
       toast.success("Item added to cart",{position: 'top-center'})
@@ -104,23 +114,28 @@ function ProducCardMedComponent({product, offers = [], onClick}) {
 
   const handleAddToWishlist = async(e) => {
     e.stopPropagation();
+
     const newitem = {
-      id: activeVariant?._id || product._id,
-      name:product.name,
-      category:product.category.name,
-      sku:activeVariant?.sku || product?.sku,
-      price:activeVariant?.price || product?.price,
-      stock: activeVariant?.stock || product?.stock,
-      quantity: 1,
-      image:activeVariant?.image || product?.images[0],
+      variant_id: activeVariant?._id || product._id,
       attributes:activeVariant?.attributes,
       product_id: product._id
     }
 
     if(user?.roles?.includes('user')){
-      const {payload: data} = await dispatch(syncWishlistItem({item: newitem}))
-      if(data?.success){
-        toast.success(data.message,{position: 'top-center'})
+
+      const response = await addToWishlistMutation.mutateAsync(
+        { item: newitem },
+        {
+          onError: (err) => AxiosToast(err)
+        }
+      )
+
+      if(response?.data?.success){
+
+        const storedItem = response?.data?.listItem;
+        dispatch(addToList(storedItem))
+
+        AxiosToast(response, false)
       }
     }else{
       navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
@@ -140,14 +155,14 @@ function ProducCardMedComponent({product, offers = [], onClick}) {
       <div className="w-[220px] h-full rounded-4xl overflow-hidden bg-white px-2 pt-2 group/item
         border border-gray-300 smooth hover:shadow-lg/20 hover:border-primary-300 cursor-pointer">
 
-        <div className="relative overflow-hidden max-h-[320px] rounded-3xl 
+        <div className="relative overflow-hidden max-h-80 rounded-3xl 
           border border-primary-400/30 m-1">
           
           {/* image */}
           <div className="relative overflow-hidden rounded-3xl cursor-pointer smooth 
-            peer-hover:blur-[2px] size-[192px]">
+            peer-hover:blur-[2px] size-48">
 
-            <img className={`group-hover/item:scale-110 smooth !duration-1000 rounded-3xl`}
+            <img className={`group-hover/item:scale-110 smooth duration-1000! rounded-3xl`}
                   src={activeVariant?.image?.thumb || product?.images[0]?.thumb} onLoad={() => setCompleted(true)} loading='lazy' alt=""/>
               
             {!completed &&
@@ -168,9 +183,9 @@ function ProducCardMedComponent({product, offers = [], onClick}) {
 
         {/* detail */}
         <div className="flex flex-col px-2 pt-3 pb-5 relative">
-          <span className='text-xs mb-0.25 capitalize'>{product?.category?.name}</span>
-          <p className='text-sm !font-bold capitalize'>{product?.name}</p>
-          <div className="py-0.25 mb-2">
+          <span className='text-xs mb-px capitalize'>{product?.category?.name}</span>
+          <p className='text-sm font-bold! capitalize'>{product?.name}</p>
+          <div className="py-px mb-2">
             <span className='text-xl'>
               <StarRating
                 value={product?.averageRating}
@@ -183,7 +198,7 @@ function ProducCardMedComponent({product, offers = [], onClick}) {
           <div className='flex flex-col leading-3'>
             <div className='flex gap-1 items-center'>
               <span className='text-lg font-semibold text-primary-400 price-before
-                price-before:!text-[13px] !items-start leading-4.5'>
+                price-before:text-[13px]! items-start! leading-4.5'>
                   {offerPrice ? offerPrice : (activeVariant?.price || product?.price)}
                 </span>
               {offerPrice > 0 ?

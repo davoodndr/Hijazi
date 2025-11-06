@@ -29,6 +29,7 @@ import ReviewItem from '../../components/user/ReviewItem'
 import RatingDistribution from '../../components/user/RatingDistribution'
 import { clearReviews, setActiveProduct, setReviews } from '../../store/slices/ProductSlices'
 import RateProductModal from '../../components/ui/RateProductModal'
+import { useAddToCartMutation, useAddToWishlistMutation } from '../../services/UserMutationHooks'
 
 function ProductPageComponent() {
 
@@ -51,6 +52,8 @@ function ProductPageComponent() {
   const [userReviews, setUserReviews] = useState([]);
   const [showMoreReviews, setShowMoreReviews] = useState(false);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const addToCartMutation = useAddToCartMutation();
+  const addToWishlistMutation = useAddToWishlistMutation();
   
   useEffect(() => {
     return () => {
@@ -181,23 +184,28 @@ function ProductPageComponent() {
   }
 
   const handleAddToCart = async() => {
+
     const newitem = {
-      id: activeVariant?._id || product._id,
-      name:product.name,
-      category:product.category.name,
-      sku:activeVariant?.sku || product?.sku,
-      price:activeVariant?.price || product?.price,
-      stock: activeVariant?.stock || product?.stock,
+      variant_id: activeVariant?._id || product._id,
       quantity: productQty || 1,
-      image:activeVariant?.image || product?.images[0],
       attributes:activeVariant?.attributes,
       product_id: product._id
     }
 
     if(user?.roles?.includes('user')){
-      const {payload: data} = await dispatch(syncCartitem({item: newitem, type: 'update'}))
-      if(data?.success){
-        toast.success(data.message,{position: 'top-center'})
+      const response = await addToCartMutation.mutateAsync(
+        { item: newitem },
+        {
+          onError: (err)=> AxiosToast(err)
+        }
+      )
+      
+      if(response?.data?.success){
+        
+        const updated = response?.data?.cartItem;
+
+        dispatch(addToCart(updated));
+        AxiosToast(response, false);
       }
     }else{
       dispatch(addToCart({item: newitem, type:'update'}))
@@ -206,24 +214,30 @@ function ProductPageComponent() {
   }
 
   const handleAddToWishlist = async() => {
+
     const newitem = {
-      id: activeVariant?._id || product._id,
-      name:product.name,
-      category:product.category.name,
-      sku:activeVariant?.sku || product?.sku,
-      price:activeVariant?.price || product?.price,
-      stock: activeVariant?.stock || product?.stock,
-      quantity: 1,
-      image:activeVariant?.image || product?.images[0],
+      variant_id: activeVariant?._id || product._id,
       attributes:activeVariant?.attributes,
       product_id: product._id
     }
 
     if(user?.roles?.includes('user')){
-      const {payload: data} = await dispatch(syncWishlistItem({item: newitem}))
-      if(data?.success){
-        toast.success(data.message,{position: 'top-center'})
+      
+      const response = await addToWishlistMutation.mutateAsync(
+        { item: newitem },
+        {
+          onError: (err) => AxiosToast(err)
+        }
+      )
+
+      if(response?.data?.success){
+
+        const storedItem = response?.data?.listItem;
+        dispatch(addToList(storedItem))
+
+        AxiosToast(response, false)
       }
+      
     }else{
       navigate(`/login?redirect=${encodeURIComponent(path)}`)
     }
@@ -317,7 +331,7 @@ function ProductPageComponent() {
         />
 
         {/* detail info */}
-        <div className="flex-grow h-full">
+        <div className="grow h-full">
           <h2 className="text-4xl capitalize">{product?.name}</h2>
 
           {/* brand rating */}
@@ -347,9 +361,9 @@ function ProductPageComponent() {
             
             <ins>
               <span 
-                className="price-before price-before:!text-xl price-before:font-normal 
-                price-before:!top-8 price-before:leading-8
-                text-3xl font-semibold !items-start text-primary-400"
+                className="price-before price-before:text-xl! price-before:font-normal 
+                price-before:top-8! price-before:leading-8
+                text-3xl font-semibold items-start! text-primary-400"
               >
                 {offerPrice ? offerPrice : (activeVariant?.price || product?.price)}
               </span>
@@ -357,7 +371,7 @@ function ProductPageComponent() {
             
             {offerPrice > 0 &&
               <>
-                <span className="text-xl line-through ml-3 price-before price-before:!text-base">
+                <span className="text-xl line-through ml-3 price-before price-before:text-base!">
                   {activeVariant?.price || product?.price}
                 </span>
                 <p className='text-base text-red-400 price-before:text-red-400 ml-2'>(
@@ -573,7 +587,7 @@ function ProductPageComponent() {
           {/* add to cart/wishlist buttons */}
           <div className="flex space-x-3">
 
-            <div className="bg-white max-w-[80px] py-2.5 px-5 inline-flex items-start
+            <div className="bg-white max-w-20 py-2.5 px-5 inline-flex items-start
               w-full border border-gray-300 rounded-lg relative">
 
               <span 
@@ -597,13 +611,13 @@ function ProductPageComponent() {
             <div className="flex space-x-3">
               <button
                 onClick={handleAddToCart}
-                className="h-full !px-10">Add to Bag
+                className="h-full px-10!">Add to Bag
               </button>
 
               {/* wishlist button */}
               <span 
                 onClick={handleAddToWishlist}
-                className="group sale-icon hover:!scale-none h-full inline-flex items-center px-3" >
+                className="group sale-icon hover:scale-none! h-full inline-flex items-center px-3" >
                 <FaRegHeart className='text-xl smooth group-hover:scale-130' />
               </span>
 
@@ -637,12 +651,12 @@ function ProductPageComponent() {
         {/* attributes */}
         <ul className="w-1/2 flex flex-col space-y-2 divide-y divide-dashed divide-gray-300 mb-5">
           <li className='grid grid-cols-2'>
-            <span className='point-before point-before:!bg-gray-400 point-before:!p-0.75
-              point-before:!me-2 !text-gray-500 !text-sm'>Type Of Packing</span>
+            <span className='point-before point-before:bg-gray-400! point-before:p-0.75!
+              point-before:me-2! text-gray-500! text-sm!'>Type Of Packing</span>
             <span> Bottle</span>
           </li>
           <li className='grid grid-cols-2'>
-            <span className='point-before point-before:!bg-gray-400 point-before:!p-0.75
+            <span className='point-before point-before:bg-gray-400! point-before:p-0.75!
               point-before:!me-2 !text-gray-500 !text-sm'>Color</span>
             <span> Green, Pink, Powder Blue, Purple</span>
           </li>

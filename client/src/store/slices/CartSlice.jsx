@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import toast from 'react-hot-toast';
 import { getCart } from '../../services/FetchDatas';
 import { addToCartAction, emptyCartAction, removeFromCartAction } from '../../services/ApiActions';
 
@@ -55,41 +54,20 @@ const cartSlice = createSlice({
       state.checkoutItems = action.payload
     },
     addToCart: (state, action) => {
-      const { item, type } = action.payload;
-      const existing = state?.items?.find(i => i.id === item.id);
-
-      if(item.quantity > item.stock){
-        toast.error(`Only ${item.stock} in stock!`);
-        return;
-      }
-
-      if(existing){
-
-        if(!type){
-          const existingQty = existing.quantity || 0;
-          const totalQty = existingQty + item.quantity;
-
-          if(totalQty > item.stock){
-            toast.error(`Only ${item.stock} in stock!`);
-            return;
-          }
-
-          existing.quantity += item.quantity || 1;
-        }else{
-          existing.quantity = item.quantity || 1
-        }
+      const updated = action?.payload;
+      const existingItem = state?.items?.some(el => el?._id === updated?._id);
+      if(existingItem){
+        state.items = state?.items?.map(item =>  item?._id === updated?._id ? updated : item);
       }else{
-        state.items.push({...item, quantity: item.quantity || 1})
+        state?.items?.unshift(action?.payload);
       }
     },
     removeFromCart: (state, action) => {
-      state.items = state.items.filter(i => i.id !== action.payload);
+      state.items = state.items.filter(item => item?._id !== action.payload);
     },
     updateQuantity: (state, action) => {
-      const { id, quantity } = action.payload;
-      const item = state.items.find(item =>  item.id === id);
-
-      if(item) item.quantity = quantity;
+      const updated = action?.payload;
+      state.items = state?.items?.map(item =>  item?._id === updated?._id ? updated : item);
     },
     clearCart: (state) => {
       state.items = []

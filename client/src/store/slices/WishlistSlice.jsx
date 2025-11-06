@@ -39,17 +39,19 @@ const wishlistSlice = createSlice({
       state.error = null;
     },
     addToList: (state, action) => {
-      const item = action.payload;
+      state?.list?.unshift(action?.payload);
+      state.error = null;
+      /* const item = action.payload;
       const existing = state?.list?.find(i => i.id === item.id);
       if(existing){
         toast.error("Items already exists in list",{position: 'top-center'})
       }else{
         state.list.push(item)
         toast.success("Item added to Wishlist",{position: 'top-center'})
-      }
+      } */
     },
     removeFromList: (state, action) => {
-      state.list = state.list.filter(item => item.id !== action.payload);
+      state.list = state?.list?.filter(item => item?._id !== action.payload);
     },
     clearWishlist: (state) => {
       state.list = []

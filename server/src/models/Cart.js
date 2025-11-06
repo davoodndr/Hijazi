@@ -10,7 +10,11 @@ const cartItemSchema = new mongoose.Schema({
     default: 1
   },
   variant_id: String,
-  attributes: Object
+  attributes: Object,
+  createdAt: {
+    type: Date,
+    default: new Date()
+  }
 })
 
 const cartSchema = new mongoose.Schema({

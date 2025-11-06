@@ -21,18 +21,8 @@ export const getCart = async(req, res) => {
       
       const variant = product.variants?.find(v => v._id.toString() === item?.variant_id);
       
-      return{
-        id: item?.variant_id || product._id,
-        name:product.name,
-        category: product?.category?.name,
-        sku: variant?.sku || product.sku,
-        price: variant?.price || product.price,
-        stock: variant?.stock || product.stock,
-        quantity: item.quantity,
-        image: variant?.image || product?.images[0],
-        attributes: item.attributes,
-        product_id: item.product_id
-      }
+      return craftCartItem(product, variant, item);
+      
     }))
     
     return responseMessage(res, 200, true, "",{cart});
@@ -61,81 +51,72 @@ export const addToCart = async(req, res) => {
       return responseMessage(res, 404, false, "Product not found");
     }
     
-    let availableStock;
-    let variant;
-    if(variant_id){
-      variant = product.variants.find(v => v._id.toString() === variant_id);
-      if (!variant) {
-        return responseMessage(res, 400, false, "Invalid variant selected");
-      }
-      availableStock = variant.stock;
-    }else{
-      availableStock = product.stock;
-    }
+    const availableStock = calculateAvailableStock(product, variant_id, quantity);
 
     if(availableStock && availableStock < quantity){
       return responseMessage(res, 400, false, `Only ${availableStock} in stock`)
     }
 
     let cart = await Cart.findOne({ user_id });
+    let cartItem = { product_id, quantity, variant_id, attributes };
+    const variant = product?.variants?.find(el => variant_id && el?._id?.toString() === variant_id);
 
     if(!cart){
 
       cart = await Cart.create({
         user_id,
-        items: [{ product_id, quantity, variant_id, attributes }],
+        items: [cartItem],
       });
+
+      const newItem = craftCartItem(product, variant, cart?.items[0])
+
+      return responseMessage(res, 201, true, "Item added to bag", {cartItem: newItem}); 
+    }
+    
+    let existingItem = cart?.items?.find(item => {
+      const sameProduct = item?.product_id?.toString() === product_id;
+      const sameVariant =
+      (item?.variant_id && variant_id && item?.variant_id.toString() === variant_id) ||
+      (!item?.variant_id && !variant_id);
+
+      return sameProduct && sameVariant
+    })
+
+    // handling exisiting cart item
+    if(existingItem){
+
+      let qty = quantity;
+
+      if(type && type === 'increment'){
+        qty = existingItem?.quantity + 1;
+      }else if(type && type === 'decrement'){
+        qty = existingItem?.quantity - 1;
+      }
+
+      if(qty > availableStock){
+        return responseMessage(res, 400, false, `Only ${availableStock} in stock`)
+      }
+
+      existingItem.quantity = qty < 1 ? 1 : qty;
 
     }else{
 
-      const itemIndex = cart.items.findIndex(item => 
-        item.product_id.toString() === product_id && 
-        ((item?.variant_id?.toString() === variant_id) || (!item?.variant_id && !variant_id)) 
-      )
-
-      if(itemIndex > -1){
-
-        // type is for updating with given number
-        // or it will add with exisiting qty
-        if(!type){
-          const currentQty = cart.items[itemIndex].quantity;
-          const totalQty = currentQty + quantity;
-          if(totalQty > availableStock){
-            return responseMessage(res, 400, false, `Only ${availableStock} in stock`)
-          }
-
-          cart.items[itemIndex].quantity = totalQty;
-        }else{
-          cart.items[itemIndex].quantity = quantity;
-        }
-      }else{
-        cart.items.push({ product_id, quantity, variant_id, attributes });
-      }
-
-      cart = await cart.save();
+      cart?.items?.push(cartItem);
+      existingItem = cart.items[cart.items.length - 1];
     }
 
-    const items = await Promise.all(cart?.items?.map(async item => {
-      const product = await Product.findById(item?.product_id)
-        .populate({path: 'category', select: 'name'});
-      
-      const variant = product.variants?.find(v => v._id.toString() === item?.variant_id);
-      
-      return{
-        id: item?.variant_id || product._id,
-        name:product.name,
-        category: product?.category?.name,
-        sku: variant?.sku || product.sku,
-        price: variant?.price || product.price,
-        stock: variant?.stock || product.stock,
-        quantity: item.quantity,
-        image: variant?.image || product?.images[0],
-        attributes: item.attributes,
-        product_id: item.product_id
-      }
-    }))
+    cart = await cart.save();
+
+    cartItem = craftCartItem(product, variant, existingItem)
+
+    let msg = "Cart updated";
+    if(type && type === 'decrement') {
+      msg = "Item removed from bag"
+    }else if(type && type === 'increment'){
+      msg = "Item added to bag"
+    }
     
-    return responseMessage(res, 201, true, "Item added to Bag", {items});
+    return responseMessage(res, 201, true, msg, {cartItem});
     
   } catch (error) {
     console.log('addToCart',error)
@@ -147,7 +128,7 @@ export const addToCart = async(req, res) => {
 export const removeFromCart = async(req, res) => {
 
   const { user_id } = req;
-  const { product_id, variant_id } = req.body
+  const { item_id } = req.body
 
   try {
 
@@ -161,41 +142,11 @@ export const removeFromCart = async(req, res) => {
       return responseMessage(res, 400, false, "Bag is empty")
     }
 
-    const cartItemIndex = cart.items.findIndex(item => 
-      item?.product_id?.toString() === product_id && 
-        ((item?.variant_id?.toString() === variant_id) || (!item?.variant_id && !variant_id))
-    )
+    cart.items = cart?.items?.filter(el => el?._id?.toString() !== item_id);
 
-    if(cartItemIndex > -1){
+    await cart.save();
 
-      cart.items = cart.items.filter((_,i) => i !== cartItemIndex);
-      cart = await cart.save();
-    }
-
-    let items = [];
-    if(cart?.items?.length){
-      items = await Promise.all(cart?.items?.map(async item => {
-        const product = await Product.findById(item?.product_id)
-          .populate({path: 'category', select: 'name'});
-        
-        const variant = product.variants?.find(v => v._id.toString() === item?.variant_id);
-        
-        return{
-          id: item?.variant_id || product._id,
-          name:product.name,
-          category: product?.category?.name,
-          sku: variant?.sku || product.sku,
-          price: variant?.price || product.price,
-          stock: variant?.stock || product.stock,
-          quantity: item.quantity,
-          image: variant?.image || product?.images[0],
-          attributes: item.attributes,
-          product_id: item.product_id
-        }
-      }))
-    }
-
-    return responseMessage(res, 200, true, "Item removed successfully",{items});
+    return responseMessage(res, 200, true, "Item removed successfully",{item_id});
     
   } catch (error) {
     console.log('removeFromCart',error)
@@ -221,4 +172,37 @@ export const emptyCart = async(req, res) => {
     console.log('emptyCart',error)
     return responseMessage(res, 500, false, error.message || error)
   }
+}
+
+const craftCartItem = (product, variant, item) => {
+  return{
+    _id: item?._id,
+    createdAt: item?.createdAt,
+    id: item?.variant_id || product._id,
+    name:product?.name,
+    category: product?.category?.name,
+    sku: variant?.sku || product?.sku,
+    price: variant?.price || product?.price,
+    stock: variant?.stock || product?.stock,
+    quantity: item?.quantity,
+    image: variant?.image || product?.images[0],
+    attributes: item?.attributes,
+    product_id: item?.product_id
+  } 
+}
+
+const calculateAvailableStock = (product, variant_id, quantity)=> {
+  let availableStock;
+  let variant;
+  if(variant_id){
+    variant = product?.variants?.find(v => v._id.toString() === variant_id);
+    if (!variant) {
+      return responseMessage(res, 400, false, "Invalid variant selected");
+    }
+    availableStock = variant?.stock;
+  }else{
+    availableStock = product?.stock;
+  }
+
+  return availableStock || 0
 }
