@@ -102,7 +102,7 @@ function UserOrders() {
   }
 
   return (
-    <div className='flex-grow px-5 py-3 space-y-5'>
+    <div className='grow px-5 py-3 space-y-5'>
       {/* header */}
       <div className='flex items-center space-x-2 mb-4'>
         <h3 className='text-lg'>Your Orders</h3>

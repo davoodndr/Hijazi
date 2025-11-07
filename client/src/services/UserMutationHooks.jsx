@@ -1,21 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { addToCartAction, addToWishlistAction, removeFromCartAction, removeFromWishlistAction } from './ApiActions';
-import { getCart, getWishlist } from './FetchDatas';
+import { addToCartAction, addToWishlistAction, placeOrderAction, removeFromCartAction, removeFromWishlistAction, withdrawFundAction } from './ApiActions';
+import { getAddressList, getCart, getOrdersList, getWallet, getWishlist } from './FetchDatas';
 
 
 //cart
 export const useFetchCartMutation = ()=> {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async()=>{
-      const response = await getCart();
-      return response;
-    },
-    onSuccess: (cartItems) => {
-      queryClient.setQueryData(['cartItems'], cartItems);
-    }
-  })
+  return async()=>{
+    await queryClient.prefetchQuery({
+      queryKey: ['cartItems'],
+      queryFn: getCart
+    })
+    return queryClient.getQueryData(['cartItems']);
+  }
 }
 
 export const useAddToCartMutation = ()=> {
@@ -61,19 +59,23 @@ export const useRemoveFromCartMutation = ()=> {
   })
 }
 
+export const clearCartMutation = ()=> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    
+  })
+}
+
 //wishlist
 export const useFetchWishlistMutation = ()=> {
   const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async()=>{
-      const response = await getWishlist();
-      return response;
-    },
-    onSuccess: (wishlist) => {
-      queryClient.setQueryData(['wishlist'], wishlist);
-    }
-  })
+  return async()=> {
+    await queryClient.prefetchQuery({
+      queryKey: ['wishlist'],
+      queryFn: getWishlist
+    })
+    return queryClient.getQueryData(['wishlist']);
+  }
 }
 
 export const useAddToWishlistMutation = ()=> {
@@ -107,5 +109,81 @@ export const useRemoveFromWishlistMutation = ()=> {
         return old?.filter(item =>  item?._id !== removed_id);
       });
     },
+  })
+}
+
+//addresses
+export const useFetchAddressMutation = ()=> {
+  const queryClient = useQueryClient();
+  return async()=> {
+    await queryClient.prefetchQuery({
+      queryKey: ['addressList'],
+      queryFn: getAddressList,
+    })
+    return queryClient.getQueryData(['addressList']);
+  }
+}
+
+// wallet
+export const useFetchWalletMutation = ()=> {
+  const queryClient = useQueryClient();
+  return async()=> {
+    await queryClient.prefetchQuery({
+      queryKey: ['wallet'],
+      queryFn: getWallet,
+    })
+    return queryClient.getQueryData(['wallet']);
+  }
+}
+
+export const useWithdrawFundMutation = ()=> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async({ data })=>{
+      const response = await withdrawFundAction(data);
+      return response;
+    },
+    onSuccess: (updates) => {
+      queryClient.setQueryData(['wallet'], (old) => {
+        if(!old) return {
+          balance: updates?.balance,
+          transactions: [updates?.transaction]
+        }
+
+        return {
+          ...old,
+          balance: updates?.balance,
+          transactions: [updates?.transaction, ...old?.transactions]
+        }
+      })
+    }
+  })
+}
+
+// orders
+export const useFetchOrdersMutation = ()=> {
+  const queryClient = useQueryClient();
+  return async()=> {
+    await queryClient.prefetchQuery({
+      queryKey: ['orders'],
+      queryFn: getOrdersList,
+    })
+    return queryClient.getQueryData(['orders']);
+  }
+}
+
+export const usePlaceOrderMutation = ()=> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async({ order })=>{
+      const response = await placeOrderAction(order);
+      return response;
+    },
+    onSuccess: (newOrder) => {
+      queryClient.setQueryData(['orders'], (old) => {
+        if(!old) return [newOrder];
+        return [newOrder, ...old];
+      })
+    }
   })
 }

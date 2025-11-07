@@ -1,7 +1,6 @@
 import { createAsyncThunk, createSlice, isRejected } from "@reduxjs/toolkit";
 import { addNewAddressAction, removeAddressAction } from "../../services/ApiActions";
 import { getAddressList } from "../../services/FetchDatas";
-import toast from "react-hot-toast";
 
 export const fetchAddresses = createAsyncThunk(
   'address/fetch',
@@ -34,6 +33,10 @@ const addressSlice = createSlice({
     error: null
   },
   reducers: {
+    setAddressList: (state, action) => {
+      state.addressList = action?.payload;
+      state.error = null;
+    },
     makeAddressDefault: (state, action) => {
       const { updated, old } = action.payload;
       state.addressList = state.addressList.map(el => {
@@ -53,7 +56,7 @@ const addressSlice = createSlice({
       state.error = null;
     }
   },
-  extraReducers: (builder) => {
+  /* extraReducers: (builder) => {
     builder
       .addCase(fetchAddresses.fulfilled, (state, action) => {
         state.addressList = action.payload;
@@ -91,9 +94,9 @@ const addressSlice = createSlice({
       .addMatcher(isRejected(fetchAddresses, newAddress, removeAddress), (state, action) => {
         state.error = action.payload;
       })
-  }
+  } */
 })
 
-export const { makeAddressDefault, clearAddressList, clearError } = addressSlice.actions;
+export const { setAddressList, makeAddressDefault, clearAddressList, clearError } = addressSlice.actions;
 
 export default addressSlice.reducer;

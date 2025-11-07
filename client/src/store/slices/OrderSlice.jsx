@@ -19,7 +19,7 @@ const orderSlice = createSlice({
     setAllOrders: (state, action) => {
       state.ordersList = action?.payload;
     },
-    addToOrders: (state, action) => {
+    addOrder: (state, action) => {
       state.ordersList.unshift(action.payload);
     },
     updateOrder: (state, action) => {
@@ -39,7 +39,7 @@ const orderSlice = createSlice({
       state.ordersList = []
     }
   },
-  extraReducers: (builder) => {
+  /* extraReducers: (builder) => {
     builder
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.ordersList = action.payload;
@@ -48,13 +48,13 @@ const orderSlice = createSlice({
       .addCase(fetchOrders.rejected, (state, action) => {
         state.error = action.payload;
       })
-  }
+  } */
 })
 
 export const getOrder = (state, order_no) => {
   return state.orders.ordersList.find(order => order.order_no === order_no);
 }
 
-export const { setAllOrders, addToOrders, updateOrder, clearOrders } = orderSlice.actions;
+export const { setAllOrders, addOrder, updateOrder, clearOrders } = orderSlice.actions;
 
 export default orderSlice.reducer;

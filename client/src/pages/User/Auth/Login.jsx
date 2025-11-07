@@ -20,7 +20,10 @@ import { setCartItems } from '../../../store/slices/CartSlice';
 import { addToCartAction } from '../../../services/ApiActions';
 import { setWishlist } from '../../../store/slices/WishlistSlice';
 import { useUserLoginMutation } from '../../../services/AuthMutationHooks';
-import { useFetchCartMutation, useFetchWishlistMutation } from '../../../services/UserMutationHooks';
+import { useFetchAddressMutation, useFetchCartMutation, useFetchOrdersMutation, useFetchWalletMutation, useFetchWishlistMutation } from '../../../services/UserMutationHooks';
+import { setAddressList } from '../../../store/slices/AddressSlice';
+import { setWallet } from '../../../store/slices/WalletSlice';
+import { setAllOrders } from '../../../store/slices/OrderSlice';
 
 
 const Login = () => {
@@ -38,6 +41,9 @@ const Login = () => {
   const loginMutation = useUserLoginMutation();
   const cartMutation = useFetchCartMutation();
   const wishlistMutation = useFetchWishlistMutation();
+  const addressListMutation = useFetchAddressMutation();
+  const walletMutation = useFetchWalletMutation();
+  const orderMutation = useFetchOrdersMutation();
 
   const [capturedValue, setCapturedValue] = useState("");
   const [data, setData] = useState({email: '', password: ''});
@@ -81,13 +87,9 @@ const Login = () => {
           }
 
           const userData = response?.data?.user;
-          const cartItems = await cartMutation.mutateAsync();
-          const wishlist = await wishlistMutation.mutateAsync();
-
-
           dispatch(setUser(userData));
-          dispatch(setCartItems(cartItems))
-          dispatch(setWishlist(wishlist))
+
+          await fetchUserDatas();
 
           setData({email: '', password: ''});
           AxiosToast(response, false);
@@ -96,13 +98,33 @@ const Login = () => {
         }
         
       } catch (error) {
-        
         AxiosToast(error)
       }
 
     }else{
       toast.error('Please fill all fields');
     }
+  }
+
+  const fetchUserDatas = async()=> {
+    
+    const [cartItems, wishlist, addressList, orders, wallet] = 
+    (await Promise.allSettled([
+
+      cartMutation(),
+      wishlistMutation(),
+      addressListMutation(),
+      orderMutation(),
+      walletMutation()
+
+    ])).map(res => res?.value)
+
+    
+    dispatch(setCartItems(cartItems));
+    dispatch(setWishlist(wishlist));
+    dispatch(setAddressList(addressList));
+    dispatch(setAllOrders(orders));
+    dispatch(setWallet(wallet));
   }
 
   /* imported hook for google auth */

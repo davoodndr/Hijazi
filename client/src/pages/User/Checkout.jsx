@@ -2,11 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { clearCart, getCartCount, getCartTax, getItemsTotal, setAppliedCoupon } from '../../store/slices/CartSlice';
 import { IoWallet, IoWalletOutline } from "react-icons/io5";
-import ToggleSwitch  from '../../components/ui/ToggleSwitch'
-import { CiDeliveryTruck } from 'react-icons/ci';
 import { GoLocation } from "react-icons/go";
 import { MdEdit } from "react-icons/md";
-import { LuHousePlus } from "react-icons/lu";
 import razorpay from '../../assets/razorpay-icon.svg'
 import { RiCoupon3Fill } from "react-icons/ri";
 import { useNavigate } from 'react-router';
@@ -15,18 +12,18 @@ import Alert from '../../components/ui/Alert'
 import { capitalize } from '../../utils/Utils';
 import toast from 'react-hot-toast';
 import AddressModal from '../../components/user/AddressModal';
-import { fetchAddresses } from '../../store/slices/AddressSlice';
 import { IoMdCall } from "react-icons/io";
-import { addToOrders } from '../../store/slices/OrderSlice';
-import { placeOrderAction, processRazorpayAction, verifyRazorpayAction } from '../../services/ApiActions';
+import { addOrder } from '../../store/slices/OrderSlice';
+import { processRazorpayAction, verifyRazorpayAction } from '../../services/ApiActions';
 import { format } from 'date-fns'
 import clsx from 'clsx';
 import CouponCardMedium from '../../components/ui/CouponCardMedium';
-import { getWalletSync, withdrawFundSync } from '../../store/slices/WalletSlice';
-import { GiCash } from "react-icons/gi";
+import { withdrawFund } from '../../store/slices/WalletSlice';
 import AddFundModal from '../../components/ui/AddFundModal';
-import { FaCirclePlus, FaHandshakeSimple, FaPlus, FaRegHandshake } from 'react-icons/fa6';
+import { FaHandshakeSimple, FaPlus } from 'react-icons/fa6';
 import AxiosToast from '../../utils/AxiosToast';
+import { usePlaceOrderMutation, useWithdrawFundMutation } from '../../services/UserMutationHooks';
+import { useQueryClient } from '@tanstack/react-query';
 
 
 function Checkout() {
@@ -53,11 +50,12 @@ function Checkout() {
   const [isFundModalOpen, setIsFundModalOpen] = useState(false);
   const [addressType, setAddresType] = useState(null);
   const [walletBalance, setWalletBalance] = useState(0);
+  const queryClient = useQueryClient();
+  const placeOrderMutation = usePlaceOrderMutation();
+  const withdrawFundMutation = useWithdrawFundMutation();
 
   useEffect(() => {
-    dispatch(fetchAddresses())
     dispatch(setLoading(false))
-    dispatch(getWalletSync())
   },[]);
 
   useEffect(() => {
@@ -109,7 +107,6 @@ function Checkout() {
     setCartTotal(roundedTotal || 0)
 
   },[offersList, checkoutItems, appliedCartOffer, appliedCoupon]);
-
   // handle select payment method
   const handleMethodChange = (e) => {
     if(e?.target?.type === 'radio'){
@@ -197,15 +194,16 @@ function Checkout() {
         }
 
         const paymentMethod = order?.paymentInfo?.paymentMethod;
+        let response = null;
 
         if(paymentMethod === 'cod'){
 
-          const response = await placeOrderAction(order);
-
-          if(response.success){
-            dispatch(addToOrders(response.order));
-            showAlert(response.order)
-          }
+          response = await placeOrderMutation.mutateAsync(
+            { order },
+            {
+              onError: (err)=> AxiosToast(err)
+            }
+          );
 
         }else if(paymentMethod === 'wallet'){
 
@@ -217,11 +215,19 @@ function Checkout() {
             }
           }
 
-          const paymentResponse = await dispatch(withdrawFundSync(walletData)); 
+          const paymentResponse = await withdrawFundMutation.mutateAsync(
+            { data: walletData },
+            {
+              onError: (err) => AxiosToast(err)
+            }
+          ); 
           
-          if(paymentResponse?.meta?.requestStatus === 'fulfilled'){
+          if(paymentResponse?.data?.success){
 
-            const { transaction } = paymentResponse?.payload;
+            const updates = paymentResponse?.data?.updates;
+            dispatch(withdrawFund(updates))
+            
+            const { transaction } = updates;
 
             order = {
               ...order,
@@ -232,17 +238,18 @@ function Checkout() {
               },
             }
             
-            const response = await placeOrderAction(order);
-            if(response.success){
-              dispatch(addToOrders(response.order));
-              showAlert(response.order)
-            }
+            response = await placeOrderMutation.mutateAsync(
+              { order },
+              {
+                onError: (err)=> AxiosToast(err)
+              }
+            );
 
           }
 
         }else{
 
-          const paymentResponse = await processRazorpayAction(order?.itemsPrice, prefill, `rcpt_${Date.now()}`);
+          const paymentResponse = await processRazorpayAction(order?.totalPrice, prefill, `rcpt_${Date.now()}`);
           const result = await verifyRazorpayAction(paymentResponse);
           order = {
             ...order,
@@ -253,13 +260,22 @@ function Checkout() {
               paidAt: result.paidAt
             },
           }
-          const response = await placeOrderAction(order);
-          if(response.success){
-            dispatch(addToOrders(response.order));
-            showAlert(response.order)
-          }
 
-        }  
+          response = await placeOrderMutation.mutateAsync(
+            { order },
+            {
+              onError: (err)=> AxiosToast(err)
+            }
+          );
+
+        }
+
+        if(response?.data?.success){
+          const newOrder = response?.data?.order
+          dispatch(addOrder(craftOrder(newOrder)));
+          queryClient.removeQueries(['cartItems']);
+          showAlert(newOrder)
+        }
 
       } catch (error) {
         AxiosToast(error)
@@ -270,6 +286,26 @@ function Checkout() {
     
   }
 
+  const craftOrder = (order)=>  {
+    const itemsCount = order?.cartItems?.reduce((count, el) => count += el?.quantity,0)
+    return {
+      _id: order?._id,
+      order_no: order?.order_no,
+      itemsCount,
+      image: order?.cartItems[0]?.image,
+      name: order?.cartItems[0]?.name,
+      totalPrice: order?.totalPrice,
+      cancelledTotal: null,
+      paymentMethod: order?.paymentInfo?.paymentMethod,
+      isPaid: order?.paymentInfo?.isPiad,
+      paymentResult: order?.paymentInfo?.paymentResult,
+      shippingAddress: order?.shippingAddress,
+      billingAddress: order?.billingAddress,
+      status: order?.status,
+      createdAt: order?.createdAt
+    }
+  }
+
   const showAlert = (order) => {
 
     Alert({
@@ -277,13 +313,13 @@ function Checkout() {
       text: 'Thank you for puchasing the product from us. You can view it on the order detail page.',
       icon: 'success',
       customClass: {
-        title: '!text-2xl !text-primary-300',
-        htmlContainer: '!text-gray-400',
-        popup: '!max-w-[430px]',
-        icon: '!size-[5em]',
+        title: 'text-2xl! text-primary-300!',
+        htmlContainer: 'text-gray-400!',
+        popup: 'max-w-[430px]!',
+        icon: 'size-[5em]!',
         confirmButton: 'border border-primary-400',
-        cancelButton: '!bg-white border border-primary-400 !text-primary-400',
-        actions: '!justify-center'
+        cancelButton: 'bg-white! border border-primary-400 text-primary-400!',
+        actions: 'justify-center!'
       },
       allowOutsideClick: false,
       allowEscapeKey: false,
@@ -293,7 +329,7 @@ function Checkout() {
     })
     .then(res => {
       if(res.isConfirmed){
-        navigate(`/my-order/${order.order_no}`,{state: {order}})
+        navigate(`/my-order/${order?.order_no}`,{state: {order}})
       }else{
         navigate('/collections')
       }
@@ -330,11 +366,11 @@ function Checkout() {
   }
 
   return (
-    <section className='flex-grow w-full bg-gray-50 flex flex-col items-center py-15'>
+    <section className='grow w-full bg-gray-50 flex flex-col items-center py-15'>
 
       <div className='flex w-9/10 space-x-10'>
         {/* left side */}
-        <div className="flex flex-col flex-grow space-y-6">
+        <div className="flex flex-col grow space-y-6">
 
           {/* items */}
           <div className='bg-primary-50 rounded-3xl'>
@@ -374,14 +410,14 @@ function Checkout() {
                             (<li
                               key={name}
                               style={{ "--dynamic": val }}
-                              className='point-before point-before:!p-1.5 point-before:!me-0.5 
-                              point-before:!bg-(--dynamic) point-before:!rounded-sm'
+                              className='point-before point-before:p-1.5! point-before:me-0.5! 
+                              point-before:bg-(--dynamic)! point-before:rounded-sm!'
                             ></li>)
                             :
                             (<li key={name}
                               
-                              className={clsx(`not-first:point-before point-before:!bg-gray-500 
-                              point-before:!p-0.5 point-before:!me-2 !text-sm !text-gray-400`,
+                              className={clsx(`not-first:point-before point-before:bg-gray-500! 
+                              point-before:p-0.5! point-before:me-2! text-sm! text-gray-400!`,
                               name === 'size' ? 'uppercase' : 'capitalize'
                             )}
                             >{val}</li>)
@@ -417,14 +453,14 @@ function Checkout() {
                 border-gray-300 rounded-2xl p-4 space-x-5">
                   {couponApplied && (
                     <CouponCardMedium
-                      className='!w-[180px] h-[76px] !min-w-[180px]'
+                      className='w-[180px]! h-[76px] min-w-[180px]!'
                       coupon={couponApplied} />
                     )
                   }
                   {appliedOffers?.length > 0 && 
                     appliedOffers?.map(item => 
                       <div key={item?._id ?? item?.id} 
-                       className='inline-flex p-0.5 relative h-full w-[160px]'
+                       className='inline-flex p-0.5 relative h-full w-40'
                       >
                         <div className="absolute rounded-xl border-4 border-dotted border-amber-300 inset-0"></div>
                         <div 
@@ -521,39 +557,42 @@ function Checkout() {
                   rounded-xl smooth hover:bg-primary-100 hover:px-2'>+ New</span> */}
             </div>
             <ul className='space-y-2' onClick={handleMethodChange}>
+
               <li className='flex items-center justify-between px-4 border border-gray-200 rounded-2xl
                 smooth hover:bg-primary-50 hover:border-primary-300'>
                 <label 
                   htmlFor="razor-pay"
-                  className='!text-sm flex w-full cursor-pointer py-5 !text-gray-500 !font-bold'
+                  className='text-sm! flex w-full cursor-pointer py-5 text-gray-500! font-bold!'
                 >
                   <img src={razorpay} alt="razorpay-logo" className='w-25' />
                 </label>
                 <input type="radio" name="payment-method" id="razor-pay" />
               </li>
+
               <li className='flex items-center justify-between px-4 border border-gray-200 rounded-2xl
                 smooth hover:bg-primary-50 hover:border-primary-300'>
-                <div 
+                <label 
                   htmlFor="cod"
-                  className='!text-base flex w-full items-center space-x-1 cursor-pointer py-5 !text-gray-500 !font-bold'
+                  className='text-base! flex w-full items-center space-x-1 cursor-pointer py-5 text-gray-500! font-bold!'
                 >
                   <span><FaHandshakeSimple className='text-xl text-sky-600' /></span>
                   <span>Cash on delivery</span>
-                </div>
+                </label>
                 <input type="radio" name="payment-method" id="cod" />
               </li>
+
               <li className={clsx(`flex items-center justify-between px-4 border border-gray-200 rounded-2xl
                 smooth hover:bg-primary-50 hover:border-primary-300`,
                 walletBalance < cartTotal && 'disabled-el'
               )}>
-                <div 
+                <label 
                   htmlFor="wallet"
                   className='text-base flex w-full items-center space-x-1 cursor-pointer py-5 text-gray-500 font-bold'
                 >
                   <span><IoWallet className='text-xl text-yellow-500' /></span>
                   <span>Wallet</span>
                   
-                </div>
+                </label>
                 <input type="radio" name="payment-method" id="wallet" />
               </li>
             </ul>
@@ -668,8 +707,8 @@ function Checkout() {
               <div className='border border-gray-200 rounded-lg p-3 flex items-center justify-between'>
                 <div className='inline-flex items-center space-x-2 '>
                   <RiCoupon3Fill className={clsx('text-lg', couponApplied ? 'text-primary-300' : 'text-gray-400/60')} />
-                  <p className={clsx('!leading-normal',
-                    couponApplied ? '!text-primary-400 uppercase' : 'text-gray-400'
+                  <p className={clsx('leading-normal!',
+                    couponApplied ? 'text-primary-400! uppercase' : 'text-gray-400'
                   )}>
                     {couponApplied ? 
                       `${couponApplied?.couponCode} | ${couponApplied?.discountType === 'fixed' ? ' ₹' : ''}${couponApplied?.discountValue}${couponApplied?.discountType !== 'fixed' ? '%' : ''} OFF`
@@ -692,16 +731,16 @@ function Checkout() {
           <div className='flex flex-col p-5 space-y-2'>
             <p className='flex items-center justify-between text-base'>
               <span>Subtotal ({cartCount} {cartCount > 1 ? 'items' : 'item'})</span>
-              <span className='price-before price-before:!font-normal font-bold'>{Number(subTotal).toFixed(2)}</span>
+              <span className='price-before price-before:font-normal! font-bold'>{Number(subTotal).toFixed(2)}</span>
             </p>
             <div className='flex items-center justify-between text-base'>
               <span>Tax (GST)</span>
-              <span className='price-before price-before:!font-normal font-bold'>{Number(cartTax).toFixed(2)}</span>
+              <span className='price-before price-before:font-normal! font-bold'>{Number(cartTax).toFixed(2)}</span>
             </div>
             {discounts > 0 &&
               <div className='flex items-center justify-between text-base'>
                 <span>Discount</span>
-                <p>-<span className='ms-1 price-before price-before:text-red-300 price-before:!font-normal font-bold text-red-400'>
+                <p>-<span className='ms-1 price-before price-before:text-red-300 price-before:font-normal! font-bold text-red-400'>
                   {Number(discounts).toFixed(2)}</span>
                 </p>
               </div>
@@ -709,7 +748,7 @@ function Checkout() {
             {roundOff > 0 &&
               <div className='flex items-center justify-between text-base'>
                 <span>Round off</span>
-                <p>-<span className='ms-1 price-before price-before:text-red-300 price-before:!font-normal font-bold text-red-400'>
+                <p>-<span className='ms-1 price-before price-before:text-red-300 price-before:font-normal! font-bold text-red-400'>
                   {Number(roundOff).toFixed(2)}</span>
                 </p>
               </div>
@@ -718,7 +757,7 @@ function Checkout() {
             {/* total */}
             <h3 className='mt-4 flex items-center justify-between text-gray-400 text-lg'>
               <span>Total</span>
-              <span className='price-before price-before:!font-normal'>{Number(cartTotal).toFixed(2)}</span>
+              <span className='price-before price-before:font-normal!'>{Number(cartTotal).toFixed(2)}</span>
             </h3>
           </div>
 

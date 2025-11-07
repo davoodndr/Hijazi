@@ -15,7 +15,6 @@ const UserMenus = ({isMobile = false}) => {
   const mobileMenuRefs = useRef({});
   const [expandedMenu, setExpandedMenu] = useState(null);
   const [menuLeftVal, setMenuLeftVal] = useState(null);
-  const [shopMenuOpen, setShopMenuOpen] = useState(false);
   const { categoryList } = useSelector(state => state.categories);
   const [categories, setCategories] = useState([]);
 

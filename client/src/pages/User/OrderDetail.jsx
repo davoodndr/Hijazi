@@ -180,7 +180,7 @@ function OrderDetail() {
   const [currentRatingProduct, setCurrentRatingProduct] = useState(null);
 
   return (
-    <section className='flex-grow w-full flex flex-col items-center py-15 bg-primary-25'>
+    <section className='grow w-full flex flex-col items-center py-15 bg-primary-25'>
       <div className='w-9/10 flex flex-col space-y-5'>
 
         {/* header */}
@@ -188,7 +188,7 @@ function OrderDetail() {
 
           {/* left */}
           <div className='inline-flex items-center space-x-3 capitalize w-full'>
-            <h3 className='text-xl !font-extrabold space-x-2'>
+            <h3 className='text-xl font-extrabold! space-x-2'>
               <span className='text-gray-400'>Order</span>
               <span>#{order?.order_no}</span>
             </h3>
@@ -272,8 +272,8 @@ function OrderDetail() {
                   setIsInvoiceModalOpen(true)
                 }
               }}
-              className={clsx('inline-flex items-center !px-5 !space-x-2',
-                order?.status === 'cancelled' && 'pointer-events-none disabled-el !bg-gray-400'
+              className={clsx('inline-flex items-center px-5! space-x-2!',
+                order?.status === 'cancelled' && 'pointer-events-none disabled-el bg-gray-400!'
               )}
             >
               <VscCloudDownload className='text-xl' />
@@ -286,7 +286,7 @@ function OrderDetail() {
         {/* content */}
         <div className="flex space-x-10">
           {/* left */}
-          <div className="flex flex-col flex-grow space-y-5">
+          <div className="flex flex-col grow space-y-5">
             
             {/* items */}
             <ul className='bg-white shade rounded-3xl overflow-hidden divide-y divide-theme-divider'>
@@ -328,14 +328,14 @@ function OrderDetail() {
                                 (<li
                                   key={name}
                                   style={{ "--dynamic": val }}
-                                  className='point-before point-before:!p-1.5 point-before:!me-0.5 
-                                  point-before:!bg-(--dynamic) point-before:!rounded-sm'
+                                  className='point-before point-before:p-1.5! point-before:me-0.5! 
+                                  point-before:bg-(--dynamic)! point-before:rounded-sm!'
                                 ></li>)
                                 :
                                 (<li key={name}
                                   
-                                  className={clsx(`not-first:point-before point-before:!bg-gray-400/80 point-before:!p-0.5 
-                                  point-before:!me-2 !text-sm !text-gray-500`,
+                                  className={clsx(`not-first:point-before point-before:bg-gray-400/80! point-before:p-0.5! 
+                                  point-before:me-2! text-sm! text-gray-500!`,
                                   name === 'size' ? 'uppercase' : 'capitalize'
                                 )}
                                 >{val}</li>)
@@ -493,7 +493,7 @@ function OrderDetail() {
                           <CouponCardMedium
                             key={offer?._id}
                             coupon={offer}
-                            className='!w-[170px] !min-w-[170px]'
+                            className='w-[170px]! min-w-[170px]!'
                           />
                         )
                       }

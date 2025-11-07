@@ -761,7 +761,7 @@ export const placeOrderAction = async(order) => {
       data: { ...order }
     })
 
-    return response.data
+    return response;
 
   } catch (error) {
 
@@ -954,7 +954,7 @@ export const withdrawFundAction = async(data) => {
       data
     })
 
-    return response?.data?.updates;
+    return response;
 
   } catch (error) {
     console.log(error)

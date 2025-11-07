@@ -7,15 +7,18 @@ import { Suspense } from 'react'
 import LoadingFallOff from '../../components/ui/LoadingFallOff'
 import { useDispatch, useSelector } from 'react-redux'
 import { clearCart, setCartItems } from '../../store/slices/CartSlice'
-import { setWishlist } from '../../store/slices/WishlistSlice'
+import { clearWishlist, setWishlist } from '../../store/slices/WishlistSlice'
 import { setAllOffers } from '../../store/slices/OfferSlice'
 import { setUser } from '../../store/slices/UsersSlice'
-import { setAllProducts } from '../../store/slices/ProductSlices'
+import { clearReviews, setAllProducts } from '../../store/slices/ProductSlices'
 import { setAllBrands } from '../../store/slices/BrandSlice'
 import { useQueryClient } from '@tanstack/react-query'
-import { getBrands, getCart, getCategories, getOffers, getProductList, getWishlist } from '../../services/FetchDatas'
+import { getAddressList, getBrands, getCart, getCategories, getOffers, getOrdersList, getProductList, getWallet, getWishlist } from '../../services/FetchDatas'
 import { setAllCategories } from '../../store/slices/CategorySlices'
 import { updateUserRole } from '../../services/ApiActions'
+import { clearOrders, setAllOrders } from '../../store/slices/OrderSlice'
+import { clearAddressList, setAddressList } from '../../store/slices/AddressSlice'
+import { clearWallet, setWallet } from '../../store/slices/WalletSlice'
 
 const Register = React.lazy(() => import("../../pages/User/Auth/Register"))
 const Login = React.lazy(() => import("../../pages/User/Auth/Login"))
@@ -53,7 +56,18 @@ const UserRouter = () => {
 
     const fetchData = async() => {
       
-      setCurrentUser(queryClient, dispatch);
+      const currentUser = await setCurrentUser(queryClient, dispatch)
+
+      if(!currentUser?.error){
+
+        const [cartItems, wishlist, addressList, orders, wallet] = await getUserDataQueryResults(queryClient);
+
+        dispatch(setCartItems(cartItems))
+        dispatch(setWishlist(wishlist))
+        dispatch(setAddressList(addressList))
+        dispatch(setAllOrders(orders))
+        dispatch(setWallet(wallet))
+      }
       
       const [categories, products, offers, brands] = await getDataQueryResults(queryClient);
       
@@ -120,16 +134,20 @@ const UserRouter = () => {
   )
 }
 
-const getUserQueryResults = async(queryClient) => {
+const getUserQueryResult = async(queryClient) => {
 
-  return (await Promise.allSettled([
-
-    queryClient.fetchQuery({
+  return await queryClient.fetchQuery({
       queryKey: ['user'],
       queryFn: () => updateUserRole('user'),
     })
     .then(() => queryClient.getQueryData(['user']))
-    .catch(error => ({error: error.message || 'Failed to fetch user'})),
+    .catch(error => ({error: error?.message || 'Failed to fetch user'}))
+  
+}
+
+const getUserDataQueryResults = async(queryClient) => {
+
+  return (await Promise.allSettled([
 
     queryClient.prefetchQuery({
       queryKey: ['cartItems'],
@@ -140,23 +158,42 @@ const getUserQueryResults = async(queryClient) => {
       queryKey: ['wishlist'],
       queryFn: getWishlist,
     }).then(() => queryClient.getQueryData(['wishlist'])),
-    
 
+    queryClient.prefetchQuery({
+      queryKey: ['addressList'],
+      queryFn: getAddressList,
+    }).then(() => queryClient.getQueryData(['addressList'])),
+
+    queryClient.prefetchQuery({
+      queryKey: ['orders'],
+      queryFn: getOrdersList,
+    }).then(() => queryClient.getQueryData(['orders'])),
+
+    queryClient.prefetchQuery({
+      queryKey: ['wallet'],
+      queryFn: getWallet,
+    }).then(() => queryClient.getQueryData(['wallet'])),
+    
   ])).map(res => res?.value)
 }
 
 const setCurrentUser = async(queryClient, dispatch) => {
 
-  const [user, cartItems, wishlist] = await getUserQueryResults(queryClient);
+  const user = await getUserQueryResult(queryClient);
 
   if(user?.error) {
     localStorage.removeItem('cart');
     dispatch(clearCart())
+    dispatch(clearWishlist())
+    dispatch(clearOrders())
+    dispatch(clearReviews())
+    dispatch(clearAddressList())
+    dispatch(clearWallet())
   }else {
     dispatch(setUser(user))
-    dispatch(setCartItems(cartItems))
-    dispatch(setWishlist(wishlist))
   }
+
+  return user
 }
 
 const getDataQueryResults = async(queryClient) => {

@@ -333,7 +333,7 @@ export const getWishlist = async() => {
       ...ApiBucket.getWishlist,
     })
 
-    return response.data.wishlist;
+    return response?.data?.wishlist;
 
   } catch (error) {
     //console.log(error.response.data)

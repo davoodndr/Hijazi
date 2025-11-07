@@ -34,8 +34,26 @@ const walletSlice = createSlice({
     transactions: [],
     error: null
   },
-  reducers: {},
-  extraReducers: (builder) => {
+  reducers: {
+    setWallet: (state, action) => {
+      const { balance, transactions } = action?.payload;
+      state.balance = balance;
+      state.transactions = transactions?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      state.error = null;
+    },
+    withdrawFund: (state, action)=> {
+      const { balance, transaction } = action.payload;
+      state.balance = balance;
+      state?.transactions.unshift(transaction)
+      state.error = null;
+    },
+    clearWallet: (state) => {
+      state.balance = 0;
+      state.transactions = [];
+      state.error= null
+    }
+  },
+  /* extraReducers: (builder) => {
     builder
       .addCase(getWalletSync.fulfilled, (state, action) => {
         const { balance, transactions } = action.payload;
@@ -55,8 +73,10 @@ const walletSlice = createSlice({
       .addMatcher(isRejected(addFundSync, withdrawFundSync), (state, action) => {
         state.error = action.payload;
       })
-  }
+  } */
 
 })
+
+export const { setWallet, withdrawFund, clearWallet } = walletSlice.actions
 
 export default walletSlice.reducer
