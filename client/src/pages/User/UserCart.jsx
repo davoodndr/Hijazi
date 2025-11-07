@@ -46,6 +46,9 @@ function UserCart(){
   const addToCartMutation = useAddToCartMutation();
   const removeFromCartMutation = useRemoveFromCartMutation();
 
+  useEffect(()=> {
+    dispatch(setLoading(false))
+  },[])
 
   // initial
   const handleQuantityUpdate = async(item, type) => {

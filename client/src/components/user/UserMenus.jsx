@@ -4,6 +4,8 @@ import menuBanner from "../../assets/menu-banner.jpg";
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router'
 import { setActiveFilter } from '../../store/slices/ProductSlices'
+import DropdownDiv from '../ui/DropdownDiv';
+import clsx from 'clsx';
 
 const UserMenus = ({isMobile = false}) => {
 
@@ -13,6 +15,7 @@ const UserMenus = ({isMobile = false}) => {
   const mobileMenuRefs = useRef({});
   const [expandedMenu, setExpandedMenu] = useState(null);
   const [menuLeftVal, setMenuLeftVal] = useState(null);
+  const [shopMenuOpen, setShopMenuOpen] = useState(false);
   const { categoryList } = useSelector(state => state.categories);
   const [categories, setCategories] = useState([]);
 
@@ -52,6 +55,40 @@ const UserMenus = ({isMobile = false}) => {
     {label: 'about', href: ''},
     {label: 'shop', href: '',
       submenu: categories /* [
+        {
+          id: 'clothing',
+          label: 'clothing',
+          href: '',
+          items: [
+            'Men Formals', 'Men Casuals',
+            'Woman Formals', 'Woman Casuals'
+          ]
+        },
+        {
+          id: 'foot wears',
+          label: 'foot wears',
+          href: '',
+          items: [
+            'slips','shoes','lightweight','washable'
+          ]
+        },
+        {
+          id: 'clothing',
+          label: 'clothing',
+          href: '',
+          items: [
+            'Men Formals', 'Men Casuals',
+            'Woman Formals', 'Woman Casuals'
+          ]
+        },
+        {
+          id: 'foot wears',
+          label: 'foot wears',
+          href: '',
+          items: [
+            'slips','shoes','lightweight','washable'
+          ]
+        },
         {
           id: 'clothing',
           label: 'clothing',
@@ -173,60 +210,64 @@ const UserMenus = ({isMobile = false}) => {
                   <div className="menu-indicator w-full h-[3px] bg-primary-300"></div>
 
                   {menu?.submenu && (
-                    <ul
+                    <DropdownDiv
                       ref={el => (menuRefs.current[menu?.label] = el)}
-                      style={{ 
-                        '--trans-x': `${menuLeftVal}px` 
+                      style={{
+                        transform: `translateX(${menuLeftVal}px)`
                       }}
-                      className={`hidden-div absolute top-[calc(100%+3px)] translate-x-(--trans-x) bg-white smooth 
-                      cursor-default inline-grid grid-flow-col auto-cols-max font-normal text-sm
-                      shadow-lg border border-primary-300 rounded-md overflow-hidden`}
-                    >
-
-                      {menu?.submenu?.map(sub => 
-                        <li 
-                          key={sub?.label} 
-                          className='flex flex-col min-w-25 w-auto py-2'
-                        >
-                          <span
-                            onClick={()=> handleCategorySelect({id: sub?.id, name: sub?.label})} 
-                            className='whitespace-nowrap capitalize font-semibold px-5 py-1 
-                            cursor-pointer smooth hover:text-primary-400'
-                          >{sub?.label}</span>
-
-                          {sub?.items && (
-                            <ul>
-                              {sub?.items?.map(item => (
-                                <li 
-                                  key={item?.id}
-                                  onClick={()=> handleCategorySelect({id: item?.id, name: item?.name})} 
-                                  className='truncate capitalize py-1 px-5 hover:text-black
-                                  hover:bg-primary-25 cursor-pointer transition-colors duration-300'>
-                                  {item?.name}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-
-                        </li>
+                      className={clsx(`top-[calc(100%+3px)] border border-gray-200 bg-white shadow-lg
+                        w-auto min-w-70 rounded-sm cursor-default`,
                       )}
+                    >
+                      <ul
+                        className='cursor-default inline-grid grid-flow-col auto-cols-max font-normal text-sm'
+                      >
 
-                      {menu.label === 'shop' && <li className='w-75 m-1.5 rounded-sm overflow-hidden relative'>
-                        <img src={menuBanner} alt="menu-banner" />
-                        <div className='absolute left-6 top-1/2 -translate-y-1/2 h-full flex flex-col'>
-                          <span className='text-lg mt-6'>HOT DEALS</span>
-                          <span className='text-3xl mt-4'>Don't Miss</span>
-                          <span className='text-2xl font-bold'>Trending</span>
-                          <button className='px-5! w-fit rounded-3xl! mt-7'>Shop Now</button>
-                        </div>
-                        <div className='absolute right-8 top-9 inline-flex flex-col items-center bg-amber-400 
-                          leading-5 rounded-full p-3 text-xl text-black -rotate-12'>
-                          <span>35%</span>
-                          <span>Off</span>
-                        </div>
-                      </li>}
+                        {menu?.submenu?.map(sub => 
+                          <li 
+                            key={sub?.label} 
+                            className='flex flex-col min-w-25 w-auto py-2'
+                          >
+                            <span
+                              onClick={()=> handleCategorySelect({id: sub?.id, name: sub?.label})} 
+                              className='whitespace-nowrap capitalize font-semibold px-5 py-1 
+                              cursor-pointer smooth hover:text-primary-400'
+                            >{sub?.label}</span>
 
-                    </ul>
+                            {sub?.items && (
+                              <ul>
+                                {sub?.items?.map(item => (
+                                  <li 
+                                    key={item?.id}
+                                    onClick={()=> handleCategorySelect({id: item?.id, name: item?.name})} 
+                                    className='truncate capitalize py-1 px-5 hover:text-black
+                                    hover:bg-primary-25 cursor-pointer transition-colors duration-300'>
+                                    {item?.name}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+
+                          </li>
+                        )}
+
+                        {menu.label === 'shop' && <li className='w-75 m-1.5 rounded-sm overflow-hidden relative'>
+                          <img src={menuBanner} alt="menu-banner" />
+                          <div className='absolute left-6 top-1/2 -translate-y-1/2 h-full flex flex-col'>
+                            <span className='text-lg mt-6'>HOT DEALS</span>
+                            <span className='text-3xl mt-4'>Don't Miss</span>
+                            <span className='text-2xl font-bold'>Trending</span>
+                            <button className='px-5! w-fit rounded-3xl! mt-7'>Shop Now</button>
+                          </div>
+                          <div className='absolute right-8 top-9 inline-flex flex-col items-center bg-amber-400 
+                            leading-5 rounded-full p-3 text-xl text-black -rotate-12'>
+                            <span>35%</span>
+                            <span>Off</span>
+                          </div>
+                        </li>}
+
+                      </ul>
+                    </DropdownDiv>
                   )}
 
                 </li>

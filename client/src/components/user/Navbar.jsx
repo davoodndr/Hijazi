@@ -16,6 +16,7 @@ import CartDropdown from './CartDropdown';
 import clsx from 'clsx';
 import { getWishlistCount } from '../../store/slices/WishlistSlice';
 import toast from 'react-hot-toast';
+import DropdownDiv from '../ui/DropdownDiv';
 
 function NavbarComponent(){
 
@@ -25,6 +26,8 @@ function NavbarComponent(){
   let wishlistCount = useSelector(getWishlistCount);
   const [currentUser, setCurrentUser] = useState(null);
   const [isExpaned, setIsExpanded] = useState(false);
+  const [cartDropdownOpen, setCartDropdownOpen] = useState(false);
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -68,9 +71,10 @@ function NavbarComponent(){
             {/* search-bar */}
             <UserSearchBar />
 
-            {/* wishlist & cart */}
+            {/* wishlist & cart & account */}
             <ul className="flex flex-row items-center justify-end w-full md:w-4/10 md:max-w-40">
 
+              {/* wishlist */}
               <li
                 onClick={() => {
                   if(wishlistCount > 0) {
@@ -92,9 +96,18 @@ function NavbarComponent(){
                 <BsHeart className='md:mb-1 text-2xl' />
                 <span className='hidden md:inline-flex text-xs font-semibold'>Wishlist</span>
               </li>
-
-              <li className='inline-flex h-full flex-col items-center justify-center w-11 md:w-3/9 
-                relative group'>
+              
+              {/* cart */}
+              <li
+                onMouseEnter={()=> {
+                  setCartDropdownOpen(true)
+                }}
+                onMouseLeave={()=> {
+                  setCartDropdownOpen(false)
+                }}
+                className='inline-flex h-full flex-col items-center justify-center w-11 md:w-3/9 
+                relative group'
+              >
 
                 {cartCount > 0 && 
                   <div className='w-fit px-1.5 h-4.5 bg-red-500 absolute left-[calc(100%-22px)] top-0.5 rounded-full
@@ -108,6 +121,7 @@ function NavbarComponent(){
                   onClick={() => {
                     if(cartCount > 0) {
                       navigate('/cart')
+                      dispatch(setLoading(true))
                     }else{
                       toast.error("Bag is empty")
                     }
@@ -118,38 +132,63 @@ function NavbarComponent(){
                 
                   <div className='hidden md:inline-flex flex-col items-center text-xs font-semibold'>
                     <span>Bag</span>
-                    <div className={clsx(
-                      'menu-indicator h-[3px] w-full bg-primary-300 z-10',
-                      cartCount > 0 && !location.pathname.match('cart') &&
-                       'group-hover:visible! group-hover:opacity-100! group-hover:transform! translate-y-0'
+                    {/* indicator */}
+                    <div className={clsx('hidden-div absolute -bottom-[3px] h-[3px] w-full bg-primary-300 z-10',
+                      (cartCount > 0 && !location.pathname.match('cart') && cartDropdownOpen) ? 'show' : ''
                     )}></div>
                   </div>
                 </div>
                 
                 {/* cart dropdown */}
-                {cartCount > 0 && !location.pathname.match('cart') &&
-                  <CartDropdown 
-                    className='group-hover:visible! group-hover:opacity-100! group-hover:transform! translate-y-0'
-                  />
-                }
+                {cartCount > 0 && !location.pathname.match('cart') && (
+                  <DropdownDiv
+                    className={clsx(`top-full -right-25 border border-gray-200 bg-white shadow-lg md:invisible
+                      rounded-sm`,
+                      cartDropdownOpen ? 'show' : ''
+                    )}
+                  >
+                    <CartDropdown onClose={() => setCartDropdownOpen(false)} />
+                  </DropdownDiv>
+                )}
                 
               </li>
 
-              <li className='account-nav h-full hidden md:inline-flex flex-col items-center justify-center w-13 md:w-3/9 relative cursor-pointer'>
+              {/* account */}
+              <li
+                onMouseEnter={()=> {
+                  setAccountDropdownOpen(true)
+                }}
+                onMouseLeave={()=> {
+                  setAccountDropdownOpen(false)
+                }}
+                className='h-full hidden md:inline-flex flex-col items-center justify-center w-13 md:w-3/9 relative cursor-pointer'
+              >
                 <BiUser  className='md:mb-1 text-2xl'/>
                 <div className='hidden md:inline-flex flex-col items-center text-xs font-semibold'>
                   <span>Account</span>
-                  <div className='menu-indicator h-[3px] w-full bg-primary-300 z-10'></div>
+                  <div className={clsx('hidden-div absolute -bottom-[3px] h-[3px] w-full bg-primary-300 z-10',
+                    accountDropdownOpen ? 'show' : ''
+                  )}></div>
                 </div>
                 
                 {/* account dropdown menu */}
-                <AccountDropDown user={currentUser} />
+                <DropdownDiv
+                  className={clsx(`top-full border border-gray-200 bg-white shadow-lg md:invisible
+                    -right-50 -translate-x-5/10 w-auto min-w-70 rounded-sm cursor-default`,
+                    accountDropdownOpen ? 'show' : ''
+                  )}
+                >
+                  <AccountDropDown user={currentUser} onClose={() => setAccountDropdownOpen(false)} />
+                </DropdownDiv>
               </li>
 
               {/* menu icon */}
-              <li onClick={() => setIsExpanded(true)} className='inline-flex md:hidden items-center justify-center 
+              <li 
+                onClick={() => setIsExpanded(true)} 
+                className='inline-flex md:hidden items-center justify-center 
                 cursor-pointer w-fit ms-3 border border-neutral-300 p-1.5 rounded-lg transition-all
-                hover:bg-primary-50 hover:border-primary-300'>
+                hover:bg-primary-50 hover:border-primary-300'
+              >
                 <RiMenu3Fill size={25} />
               </li>
             </ul>
