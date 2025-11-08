@@ -31,7 +31,7 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
-  const redirect = new URLSearchParams(location.search).get('redirect' || '/')
+  const redirect = new URLSearchParams(location?.search).get('redirect' || '/')
 
   const [passwordShowing, setPasswordShowing] = useState(false);
   const [isForgotPassOpen, setForgotPassOpen] = useState(false);
@@ -93,7 +93,7 @@ const Login = () => {
 
           setData({email: '', password: ''});
           AxiosToast(response, false);
-          navigate(redirect);
+          navigate(redirect || '/');
 
         }
         

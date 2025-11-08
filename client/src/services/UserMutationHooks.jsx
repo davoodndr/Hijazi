@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { addToCartAction, addToWishlistAction, placeOrderAction, removeFromCartAction, removeFromWishlistAction, withdrawFundAction } from './ApiActions';
+import { addFundAction, addToCartAction, addToWishlistAction, placeOrderAction, removeFromCartAction, removeFromWishlistAction, withdrawFundAction } from './ApiActions';
 import { getAddressList, getCart, getOrdersList, getWallet, getWishlist } from './FetchDatas';
 
 
@@ -59,12 +59,6 @@ export const useRemoveFromCartMutation = ()=> {
   })
 }
 
-export const clearCartMutation = ()=> {
-  const queryClient = useQueryClient();
-  return useMutation({
-    
-  })
-}
 
 //wishlist
 export const useFetchWishlistMutation = ()=> {
@@ -134,6 +128,30 @@ export const useFetchWalletMutation = ()=> {
     })
     return queryClient.getQueryData(['wallet']);
   }
+}
+
+export const useAddFundMutation = ()=> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async({ data })=>{
+      const response = await addFundAction(data);
+      return response;
+    },
+    onSuccess: (updates) => {
+      queryClient.setQueryData(['wallet'], (old) => {
+        if(!old) return {
+          balance: updates?.balance,
+          transactions: [updates?.transaction]
+        }
+
+        return {
+          ...old,
+          balance: updates?.balance,
+          transactions: [updates?.transaction, ...old?.transactions]
+        }
+      })
+    }
+  })
 }
 
 export const useWithdrawFundMutation = ()=> {

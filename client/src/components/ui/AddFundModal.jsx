@@ -6,9 +6,10 @@ import { ClipLoader } from 'react-spinners';
 import { GiWallet } from "react-icons/gi";
 import toast from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
-import { addFundSync } from '../../store/slices/WalletSlice';
+import { addFund, addFundSync } from '../../store/slices/WalletSlice';
 import { processRazorpayAction, verifyRazorpayAction } from '../../services/ApiActions';
 import AxiosToast from '../../utils/AxiosToast';
+import { useAddFundMutation } from '../../services/UserMutationHooks';
 
 function AddFundModalComponent({isOpen, autoFill, onSubmit, onClose}) {
 
@@ -17,6 +18,7 @@ function AddFundModalComponent({isOpen, autoFill, onSubmit, onClose}) {
   const [isLoading, setIsLoading] = useState(false);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
+  const addFundMutation = useAddFundMutation();
 
   useEffect(() => {
     if(autoFill) {
@@ -62,8 +64,19 @@ function AddFundModalComponent({isOpen, autoFill, onSubmit, onClose}) {
               }
             }
           }
+        
+        const response = await addFundMutation.mutateAsync(
+          { data },
+          {
+            onError: (err) => AxiosToast(err)
+          }
+        );
 
-        await dispatch(addFundSync(data))
+        if(response?.data?.success){
+          const updates = response?.data?.updates
+          dispatch(addFund(updates))
+        }
+        
         setAmount("");
         setDescription("")
         
@@ -98,7 +111,7 @@ function AddFundModalComponent({isOpen, autoFill, onSubmit, onClose}) {
             <div className='p-2 border border-primary-300 rounded-xl bg-primary-50'>
               <GiWallet className='text-primary-500' size={20} />
             </div>
-            <h1 className='text-lg !text-primary-400'>How much do you wish to add?</h1>
+            <h1 className='text-lg text-primary-400!'>How much do you wish to add?</h1>
           </div>
 
           <div>
@@ -122,7 +135,7 @@ function AddFundModalComponent({isOpen, autoFill, onSubmit, onClose}) {
                 value={description ?? ""}
                 onChange={(e) => {
                   if(e.target.value){
-                    setDescription(e.target.value.trim())
+                    setDescription(e.target.value)
                   }
                 }}
                 type="text"
@@ -137,7 +150,7 @@ function AddFundModalComponent({isOpen, autoFill, onSubmit, onClose}) {
             <button
               onClick={handleclose}
               className={`px-4! rounded-3xl! inline-flex items-center
-              transition-all duration-300 !text-gray-500 hover:!text-white !bg-gray-300 hover:!bg-gray-400`}>
+              transition-all duration-300 text-gray-500! hover:text-white! bg-gray-300! hover:bg-gray-400!`}>
 
               <span>Close</span>
             </button>
@@ -148,7 +161,7 @@ function AddFundModalComponent({isOpen, autoFill, onSubmit, onClose}) {
               text='Add now'
               loadingText='Adding . . . . .'
               icon={<ClipLoader color="white" size={23} />}
-              className={`px-4! rounded-3xl! inline-flex items-center smooth !bg-primary-400`}
+              className={`px-4! rounded-3xl! inline-flex items-center smooth bg-primary-400!`}
             />
           </div>
         </div>

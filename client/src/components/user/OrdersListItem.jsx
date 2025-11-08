@@ -18,7 +18,7 @@ function OrdersListItemComponent({order}) {
   const payment = order?.paymentMethod === 'cod' ? 'cash on delivery' : order?.paymentMethod;
   const cancelled = cancelledStatuses.includes(order?.status);
   const [isModalOpen, setIsModalOpen] = useState(false);
-console.log(order)
+
   return (
     <div
       key={order?._id}

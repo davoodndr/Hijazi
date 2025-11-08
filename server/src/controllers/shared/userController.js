@@ -21,7 +21,7 @@ export const updateUserRole = async(req, res) => {
       {activeRole: role},
       {new: true}
     )
-    .select("username fullname activeRole avatar email roles default_address")
+    .select("username fullname activeRole avatar email mobile roles default_address")
     .populate({
       path: "default_address",
       select: "-user_id -updatedAt -createdAt -__v"

@@ -41,6 +41,12 @@ const walletSlice = createSlice({
       state.transactions = transactions?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       state.error = null;
     },
+    addFund: (state, action)=> {
+      const { balance, transaction } = action.payload;
+      state.balance = balance;
+      state?.transactions.unshift(transaction)
+      state.error = null;
+    },
     withdrawFund: (state, action)=> {
       const { balance, transaction } = action.payload;
       state.balance = balance;
@@ -77,6 +83,6 @@ const walletSlice = createSlice({
 
 })
 
-export const { setWallet, withdrawFund, clearWallet } = walletSlice.actions
+export const { setWallet, addFund, withdrawFund, clearWallet } = walletSlice.actions
 
 export default walletSlice.reducer

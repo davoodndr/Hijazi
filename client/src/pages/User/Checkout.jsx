@@ -142,7 +142,7 @@ function Checkout() {
       toast.error(`Please ${type} ${emptyField}!`,{position: 'top-center'});
     }else{
 
-      const cartItems = checkoutItems.map(item => {
+      const cartItems = checkoutItems?.map(item => {
         let off = item?.appliedOffer;
         if(off){
           off = {
@@ -390,7 +390,7 @@ function Checkout() {
             <ul className='bg-white p-6 space-y-5 shadow-lg rounded-3xl'>
               {/* item */}
               {items?.length ? items?.map((item, index) => {
-                const attributes = item?.attributes ? Object.entries(item.attributes) : [];
+                const attributes = item?.attributes ? Object.entries(item?.attributes) : [];
                 const itemTotal = item.quantity * item.price;
                 
                 return (

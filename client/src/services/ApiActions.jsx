@@ -611,7 +611,7 @@ export const addNewAddressAction = async(data) => {
       data
     })
 
-    return response.data
+    return response
 
   } catch (error) {
 
@@ -936,7 +936,7 @@ export const addFundAction = async(data) => {
       data
     })
 
-    return response?.data?.updates;
+    return response;
 
   } catch (error) {
     console.log(error)
