@@ -87,6 +87,7 @@ const Login = () => {
           }
 
           const userData = response?.data?.user;
+          console.log(userData)
           dispatch(setUser(userData));
 
           await fetchUserDatas();

@@ -24,6 +24,7 @@ import { FaHandshakeSimple, FaPlus } from 'react-icons/fa6';
 import AxiosToast from '../../utils/AxiosToast';
 import { usePlaceOrderMutation, useWithdrawFundMutation } from '../../services/UserMutationHooks';
 import { useQueryClient } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'motion/react'
 
 
 function Checkout() {
@@ -599,7 +600,12 @@ function Checkout() {
           </div>
 
           {/* addresses */}
-          <div className='flex flex-col p-5 space-y-4 border-b border-gray-200'>
+          <motion.div 
+            key='address-container'
+            layout
+            transition={{ layout: { duration: 0.3, ease: "easeInOut" } }}
+            className='flex flex-col p-5 space-y-4 border-b border-gray-200'
+          >
             {/* billing address */}
             <div>
               <div className='flex items-center justify-between'>
@@ -607,6 +613,8 @@ function Checkout() {
                   <GoLocation className='me-2 text-xl'/>
                   Billing Address
                 </h3>
+
+                {/* add button */}
                 {data?.bill_address ? 
                   (<span 
                     onClick={() => {
@@ -646,11 +654,31 @@ function Checkout() {
 
             {/* shipping address */}
             <div>
-              <div className='flex items-center justify-between'>
+              <div className='flex items-start justify-between'>
                 <h3 className='mb-2 flex items-center'>
                   <GoLocation className='me-2 text-xl'/>
-                  Shipping Address
+                  <span>Shipping Address</span>
+                  {data?.bill_address?._id && (
+                    <div className='inline-flex items-center space-x-1 ms-3'>
+                      <input 
+                        type="checkbox" 
+                        id="same-address"
+                        checked={data?.bill_address?._id === data?.ship_address?._id}
+                        onChange={(e)=> {
+                          if(e.target.checked){
+                            setData(prev => ({ ...prev, ship_address: data?.bill_address }))
+                          }else{
+                            setData(prev => ({ ...prev, ship_address: null }))
+                          }
+                        }}
+                      />
+                      <label htmlFor="same-address" className='cursor-pointer font-normal!'>Same</label>
+                    </div>
+                  )}
                 </h3>
+                
+
+                {/* add button */}
                 {data?.ship_address ? 
                   (<span 
                     onClick={() => {
@@ -671,21 +699,42 @@ function Checkout() {
                     rounded-xl smooth hover:bg-primary-100 hover:px-2'>+ Add</span>)
                 }
               </div>
-              {data?.ship_address ? 
-                (<p className='capitalize text-sm text-gray-500 ms-7 flex flex-col space-y-1'>
-                  <span>
-                    {Object.keys(data.ship_address)
-                    .filter(key => key !== '_id' && key !== 'is_default' && key !== 'mobile')
-                    .map(key => data.ship_address[key]).join(', ')}
-                  </span>
-                  <span className='inline-flex items-center'>
-                    <IoMdCall className='text-lg me-1' />
-                    {data.ship_address['mobile']}
-                  </span>
-                </p>)
-                :
-                (<p className='text-sm text-gray-300 ms-7'>Not addded</p>)
-              }
+              <AnimatePresence initial={false} mode="wait">
+                {data?.ship_address ? 
+                  (<motion.div
+                    layout
+                    key="ship-address"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    style={{ originY: 0 }}
+                    className='origin-top'
+                  >
+                    <div className='capitalize text-sm text-gray-500 ms-7 flex flex-col space-y-1'>
+                      <span>
+                        {Object.keys(data.ship_address)
+                        .filter(key => key !== '_id' && key !== 'is_default' && key !== 'mobile')
+                        .map(key => data.ship_address[key]).join(', ')}
+                      </span>
+                      <span className='inline-flex items-center'>
+                        <IoMdCall className='text-lg me-1' />
+                        {data.ship_address['mobile']}
+                      </span>
+                    </div>
+                  </motion.div>)
+                  :
+                  (<motion.div
+                    key="no-ship-address"
+                    layout
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className='text-sm text-gray-300 ms-7'
+                  >Not addded</motion.div>)
+                }
+              </AnimatePresence>
             </div>
 
             <AddressModal
@@ -698,7 +747,7 @@ function Checkout() {
               onChange={handleAddressSelect}
             />
 
-          </div>
+          </motion.div>
 
           {/* applied coupon */}
           <div className='flex flex-col p-5 space-y-4 border-b border-gray-200'>

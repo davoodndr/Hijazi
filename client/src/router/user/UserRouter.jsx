@@ -137,11 +137,11 @@ const UserRouter = () => {
 const getUserQueryResult = async(queryClient) => {
 
   return await queryClient.fetchQuery({
-      queryKey: ['user'],
-      queryFn: () => updateUserRole('user'),
-    })
-    .then(() => queryClient.getQueryData(['user']))
-    .catch(error => ({error: error?.message || 'Failed to fetch user'}))
+    queryKey: ['user'],
+    queryFn: () => updateUserRole('user'),
+  })
+  .then(() => queryClient.getQueryData(['user']))
+  .catch(error => ({error: error?.message || 'Failed to fetch user'}))
   
 }
 

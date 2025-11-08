@@ -54,29 +54,12 @@ export const userLogoutAction = async() => {
   }
 }
 
-export const addUserAction = async(data) => {
+export const updateUserDetailAction = async(data) => {
 
   try {
 
     const response = await Axios({
-      ...ApiBucket.addUser,
-      data
-    })
-
-    return response;
-    
-  } catch (error) {
-    throw new Error(error?.response?.data?.message || error?.message)
-  }
-
-}
-
-export const updateUserAction = async(data) => {
-
-  try {
-
-    const response = await Axios({
-      ...ApiBucket.updateUser,
+      ...ApiBucket.updateUserDetail,
       data
     })
 
@@ -150,7 +133,41 @@ export const uploadSingleImage = async(folder, fieldName, file, public_id= "") =
 
 }
 
-// bloch or unblock user
+// admin side
+export const addUserAction = async(data) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.addUser,
+      data
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
+export const updateUserAction = async(data) => {
+
+  try {
+
+    const response = await Axios({
+      ...ApiBucket.updateUser,
+      data
+    })
+
+    return response;
+    
+  } catch (error) {
+    throw new Error(error?.response?.data?.message || error?.message)
+  }
+
+}
+
 export const blockUserAction = async(user_id, mode) => {
 
   try {

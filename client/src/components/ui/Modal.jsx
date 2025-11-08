@@ -2,27 +2,31 @@ import React from 'react'
 import { createPortal } from "react-dom";
 import { motion } from 'motion/react'
 
-const Modal = ({ isOpen, children, modalContentClass = "" }) => {
+const Modal = ({ isOpen, children, modalBackDropClass, modalContentClass }) => {
   
   if (!isOpen) return null;
   
   return createPortal(
-    <ModalContent children={children} modalContentClass={modalContentClass} />,
+    <ModalContent 
+      children={children}
+      modalBackDropClass={modalBackDropClass}
+      modalContentClass={modalContentClass} 
+    />,
     document.getElementById('portal')
   )
 
 }
 
-const ModalContent = ({ children, modalContentClass }) => {
+const ModalContent = ({ children, modalBackDropClass, modalContentClass }) => {
   return (
     <motion.div 
-      className='modal-backdrop'
+      className={`modal-backdrop ${modalBackDropClass || ''}`}
       initial = {{opacity: 0, backdropFilter: "blur(0)"}}
       animate = {{opacity: 1, backdropFilter: "blur(4px)"}}
       exit={{opacity: 0, backdropFilter: "blur(0)"}}
       transition={{ duration: 0.3 }}
       >
-      <motion.div className={`modal-content items-center ${modalContentClass}`}
+      <motion.div className={`modal-content items-center ${modalContentClass || ''}`}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -30 }}

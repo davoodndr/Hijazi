@@ -53,7 +53,7 @@ export const addNewAddress = async(req, res) => {
     delete address.updatedAt;
     delete address.__v;
 
-    /* setup if deleted is default */
+    /* setup if is default */
     if(is_default){
       await Promise.all([
         User.findByIdAndUpdate(user_id,

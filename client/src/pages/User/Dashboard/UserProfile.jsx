@@ -5,12 +5,11 @@ import CropperModal from '../../../components/ui/CropperModal';
 import { IoImage } from 'react-icons/io5';
 import { finalizeValues, imageFileToSrc, isEmailValid } from '../../../utils/Utils';
 import AxiosToast from '../../../utils/AxiosToast';
-import { Axios } from '../../../utils/AxiosSetup';
-import ApiBucket from '../../../services/ApiBucket';
 import { setUser } from '../../../store/slices/UsersSlice';
 import { setLoading } from '../../../store/slices/CommonSlices';
 import { FaCircleCheck } from 'react-icons/fa6';
 import { IoMdCall } from "react-icons/io";
+import { useUpdateUserMutation } from '../../../services/UserMutationHooks';
 
 function UserProfile() {
 
@@ -22,6 +21,8 @@ function UserProfile() {
   const [data, setData] = useState({
     username: '', fullname: '', gender: '', mobile: '', email:'', password: '', confirm: ''
   })
+
+  const updateUserMutation = useUpdateUserMutation();
 
   useEffect(() => {
     setAvatarPreview(user?.avatar?.url);
@@ -72,20 +73,22 @@ function UserProfile() {
       }
       if(avatar && Object.values(avatar).length){
         formData.append('image', avatar.file)
-        formData.append('public_id', user?.avatar?.public_id || finalData?.username)
       }
 
       try {
 
         dispatch(setLoading(true))
         
-        const response = await Axios({
-          ...ApiBucket.updateUserDetail,
-          data: formData
-        })
+        const response = await updateUserMutation.mutateAsync(
+          { data: formData },
+          {
+            onError: (err) => AxiosToast(err)
+          }
+        )
 
-        if(response.data.success){
-          dispatch(setUser({user: response?.data?.user}));
+        if(response?.data?.success){
+          const updatedUser = response?.data?.user;
+          dispatch(setUser(updatedUser));
           AxiosToast(response, false)
         }
 
@@ -141,7 +144,6 @@ function UserProfile() {
           <CropperModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            dimen={{width: 450, height:320}}
             title="Crop Image"
             subTitle="Crop images as per the required dimention"
             headerIcon={IoImage}
@@ -152,9 +154,9 @@ function UserProfile() {
               validFormats: ['jpg','jpeg','png','bmp','webp'],
               outPutDimen: 300,
               thumbDimen: 200,
-              containerClass: 'flex flex-col items-center w-full h-full',
+              containerClass: 'flex flex-col items-center w-130 h-full',
               cropperClass: 'flex w-60 !h-60 border border-gray-300 rounded-3xl overflow-hidden',
-              buttonsClass: 'flex flex-col space-y-2 -right-12 top-1/2 -translate-y-1/2'
+              buttonsClass: 'flex justify-center space-x-2 mt-2'
             }}
           />
 
@@ -260,7 +262,7 @@ function UserProfile() {
 
           <div>
             <label htmlFor="">Gender</label>
-            <div className='flex border border-neutral-300 h-[40px] px-3.5 
+            <div className='flex border border-neutral-300 h-10 px-3.5 
               rounded-input-border space-x-4'>
               <div className='capitalize inline-flex items-center space-x-1'>
                 <input 
@@ -272,7 +274,7 @@ function UserProfile() {
                   placeholder='Confirm Password'
                   id='male'
                 />
-                <label className='cursor-pointer !text-sm' htmlFor='male'>Male</label>
+                <label className='cursor-pointer text-sm!' htmlFor='male'>Male</label>
               </div>
               <div className='capitalize inline-flex items-center space-x-1'>
                 <input 
@@ -284,7 +286,7 @@ function UserProfile() {
                   placeholder='Confirm Password'
                   id='female'
                 />
-                <label className='cursor-pointer !text-sm' htmlFor='female'>Female</label>
+                <label className='cursor-pointer text-sm!' htmlFor='female'>Female</label>
               </div>
             </div>
           </div>
@@ -293,7 +295,7 @@ function UserProfile() {
           <div></div>
 
           <div className='text-end'>
-            <button className='!px-5' type='submit'>Save Changes</button>
+            <button className='px-5!' type='submit'>Save Changes</button>
           </div>
 
         </form>

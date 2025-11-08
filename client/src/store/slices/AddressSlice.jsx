@@ -37,6 +37,15 @@ const addressSlice = createSlice({
       state.addressList = action?.payload;
       state.error = null;
     },
+    addAddress: (state, action) => {
+      const address = action?.payload;
+      let newList = state.addressList;
+      if(address?.is_default){
+        newList = state.addressList.map(el => ({...el, is_default:false}));
+      }
+      state.addressList = [address, ...newList]
+      state.error = null;
+    },
     makeAddressDefault: (state, action) => {
       const { updated, old } = action.payload;
       state.addressList = state.addressList.map(el => {
@@ -97,6 +106,6 @@ const addressSlice = createSlice({
   } */
 })
 
-export const { setAddressList, makeAddressDefault, clearAddressList, clearError } = addressSlice.actions;
+export const { setAddressList, addAddress, makeAddressDefault, clearAddressList, clearError } = addressSlice.actions;
 
 export default addressSlice.reducer;

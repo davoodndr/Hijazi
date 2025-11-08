@@ -113,7 +113,12 @@ export const userLogin = async(req, res) => {
         activeRole: role
       },
       { new: true}
-    ).select('-password -refresh_token')
+    )
+    .select("username fullname activeRole avatar email mobile roles default_address")
+    .populate({
+      path: "default_address",
+      select: "-user_id -updatedAt -createdAt -__v"
+    })
     
     return responseMessage(res, 200, true, 'Login Successfull',{
       accessToken,
@@ -249,7 +254,6 @@ export const updateUserDetail = async(req, res) => {
 
   const { username, email, public_id } = req.body;
   const { files, user_id } = req;
-
   try {
 
     if(!username || !email){
@@ -257,6 +261,8 @@ export const updateUserDetail = async(req, res) => {
     }
 
     let avatar = null;
+
+    const file_id = public_id || user_id;
 
     if(files && files.length){
 

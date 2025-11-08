@@ -1,7 +1,21 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { addFundAction, addToCartAction, addToWishlistAction, placeOrderAction, removeFromCartAction, removeFromWishlistAction, withdrawFundAction } from './ApiActions';
+import { addFundAction, addNewAddressAction, addToCartAction, addToWishlistAction, placeOrderAction, removeFromCartAction, removeFromWishlistAction, updateUserDetailAction, withdrawFundAction } from './ApiActions';
 import { getAddressList, getCart, getOrdersList, getWallet, getWishlist } from './FetchDatas';
 
+// user
+export const useUpdateUserMutation = ()=> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async({ data }) => {
+      const response = await updateUserDetailAction(data);
+      return response;
+    },
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(['user'], updatedUser);
+    }
+  })
+}
 
 //cart
 export const useFetchCartMutation = ()=> {
@@ -116,6 +130,23 @@ export const useFetchAddressMutation = ()=> {
     })
     return queryClient.getQueryData(['addressList']);
   }
+}
+
+export const useAddAddressMutation = ()=> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async({ data })=> {
+      const response = await addNewAddressAction(data);
+      return response;
+    },
+    onSuccess: (newAddress) => {
+      queryClient.setQueryData(['addressList'], (old) => {
+        if(!old) return [newAddress];
+        return [newAddress, ...old];
+      })
+    }
+  })
 }
 
 // wallet
