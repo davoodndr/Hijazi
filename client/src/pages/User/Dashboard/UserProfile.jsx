@@ -18,6 +18,7 @@ function UserProfile() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [avatar, setAvatar] = useState(null)
   const [avatarPreview, setAvatarPreview] = useState(null)
+  const [defaultAddress, setDefaultAddress] = useState(null)
   const [data, setData] = useState({
     username: '', fullname: '', gender: '', mobile: '', email:'', password: '', confirm: ''
   })
@@ -33,6 +34,13 @@ function UserProfile() {
       mobile: user?.mobile, 
       email:user?.email
     })
+
+    const address_data = Object.keys(user?.default_address)
+      .filter(key => key !== '_id' && key !== 'is_default' && key !== 'mobile' && key !== 'createdAt')
+      .map(key => user?.default_address[key]).join(', ')
+
+    setDefaultAddress(address_data)
+
   },[user])
 
   const handleChange = (e) => {
@@ -169,11 +177,7 @@ function UserProfile() {
               <span>Default Address</span>
               <FaCircleCheck className='text-md' />
             </div>
-            <span className='capitalize'>
-              {Object.keys(user?.default_address)
-              .filter(key => key !== '_id' && key !== 'is_default' && key !== 'mobile')
-              .map(key => user?.default_address[key]).join(', ')}
-            </span>
+            <span className='capitalize'>{defaultAddress}</span>
             {user?.default_address?.mobile && 
               <p className='capitalize flex items-center space-x-2'>
                 <IoMdCall className='text-lg' />

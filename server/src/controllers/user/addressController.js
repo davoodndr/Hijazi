@@ -10,16 +10,8 @@ export const getAddressList = async(req, res) => {
   
   try {
     
-    let addressList = await Address.find({user_id},{
-      user_id: 0,
-      updatedAt: 0,
-      createdAt: 0,
-      __v:0
-    });
-
-    if(!addressList || !addressList.length){
-      return responseMessage(res, 400, false, "No address exists")
-    }
+    let addressList = await Address.find({user_id})
+    .select('-user_id -updatedAt -__v');
 
     return responseMessage(res, 200, true, "",{addressList})
 
@@ -36,7 +28,7 @@ export const addNewAddress = async(req, res) => {
   try {
 
     const validate = Object.keys(req.body).filter(key => key !== 'is_default')
-    .every(key => req.body[key]);
+    .every(key => req.body[key] !== undefined && req.body[key] !== null && req.body[key] !== '');
 
     if(!validate){
       return responseMessage(res, 400, false, "Please fill all mandatory fields");
@@ -49,7 +41,6 @@ export const addNewAddress = async(req, res) => {
     let address = await Address.create(data);
     address = address.toObject();
     delete address.user_id;
-    delete address.createdAt;
     delete address.updatedAt;
     delete address.__v;
 
@@ -60,13 +51,66 @@ export const addNewAddress = async(req, res) => {
           { default_address: address._id }
         ),
         Address.updateOne(
-          {is_default: true},
+          {user_id, is_default: true},
           {$set: { is_default: false }}
         )
       ])
     }
     
     return responseMessage(res, 201, true, "New address created successfully",{address})
+    
+  } catch (error) {
+    console.log('addNewAddress',error)
+    return responseMessage(res, 500, false, error.message || error)
+  }
+}
+
+export const updateAddress = async(req, res) => {
+  const { user_id } = req;
+  const { address_id, is_default } = req.body;
+  try {
+
+    const validate = Object.keys(req.body).filter(key => key !== 'is_default')
+    .every(key => req.body[key] !== undefined && req.body[key] !== null && req.body[key] !== '');
+
+    if(!validate){
+      return responseMessage(res, 400, false, "Please fill all mandatory fields");
+    }
+
+    const address = await Address.findByIdAndUpdate(
+      address_id,
+      req.body,
+      { new: true }
+    ).select('-user_id -updatedAt -__v');
+
+    if(!address){
+      return responseMessage(res, 400, false, "Address does not exists!");
+    }
+
+    /* setup if is default */
+    if(is_default){
+      await Promise.all([
+        User.findByIdAndUpdate(user_id,
+          { default_address: address._id }
+        ),
+        Address.updateOne(
+          {user_id, is_default: true},
+          {$set: { is_default: false }}
+        )
+      ])
+    }
+
+    // If no address has is_default set to true, set the first address as default
+    const defaultAddressCount = await Address.countDocuments({ user_id, is_default: true });
+
+    if (defaultAddressCount === 0) {
+      const firstAddress = await Address.findOne({ user_id }).sort({ _id: 1 });
+      if (firstAddress) {
+        await Address.findByIdAndUpdate(firstAddress._id, { $set: { is_default: true } });
+      }
+    }
+    
+    return responseMessage(res, 200, true, "New address updated successfully",{address})
     
   } catch (error) {
     console.log('addNewAddress',error)
@@ -97,6 +141,7 @@ export const makeAddressDefault = async(req, res) => {
         { is_default: false },
         { new: true }
       )
+      .select('-user_id -updatedAt -__v')
     }
 
     let updated = await Address.findByIdAndUpdate(
@@ -104,6 +149,7 @@ export const makeAddressDefault = async(req, res) => {
       { is_default: true },
       { new: true }
     )
+    .select('-user_id -updatedAt -__v')
 
     await User.findByIdAndUpdate(user_id,
       { default_address: updated._id }
@@ -111,18 +157,6 @@ export const makeAddressDefault = async(req, res) => {
 
     await session.commitTransaction();
     session.endSession();
-
-    old = old.toObject();
-    delete old.user_id
-    delete old.updatedAt
-    delete old.createdAt
-    delete old.__v
-
-    updated = updated.toObject();
-    delete updated.user_id
-    delete updated.updatedAt
-    delete updated.createdAt
-    delete updated.__v
 
     return responseMessage(res, 200, true, "Changed default address successfully",{updated, old})
 
@@ -140,7 +174,7 @@ export const makeAddressDefault = async(req, res) => {
 export const removeAddress = async(req, res) => {
 
   const { user_id } = req;
-  const { address_id } = req.body
+  const { address_id } = req.query
 
   try {
 
@@ -173,7 +207,7 @@ export const removeAddress = async(req, res) => {
     }
 
     return responseMessage(res, 200, true, "Address deleted successfully", 
-      { removed: address_id, newDefault: newDefault?._id?.toString() }
+      { removed_id: address_id, newDefault_id: newDefault?._id?.toString() }
     )
     
   } catch (error) {

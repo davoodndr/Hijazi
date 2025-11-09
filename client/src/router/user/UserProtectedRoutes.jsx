@@ -1,5 +1,5 @@
 import React from 'react'
-import { Navigate, Outlet, useLocation } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 import LoadingFallOff from '../../components/ui/LoadingFallOff';
 import { useSelector } from 'react-redux';
 
@@ -9,7 +9,7 @@ const UserProtectedRoutes = () => {
   
   if(isLoading) return <LoadingFallOff />
 
-  if(!user?.roles.includes('user') || user?.status === 'blocked'){
+  if(!user?.roles?.includes('user') || user?.status === 'blocked'){
     return <Navigate to={`/login`} replace />
   }
   

@@ -4,50 +4,59 @@ import { MdOutlineAddLocationAlt } from "react-icons/md";
 import { FaCircleCheck } from "react-icons/fa6";
 import AxiosToast from '../../../utils/AxiosToast';
 import { clearError, makeAddressDefault, removeAddress } from '../../../store/slices/AddressSlice';
-import { Axios } from '../../../utils/AxiosSetup';
-import ApiBucket from '../../../services/ApiBucket';
 import { setUser } from '../../../store/slices/UsersSlice';
 import toast from 'react-hot-toast';
 import AddressModal from '../../../components/user/AddressModal';
 import Alert from '../../../components/ui/Alert';
+import { useDefaultAddressMutation, useRemoveAddressMutation } from '../../../services/UserMutationHooks';
 
 function Addresses() {
 
   const dispatch = useDispatch();
-  const { addressList, error } = useSelector(state => state.address);
+  const { addressList:list, error } = useSelector(state => state.address);
   const { user } = useSelector(state => state.user);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editAddress, setEditAddress] = useState(null);
+  const [addressList, setAddressList] = useState([]);
+  const defaultAddressMutation = useDefaultAddressMutation();
+  const removeAddressMutation = useRemoveAddressMutation();
 
   useEffect(() => {
     if(error){
       toast.error(error, {position: 'top-center'});
       dispatch(clearError());
     }
-  },[error])
-
+    const sorted = [...list]?.sort((a,b)=> b.createdAt.localeCompare(a.createdAt));
+    setAddressList(sorted)
+  },[error, list])
 
   const handleMakeAddressDefault = async(id) => {
 
-    const old_default = addressList?.find(el => el.is_default === true)._id;
+    const old_default = addressList?.find(el => el?.is_default === true)?._id || addressList[0]?._id;
 
     try {
-        
-      const response = await Axios({
-        ...ApiBucket.makeAddressDefault,
-        data: { 
-          address_id: id,
-          old_default
+      
+      const data = { 
+        address_id: id,
+        old_default
+      }
+
+      const response = await defaultAddressMutation.mutateAsync(
+        { data },
+        {
+          onError: (err) => AxiosToast(err)
         }
-      })
+      )
   
-      if(response.data.success){
-        dispatch(makeAddressDefault(response.data))
+      if(response?.data?.success){
+        
+        dispatch(makeAddressDefault(response?.data))
 
         const updatedUser = {
           ...user,
-          default_address: response.data.updated
+          default_address: response?.data?.updated
         }
-        dispatch(setUser({user: updatedUser}))
+        dispatch(setUser(updatedUser))
         AxiosToast(response, false);
       }
   
@@ -61,35 +70,46 @@ function Addresses() {
     Alert({
       title: 'Are you sure?',
       icon: 'question',
-      html: '<span class="text-red-500">You cannot revert back this action</span>',
+      html: 'You cannot revert back this action',
       showCancelButton: true,
       confirmButtonText: 'Ok, delete it',
-      iconColor: '!text-red-500',
       customClass: {
-        confirmButton: '!bg-red-500',
-        title: '!text-red-500',
-        icon: '!text-red-500',
+        confirmButton: 'bg-red-500!',
+        title: 'text-red-500!',
+        icon: 'text-red-500! border-red-500!',
       },
     }).then(async(res) => {
       if(res.isConfirmed){
-        const response = await dispatch(removeAddress({id}));
 
-        if(response?.payload?.success){
-          toast.success(response?.payload?.message, { position: 'top-center' })
+        const response = await removeAddressMutation.mutateAsync(
+          { address_id: id },
+          {
+            onError: (err) => AxiosToast(err)
+          }
+        );
+
+        if(response?.data?.success){
+          dispatch(removeAddress(response?.data))
+          AxiosToast(response, false)
         }
+
       }
     })
 
   }
 
   return (
-    <div className='h-full flex-grow p-5 space-y-5'>
+    <div className='h-full grow p-5 space-y-5'>
       {/* header */}
-      <div className='flex space-x-3'>
+      <div className='flex items-center space-x-3'>
         <h3 className='text-xl'>Address List</h3>
-        <p className='font-semibold text-[16px] bg-primary-400 text-white
-          inline-flex px-1.75 rounded-full'
-        >{addressList?.length || ''}</p>
+        {addressList?.length > 0 && (
+          <p className='font-semibold text-sm bg-primary-400 text-white
+            inline-flex items-center justify-center px-1 rounded-full min-w-5 min-h-2 w-fit h-fit'
+          >
+            <span>{addressList?.length || ''}</span>
+          </p>
+        )}
       </div>
 
       {/* list */}
@@ -121,7 +141,7 @@ function Addresses() {
                   className='inline-flex group-hover:text-primary-400 p-3 capitalize'>
                   <span>
                     {Object.keys(address)
-                    .filter(key => key !== '_id' && key !== 'is_default' && key !== 'mobile')
+                    .filter(key => key !== '_id' && key !== 'is_default' && key !== 'mobile' && key !== 'createdAt')
                     .map(key => address[key]).join(', ')}
                   </span>
                 </div>
@@ -136,7 +156,10 @@ function Addresses() {
                     >Default</span>
                   }
                   <span
-                    /* onClick={() => handleMakeAddressDefault(address._id)} */
+                    onClick={() => {
+                      setEditAddress(address?._id);
+                      setIsAddModalOpen(true);
+                    }}
                     className='cursor-pointer
                     smotth hover:text-sky-500 hover:underline'
                   >Edit</span>
@@ -155,7 +178,8 @@ function Addresses() {
           onClick={() => setIsAddModalOpen(true)}
           className='flex items-center justify-center min-h-40 
           border border-gray-300 rounded-xl cursor-pointer smooth
-          hover:border-primary-300 hover:bg-primary-25 group'>
+          hover:border-primary-300 hover:bg-primary-25 group'
+        >
           <div className='inline-flex flex-col items-center group-hover:text-primary-400'>
             <MdOutlineAddLocationAlt className='text-2xl'/>
             <span>Add new</span>
@@ -164,11 +188,16 @@ function Addresses() {
 
       </div>
       <AddressModal
+        edit_address={editAddress}
         isOpen={isAddModalOpen}
         onClose={() => {
           setIsAddModalOpen(false);
+          setEditAddress(null)
         }}
-        onChange={() => setIsAddModalOpen(false)}
+        onChange={() => {
+          setIsAddModalOpen(false);
+          setEditAddress(null)
+        }}
       />
     </div>
   )

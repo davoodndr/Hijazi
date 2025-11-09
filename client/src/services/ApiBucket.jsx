@@ -347,13 +347,17 @@ const ApiBucket = {
     url: '/api/user/add-new-address',
     method: 'post'
   },
+  updateAddress: {
+    url: '/api/user/update-address',
+    method: 'put'
+  },
   makeAddressDefault: {
     url: '/api/user/make-address-default',
     method: 'patch'
   },
   removeAddress: {
     url: '/api/user/remove-address',
-    method: 'put'
+    method: 'delete'
   },
 
   /* orders */

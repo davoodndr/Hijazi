@@ -12,23 +12,51 @@ import { IoIosArrowDown } from "react-icons/io";
 import { TbLocationPlus } from "react-icons/tb";
 import { useDispatch, useSelector } from 'react-redux'
 import { isValidDatas } from '../../utils/Utils'
-import { addAddress } from '../../store/slices/AddressSlice'
+import { addAddress, updateAddress } from '../../store/slices/AddressSlice'
 import toast from 'react-hot-toast'
-import { useAddAddressMutation } from '../../services/UserMutationHooks'
+import { useAddAddressMutation, useUpdateAddressMutation } from '../../services/UserMutationHooks'
 import AxiosToast from '../../utils/AxiosToast'
 
-function AddressModalComponent({isOpen, onChange, onClose, showSelector = false}) {
+function AddressModalComponent({edit_address, isOpen, onChange, onClose, showSelector = false}) {
 
   const dispatch = useDispatch();
-  const { addressList } = useSelector(state => state.address);
+  const { addressList:list } = useSelector(state => state.address);
   const [expanded, setExpanded] = useState(null);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [addressList, setAddressList] = useState([]);
+  const [editAddress, setEditAddress] = useState(null);
   const [data, setData] = useState({
     name: '', mobile: '', address_line: '', landmark: '', city: '', state: '',
     pincode: '', is_default: false
   });
   const addAddressMutation = useAddAddressMutation();
+  const updateAddressMutation = useUpdateAddressMutation();
+
+  useEffect(() => {
+    const sorted = [...list]?.sort((a,b)=> b.createdAt.localeCompare(a.createdAt));
+    setAddressList(sorted)
+  },[list])
+
+  useEffect(()=> {
+    if(isOpen && edit_address){
+      const add = list?.find(el => el?._id === edit_address);
+      if(add) {
+        const editData = {
+          name: add?.name,
+          mobile: add?.mobile,
+          address_line: add?.address_line,
+          landmark: add?.landmark,
+          city: add?.city,
+          state: add?.state,
+          pincode: add?.pincode,
+          is_default: add?.is_default
+        }
+
+        setData(editData)
+      }
+    }
+  },[edit_address, list, isOpen])
 
   useEffect(() => {
     if(showSelector) setExpanded("list");
@@ -58,16 +86,33 @@ function AddressModalComponent({isOpen, onChange, onClose, showSelector = false}
       if(validate){
         setIsLoading(true);
         
-        const response = await addAddressMutation.mutateAsync(
-          { data },
-          {
-            onError: (err)=> AxiosToast(err)
-          }
-        )
+        let response = null;
+        
+        if(edit_address){
+
+          response = await updateAddressMutation.mutateAsync(
+            { data: { ...data, address_id: edit_address } },
+            {
+              onError: (err)=> AxiosToast(err)
+            }
+          )
+
+        }else{
+          response = await addAddressMutation.mutateAsync(
+            { data },
+            {
+              onError: (err)=> AxiosToast(err)
+            }
+          )
+        }
 
         if(response?.data?.success){
           const newAddress = response?.data?.address;
-          dispatch(addAddress(newAddress))
+          if(edit_address){
+            dispatch(updateAddress(newAddress))
+          }else{
+            dispatch(addAddress(newAddress))
+          }
           AxiosToast(response, false);
         }
         
@@ -77,8 +122,11 @@ function AddressModalComponent({isOpen, onChange, onClose, showSelector = false}
         })
         setExpanded(showSelector ? 'list' : 'form')
         setIsLoading(false);
-        setExpanded('list')
-        setSelectedAddress(response?.data?.address?._id)
+        if(showSelector){
+          setSelectedAddress(response?.data?.address?._id)
+        }else{
+          onChange();
+        }
       }else{
         toast.error("Please fill all mandatories",{position: 'top-center'})
       }
@@ -90,6 +138,10 @@ function AddressModalComponent({isOpen, onChange, onClose, showSelector = false}
 
   const handleClose = ()=>{
     setExpanded(showSelector ? 'list' : 'form')
+    setData({
+      name: '', mobile: '', address_line: '', landmark: '', city: '', state: '',
+      pincode: '', is_default: false
+    })
     onClose();
   }
 
@@ -103,9 +155,12 @@ function AddressModalComponent({isOpen, onChange, onClose, showSelector = false}
               <TbCategoryPlus size={20} />
             </div>
             <div className="flex-1 flex flex-col leading-3.5">
-              <h1 className='text-lg'>{expanded === 'form' ? 'Create' : 'Select'} Address</h1>
+              <h1 className='text-lg'>{expanded === 'form' ? (edit_address ? 'Edit' :'Create') : 'Select'} Address</h1>
               {expanded === 'form' ?
-               (<p className='text-xs'>Fill necessary fields for your address</p>)
+                edit_address ? 
+                (<p className='text-xs'>Change fields to update address</p>)
+                :
+                (<p className='text-xs'>Fill necessary fields for your address</p>)
                :
                (<p className='text-xs'>Select an address from the list</p>)
               }
@@ -215,7 +270,7 @@ function AddressModalComponent({isOpen, onChange, onClose, showSelector = false}
                 <h3 className={clsx('group-hover:text-black! smooth',
                   expanded === 'form' ? 'text-primary-300!' : 'text-gray-400!'
                 )}
-                >New</h3>
+                >{edit_address ? 'Edit' : 'New'}</h3>
                 <IoIosArrowDown className={clsx(
                   expanded === 'form' && 'rotate-180'
                 )} />
@@ -238,21 +293,21 @@ function AddressModalComponent({isOpen, onChange, onClose, showSelector = false}
                       <input 
                         type="text"
                         name='name'
-                        value={data.name}
+                        value={data?.name ?? ''}
                         onChange={handleChange}
                         placeholder='full name' />
 
                       <input 
                         type="text"
                         name='mobile'
-                        value={data.mobile}
+                        value={data?.mobile ?? ''}
                         onChange={handleChange}
                         placeholder='mobile number' />
 
                       <input 
                         type="text"
                         name='address_line'
-                        value={data.address_line}
+                        value={data?.address_line ?? ''}
                         onChange={handleChange}
                         className='col-span-2'
                         placeholder='address line' />
@@ -260,25 +315,31 @@ function AddressModalComponent({isOpen, onChange, onClose, showSelector = false}
                       <input 
                         type="text"
                         name='landmark'
-                        value={data.landmark}
+                        value={data?.landmark ?? ''}
                         onChange={handleChange} 
                         placeholder='@eg: near apex bridge' />
 
                       <input 
                         type="text"
                         name='city'
-                        value={data.city}
+                        value={data?.city ?? ''}
                         onChange={handleChange}  
                         placeholder='city / town / district' />
 
                       <input 
                         type="text"
                         name='pincode'
-                        value={data.pincode}
+                        value={data?.pincode ?? ''}
                         onChange={handleChange} 
                         placeholder='6 digit pincode' />
 
                       <CustomSelect
+                        value={
+                          (() => {
+                          const state = states?.find(el => el?.state === data?.state)
+                          return { value: state?.code, label: state?.state }
+                          })()
+                        }
                         searchable={true}
                         onChange={(item) => {
                           setData(prev => ({...prev, state: item?.label || ''}))
@@ -290,6 +351,7 @@ function AddressModalComponent({isOpen, onChange, onClose, showSelector = false}
                       <div className='flex items-center gap-x-2'>
                         <input 
                           type="checkbox"
+                          checked={data?.is_default}
                           onChange={(e) => {
                             setData(prev => ({...prev, is_default: e.target.checked}))
                           }}
@@ -320,7 +382,7 @@ function AddressModalComponent({isOpen, onChange, onClose, showSelector = false}
             <LoadingButton
               loading={isLoading}
               onClick={handleSubmit}
-              text={expanded === 'form' ? 'Create Now' : 'Add Now'}
+              text={expanded === 'form' ? (edit_address ? 'Update Now' : 'Create Now') : 'Add Now'}
               loadingText='Creating . . . . .'
               icon={<ClipLoader color="white" size={23} />}
               className={`px-4! rounded-3xl! inline-flex items-center

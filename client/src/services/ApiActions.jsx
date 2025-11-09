@@ -638,16 +638,16 @@ export const addNewAddressAction = async(data) => {
 
 }
 
-export const makeDefaultAddressAction = async(data) => {
+export const updateAddressAction = async(data) => {
 
   try {
     
     const response = await Axios({
-      ...ApiBucket.makeAddressDefault,
+      ...ApiBucket.updateAddress,
       data
     })
 
-    return response.data
+    return response
 
   } catch (error) {
 
@@ -657,16 +657,35 @@ export const makeDefaultAddressAction = async(data) => {
 
 }
 
-export const removeAddressAction = async(id) => {
+export const makeDefaultAddressAction = async(data) => {
+
+  try {
+    
+    const response = await Axios({
+      ...ApiBucket.makeAddressDefault,
+      data
+    })
+
+    return response;
+
+  } catch (error) {
+
+    console.log(error)
+    throw new Error(error?.response?.data?.message);
+  }
+
+}
+
+export const removeAddressAction = async(address_id) => {
 
   try {
     
     const response = await Axios({
       ...ApiBucket.removeAddress,
-      data: {address_id: id}
+      params: { address_id }
     })
 
-    return response.data
+    return response;
 
   } catch (error) {
     console.log(error)

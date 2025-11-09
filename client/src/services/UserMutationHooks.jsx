@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { addFundAction, addNewAddressAction, addToCartAction, addToWishlistAction, placeOrderAction, removeFromCartAction, removeFromWishlistAction, updateUserDetailAction, withdrawFundAction } from './ApiActions';
+import { addFundAction, addNewAddressAction, addToCartAction, addToWishlistAction, makeDefaultAddressAction, placeOrderAction, removeAddressAction, removeFromCartAction, removeFromWishlistAction, updateAddressAction, updateUserDetailAction, withdrawFundAction } from './ApiActions';
 import { getAddressList, getCart, getOrdersList, getWallet, getWishlist } from './FetchDatas';
 
 // user
@@ -73,7 +73,6 @@ export const useRemoveFromCartMutation = ()=> {
   })
 }
 
-
 //wishlist
 export const useFetchWishlistMutation = ()=> {
   const queryClient = useQueryClient();
@@ -145,6 +144,63 @@ export const useAddAddressMutation = ()=> {
         if(!old) return [newAddress];
         return [newAddress, ...old];
       })
+    }
+  })
+}
+
+export const useUpdateAddressMutation = ()=> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async({ data })=> {
+      const response = await updateAddressAction(data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['addressList']);
+    }
+  })
+}
+
+export const useDefaultAddressMutation = ()=> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async({ data })=> {
+      const response = await makeDefaultAddressAction(data);
+      return response;
+    },
+    onSuccess: (response) => {
+      queryClient.setQueryData(['addressList'], (oldData) => {
+        
+        if(!oldData) return [];
+
+        const { updated, old } = response?.data;
+
+        return oldData?.map(el => {
+          if(el?._id === updated?._id){
+            return updated;
+          }else if(el?._id === old?._id){
+            return old;
+          }else{
+            return el;
+          }
+        })
+      })
+    }
+  })
+}
+
+export const useRemoveAddressMutation = ()=> {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async({ address_id })=> {
+      const response = await removeAddressAction(address_id);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['addressList'])
     }
   })
 }
